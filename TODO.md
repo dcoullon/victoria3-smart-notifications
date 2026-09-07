@@ -467,38 +467,48 @@ four are" so the list is never empty on first open.
       (`watchlist_is_great_power_check_sgui`, `country_rank >=
       rank_value:great_power`), browses anyone currently a Great Power
       regardless of watched status, exactly per the original spec.
-- [~] **Neighbors / Rivals — SIMPLIFIED, not a live check.** The original
-      spec wanted these to browse "anyone currently qualifying," but a
-      live check needs comparing each candidate country against **the
-      player specifically**, and there's no confirmed-safe way to
-      reference the player from inside a per-row scripted_gui check (see
-      [docs/engine-notes.md § No confirmed way to reference "the player" as a GuiScope root](docs/engine-notes.md)
-      — didn't guess it after two bugs already came from unverified GUI
-      assumptions this same week). These two sections instead show
-      **countries currently flagged** via that category
-      (`watchlist_is_flagged_neighbor_check_sgui`/
-      `watchlist_is_flagged_rival_check_sgui`) — real and correct for
-      anyone flagged at game start or added manually, but won't surface a
-      newly-adjacent country that was never flagged. Revisit if a
-      confirmed player-reference pattern turns up.
-- [~] **"Add a Country" (was "Manually Added") — SIMPLIFIED, no filter at
-      all.** No search box exists yet, so filtering this section down to
-      just `watched_manually` countries would remove the only way to add
-      a brand-new country that isn't already a Great Power. Shows every
-      country in the world, unfiltered, so you can scroll and check any
-      one — the same behavior the very first working test already
-      confirmed, just now living under its own sub-tab.
-- [ ] **Bulk-select/deselect buttons — NOT built.** Per the same
-      player-reference gap above: a bulk action ("flag everyone currently
-      qualifying") needs to run with the player as root, and no confirmed
-      way to build that GuiScope from a plain button click (not tied to
-      any specific row) was found either. The game-start population in
-      [00_smart_notifications_on_actions.txt](common/on_actions/00_smart_notifications_on_actions.txt)
-      still does this correctly once, at campaign start, via real script
-      context (no GUI involved there) — it's specifically *re-running*
-      that bulk action later from the UI that's blocked.
-- [ ] **Search box for "Add a Country"** — still not built, same as
-      before.
+- [x] **Neighbors / Rivals — UPGRADED 2026-09-07 to true live checks,
+      the original spec.** The "no confirmed way to reference the
+      player" blocker was real for the *specific* technique tried
+      (passing the player in as a GuiScope value), but not for the
+      problem itself — found a different, fully-confirmed way around it:
+      `any_country = { is_player = yes <triggers using root> }` locates
+      the player from *inside* the trigger block instead of needing it
+      passed in from the GUI side (confirmed real vanilla idiom — see
+      [docs/engine-notes.md § No confirmed way to pass the player in as a GuiScope AddScope value — RESOLVED](docs/engine-notes.md)).
+      `watchlist_is_neighbor_check_sgui`/`watchlist_is_rival_check_sgui`
+      now browse "anyone currently adjacent/rivaled," not just previously
+      flagged countries. **Not yet confirmed in-game** — this replaces
+      the flag-based version the user found empty in their v0.22 test
+      (which was empty for a real, boring reason: this save's game-start
+      hook never ran for it, so no flags had ever been set — the live
+      check sidesteps that dependency entirely going forward).
+- [x] **Bulk-select/deselect buttons — BUILT 2026-09-07**, one Select
+      All / Deselect All pair per category (Great Powers/Neighbors/
+      Rivals), shown under the sub-nav row only for the active category.
+      Resolved via a *different* confirmed technique than the live-check
+      fix above: binding the button's container to
+      `datacontext = "[GetMetaPlayer.GetPlayedOrObservedCountry]"` (a
+      real vanilla accessor, used identically in `market_panel.gui`/
+      `right_click_menu.gui`/`ingame_hud.gui`) makes `Country.MakeScope`
+      inside it resolve to the player, so the bulk SGUIs
+      (`watchlist_bulk_select_*_sgui`/`watchlist_bulk_deselect_*_sgui`,
+      `common/scripted_guis/watchlist_sgui.txt`) run with root = player
+      directly — same `every_country`/`every_rival_country` shapes
+      already proven in the game-start on_action. Deselect clears only
+      that category's own flag, per the multi-flag data model. **Not yet
+      confirmed in-game.**
+- [~] **"Add a Country" — deliberately still unfiltered; a real search
+      box was investigated and found genuinely blocked, not just
+      unbuilt.** Vanilla's own country search (`diplomatic_overview.gui`)
+      turns out to be backed by a `SearchBar` C++ datacontext object with
+      no equivalent accessor on `MessageSettingsWindow`, and no
+      dynamic-text substring/contains function exists anywhere in
+      vanilla to filter on typed text another way — see
+      [docs/engine-notes.md § No generic substring-search filter available for a custom country list](docs/engine-notes.md).
+      Shows every country in the world, unfiltered, so you can scroll and
+      check any one — not a stopgap, the actual intended design until a
+      real mechanism turns up.
 - [ ] **v2 / stretch, only if v1 proves too broad in practice** —
       restrict the manual-add search list to countries within the
       player's declared strategic interest regions

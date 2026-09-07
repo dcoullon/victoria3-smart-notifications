@@ -299,29 +299,87 @@ construction. If a display-only check and an action need the same
 underlying condition, that's a sign they need to be two separate SGUIs,
 not one.
 
-## No confirmed way to reference "the player" as a GuiScope root
+## No confirmed way to pass the player in as a GuiScope AddScope value — RESOLVED via two different techniques, not this one
 
 Investigated 2026-09-07 while scoping the Watchlist category bulk-select
-buttons (see TODO.md Phase 3). A bulk action ("flag every current Great
-Power/Neighbor/Rival") needs its effect to run with the player's country
-as root, so `every_country = { limit = { is_adjacent_to_country = root }
-... }` compares against the player rather than some arbitrary scope.
-Looked for a way to build that GuiScope (`GetScriptedGui('...').Execute(
-GuiScope.SetRoot(<something>).End)`) from a plain button click, not tied
-to any specific country's row. `GetPlayer.Self` and `AccessPlayer` are
-real, pervasively-used GUI accessors, but found **zero vanilla example**
-of either being followed by `.MakeScope` or otherwise fed into
-`GuiScope.SetRoot(...)` — every confirmed `SetRoot(...)` example roots on
-a country/character *already available in that specific context*
-(`Country.MakeScope` inside a country-scoped widget, `Character.MakeScope`
-inside a character-scoped one), never "the local player" from an
-arbitrary/unrelated context. Did not guess this — same class of mistake
-that caused the `is_valid` bug and the tab-merge bug, both from
-unverified assumptions about how a GUI mechanism behaved. **Left the
-bulk-select/deselect buttons unbuilt** rather than ship another probable
-silent-failure. Revisit if a confirmed pattern for this turns up (a real
-`script_docs`-style GUI reference would resolve this cleanly, if one
-exists).
+buttons and the Neighbors/Rivals live per-row checks (see TODO.md Phase
+3). Originally looked for a way to build a GuiScope
+(`GetScriptedGui('...').Execute(GuiScope.SetRoot(<something>).End)`)
+rooted directly on the player, or to pass the player in as an extra
+`AddScope(...)` value, from a plain button click or a per-row check not
+tied to a country's own row context. `GetPlayer.Self` and `AccessPlayer`
+are real, pervasively-used GUI accessors, but found **zero vanilla
+example** of either being followed by `.MakeScope` or otherwise fed into
+`GuiScope.SetRoot(...)`/`AddScope(...)` — every confirmed `SetRoot(...)`
+example roots on a country/character *already available in that specific
+context*. That specific technique is still unconfirmed; **left unused**.
+
+**Resolved 2026-09-07 anyway, via two different confirmed techniques**
+that sidestep the whole problem instead of solving it as originally
+framed:
+
+1. **For the per-row Neighbors/Rivals live check** (comparing a row's
+   candidate country against the player, from inside a scripted_gui's
+   `is_valid`, without changing what the row's own root is): don't pass
+   the player IN at all — look the player UP from inside the trigger
+   block instead. `any_country = { is_player = yes <triggers using
+   root> }` is real, confirmed vanilla syntax (`common/scripted_buttons/
+   00_balkan_wars_buttons.txt`, `events/ethiopia.txt`,
+   `events/krakow_events.txt` all use exactly this "find the player from
+   inside a trigger" idiom), and `root` stays bound to the scripted_gui's
+   own invocation root throughout the nesting (confirmed by this same
+   project's own `common/on_actions/00_smart_notifications_on_actions.txt`,
+   which uses `is_adjacent_to_country = scope:smart_notifications_watchlist_player`
+   several nesting levels deep and still means the outer root). So
+   `watchlist_is_neighbor_check_sgui`/`watchlist_is_rival_check_sgui`
+   (`common/scripted_guis/watchlist_sgui.txt`) both use
+   `any_country = { is_player = yes ... }` internally, comparing `root`
+   (the row's country) against the located player, with zero new GUI
+   scope-passing mechanism needed. Rival comparison uses the `?=` scope
+   equality comparator inside `any_rival_country`, confirmed via
+   `common/power_bloc_names/00_power_bloc_names.txt`'s `c:FRA ?= this`.
+2. **For the bulk-select/deselect buttons** (need root itself to BE the
+   player, since these run `every_country`/`every_rival_country` effects
+   directly off root): bind the button's own container's
+   `datacontext = "[GetMetaPlayer.GetPlayedOrObservedCountry]"` in
+   `gui/message_settings.gui`. This is a real, confirmed accessor already
+   used identically in vanilla (`market_panel.gui`, `right_click_menu.gui`,
+   `ingame_hud.gui` all bind a widget's Country context to the player this
+   same way, no row/list involved) — inside that container,
+   `Country.MakeScope` IS the player, so
+   `GetScriptedGui('watchlist_bulk_select_neighbor_sgui').Execute(
+   GuiScope.SetRoot(Country.MakeScope).End)` runs with root = player
+   directly. The bulk SGUIs (`watchlist_sgui.txt`) then mirror the same
+   `every_country`/`every_rival_country` shapes already proven in the
+   game-start on_action, just re-triggerable on demand.
+
+Neither technique needed the originally-sought "player as a GuiScope
+value" mechanism at all — worth remembering as a general lesson: if a
+specific GUI mechanism looks unconfirmed/unsafe, look for a way to route
+around the need for it (a trigger-side lookup, or a `datacontext`
+rebind) before concluding the feature is blocked.
+
+## No generic substring-search filter available for a custom country list
+
+Investigated 2026-09-07 while scoping the "Add a Country" search box
+(TODO.md Phase 3). Vanilla's own country search
+(`gui/diplomatic_overview.gui`'s `search_bar`, bound to
+`DiplomaticOverviewPanel.GetCountriesSearchBar`) turned out to be backed
+by a generic `SearchBar` C++ datacontext object
+(`gui/shared/search_bar.gui`: `SearchBar.IsQueryEmpty`,
+`SearchBar.GetResults`, `SearchResult.GetName`, etc.) — real engine
+infrastructure, not something buildable from data-driven script/GUI
+alone, and `MessageSettingsWindow` (the class our Watchlist tab is built
+inside) exposes no equivalent accessor of its own the way
+`DiplomaticOverviewPanel` does. Also grepped every `.gui` file for any
+dynamic-text string-contains/substring function (`Contains`, `Find`,
+etc.) to see if row `visible` bindings could filter on typed text some
+other way — zero matches anywhere in vanilla. Concluded there's no
+confirmed-safe way to build a live text filter over the "Add a Country"
+list as a mod; the unfiltered list (every country, per TODO.md's original
+"contained by design" note) stays the design for this list rather than
+guessing at an unconfirmed mechanism. Revisit only if a genuine
+per-window search accessor is found some other way.
 
 ## Steam Workshop / Paradox mod policy
 

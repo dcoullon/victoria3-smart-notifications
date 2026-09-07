@@ -551,6 +551,88 @@ types message_settings {
 					}
 				}
 
+				# Smart Notifications mod: Country Watchlist bulk select/
+				# deselect buttons (added 2026-09-07, was previously
+				# blocked -- see watchlist_sgui.txt's header comment on the
+				# bulk-action SGUIs for the confirmed fix). One row per
+				# category, each gated to its own section so only the
+				# active category's pair shows. `datacontext =
+				# "[GetMetaPlayer.GetPlayedOrObservedCountry]"` is the
+				# confirmed-real accessor (matches vanilla's own
+				# market_panel.gui/right_click_menu.gui/ingame_hud.gui
+				# usage) that makes `Country.MakeScope` inside this
+				# container resolve to the player, with no row/list
+				# involved -- this is what lets the bulk SGUIs below run
+				# with root = player. Watched/Manually-Added get no bulk
+				# row: Watched's own per-row checkbox IS its removal tool,
+				# and Manually Added has no live "who qualifies" set to
+				# bulk-act on in the first place.
+				flowcontainer = {
+					parentanchor = hcenter
+					spacing = 10
+					margin_bottom = 5
+					datacontext = "[GetMetaPlayer.GetPlayedOrObservedCountry]"
+					visible = "[And(GetVariableSystem.HasValue('message_settings_watchlist', 'true'), GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'great_powers'))]"
+
+					button = {
+						size = { 200 32 }
+						using = default_button
+						text = "SMART_NOTIFICATIONS_WATCHLIST_SELECT_ALL"
+						onclick = "[GetScriptedGui('watchlist_bulk_select_great_power_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
+					}
+
+					button = {
+						size = { 200 32 }
+						using = default_button
+						text = "SMART_NOTIFICATIONS_WATCHLIST_DESELECT_ALL"
+						onclick = "[GetScriptedGui('watchlist_bulk_deselect_great_power_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
+					}
+				}
+
+				flowcontainer = {
+					parentanchor = hcenter
+					spacing = 10
+					margin_bottom = 5
+					datacontext = "[GetMetaPlayer.GetPlayedOrObservedCountry]"
+					visible = "[And(GetVariableSystem.HasValue('message_settings_watchlist', 'true'), GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'neighbors'))]"
+
+					button = {
+						size = { 200 32 }
+						using = default_button
+						text = "SMART_NOTIFICATIONS_WATCHLIST_SELECT_ALL"
+						onclick = "[GetScriptedGui('watchlist_bulk_select_neighbor_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
+					}
+
+					button = {
+						size = { 200 32 }
+						using = default_button
+						text = "SMART_NOTIFICATIONS_WATCHLIST_DESELECT_ALL"
+						onclick = "[GetScriptedGui('watchlist_bulk_deselect_neighbor_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
+					}
+				}
+
+				flowcontainer = {
+					parentanchor = hcenter
+					spacing = 10
+					margin_bottom = 5
+					datacontext = "[GetMetaPlayer.GetPlayedOrObservedCountry]"
+					visible = "[And(GetVariableSystem.HasValue('message_settings_watchlist', 'true'), GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'rivals'))]"
+
+					button = {
+						size = { 200 32 }
+						using = default_button
+						text = "SMART_NOTIFICATIONS_WATCHLIST_SELECT_ALL"
+						onclick = "[GetScriptedGui('watchlist_bulk_select_rival_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
+					}
+
+					button = {
+						size = { 200 32 }
+						using = default_button
+						text = "SMART_NOTIFICATIONS_WATCHLIST_DESELECT_ALL"
+						onclick = "[GetScriptedGui('watchlist_bulk_deselect_rival_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
+					}
+				}
+
 				# Smart Notifications mod: Country Watchlist tab header row.
 				flowcontainer = {
 					parentanchor = hcenter
@@ -685,8 +767,8 @@ types message_settings {
 			                    }
 			                }
 
-			                # Neighbors -- flag-based, not a true live adjacency
-			                # check (see watchlist_sgui.txt for why).
+			                # Neighbors -- true live adjacency check (see
+			                # watchlist_is_neighbor_check_sgui in watchlist_sgui.txt).
 			                flowcontainer = {
 			                    direction = vertical
 			                    parentanchor = hcenter
@@ -699,8 +781,8 @@ types message_settings {
 			                    }
 			                }
 
-			                # Rivals -- flag-based, not a true live rivalry
-			                # check (see watchlist_sgui.txt for why).
+			                # Rivals -- true live rivalry check (see
+			                # watchlist_is_rival_check_sgui in watchlist_sgui.txt).
 			                flowcontainer = {
 			                    direction = vertical
 			                    parentanchor = hcenter
@@ -1242,7 +1324,7 @@ types message_settings {
 
 	type smart_notifications_watchlist_neighbor_row = widget {
         size = { 660 44 }
-        visible = "[GetScriptedGui('watchlist_is_flagged_neighbor_check_sgui').IsValid(GuiScope.SetRoot(InterestingCountryItem.GetCountry.MakeScope).End)]"
+        visible = "[GetScriptedGui('watchlist_is_neighbor_check_sgui').IsValid(GuiScope.SetRoot(InterestingCountryItem.GetCountry.MakeScope).End)]"
 
         background = {
             using = entry_bg_simple
@@ -1286,7 +1368,7 @@ types message_settings {
 
 	type smart_notifications_watchlist_rival_row = widget {
         size = { 660 44 }
-        visible = "[GetScriptedGui('watchlist_is_flagged_rival_check_sgui').IsValid(GuiScope.SetRoot(InterestingCountryItem.GetCountry.MakeScope).End)]"
+        visible = "[GetScriptedGui('watchlist_is_rival_check_sgui').IsValid(GuiScope.SetRoot(InterestingCountryItem.GetCountry.MakeScope).End)]"
 
         background = {
             using = entry_bg_simple

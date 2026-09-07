@@ -16,6 +16,23 @@ commit that ships a new feature (however small — "added a new
 notification" counts), so `0.20` → `0.21` → `0.22`. Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.23] — 2026-09-07
+
+### Added
+
+- **Select All / Deselect All** buttons on the Watchlist tab's Great
+  Powers, Neighbors, and Rivals sections — bulk-add or bulk-remove every
+  country currently matching that category in one click, without
+  affecting countries watched for a different reason.
+
+### Changed
+
+- The Watchlist tab's **Neighbors** and **Rivals** sections now show
+  everyone currently matching that category (adjacent to you / a
+  declared rival), not just countries flagged earlier — so a newly
+  neighboring or newly rivaled country shows up immediately instead of
+  needing a manual re-add.
+
 ## [0.20] — 2026-09-07
 
 First real commit to version control — everything up to and including this

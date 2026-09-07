@@ -90,20 +90,18 @@ watchlist_is_watched_check_sgui = {
 # comparison to the player needed) -- browsing shows anyone CURRENTLY a
 # Great Power, watched or not, exactly per the original spec.
 #
-# Neighbors and Rivals are NOT true live checks here, unlike the spec's
-# original ambition -- they show "countries currently flagged via that
-# category" (i.e. has_variable, same shape as the watched check) rather
-# than "anyone in the world currently adjacent/rivaled." Reason: a true
-# live check needs comparing the row's country against THE PLAYER
-# specifically, and doing that from a scripted_gui's is_valid requires
-# passing the player's country in as an extra scope via GuiScope's
-# AddScope(...) -- every vanilla AddScope(...) example found only passes
-# plain values (bool/fixedpoint), never a scope object, so this isn't a
-# confirmed-safe pattern to attempt here. Flag-based filtering is exactly
-# as safe as the already-proven watched-check pattern, so used that
-# instead rather than guess at unconfirmed GUI scope-passing syntax.
-# Revisit if a confirmed-safe way to reference the player from a
-# scripted_gui turns up.
+# Neighbors and Rivals -- REVISED 2026-09-07, now TRUE live checks too.
+# The engine-notes.md blocker ("no confirmed way to reference the player
+# as a GuiScope root/AddScope value") turned out to only block one
+# specific technique. Found a different, fully-confirmed way that sidesteps
+# it entirely: `any_country = { is_player = yes <triggers using root> }` is
+# real, working vanilla syntax (confirmed: common/scripted_buttons/
+# 00_balkan_wars_buttons.txt, events/ethiopia.txt, events/krakow_events.txt
+# all use exactly this "find the player from inside a trigger block"
+# idiom) -- `root` stays bound to the scripted_gui's own invocation root
+# (the row's country) throughout the nesting, so this compares the ROW's
+# country against the player without ever needing to pass the player IN
+# as a scope from the GUI side. No more guessing needed here.
 watchlist_is_great_power_check_sgui = {
 	scope = country
 
@@ -115,22 +113,36 @@ watchlist_is_great_power_check_sgui = {
 	ai_chance = { base = 0 }
 }
 
-watchlist_is_flagged_neighbor_check_sgui = {
+watchlist_is_neighbor_check_sgui = {
 	scope = country
 
 	is_valid = {
-		has_variable = watched_via_neighbor
+		# Is the player adjacent to this row's country?
+		any_country = {
+			is_player = yes
+			is_adjacent_to_country = root
+		}
 	}
 
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
 
-watchlist_is_flagged_rival_check_sgui = {
+watchlist_is_rival_check_sgui = {
 	scope = country
 
 	is_valid = {
-		has_variable = watched_via_rival
+		# Does the player have this row's country as a declared rival?
+		# any_rival_country ("countries being rivaled by the country in
+		# scope") from the player's scope, comparing each candidate back
+		# to root -- the `?= ` scope-equality comparator confirmed via
+		# common/power_bloc_names/00_power_bloc_names.txt ("c:FRA ?= this").
+		any_country = {
+			is_player = yes
+			any_rival_country = {
+				this ?= root
+			}
+		}
 	}
 
 	ai_is_valid = { always = no }
@@ -142,6 +154,116 @@ watchlist_is_flagged_manual_check_sgui = {
 
 	is_valid = {
 		has_variable = watched_manually
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+# --- Category bulk select/deselect (added 2026-09-07) ---
+# TODO.md flagged this as blocked on "no confirmed way to reference the
+# player as a GuiScope root from a plain button click (not tied to any
+# row)". Resolved the same way as the live Neighbors/Rivals checks above,
+# but via a DIFFERENT confirmed technique that fits an effect block
+# better: bind the button's own container to
+# `datacontext = "[GetMetaPlayer.GetPlayedOrObservedCountry]"` in
+# gui/message_settings.gui (confirmed-real accessor -- used identically
+# in vanilla's market_panel.gui, right_click_menu.gui, ingame_hud.gui to
+# set a widget's Country context to the player without any row/list
+# involved), so `Country.MakeScope` inside that container IS the player.
+# `root` in every effect below is therefore already the player -- exactly
+# mirroring the proven pattern in
+# common/on_actions/00_smart_notifications_on_actions.txt's game-start
+# bulk-select (same `every_rival_country` / `is_adjacent_to_country = root`
+# / `country_rank >= rank_value:great_power` shapes, just re-triggerable
+# on demand instead of once at campaign start).
+#
+# Deselect only removes THAT category's own flag, never the others --
+# per the multi-flag data model (TODO.md), a country also watched via a
+# different provenance correctly stays on the effective watchlist.
+watchlist_bulk_select_great_power_sgui = {
+	scope = country
+
+	effect = {
+		every_country = {
+			limit = {
+				NOT = { this = root }
+				country_rank >= rank_value:great_power
+			}
+			set_variable = watched_via_great_power
+		}
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+watchlist_bulk_deselect_great_power_sgui = {
+	scope = country
+
+	effect = {
+		every_country = {
+			limit = { has_variable = watched_via_great_power }
+			remove_variable = watched_via_great_power
+		}
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+watchlist_bulk_select_neighbor_sgui = {
+	scope = country
+
+	effect = {
+		every_country = {
+			limit = {
+				NOT = { this = root }
+				is_adjacent_to_country = root
+			}
+			set_variable = watched_via_neighbor
+		}
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+watchlist_bulk_deselect_neighbor_sgui = {
+	scope = country
+
+	effect = {
+		every_country = {
+			limit = { has_variable = watched_via_neighbor }
+			remove_variable = watched_via_neighbor
+		}
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+watchlist_bulk_select_rival_sgui = {
+	scope = country
+
+	effect = {
+		every_rival_country = {
+			set_variable = watched_via_rival
+		}
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+watchlist_bulk_deselect_rival_sgui = {
+	scope = country
+
+	effect = {
+		every_country = {
+			limit = { has_variable = watched_via_rival }
+			remove_variable = watched_via_rival
+		}
 	}
 
 	ai_is_valid = { always = no }
