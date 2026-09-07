@@ -270,6 +270,35 @@ string — this is exactly the kind of false positive that could bury a
 real error in a later file, so worth trusting the tool again now, but
 watch for `.gui` files specifically if it ever seems to misfire again.
 
+## A scripted GUI's `is_valid` also gates whether `.Execute()` runs
+
+Confirmed 2026-09-07, from a real, fully-reproduced bug: the Watchlist
+tab's row checkbox never toggled on, even after a full window close/
+reopen (ruling out a caching/redraw explanation). Root cause:
+`watchlist_toggle_sgui`'s `is_valid` was set to "is this country already
+watched," on the assumption `is_valid` was just a query I could dual-purpose
+for the checkbox's `checked` display state. It's not — per
+`scripted_guis.md`, `is_valid` literally "Determines whether the SGUI can
+be used by a player," and the engine enforces that on `.Execute()` too, not
+just `.IsValid()` reads. So clicking to *watch* an unwatched country was
+silently refused every time, because `is_valid` was `false` for exactly
+the countries you'd want to click — a fully silent failure, no error
+logged anywhere.
+
+**Fix, following a real vanilla precedent:** split into two scripted GUIs
+when a check and an action need different validity — confirmed via
+`je_meiji_restoration_japanese_emperor_check_sgui`
+(`common/scripted_guis/journal_entry_sguis.txt`), which is `is_valid`-only
+with no `effect` at all, used purely for a `.IsValid()` display check
+elsewhere. Our toggle SGUI now has no `is_valid` (always executable); a
+second, read-only SGUI holds the real "is this watched" check for the
+checkbox's `checked` binding only. **Rule of thumb going forward:** never
+give an action-performing scripted GUI an `is_valid` that encodes the
+*current value being toggled* — that's a checkbox-loop bug by
+construction. If a display-only check and an action need the same
+underlying condition, that's a sign they need to be two separate SGUIs,
+not one.
+
 ## Steam Workshop / Paradox mod policy
 
 See [distribution-guidelines.md](distribution-guidelines.md) for the full,

@@ -13,22 +13,26 @@
 #
 # Structure confirmed against `common/scripted_guis/scripted_guis.md` and
 # real working examples (`debug_sguis.txt`'s single-scope toggles).
+# CORRECTED 2026-09-07, real bug found live (confirmed by the user: the
+# checkbox never toggled, even after a full window close/reopen -- so it
+# wasn't a redraw/caching issue, the click was being refused outright).
+# Root cause: `is_valid` is not just a display query, it's the actual gate
+# that determines whether `.Execute()` is allowed to run at all ("Determines
+# whether the SGUI can be used by a player" per scripted_guis.md). Setting
+# it to "is this country already watched" meant clicking to WATCH an
+# unwatched country was always refused, since is_valid was false for
+# exactly the countries you'd want to click.
+#
+# Fixed by splitting into two SGUIs, the same way vanilla does when a check
+# and an action need different validity rules -- confirmed via a real
+# working example, `je_meiji_restoration_japanese_emperor_check_sgui`
+# (journal_entry_sguis.txt), which is `is_valid`-only with NO effect at
+# all, used purely for a `.IsValid()` display check elsewhere.
 watchlist_toggle_sgui = {
 	scope = country
 
-	# Used two ways from the management screen (see gui/message_settings.gui):
-	# `.IsValid(...)` for a row checkbox's `checked` state, `.Execute(...)`
-	# for its `onclick` -- same GuiScope.SetRoot(Country.MakeScope) call
-	# either way, confirmed pattern from character_panel.gui's
-	# `GetScriptedGui('...').IsValid(...)` usage.
-	is_valid = {
-		OR = {
-			has_variable = watched_via_great_power
-			has_variable = watched_via_neighbor
-			has_variable = watched_via_rival
-			has_variable = watched_manually
-		}
-	}
+	# No is_valid here on purpose -- toggling is always a valid action
+	# regardless of current watched state, on or off.
 
 	effect = {
 		if = {
@@ -51,6 +55,27 @@ watchlist_toggle_sgui = {
 	}
 
 	# Per CLAUDE.md: scripted GUIs must never be available to the AI.
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+# Read-only companion to watchlist_toggle_sgui above -- ONLY used via
+# `.IsValid(...)` for a checkbox's `checked` state in
+# gui/message_settings.gui, never `.Execute()`'d (no effect defined at
+# all, matching the je_meiji_restoration_japanese_emperor_check_sgui
+# precedent this pattern is based on).
+watchlist_is_watched_check_sgui = {
+	scope = country
+
+	is_valid = {
+		OR = {
+			has_variable = watched_via_great_power
+			has_variable = watched_via_neighbor
+			has_variable = watched_via_rival
+			has_variable = watched_manually
+		}
+	}
+
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }

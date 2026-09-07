@@ -909,9 +909,10 @@ types message_settings {
 	# Modeled on diplomatically_interesting_country_list_item above for the
 	# flag/name part (confirmed-working bindings, reused as-is), but with
 	# our own checkbox instead of that type's unfinished dropdown -- wired
-	# to watchlist_toggle_sgui (common/scripted_guis/watchlist_sgui.txt),
-	# same `.IsValid(...)` / `.Execute(...)` pattern confirmed elsewhere
-	# (see that file's own header comment).
+	# to TWO separate scripted GUIs (common/scripted_guis/watchlist_sgui.txt):
+	# one for the click (Execute), a different is_valid-only one for the
+	# checked state (IsValid) -- see that file's header comment for why a
+	# single SGUI can't do both.
 	type smart_notifications_watchlist_list_item = widget {
         size = { 660 44 }
 
@@ -949,7 +950,11 @@ types message_settings {
                     size = { 24 24 }
                     parentanchor = center
                     onclick = "[GetScriptedGui('watchlist_toggle_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
-                    checked = "[GetScriptedGui('watchlist_toggle_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
+                    # Deliberately a DIFFERENT scripted_gui than the onclick above --
+                    # see common/scripted_guis/watchlist_sgui.txt for why (is_valid
+                    # doubles as an execute-gate, so it can't also be the toggle's
+                    # own "am I currently watched" query).
+                    checked = "[GetScriptedGui('watchlist_is_watched_check_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
                 }
             }
         }

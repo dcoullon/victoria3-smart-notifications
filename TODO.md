@@ -415,16 +415,23 @@ from EU4's country selector, propose something better if you have it"):
       built yet, per the "prove the core mechanics first" plan.
 
 **Two real bugs found live 2026-09-06/07, both fixed, re-test pending:**
-1. **Checkbox never visibly toggled.** No script error logged — the click
-   almost certainly does flip the underlying flag, but nothing tells that
-   specific checkbox to redraw, because it's bound via a generic
-   `GetScriptedGui(...).IsValid(...)` call rather than a dedicated
-   reactive item property the way every *working* vanilla checkbox
-   (e.g. `NotificationSettingsItem.HasAutoPause`) is. **Still needs a
-   real fix** — not yet found a general "force this row to
-   re-evaluate" mechanism; the tab-open/close bug below was diagnosed and
-   fixed first since it was actively corrupting a shared vanilla screen,
-   higher priority.
+1. **Checkbox never visibly toggled, even after a full window
+   close/reopen — root-caused and fixed.** The user's clean re-test (fresh
+   click, full close/reopen, still unchecked) ruled out a caching/redraw
+   explanation and pointed at the click itself doing nothing. Root cause:
+   `watchlist_toggle_sgui`'s `is_valid` was set to "is this country
+   already watched" — but `is_valid` isn't just a query, it's the actual
+   gate the engine uses to decide whether `.Execute()` is allowed to run
+   at all. So clicking to *watch* an unwatched country was silently
+   refused every time (`is_valid` was false for exactly the countries
+   worth clicking), no error logged anywhere. **Fixed** by splitting into
+   two scripted GUIs — `watchlist_toggle_sgui` (no `is_valid`, always
+   executable) for the click, and a new `watchlist_is_watched_check_sgui`
+   (is_valid-only, no effect) for the checkbox's `checked` read — following
+   a real vanilla precedent
+   (`je_meiji_restoration_japanese_emperor_check_sgui`) that does exactly
+   this split. See
+   [docs/engine-notes.md § A scripted GUI's is_valid also gates .Execute()](docs/engine-notes.md).
 2. **Reproduced consistently by the user, root-caused, fixed:**
    closing Message Settings while the Watchlist tab is active, then
    reopening, merged the Watchlist and Alerts tabs' content visibly on
