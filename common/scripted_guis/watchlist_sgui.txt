@@ -33,6 +33,13 @@ watchlist_toggle_sgui = {
 
 	# No is_valid here on purpose -- toggling is always a valid action
 	# regardless of current watched state, on or off.
+	#
+	# Used by the Watched and Add a Country rows only (see the three
+	# section-specific variants below for Great Powers/Neighbors/Rivals).
+	# `watched_manually` is the correct else-branch flag for both: Watched
+	# never actually reaches it (every row shown there is already watched,
+	# so its checkbox is only ever unchecked, never checked-from-blank),
+	# and Add a Country's whole point is manually adding a new one.
 
 	effect = {
 		if = {
@@ -55,6 +62,101 @@ watchlist_toggle_sgui = {
 	}
 
 	# Per CLAUDE.md: scripted GUIs must never be available to the AI.
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+# Section-specific toggle variants -- FIX 2026-09-07: TODO.md's data-model
+# spec says checking an unwatched row from a category browse list "sets
+# only the one flag appropriate to where you checked it," but the
+# original v1 build (2026-09-06) wired ALL FIVE row types to the single
+# generic watchlist_toggle_sgui above, which always sets watched_manually
+# regardless of section. Concretely this meant: hand-checking a country
+# from the Neighbors or Rivals list recorded it as "manually watched," so
+# a later Deselect All on that same category (which only clears that
+# category's own flag) correctly left it checked -- technically working
+# as coded, but not what the spec (or a player reading "Neighbors")
+# intended. Only the checkbox's ELSE branch (fresh watch) differs per
+# section; the removal branch is identical to watchlist_toggle_sgui
+# above (clears all four flags, same "watched or not, period" semantics
+# for unchecking regardless of section).
+watchlist_toggle_great_power_sgui = {
+	scope = country
+
+	effect = {
+		if = {
+			limit = {
+				OR = {
+					has_variable = watched_via_great_power
+					has_variable = watched_via_neighbor
+					has_variable = watched_via_rival
+					has_variable = watched_manually
+				}
+			}
+			remove_variable = watched_via_great_power
+			remove_variable = watched_via_neighbor
+			remove_variable = watched_via_rival
+			remove_variable = watched_manually
+		}
+		else = {
+			set_variable = watched_via_great_power
+		}
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+watchlist_toggle_neighbor_sgui = {
+	scope = country
+
+	effect = {
+		if = {
+			limit = {
+				OR = {
+					has_variable = watched_via_great_power
+					has_variable = watched_via_neighbor
+					has_variable = watched_via_rival
+					has_variable = watched_manually
+				}
+			}
+			remove_variable = watched_via_great_power
+			remove_variable = watched_via_neighbor
+			remove_variable = watched_via_rival
+			remove_variable = watched_manually
+		}
+		else = {
+			set_variable = watched_via_neighbor
+		}
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+watchlist_toggle_rival_sgui = {
+	scope = country
+
+	effect = {
+		if = {
+			limit = {
+				OR = {
+					has_variable = watched_via_great_power
+					has_variable = watched_via_neighbor
+					has_variable = watched_via_rival
+					has_variable = watched_manually
+				}
+			}
+			remove_variable = watched_via_great_power
+			remove_variable = watched_via_neighbor
+			remove_variable = watched_via_rival
+			remove_variable = watched_manually
+		}
+		else = {
+			set_variable = watched_via_rival
+		}
+	}
+
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
@@ -149,6 +251,80 @@ watchlist_is_rival_check_sgui = {
 	ai_chance = { base = 0 }
 }
 
+# --- Continent grouping for the Neighbors list (added 2026-09-07) ---
+# A colonial-holding player (e.g. Portugal with scattered overseas
+# territory) can be genuinely adjacent to dozens of countries across
+# totally different regions -- confirmed real, not a bug (see TODO.md).
+# Grouped the Neighbors list by continent instead of adding another
+# clickable sub-nav layer, using the exact continent split vanilla
+# itself uses for `is_country_on_same_continent`
+# (common/scripted_triggers/00_geography_triggers.txt): a country's
+# capital's state region's `is_in_geographic_region` membership in one
+# of the 4 macro-regions vanilla defines (Europe/Americas/Africa/Asia --
+# there is no separate Oceania bucket in vanilla's own version of this
+# check, so Oceania countries fall under Asia here too, same as vanilla
+# does). No player reference needed at all for these -- purely a
+# property of the row's own country.
+watchlist_is_in_europe_sgui = {
+	scope = country
+
+	is_valid = {
+		capital = {
+			state_region = {
+				is_in_geographic_region = geographic_region_europe
+			}
+		}
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+watchlist_is_in_americas_sgui = {
+	scope = country
+
+	is_valid = {
+		capital = {
+			state_region = {
+				is_in_geographic_region = geographic_region_americas
+			}
+		}
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+watchlist_is_in_africa_sgui = {
+	scope = country
+
+	is_valid = {
+		capital = {
+			state_region = {
+				is_in_geographic_region = geographic_region_africa
+			}
+		}
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+watchlist_is_in_asia_sgui = {
+	scope = country
+
+	is_valid = {
+		capital = {
+			state_region = {
+				is_in_geographic_region = geographic_region_asia
+			}
+		}
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
 watchlist_is_flagged_manual_check_sgui = {
 	scope = country
 
@@ -181,16 +357,27 @@ watchlist_is_flagged_manual_check_sgui = {
 # Deselect only removes THAT category's own flag, never the others --
 # per the multi-flag data model (TODO.md), a country also watched via a
 # different provenance correctly stays on the effective watchlist.
+# Temporary SNW_WATCHLIST| debug_log taps below (2026-09-07) -- the
+# user reported Select All not covering every matching country and
+# Deselect All appearing to only affect manually-checked ones. Rather
+# than guess at a second fix on top of the toggle-sgui gap above, these
+# confirm (via debug.log) whether root actually resolves to the player
+# when the button's Execute() fires, and how many countries actually get
+# flagged per click. Delete once confirmed either way -- same pattern as
+# the truce tracker's temporary taps
+# (common/on_actions/02_smart_notifications_truce_tracker.txt).
 watchlist_bulk_select_great_power_sgui = {
 	scope = country
 
 	effect = {
+		debug_log = "SNW_WATCHLIST|bulk_select_gp_start|root=[ROOT.GetNameNoFormatting]"
 		every_country = {
 			limit = {
 				NOT = { this = root }
 				country_rank >= rank_value:great_power
 			}
 			set_variable = watched_via_great_power
+			debug_log = "SNW_WATCHLIST|bulk_select_gp_flagged|country=[THIS.GetNameNoFormatting]"
 		}
 	}
 
@@ -216,12 +403,14 @@ watchlist_bulk_select_neighbor_sgui = {
 	scope = country
 
 	effect = {
+		debug_log = "SNW_WATCHLIST|bulk_select_neighbor_start|root=[ROOT.GetNameNoFormatting]"
 		every_country = {
 			limit = {
 				NOT = { this = root }
 				is_adjacent_to_country = root
 			}
 			set_variable = watched_via_neighbor
+			debug_log = "SNW_WATCHLIST|bulk_select_neighbor_flagged|country=[THIS.GetNameNoFormatting]"
 		}
 	}
 
@@ -247,8 +436,10 @@ watchlist_bulk_select_rival_sgui = {
 	scope = country
 
 	effect = {
+		debug_log = "SNW_WATCHLIST|bulk_select_rival_start|root=[ROOT.GetNameNoFormatting]"
 		every_rival_country = {
 			set_variable = watched_via_rival
+			debug_log = "SNW_WATCHLIST|bulk_select_rival_flagged|country=[THIS.GetNameNoFormatting]"
 		}
 	}
 

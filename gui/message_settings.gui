@@ -769,15 +769,100 @@ types message_settings {
 
 			                # Neighbors -- true live adjacency check (see
 			                # watchlist_is_neighbor_check_sgui in watchlist_sgui.txt).
+			                # Grouped by continent (added 2026-09-07): a colonial
+			                # player can be genuinely adjacent to dozens of
+			                # countries across totally different regions (real,
+			                # confirmed via testing, not a bug -- see TODO.md), so
+			                # this is one long flat list otherwise. Four
+			                # sub-groups, each its own flowcontainer + header
+			                # label + item type combining the neighbor check with
+			                # a continent check (watchlist_is_in_<region>_sgui) --
+			                # still ONE tab/section, just visually grouped within
+			                # it, per the user's "don't add more tabs" ask.
+			                # `GetGeographicRegion(...).GetName` reuses vanilla's
+			                # own continent localization directly rather than
+			                # hardcoding new header text.
 			                flowcontainer = {
 			                    direction = vertical
 			                    parentanchor = hcenter
 			                    visible = "[And(GetVariableSystem.HasValue('message_settings_watchlist', 'true'), GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'neighbors'))]"
 
+			                    textbox = {
+			                    	text = "[GetGeographicRegion('geographic_region_europe').GetName]"
+			                    	autoresize = yes
+			                    	align = nobaseline
+			                    	default_format = "#title"
+			                    	margin_top = 6
+			                    	margin_left = 5
+			                    }
+
 			                    datamodel = "[MessageSettingsWindow.GetInterestingCountryItems]"
 
 			                    item = {
-			                    	smart_notifications_watchlist_neighbor_row = {}
+			                    	smart_notifications_watchlist_neighbor_europe_row = {}
+			                    }
+			                }
+
+			                flowcontainer = {
+			                    direction = vertical
+			                    parentanchor = hcenter
+			                    visible = "[And(GetVariableSystem.HasValue('message_settings_watchlist', 'true'), GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'neighbors'))]"
+
+			                    textbox = {
+			                    	text = "[GetGeographicRegion('geographic_region_africa').GetName]"
+			                    	autoresize = yes
+			                    	align = nobaseline
+			                    	default_format = "#title"
+			                    	margin_top = 6
+			                    	margin_left = 5
+			                    }
+
+			                    datamodel = "[MessageSettingsWindow.GetInterestingCountryItems]"
+
+			                    item = {
+			                    	smart_notifications_watchlist_neighbor_africa_row = {}
+			                    }
+			                }
+
+			                flowcontainer = {
+			                    direction = vertical
+			                    parentanchor = hcenter
+			                    visible = "[And(GetVariableSystem.HasValue('message_settings_watchlist', 'true'), GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'neighbors'))]"
+
+			                    textbox = {
+			                    	text = "[GetGeographicRegion('geographic_region_asia').GetName]"
+			                    	autoresize = yes
+			                    	align = nobaseline
+			                    	default_format = "#title"
+			                    	margin_top = 6
+			                    	margin_left = 5
+			                    }
+
+			                    datamodel = "[MessageSettingsWindow.GetInterestingCountryItems]"
+
+			                    item = {
+			                    	smart_notifications_watchlist_neighbor_asia_row = {}
+			                    }
+			                }
+
+			                flowcontainer = {
+			                    direction = vertical
+			                    parentanchor = hcenter
+			                    visible = "[And(GetVariableSystem.HasValue('message_settings_watchlist', 'true'), GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'neighbors'))]"
+
+			                    textbox = {
+			                    	text = "[GetGeographicRegion('geographic_region_americas').GetName]"
+			                    	autoresize = yes
+			                    	align = nobaseline
+			                    	default_format = "#title"
+			                    	margin_top = 6
+			                    	margin_left = 5
+			                    }
+
+			                    datamodel = "[MessageSettingsWindow.GetInterestingCountryItems]"
+
+			                    item = {
+			                    	smart_notifications_watchlist_neighbor_americas_row = {}
 			                    }
 			                }
 
@@ -1315,16 +1400,21 @@ types message_settings {
                     using = check_button
                     size = { 24 24 }
                     parentanchor = center
-                    onclick = "[GetScriptedGui('watchlist_toggle_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
+                    onclick = "[GetScriptedGui('watchlist_toggle_great_power_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
                     checked = "[GetScriptedGui('watchlist_is_watched_check_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
                 }
             }
         }
     }
 
-	type smart_notifications_watchlist_neighbor_row = widget {
+	# Neighbors, split into four continent-grouped types (added
+	# 2026-09-07, see the flowcontainer comments above) -- each ANDs the
+	# same live neighbor check with one of the four watchlist_is_in_*_sgui
+	# continent checks (watchlist_sgui.txt). Otherwise identical to the
+	# original single neighbor_row type.
+	type smart_notifications_watchlist_neighbor_europe_row = widget {
         size = { 660 44 }
-        visible = "[GetScriptedGui('watchlist_is_neighbor_check_sgui').IsValid(GuiScope.SetRoot(InterestingCountryItem.GetCountry.MakeScope).End)]"
+        visible = "[And(GetScriptedGui('watchlist_is_neighbor_check_sgui').IsValid(GuiScope.SetRoot(InterestingCountryItem.GetCountry.MakeScope).End), GetScriptedGui('watchlist_is_in_europe_sgui').IsValid(GuiScope.SetRoot(InterestingCountryItem.GetCountry.MakeScope).End))]"
 
         background = {
             using = entry_bg_simple
@@ -1359,7 +1449,139 @@ types message_settings {
                     using = check_button
                     size = { 24 24 }
                     parentanchor = center
-                    onclick = "[GetScriptedGui('watchlist_toggle_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
+                    onclick = "[GetScriptedGui('watchlist_toggle_neighbor_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
+                    checked = "[GetScriptedGui('watchlist_is_watched_check_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
+                }
+            }
+        }
+    }
+
+	type smart_notifications_watchlist_neighbor_africa_row = widget {
+        size = { 660 44 }
+        visible = "[And(GetScriptedGui('watchlist_is_neighbor_check_sgui').IsValid(GuiScope.SetRoot(InterestingCountryItem.GetCountry.MakeScope).End), GetScriptedGui('watchlist_is_in_africa_sgui').IsValid(GuiScope.SetRoot(InterestingCountryItem.GetCountry.MakeScope).End))]"
+
+        background = {
+            using = entry_bg_simple
+        }
+
+        hbox = {
+
+        	widget = {
+        		size = { 7 7 }
+        	}
+
+        	small_flag = {
+                datacontext = "[InterestingCountryItem.GetCountry]"
+            }
+
+            textbox = {
+                datacontext = "[InterestingCountryItem.GetCountry]"
+                text = "[Country.GetNameNoFlag]"
+                align = nobaseline
+                layoutpolicy_vertical = preferred
+                layoutpolicy_horizontal = preferred
+                maximumsize = { 590 -1 }
+                margin_left = 10
+                elide = right
+            }
+
+            widget = {
+                size = { 60 44 }
+                datacontext = "[InterestingCountryItem.GetCountry]"
+
+                checkbutton = {
+                    using = check_button
+                    size = { 24 24 }
+                    parentanchor = center
+                    onclick = "[GetScriptedGui('watchlist_toggle_neighbor_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
+                    checked = "[GetScriptedGui('watchlist_is_watched_check_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
+                }
+            }
+        }
+    }
+
+	type smart_notifications_watchlist_neighbor_asia_row = widget {
+        size = { 660 44 }
+        visible = "[And(GetScriptedGui('watchlist_is_neighbor_check_sgui').IsValid(GuiScope.SetRoot(InterestingCountryItem.GetCountry.MakeScope).End), GetScriptedGui('watchlist_is_in_asia_sgui').IsValid(GuiScope.SetRoot(InterestingCountryItem.GetCountry.MakeScope).End))]"
+
+        background = {
+            using = entry_bg_simple
+        }
+
+        hbox = {
+
+        	widget = {
+        		size = { 7 7 }
+        	}
+
+        	small_flag = {
+                datacontext = "[InterestingCountryItem.GetCountry]"
+            }
+
+            textbox = {
+                datacontext = "[InterestingCountryItem.GetCountry]"
+                text = "[Country.GetNameNoFlag]"
+                align = nobaseline
+                layoutpolicy_vertical = preferred
+                layoutpolicy_horizontal = preferred
+                maximumsize = { 590 -1 }
+                margin_left = 10
+                elide = right
+            }
+
+            widget = {
+                size = { 60 44 }
+                datacontext = "[InterestingCountryItem.GetCountry]"
+
+                checkbutton = {
+                    using = check_button
+                    size = { 24 24 }
+                    parentanchor = center
+                    onclick = "[GetScriptedGui('watchlist_toggle_neighbor_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
+                    checked = "[GetScriptedGui('watchlist_is_watched_check_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
+                }
+            }
+        }
+    }
+
+	type smart_notifications_watchlist_neighbor_americas_row = widget {
+        size = { 660 44 }
+        visible = "[And(GetScriptedGui('watchlist_is_neighbor_check_sgui').IsValid(GuiScope.SetRoot(InterestingCountryItem.GetCountry.MakeScope).End), GetScriptedGui('watchlist_is_in_americas_sgui').IsValid(GuiScope.SetRoot(InterestingCountryItem.GetCountry.MakeScope).End))]"
+
+        background = {
+            using = entry_bg_simple
+        }
+
+        hbox = {
+
+        	widget = {
+        		size = { 7 7 }
+        	}
+
+        	small_flag = {
+                datacontext = "[InterestingCountryItem.GetCountry]"
+            }
+
+            textbox = {
+                datacontext = "[InterestingCountryItem.GetCountry]"
+                text = "[Country.GetNameNoFlag]"
+                align = nobaseline
+                layoutpolicy_vertical = preferred
+                layoutpolicy_horizontal = preferred
+                maximumsize = { 590 -1 }
+                margin_left = 10
+                elide = right
+            }
+
+            widget = {
+                size = { 60 44 }
+                datacontext = "[InterestingCountryItem.GetCountry]"
+
+                checkbutton = {
+                    using = check_button
+                    size = { 24 24 }
+                    parentanchor = center
+                    onclick = "[GetScriptedGui('watchlist_toggle_neighbor_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
                     checked = "[GetScriptedGui('watchlist_is_watched_check_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
                 }
             }
@@ -1403,7 +1625,7 @@ types message_settings {
                     using = check_button
                     size = { 24 24 }
                     parentanchor = center
-                    onclick = "[GetScriptedGui('watchlist_toggle_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
+                    onclick = "[GetScriptedGui('watchlist_toggle_rival_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
                     checked = "[GetScriptedGui('watchlist_is_watched_check_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
                 }
             }

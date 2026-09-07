@@ -478,16 +478,16 @@ four are" so the list is never empty on first open.
       [docs/engine-notes.md § No confirmed way to pass the player in as a GuiScope AddScope value — RESOLVED](docs/engine-notes.md)).
       `watchlist_is_neighbor_check_sgui`/`watchlist_is_rival_check_sgui`
       now browse "anyone currently adjacent/rivaled," not just previously
-      flagged countries. **Not yet confirmed in-game** — this replaces
-      the flag-based version the user found empty in their v0.22 test
-      (which was empty for a real, boring reason: this save's game-start
-      hook never ran for it, so no flags had ever been set — the live
-      check sidesteps that dependency entirely going forward).
-- [x] **Bulk-select/deselect buttons — BUILT 2026-09-07**, one Select
-      All / Deselect All pair per category (Great Powers/Neighbors/
-      Rivals), shown under the sub-nav row only for the active category.
-      Resolved via a *different* confirmed technique than the live-check
-      fix above: binding the button's container to
+      flagged countries. **Confirmed live 2026-09-07** — the user's v0.23
+      test showed both sections populating correctly (previously empty
+      for the boring reason above: the flag-based version depended on a
+      game-start hook that had never run for that save).
+- [~] **Bulk-select/deselect buttons — BUILT 2026-09-07, confirmed live
+      but with 2 real bugs found and fixed same day (see below).** One
+      Select All / Deselect All pair per category (Great Powers/
+      Neighbors/Rivals), shown under the sub-nav row only for the active
+      category. Resolved via a *different* confirmed technique than the
+      live-check fix above: binding the button's container to
       `datacontext = "[GetMetaPlayer.GetPlayedOrObservedCountry]"` (a
       real vanilla accessor, used identically in `market_panel.gui`/
       `right_click_menu.gui`/`ingame_hud.gui`) makes `Country.MakeScope`
@@ -496,8 +496,32 @@ four are" so the list is never empty on first open.
       `common/scripted_guis/watchlist_sgui.txt`) run with root = player
       directly — same `every_country`/`every_rival_country` shapes
       already proven in the game-start on_action. Deselect clears only
-      that category's own flag, per the multi-flag data model. **Not yet
-      confirmed in-game.**
+      that category's own flag, per the multi-flag data model.
+      **Bug #1, fixed:** the individual per-row checkbox
+      (`watchlist_toggle_sgui`) was shared across all five row types and
+      always set `watched_manually` on a fresh watch regardless of which
+      section it was clicked from — contradicting the spec ("sets only
+      the one flag appropriate to where you checked it") and making a
+      category's Deselect All silently skip any row the player had
+      hand-checked from that same category, since it was tagged manual
+      underneath, not with that category's flag. Split into
+      `watchlist_toggle_great_power_sgui`/`_neighbor_sgui`/`_rival_sgui`,
+      one per section, each setting only its own flag on the fresh-watch
+      branch; the removal branch (uncheck clears all four) is unchanged
+      and still shared conceptually across all five row types.
+      **Bug #2, diagnosed via temporary `SNW_WATCHLIST|` debug taps in
+      the three bulk-select SGUIs (still in place as of this commit —
+      delete once confirmed, same as the truce tracker's taps) — root
+      cause not yet fully confirmed live, this is the leading hypothesis
+      pending the next test:** the reported "Select All doesn't select
+      everything" is suspected to be Bug #1 above wearing a different
+      face — countries the player had already hand-checked earlier
+      (recorded as `watched_manually`) would already show as checked
+      regardless of whether Select All's own `every_country` pass
+      actually reached them, masking whether the bulk effect itself
+      was working. **Needs a fresh, clean test** (ideally on countries
+      never individually clicked before) to confirm Select All now
+      covers the full matching set post-Bug-#1-fix.
 - [~] **"Add a Country" — deliberately still unfiltered; a real search
       box was investigated and found genuinely blocked, not just
       unbuilt.** Vanilla's own country search (`diplomatic_overview.gui`)
@@ -509,6 +533,29 @@ four are" so the list is never empty on first open.
       Shows every country in the world, unfiltered, so you can scroll and
       check any one — not a stopgap, the actual intended design until a
       real mechanism turns up.
+- [x] **Neighbors grouped by continent — BUILT 2026-09-07, not yet
+      confirmed in-game.** The user's v0.23 test confirmed the Neighbors
+      list can be genuinely huge for a colonial-holding country (their
+      Portugal game showed dozens of adjacent countries scattered across
+      Africa/Asia/the Americas — real, not a bug, since colonial
+      possessions create far-flung borders) and asked for continent
+      sub-grouping *within* the existing Neighbors section, not another
+      clickable tab layer. Used the exact continent split vanilla itself
+      defines for `is_country_on_same_continent`
+      (`common/scripted_triggers/00_geography_triggers.txt`): a
+      country's capital's state region's `is_in_geographic_region`
+      membership in one of vanilla's 4 macro-regions (Europe/Americas/
+      Africa/Asia — no separate Oceania bucket in vanilla's own version
+      of this check either, so Oceania countries land under Asia here
+      too). Four new `watchlist_is_in_<region>_sgui` checks
+      (`watchlist_sgui.txt`) ANDed with the existing live neighbor check
+      in four new row types, laid out as four flowcontainers with a
+      `GetGeographicRegion(...).GetName` header label each (reusing
+      vanilla's own continent localization) stacked in the same
+      scrollarea — still one "Neighbors" section, just visually grouped.
+      Rivals/Great Powers weren't given the same treatment: both are
+      naturally small (a handful of declared rivals; Great Power count
+      is capped by `country_ranks`), so no grouping need was evident.
 - [ ] **v2 / stretch, only if v1 proves too broad in practice** —
       restrict the manual-add search list to countries within the
       player's declared strategic interest regions

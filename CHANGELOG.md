@@ -16,6 +16,21 @@ commit that ships a new feature (however small — "added a new
 notification" counts), so `0.20` → `0.21` → `0.22`. Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.24] — 2026-09-07
+
+### Fixed
+
+- Checking a country from the Great Powers, Neighbors, or Rivals list now
+  correctly records *why* it's watched, instead of always recording it as
+  a manual addition — this was causing that category's Deselect All to
+  silently skip countries you'd hand-checked from it.
+
+### Changed
+
+- The Watchlist tab's Neighbors list, which can get long for a
+  colonial-holding country, is now grouped by continent (Europe / Africa
+  / Asia / Americas) instead of one long flat list.
+
 ## [0.23] — 2026-09-07
 
 ### Added
