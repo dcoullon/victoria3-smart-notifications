@@ -1,0 +1,70 @@
+﻿# Smart Notifications mod: truce expiry watcher.
+#
+# See TODO.md "More candidates ... same monthly-pulse + repeat-guard shape"
+# (2026-09-06 follow-up) -- no vanilla trigger exposes a truce's remaining
+# days (confirmed via a real `script_docs` dump, see docs/engine-notes.md),
+# so "expiring in one month" isn't buildable, but "your truce with X just
+# ended" is: has_truce_with is a live boolean, so we track it ourselves with
+# a monthly pulse + a variable set on the OTHER country (not on us -- a
+# variable name is a static key, not something we can parameterize per
+# country tag, so "have we already flagged a truce with this specific
+# country" has to live as a plain flag stored ON that country).
+#
+# Player-scoped: only runs for the human player's country (root here is
+# whichever country the monthly pulse is currently firing for -- this is
+# NOT itself a country-only scope filter mistake, on_monthly_pulse_country
+# is confirmed Root = Country, see 00_code_on_actions.txt).
+on_monthly_pulse_country = {
+	on_actions = { smart_notifications_truce_tracker }
+}
+
+smart_notifications_truce_tracker = {
+	effect = {
+		if = {
+			limit = { is_player = yes }
+			# TEMPORARY debug tap (2026-09-06, delete with the ones below): one
+			# line per player-country monthly pulse, so we can confirm this
+			# on_action is even firing at all every month, independent of
+			# whether any specific country's truce state changed.
+			debug_log = "SNW_TRUCE|pulse_ran|player=[THIS.GetNameNoFormatting]"
+			every_country = {
+				limit = {
+					NOT = { this = root }
+				}
+
+				# Save this iteration's country under a fixed name so we can
+				# still reach it after switching back to root below to post
+				# the notification (save_scope_as persists for the whole
+				# unbroken effect chain, not just this sub-scope -- see
+				# docs/engine-notes.md's save_scope_as/save_temporary_scope_as
+				# entry from the script_docs dump).
+				save_scope_as = smart_notifications_truce_partner
+
+				if = {
+					limit = {
+						has_truce_with = root
+						NOT = { has_variable = smart_notifications_had_truce_with_player }
+					}
+					set_variable = smart_notifications_had_truce_with_player
+					# TEMPORARY debug tap (2026-09-06) -- see TODO.md: added to
+					# get a real confirmation trail after a truce expiry went
+					# unnoticed in-game. Delete once a full set/expire cycle is
+					# confirmed in debug.log. `this` = the iterated country here.
+					debug_log = "SNW_TRUCE|flag_set|partner=[THIS.GetNameNoFormatting]"
+				}
+				else_if = {
+					limit = {
+						NOT = { has_truce_with = root }
+						has_variable = smart_notifications_had_truce_with_player
+					}
+					remove_variable = smart_notifications_had_truce_with_player
+					debug_log = "SNW_TRUCE|expired_detected|partner=[THIS.GetNameNoFormatting]"
+					root = {
+						post_notification = smart_notifications_truce_expired
+						debug_log = "SNW_TRUCE|notification_posted|partner=[SCOPE.sC('smart_notifications_truce_partner').GetNameNoFormatting]"
+					}
+				}
+			}
+		}
+	}
+}

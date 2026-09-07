@@ -1,0 +1,32 @@
+﻿# Smart Notifications mod: custom alert-type entries.
+#
+# See docs/engine-notes.md "Two entirely separate notification systems" --
+# alert_types (unlike common/messages/, which is a full-file-path override)
+# are additive across files in this folder, so this file only needs OUR new
+# entries, not a copy of vanilla's 00_alert_types.txt.
+
+smart_notifications_amendment_repealable_alert = {
+	script_context = player_country
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	# amendment_can_be_repealed is scoped to `amendment`, and
+	# any_scope_amendment is scoped to `law` (not `country`) -- both
+	# confirmed via the real script_docs dump (docs/engine-notes.md), so
+	# any_active_law has to be the outer iterator to reach it from country
+	# scope.
+	valid = {
+		any_active_law = {
+			any_scope_amendment = {
+				amendment_can_be_repealed = yes
+			}
+		}
+	}
+
+	# "politics|default" is a confirmed vanilla open_panel value (used by
+	# political_lobby-adjacent alerts); a law/amendment-specific tab name
+	# wasn't found in the dump, so using the panel itself rather than
+	# guessing a tab identifier that might not exist.
+	open_panel = politics|default
+	type = important_action
+	color = green
+}

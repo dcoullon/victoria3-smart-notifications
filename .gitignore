@@ -1,0 +1,6 @@
+# Local Claude Code tooling config, not part of the mod itself.
+.claude/
+
+# Unrelated personal script that ended up in this working directory --
+# not part of the Victoria 3 mod, never intended for this repo.
+tools/dmv_checker/

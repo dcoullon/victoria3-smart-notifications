@@ -1,0 +1,56 @@
+﻿# Smart Notifications mod: Country Watchlist (Phase 3, see TODO.md for the
+# full spec). Toggles whether a country is on the player's watchlist.
+#
+# Data model (TODO.md "Data model — REVISED 2026-09-06"): 4 separate
+# provenance flags (great_power/neighbor/rival/manually), not 1, so a bulk
+# category action can't silently un-watch a country kept for a different
+# reason. This SGUI is the INDIVIDUAL toggle (the country-panel star and,
+# later, a row checkbox on the management screen) -- per the spec, that
+# means "watched or not, period": clears all four flags to remove, or sets
+# just `watched_manually` to add (a star click doesn't know about
+# category membership, so a fresh watch via this button is always
+# recorded as a manual one).
+#
+# Structure confirmed against `common/scripted_guis/scripted_guis.md` and
+# real working examples (`debug_sguis.txt`'s single-scope toggles).
+watchlist_toggle_sgui = {
+	scope = country
+
+	# Used two ways from the management screen (see gui/message_settings.gui):
+	# `.IsValid(...)` for a row checkbox's `checked` state, `.Execute(...)`
+	# for its `onclick` -- same GuiScope.SetRoot(Country.MakeScope) call
+	# either way, confirmed pattern from character_panel.gui's
+	# `GetScriptedGui('...').IsValid(...)` usage.
+	is_valid = {
+		OR = {
+			has_variable = watched_via_great_power
+			has_variable = watched_via_neighbor
+			has_variable = watched_via_rival
+			has_variable = watched_manually
+		}
+	}
+
+	effect = {
+		if = {
+			limit = {
+				OR = {
+					has_variable = watched_via_great_power
+					has_variable = watched_via_neighbor
+					has_variable = watched_via_rival
+					has_variable = watched_manually
+				}
+			}
+			remove_variable = watched_via_great_power
+			remove_variable = watched_via_neighbor
+			remove_variable = watched_via_rival
+			remove_variable = watched_manually
+		}
+		else = {
+			set_variable = watched_manually
+		}
+	}
+
+	# Per CLAUDE.md: scripted GUIs must never be available to the AI.
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}

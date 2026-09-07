@@ -1,0 +1,341 @@
+﻿# TEMPORARY QA TOOL -- delete this whole file before publishing the mod,
+# unless a future phase wants to keep it.
+#
+# Logs every time one of our reviewed/touched notification keys -- plus a
+# handful of other war/diplomacy notifications relevant to this mod's scope
+# even where we haven't changed them (peace/capitulation/wargoal/back-down)
+# -- is about to fire, so a real playtest can be grepped afterward for
+# frequency counts. Doubles as the data source for a possible Reddit post
+# showing notification volume over a real playthrough (see TODO.md's
+# Marketing idea section) -- coverage was deliberately widened 2026-09-04
+# for that purpose, not just for our own muting decisions.
+# Uses the `debug_log` effect (confirmed against vanilla usage elsewhere --
+# NOT a plain `log` effect, which doesn't exist), which writes to debug.log,
+# not game.log:
+#
+#   grep "SNW_LOG|" "Documents/Paradox Interactive/Victoria 3/logs/debug.log" \
+#     | sed 's/.*SNW_LOG|//' | sort | uniq -c | sort -rn
+#
+# Coverage is INCOMPLETE by necessity: every key below is confirmed (by
+# grepping the vanilla common/ and events/ folders for its `post_notification`
+# call site) to fire from exactly one simple, single-effect-block on_action,
+# which is what makes the safe append-only pattern possible (see
+# common/on_actions/_on_actions.md's modding rules, and
+# common/on_actions/00_smart_notifications_on_actions.txt's header comment).
+#
+# NOT covered, and CANNOT be covered this way -- confirmed by grepping the
+# entire vanilla common/ and events/ tree and finding zero `post_notification`
+# call sites for any of them, meaning they're posted directly by native
+# engine code with no moddable hook at all:
+#   country_attitude_improved / country_attitude_changed / country_attitude_worsened
+#   country_conscription, country_mobilization
+#   invasion_started, invasion_started_against_us, invasion_succeeded, invasion_failed
+#   political_lobby_disbanded(_with_reason), foreign_political_lobby_disbanded(_with_reason)
+#   harvest_condition_started_in_market
+# Notably this includes the two biggest originally-suspected offenders
+# (country_attitude_changed, country_conscription) -- for these, manual
+# observation during play (e.g. screenshots) is the only option, there is no
+# scripted substitute.
+#
+# Also skipped: exile_notification -- fires from many scattered individual
+# events across different files rather than one central on_action, so there's
+# no single safe append point; not worth touching a dozen+ event files for a
+# throwaway QA tool.
+#
+# PLAYER-SCOPING (2026-09-04, CORRECTED 2026-09-06): the raw counts above
+# measure "how often this event happens in the simulated world," not "how
+# often the player actually saw it" -- most of these on_actions are NOT
+# rooted on a country at all (confirmed: "Root = Diplomatic Play" /
+# "Diplomatic Demand" / "Diplomatic Action" are their own object types), so
+# a country-only trigger like `is_player` can't safely be applied to root
+# directly -- doing so on the wrong scope type risks a validation error,
+# not just wrong data, which is a worse failure mode than a silent
+# miscount. Only added a player filter where the scope type is actually
+# confirmed:
+#   - `on_harvest_condition_started_in_country`'s own vanilla comment
+#     confirms "Root = country" -- applied directly.
+#   - `on_national_awakening_started` needed the nested
+#     scope:region -> every_scope_interest_marker -> owner traversal
+#     replicated to reach a country scope at all -- now filters AND counts
+#     per-owner instead of once per on_action firing.
+# CORRECTED 2026-09-06: the 6 diplomatic_proposal_third_party* hooks below
+# were previously `is_player`-filtered on the strength of
+# `common/diplomatic_actions/diplomatic_action.md` saying "root = action
+# initiator" -- that turned out to be a category mistake, not a scope
+# confirmation: that .md documents the scope available INSIDE a
+# diplomatic_action TYPE's own `effect`/`ai` blocks at definition time, not
+# the runtime root of the `on_diplomatic_action_third_party*` on_actions,
+# which vanilla's own comment in `00_code_on_actions.txt` states plainly as
+# "Root = Diplomatic Action" -- confirmed the hard way by a real, repeating
+# runtime error: `is_player trigger [ Wrong scope for trigger:
+# diplomatic_action, expected country ]`. No target link from
+# `diplomatic_action` scope to a country was found in a real `script_docs`
+# dump either (see docs/engine-notes.md), so these 6 are now UNFILTERED,
+# matching the diplo_play_*/sway_*/etc. policy below rather than guessing
+# a scope traversal a second time.
+# The diplo_play_*/sway_*/country_swayed/diplomatic_demand_* hooks are
+# "Root = Diplomatic Play" or "Root = Diplomatic Demand" with no documented
+# target links found for those scope types -- left UNFILTERED (still
+# counts every occurrence regardless of the player's involvement) rather
+# than guess at scope names again after the Root/scope:x bracket mistake.
+# Treat their numbers as "how often this happens in the world," not
+# "how often you'd see it," until this gap is closed.
+
+on_diplomatic_action_third_party = {
+	on_actions = { smart_notifications_log_diplo_proposal_third_party }
+}
+smart_notifications_log_diplo_proposal_third_party = {
+	effect = { debug_log = "SNW_LOG|diplomatic_proposal_third_party_notification" }
+}
+
+on_diplomatic_action_third_party_accepted = {
+	on_actions = { smart_notifications_log_diplo_proposal_third_party_accepted }
+}
+smart_notifications_log_diplo_proposal_third_party_accepted = {
+	effect = { debug_log = "SNW_LOG|diplomatic_proposal_third_party_accepted" }
+}
+
+on_diplomatic_action_third_party_declined = {
+	on_actions = { smart_notifications_log_diplo_proposal_third_party_declined }
+}
+smart_notifications_log_diplo_proposal_third_party_declined = {
+	effect = { debug_log = "SNW_LOG|diplomatic_proposal_third_party_declined" }
+}
+
+on_diplomatic_action_third_party_break = {
+	on_actions = { smart_notifications_log_diplo_proposal_third_party_break }
+}
+smart_notifications_log_diplo_proposal_third_party_break = {
+	effect = { debug_log = "SNW_LOG|diplomatic_proposal_third_party_break_notification" }
+}
+
+on_diplomatic_action_third_party_break_accepted = {
+	on_actions = { smart_notifications_log_diplo_proposal_third_party_break_accepted }
+}
+smart_notifications_log_diplo_proposal_third_party_break_accepted = {
+	effect = { debug_log = "SNW_LOG|diplomatic_proposal_third_party_break_accepted" }
+}
+
+on_diplomatic_action_third_party_break_declined = {
+	on_actions = { smart_notifications_log_diplo_proposal_third_party_break_declined }
+}
+smart_notifications_log_diplo_proposal_third_party_break_declined = {
+	effect = { debug_log = "SNW_LOG|diplomatic_proposal_third_party_break_declined" }
+}
+
+on_diplo_play_start = {
+	on_actions = { smart_notifications_log_diplo_play_start }
+}
+smart_notifications_log_diplo_play_start = {
+	effect = { debug_log = "SNW_LOG|diplo_play_start_notification" }
+}
+
+on_diplo_play_start_third_party = {
+	on_actions = { smart_notifications_log_diplo_play_start_third_party }
+}
+smart_notifications_log_diplo_play_start_third_party = {
+	effect = { debug_log = "SNW_LOG|diplo_play_start_third_party_notification" }
+}
+
+on_diplo_play_join_side = {
+	on_actions = { smart_notifications_log_diplo_play_join_side }
+}
+smart_notifications_log_diplo_play_join_side = {
+	effect = { debug_log = "SNW_LOG|diplo_play_join_side_notification" }
+}
+
+on_diplo_play_abandon_side = {
+	on_actions = { smart_notifications_log_diplo_play_abandon_side }
+}
+smart_notifications_log_diplo_play_abandon_side = {
+	effect = { debug_log = "SNW_LOG|diplo_play_abandon_side_notification" }
+}
+
+on_diplo_play_war_start = {
+	on_actions = { smart_notifications_log_diplo_play_war_start }
+}
+smart_notifications_log_diplo_play_war_start = {
+	# fires diplo_play_war_start_notification and
+	# diplo_play_war_start_third_party_notification together, unconditionally
+	effect = {
+		debug_log = "SNW_LOG|diplo_play_war_start_notification"
+		debug_log = "SNW_LOG|diplo_play_war_start_third_party_notification"
+	}
+}
+
+on_diplo_play_subject_released = {
+	on_actions = { smart_notifications_log_diplo_play_subject_released }
+}
+smart_notifications_log_diplo_play_subject_released = {
+	effect = { debug_log = "SNW_LOG|diplo_play_subject_released_notification" }
+}
+
+on_diplo_play_subject_released_overlord = {
+	on_actions = { smart_notifications_log_diplo_play_subject_released_overlord }
+}
+smart_notifications_log_diplo_play_subject_released_overlord = {
+	effect = { debug_log = "SNW_LOG|diplo_play_subject_released_overlord_notification" }
+}
+
+on_diplo_play_declare_neutrality = {
+	on_actions = { smart_notifications_log_diplo_play_declare_neutrality }
+}
+smart_notifications_log_diplo_play_declare_neutrality = {
+	effect = { debug_log = "SNW_LOG|diplo_play_declare_neutrality_notification" }
+}
+
+on_sway_offer_accepted = {
+	on_actions = { smart_notifications_log_sway_offer_accepted }
+}
+smart_notifications_log_sway_offer_accepted = {
+	effect = { debug_log = "SNW_LOG|sway_offer_accepted" }
+}
+
+on_reverse_sway_offer_accepted = {
+	on_actions = { smart_notifications_log_reverse_sway_offer_accepted }
+}
+smart_notifications_log_reverse_sway_offer_accepted = {
+	effect = { debug_log = "SNW_LOG|reverse_sway_offer_accepted" }
+}
+
+on_sway_offer_rejected = {
+	on_actions = { smart_notifications_log_sway_offer_rejected }
+}
+smart_notifications_log_sway_offer_rejected = {
+	effect = { debug_log = "SNW_LOG|sway_offer_rejected" }
+}
+
+on_reverse_sway_offer_rejected = {
+	on_actions = { smart_notifications_log_reverse_sway_offer_rejected }
+}
+smart_notifications_log_reverse_sway_offer_rejected = {
+	effect = { debug_log = "SNW_LOG|reverse_sway_offer_rejected" }
+}
+
+on_country_swayed = {
+	on_actions = { smart_notifications_log_country_swayed }
+}
+smart_notifications_log_country_swayed = {
+	effect = { debug_log = "SNW_LOG|country_swayed" }
+}
+
+on_diplomatic_demand_accepted = {
+	on_actions = { smart_notifications_log_diplomatic_demand_accepted }
+}
+smart_notifications_log_diplomatic_demand_accepted = {
+	effect = { debug_log = "SNW_LOG|diplomatic_demand_accepted" }
+}
+
+on_diplomatic_demand_rejected = {
+	on_actions = { smart_notifications_log_diplomatic_demand_rejected }
+}
+smart_notifications_log_diplomatic_demand_rejected = {
+	effect = { debug_log = "SNW_LOG|diplomatic_demand_rejected" }
+}
+
+on_harvest_condition_started_in_country = {
+	on_actions = { smart_notifications_log_harvest_condition_started_in_country }
+}
+smart_notifications_log_harvest_condition_started_in_country = {
+	# vanilla branches between a regular and an "_important" variant of this
+	# key by intensity; we don't distinguish, just count the on_action firing
+	effect = { if = { limit = { is_player = yes } debug_log = "SNW_LOG|harvest_condition_started_in_country" } }
+}
+
+on_national_awakening_started = {
+	on_actions = { smart_notifications_log_national_awakening_started }
+}
+smart_notifications_log_national_awakening_started = {
+	# Root = Culture, not a country -- replicate vanilla's own traversal
+	# (scope:region -> every_scope_interest_marker -> owner) to reach a
+	# country scope for both accurate per-owner counting and is_player
+	# filtering, instead of counting once per on_action firing.
+	effect = {
+		scope:region = {
+			every_scope_interest_marker = {
+				owner = {
+					if = {
+						limit = { is_player = yes }
+						debug_log = "SNW_LOG|national_awakening_started"
+					}
+				}
+			}
+		}
+	}
+}
+
+# Added 2026-09-04 for Reddit-post data coverage -- these are all
+# war/diplomacy notifications this mod directly cares about that were
+# already confirmed (while scoping Phase 2) to fire from a simple,
+# single-effect on_action, but were never added to this counter.
+
+# Root = Country (confirmed by vanilla's own comment) -- is_player-safe.
+on_peace_agreement_signed_war_leader = {
+	on_actions = { smart_notifications_log_peace_leader }
+}
+smart_notifications_log_peace_leader = {
+	effect = { if = { limit = { is_player = yes } debug_log = "SNW_LOG|peace_agreement_signed_war_leader" } }
+}
+
+on_peace_agreement_signed_war_participant = {
+	on_actions = { smart_notifications_log_peace_participant }
+}
+smart_notifications_log_peace_participant = {
+	effect = { if = { limit = { is_player = yes } debug_log = "SNW_LOG|peace_agreement_signed_war_participant" } }
+}
+
+on_peace_agreement_signed_non_participant = {
+	on_actions = { smart_notifications_log_peace_non_participant }
+}
+smart_notifications_log_peace_non_participant = {
+	effect = { if = { limit = { is_player = yes } debug_log = "SNW_LOG|peace_agreement_signed_non_participant" } }
+}
+
+on_self_capitulated_notification = {
+	on_actions = { smart_notifications_log_self_capitulated }
+}
+smart_notifications_log_self_capitulated = {
+	effect = { if = { limit = { is_player = yes } debug_log = "SNW_LOG|self_capitulated" } }
+}
+
+on_enemy_capitulated_notification = {
+	on_actions = { smart_notifications_log_enemy_capitulated }
+}
+smart_notifications_log_enemy_capitulated = {
+	effect = { if = { limit = { is_player = yes } debug_log = "SNW_LOG|enemy_capitulated" } }
+}
+
+on_ally_capitulated_notification = {
+	on_actions = { smart_notifications_log_ally_capitulated }
+}
+smart_notifications_log_ally_capitulated = {
+	effect = { if = { limit = { is_player = yes } debug_log = "SNW_LOG|ally_capitulated" } }
+}
+
+# Root = Diplomatic Play, scope:actor = War Goal Owner (confirmed by
+# vanilla's own comment) -- is_player-safe via scope:actor.
+on_wargoal_added = {
+	on_actions = { smart_notifications_log_wargoal_added }
+}
+smart_notifications_log_wargoal_added = {
+	effect = { if = { limit = { scope:actor = { is_player = yes } } debug_log = "SNW_LOG|wargoal_added" } }
+}
+
+on_wargoal_removed = {
+	on_actions = { smart_notifications_log_wargoal_removed }
+}
+smart_notifications_log_wargoal_removed = {
+	effect = { if = { limit = { scope:actor = { is_player = yes } } debug_log = "SNW_LOG|wargoal_removed" } }
+}
+
+# Root = Diplomatic Play, no documented target link for this specific
+# on_action (unlike wargoal_added/removed above) -- left UNFILTERED
+# rather than guess, matching the policy for the other Diplomatic-Play-
+# rooted hooks earlier in this file. This is the exact notification the
+# user observed lacking context (see TODO.md Phase 2).
+on_diplo_play_back_down_involved = {
+	on_actions = { smart_notifications_log_back_down_involved }
+}
+smart_notifications_log_back_down_involved = {
+	effect = { debug_log = "SNW_LOG|diplo_play_back_down_involved_notification" }
+}

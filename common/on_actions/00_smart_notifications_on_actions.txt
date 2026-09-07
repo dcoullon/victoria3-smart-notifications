@@ -1,0 +1,59 @@
+﻿# Hooks this mod adds into vanilla on_actions.
+#
+# Per the modding rules documented in the game's own
+# common/on_actions/_on_actions.md: an on_action can only have ONE trigger
+# block and ONE effect block across every file that defines it, so we never
+# redefine a vanilla on_action's effect directly. Instead we append our own
+# on_action name to its `on_actions = { }` list, and put our actual logic in
+# that separately-named on_action. This keeps us compatible with other mods
+# that hook the same vanilla on_action the same way.
+
+# Root scope: none (see vanilla comment on this on_action). We scope to each
+# human player country ourselves before posting the notification.
+on_game_started_after_lobby = {
+	on_actions = {
+		smart_notifications_on_game_started
+	}
+}
+
+smart_notifications_on_game_started = {
+	effect = {
+		every_country = {
+			limit = { is_player = yes }
+			post_notification = smart_notifications_mod_loaded
+
+			# Phase 3 watchlist smart defaults (see TODO.md "Data model" and
+			# "Defaults at game start") -- run the same bulk-select a player
+			# could later trigger by hand from the management screen, once,
+			# at campaign start. `this` = the player's own country
+			# throughout this block.
+
+			# Rivals: every_rival_country ("countries being rivaled by the
+			# country in scope") run directly from the player's own scope --
+			# no candidate-country loop needed, unlike the other two below.
+			# A fresh game has none yet; harmless no-op until the player
+			# declares one.
+			every_rival_country = {
+				set_variable = watched_via_rival
+			}
+
+			# Great Powers and Neighbors both need comparing every other
+			# country against the player, so share one every_country pass
+			# rather than iterating the whole world twice.
+			save_scope_as = smart_notifications_watchlist_player
+			every_country = {
+				limit = {
+					NOT = { this = scope:smart_notifications_watchlist_player }
+				}
+				if = {
+					limit = { country_rank >= rank_value:great_power }
+					set_variable = watched_via_great_power
+				}
+				if = {
+					limit = { is_adjacent_to_country = scope:smart_notifications_watchlist_player }
+					set_variable = watched_via_neighbor
+				}
+			}
+		}
+	}
+}

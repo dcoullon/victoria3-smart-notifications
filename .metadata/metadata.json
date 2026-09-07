@@ -1,0 +1,12 @@
+{
+  "name": "Smart Notifications",
+  "id": "smart_notifications",
+  "version": "0.20",
+  "supported_game_version": "1.13.*",
+  "short_description": "Smart notification defaults, dominion spam mute, and relational country watchlist.",
+  "tags": ["User Interface", "Utilities", "Fixes"],
+  "relationships": [],
+  "game_custom_data": {
+    "multiplayer_synchronized": false
+  }
+}

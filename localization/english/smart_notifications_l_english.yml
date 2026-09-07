@@ -1,0 +1,62 @@
+﻿l_english:
+ notification_smart_notifications_mod_loaded_tooltip:0 "#header $notification_smart_notifications_mod_loaded_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_mod_loaded_desc$"
+ notification_smart_notifications_mod_loaded_name:0 "Smart Notifications active"
+ notification_smart_notifications_mod_loaded_desc:0 "This mod is loaded and its notification changes are in effect. You can mute this message from the Message Settings screen."
+ smart_notifications_mod_loaded_group:0 "Smart Notifications Mod"
+
+ # New Message Settings categories created by splitting a vanilla group so
+ # two siblings can have different priority (see 00_messages.txt comments).
+ invasion_against_us_notification_group:0 "Invasion (Against Us)"
+ diplo_play_subject_overlord_notification_group:0 "Subject Released (Ours)"
+
+ # Truce expiry watcher (see 02_smart_notifications_truce_tracker.txt).
+ # The " (Smart Notifications)" suffix on the *settings-list label* (not the
+ # in-game toast text itself, which stays a plain sentence) is a mod-wide
+ # convention -- see CLAUDE.md/engine-notes.md "Tagging mod-created
+ # notifications" -- so players can tell at a glance, in Message Settings,
+ # which rows are new content this mod added vs. a vanilla notification
+ # we only re-tuned or split into its own group.
+ #
+ # CORRECTED 2026-09-06: this was originally "[Smart Notifications]" with
+ # square brackets -- broke the entire string. Confirmed via a real
+ # error.log entry: literal `[...]` in ANY loc string is ALWAYS parsed as a
+ # dynamic-text function call in this engine, with no escape for a literal
+ # bracket, so `[Smart Notifications]` was read as "call function `Smart`
+ # with argument `Notifications`" and failed outright, leaving the whole
+ # row blank in Message Settings (confirmed by the user's screenshot).
+ # Parentheses have no special meaning and are safe.
+ smart_notifications_truce_expired_group:0 "Truce Expired (Smart Notifications)"
+ notification_smart_notifications_truce_expired_tooltip:0 "#header $notification_smart_notifications_truce_expired_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_truce_expired_desc$"
+ # CORRECTED 2026-09-06: `.GetName` is not a valid function here -- confirmed
+ # via a real error.log entry ("Could not find data system function
+ # 'GetName' in 'THIS.GetName'"). Every vanilla debug_log/loc example uses
+ # `.GetNameNoFormatting` instead, never plain `.GetName` -- this is
+ # presumably why the toast never visibly fired for the user, since the
+ # notification's own name/desc text would have failed to render the same
+ # way. Use `.GetNameNoFormatting` for a country name in dynamic text from
+ # now on, full stop.
+ notification_smart_notifications_truce_expired_name:0 "Truce with [SCOPE.sC('smart_notifications_truce_partner').GetNameNoFormatting] has expired"
+ notification_smart_notifications_truce_expired_desc:0 "Our truce with [SCOPE.sC('smart_notifications_truce_partner').GetNameNoFormatting] has run out. We are no longer protected from a new [concept_diplomatic_play] or [concept_war] against them, nor they from us."
+
+ # Amendment-repealable alert (see 01_smart_notifications_alerts.txt).
+ #
+ # CORRECTED 2026-09-06: an alert has TWO separate name-shaped loc keys, not
+ # one -- confirmed from vanilla's own naval_hostilities_alert as a working
+ # example (alerts_l_english.yml). `alert_<key>_name` is the ribbon
+ # tooltip title; the Message-Settings-list row label is a DIFFERENT key,
+ # `<key>_setting_name` (no `alert_` prefix), bound via
+ # `[AlertSettingsItem.GetSettingName]` in message_settings.gui -- NOT the
+ # same getter (`NotificationSettingsItem.GetName`) messages use. Omitting
+ # it renders the raw script key in Message Settings instead of a label
+ # (confirmed by the user's screenshot). Both now tagged per the
+ # notification-tagging convention, since both are settings-adjacent labels
+ # rather than the sentence-shaped tooltip desc. Also corrected from
+ # square brackets to parentheses -- see the truce entry above for why.
+ alert_smart_notifications_amendment_repealable_alert_name:0 "Amendment Repeal Available (Smart Notifications)"
+ alert_smart_notifications_amendment_repealable_alert_desc:0 "At least one amendment on one of our active laws can now be repealed without contesting a new enactment vote."
+ smart_notifications_amendment_repealable_alert_setting_name:0 "Amendment Repeal Available (Smart Notifications)"
+
+ # Country Watchlist tab (see gui/message_settings.gui and TODO.md Phase 3).
+ SMART_NOTIFICATIONS_WATCHLIST_TAB:0 "Watchlist"
+ SMART_NOTIFICATIONS_WATCHLIST_COLUMN_COUNTRY:0 "Country"
+ SMART_NOTIFICATIONS_WATCHLIST_COLUMN_WATCHED:0 "Watched"
