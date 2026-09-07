@@ -410,9 +410,8 @@ from EU4's country selector, propose something better if you have it"):
       comment-stripping wasn't quote-aware (GUI files embed `#title`-style
       formatting codes inside strings). Fixed the tool itself, re-confirmed
       PASS across the whole repo.
-      Still to do once the core list is confirmed working: the category
-      tabs/sections, bulk-select/deselect, and search — deliberately not
-      built yet, per the "prove the core mechanics first" plan.
+      Category sub-sections built 2026-09-07, NOT YET SEEN IN-GAME — see
+      the dedicated writeup below.
 
 **Two real bugs found live 2026-09-06/07, both fixed, re-test pending:**
 1. **Checkbox never visibly toggled, even after a full window
@@ -451,6 +450,55 @@ from EU4's country selector, propose something better if you have it"):
    not fully closed:** couldn't find whether an Escape-key shortcut or
    some other close path exists outside those two buttons — if the bug
    still reproduces via some other route, that's why.
+### Category sub-sections — built 2026-09-07, two real simplifications made
+
+Since `tab_buttons` caps at 5 slots (already used by our one outer
+Watchlist tab + 3 vanilla ones), the 5 categories live as a **custom
+sub-navigation row INSIDE the Watchlist tab** (a plain button row we built
+ourselves, not the vanilla `tab_buttons` component), switching a
+second, mod-only `GetVariableSystem` variable
+(`smart_notifications_watchlist_section`). "Watched" is the default —
+its own visibility condition is "explicitly selected OR none of the other
+four are" so the list is never empty on first open.
+
+- [x] **Watched** — exact union of all 4 flags, using the same
+      `watchlist_is_watched_check_sgui` as the checkbox itself.
+- [x] **Great Powers** — a genuinely live check
+      (`watchlist_is_great_power_check_sgui`, `country_rank >=
+      rank_value:great_power`), browses anyone currently a Great Power
+      regardless of watched status, exactly per the original spec.
+- [~] **Neighbors / Rivals — SIMPLIFIED, not a live check.** The original
+      spec wanted these to browse "anyone currently qualifying," but a
+      live check needs comparing each candidate country against **the
+      player specifically**, and there's no confirmed-safe way to
+      reference the player from inside a per-row scripted_gui check (see
+      [docs/engine-notes.md § No confirmed way to reference "the player" as a GuiScope root](docs/engine-notes.md)
+      — didn't guess it after two bugs already came from unverified GUI
+      assumptions this same week). These two sections instead show
+      **countries currently flagged** via that category
+      (`watchlist_is_flagged_neighbor_check_sgui`/
+      `watchlist_is_flagged_rival_check_sgui`) — real and correct for
+      anyone flagged at game start or added manually, but won't surface a
+      newly-adjacent country that was never flagged. Revisit if a
+      confirmed player-reference pattern turns up.
+- [~] **"Add a Country" (was "Manually Added") — SIMPLIFIED, no filter at
+      all.** No search box exists yet, so filtering this section down to
+      just `watched_manually` countries would remove the only way to add
+      a brand-new country that isn't already a Great Power. Shows every
+      country in the world, unfiltered, so you can scroll and check any
+      one — the same behavior the very first working test already
+      confirmed, just now living under its own sub-tab.
+- [ ] **Bulk-select/deselect buttons — NOT built.** Per the same
+      player-reference gap above: a bulk action ("flag everyone currently
+      qualifying") needs to run with the player as root, and no confirmed
+      way to build that GuiScope from a plain button click (not tied to
+      any specific row) was found either. The game-start population in
+      [00_smart_notifications_on_actions.txt](common/on_actions/00_smart_notifications_on_actions.txt)
+      still does this correctly once, at campaign start, via real script
+      context (no GUI involved there) — it's specifically *re-running*
+      that bulk action later from the UI that's blocked.
+- [ ] **Search box for "Add a Country"** — still not built, same as
+      before.
 - [ ] **v2 / stretch, only if v1 proves too broad in practice** —
       restrict the manual-add search list to countries within the
       player's declared strategic interest regions

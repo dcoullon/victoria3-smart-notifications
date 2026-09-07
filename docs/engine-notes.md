@@ -299,6 +299,30 @@ construction. If a display-only check and an action need the same
 underlying condition, that's a sign they need to be two separate SGUIs,
 not one.
 
+## No confirmed way to reference "the player" as a GuiScope root
+
+Investigated 2026-09-07 while scoping the Watchlist category bulk-select
+buttons (see TODO.md Phase 3). A bulk action ("flag every current Great
+Power/Neighbor/Rival") needs its effect to run with the player's country
+as root, so `every_country = { limit = { is_adjacent_to_country = root }
+... }` compares against the player rather than some arbitrary scope.
+Looked for a way to build that GuiScope (`GetScriptedGui('...').Execute(
+GuiScope.SetRoot(<something>).End)`) from a plain button click, not tied
+to any specific country's row. `GetPlayer.Self` and `AccessPlayer` are
+real, pervasively-used GUI accessors, but found **zero vanilla example**
+of either being followed by `.MakeScope` or otherwise fed into
+`GuiScope.SetRoot(...)` — every confirmed `SetRoot(...)` example roots on
+a country/character *already available in that specific context*
+(`Country.MakeScope` inside a country-scoped widget, `Character.MakeScope`
+inside a character-scoped one), never "the local player" from an
+arbitrary/unrelated context. Did not guess this — same class of mistake
+that caused the `is_valid` bug and the tab-merge bug, both from
+unverified assumptions about how a GUI mechanism behaved. **Left the
+bulk-select/deselect buttons unbuilt** rather than ship another probable
+silent-failure. Revisit if a confirmed pattern for this turns up (a real
+`script_docs`-style GUI reference would resolve this cleanly, if one
+exists).
+
 ## Steam Workshop / Paradox mod policy
 
 See [distribution-guidelines.md](distribution-guidelines.md) for the full,

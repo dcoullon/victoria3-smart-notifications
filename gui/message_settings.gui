@@ -396,6 +396,161 @@ types message_settings {
                     }
                 }
 
+				# Smart Notifications mod: Country Watchlist sub-navigation.
+				# tab_buttons (the vanilla component used for the 4 outer tabs
+				# above) caps out at 5 slots, already used by our one outer
+				# "Watchlist" tab plus the 3 vanilla ones -- no room for 5 MORE
+				# outer tabs for the categories. So this is our OWN plain
+				# button row, not the vanilla tab_buttons component, switching
+				# a second, mod-only GetVariableSystem variable
+				# (smart_notifications_watchlist_section) that only matters
+				# while the outer Watchlist tab is active. Selected-state
+				# visual mirrors the confirmed-working "CURRENT SITUATION
+				# LABEL" unread/total selector earlier in this same file
+				# (background-swap + button, not a custom widget type).
+				flowcontainer = {
+					parentanchor = hcenter
+					spacing = 5
+					margin_bottom = 10
+					margin_top = 10
+					visible = "[GetVariableSystem.HasValue('message_settings_watchlist', 'true')]"
+
+					widget = {
+						size = { 130 32 }
+						tooltip = "SMART_NOTIFICATIONS_WATCHLIST_SECTION_WATCHED"
+
+						background = {
+							visible = "[Not(Or(GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'great_powers'), Or(GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'neighbors'), Or(GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'rivals'), GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'manual')))))]"
+							using = paper_bg
+						}
+
+						button = {
+							visible = "[Or(GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'great_powers'), Or(GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'neighbors'), Or(GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'rivals'), GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'manual'))))]"
+							size = { 100% 100% }
+							using = default_button_action
+							onclick = "[GetVariableSystem.Set('smart_notifications_watchlist_section', 'watched')]"
+						}
+
+						textbox = {
+							parentanchor = center
+							autoresize = yes
+							align = nobaseline
+							max_width = 130
+							elide = right
+							fontsize_min = 14
+							text = "SMART_NOTIFICATIONS_WATCHLIST_SECTION_WATCHED"
+						}
+					}
+
+					widget = {
+						size = { 130 32 }
+						tooltip = "SMART_NOTIFICATIONS_WATCHLIST_SECTION_GREAT_POWERS"
+
+						background = {
+							visible = "[GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'great_powers')]"
+							using = paper_bg
+						}
+
+						button = {
+							visible = "[Not(GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'great_powers'))]"
+							size = { 100% 100% }
+							using = default_button_action
+							onclick = "[GetVariableSystem.Set('smart_notifications_watchlist_section', 'great_powers')]"
+						}
+
+						textbox = {
+							parentanchor = center
+							autoresize = yes
+							align = nobaseline
+							max_width = 130
+							elide = right
+							fontsize_min = 14
+							text = "SMART_NOTIFICATIONS_WATCHLIST_SECTION_GREAT_POWERS"
+						}
+					}
+
+					widget = {
+						size = { 130 32 }
+						tooltip = "SMART_NOTIFICATIONS_WATCHLIST_SECTION_NEIGHBORS"
+
+						background = {
+							visible = "[GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'neighbors')]"
+							using = paper_bg
+						}
+
+						button = {
+							visible = "[Not(GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'neighbors'))]"
+							size = { 100% 100% }
+							using = default_button_action
+							onclick = "[GetVariableSystem.Set('smart_notifications_watchlist_section', 'neighbors')]"
+						}
+
+						textbox = {
+							parentanchor = center
+							autoresize = yes
+							align = nobaseline
+							max_width = 130
+							elide = right
+							fontsize_min = 14
+							text = "SMART_NOTIFICATIONS_WATCHLIST_SECTION_NEIGHBORS"
+						}
+					}
+
+					widget = {
+						size = { 130 32 }
+						tooltip = "SMART_NOTIFICATIONS_WATCHLIST_SECTION_RIVALS"
+
+						background = {
+							visible = "[GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'rivals')]"
+							using = paper_bg
+						}
+
+						button = {
+							visible = "[Not(GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'rivals'))]"
+							size = { 100% 100% }
+							using = default_button_action
+							onclick = "[GetVariableSystem.Set('smart_notifications_watchlist_section', 'rivals')]"
+						}
+
+						textbox = {
+							parentanchor = center
+							autoresize = yes
+							align = nobaseline
+							max_width = 130
+							elide = right
+							fontsize_min = 14
+							text = "SMART_NOTIFICATIONS_WATCHLIST_SECTION_RIVALS"
+						}
+					}
+
+					widget = {
+						size = { 130 32 }
+						tooltip = "SMART_NOTIFICATIONS_WATCHLIST_SECTION_MANUAL"
+
+						background = {
+							visible = "[GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'manual')]"
+							using = paper_bg
+						}
+
+						button = {
+							visible = "[Not(GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'manual'))]"
+							size = { 100% 100% }
+							using = default_button_action
+							onclick = "[GetVariableSystem.Set('smart_notifications_watchlist_section', 'manual')]"
+						}
+
+						textbox = {
+							parentanchor = center
+							autoresize = yes
+							align = nobaseline
+							max_width = 130
+							elide = right
+							fontsize_min = 14
+							text = "SMART_NOTIFICATIONS_WATCHLIST_SECTION_MANUAL"
+						}
+					}
+				}
+
 				# Smart Notifications mod: Country Watchlist tab header row.
 				flowcontainer = {
 					parentanchor = hcenter
@@ -482,26 +637,98 @@ types message_settings {
 			                    }
 			                }
 
-			                # Smart Notifications mod: Country Watchlist list.
+			                # Smart Notifications mod: Country Watchlist lists.
 			                # Reuses the vanilla GetInterestingCountryItems datamodel
 			                # purely as a country enumeration source (see
 			                # TODO.md Phase 3 -- that feature's own dropdown/settings
 			                # half is an unfinished Paradox stub, but the underlying
 			                # "give me a list of items wrapping a Country" part is
 			                # the same mechanism the (working, currently-visible)
-			                # first two tabs are built on) -- our own item type
-			                # below does not use any of that tab's broken
+			                # first two tabs are built on) -- none of our item
+			                # types below use any of that tab's broken
 			                # dropdown/GetSetting machinery, just
-			                # InterestingCountryItem.GetCountry.
+			                # InterestingCountryItem.GetCountry. Five separate
+			                # flowcontainers, one per sub-section (see the
+			                # sub-navigation row above) -- each uses the SAME
+			                # datamodel (every country in the world) but a
+			                # DIFFERENT item type with a different `visible`
+			                # filter baked in, since GUI item types can't take
+			                # parameters.
+
+			                # Watched (default sub-section, see the fallback
+			                # logic on its own nav button above for why this
+			                # condition is the negative of the other four).
 			                flowcontainer = {
 			                    direction = vertical
 			                    parentanchor = hcenter
-			                    visible = "[GetVariableSystem.HasValue('message_settings_watchlist', 'true')]"
+			                    visible = "[And(GetVariableSystem.HasValue('message_settings_watchlist', 'true'), Not(Or(GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'great_powers'), Or(GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'neighbors'), Or(GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'rivals'), GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'manual'))))))]"
 
 			                    datamodel = "[MessageSettingsWindow.GetInterestingCountryItems]"
 
 			                    item = {
-			                    	smart_notifications_watchlist_list_item = {}
+			                    	smart_notifications_watchlist_watched_row = {}
+			                    }
+			                }
+
+			                # Great Powers -- true live check (see
+			                # watchlist_is_great_power_check_sgui), browses
+			                # anyone currently a Great Power, watched or not.
+			                flowcontainer = {
+			                    direction = vertical
+			                    parentanchor = hcenter
+			                    visible = "[And(GetVariableSystem.HasValue('message_settings_watchlist', 'true'), GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'great_powers'))]"
+
+			                    datamodel = "[MessageSettingsWindow.GetInterestingCountryItems]"
+
+			                    item = {
+			                    	smart_notifications_watchlist_great_power_row = {}
+			                    }
+			                }
+
+			                # Neighbors -- flag-based, not a true live adjacency
+			                # check (see watchlist_sgui.txt for why).
+			                flowcontainer = {
+			                    direction = vertical
+			                    parentanchor = hcenter
+			                    visible = "[And(GetVariableSystem.HasValue('message_settings_watchlist', 'true'), GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'neighbors'))]"
+
+			                    datamodel = "[MessageSettingsWindow.GetInterestingCountryItems]"
+
+			                    item = {
+			                    	smart_notifications_watchlist_neighbor_row = {}
+			                    }
+			                }
+
+			                # Rivals -- flag-based, not a true live rivalry
+			                # check (see watchlist_sgui.txt for why).
+			                flowcontainer = {
+			                    direction = vertical
+			                    parentanchor = hcenter
+			                    visible = "[And(GetVariableSystem.HasValue('message_settings_watchlist', 'true'), GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'rivals'))]"
+
+			                    datamodel = "[MessageSettingsWindow.GetInterestingCountryItems]"
+
+			                    item = {
+			                    	smart_notifications_watchlist_rival_row = {}
+			                    }
+			                }
+
+			                # Manually Added -- deliberately UNFILTERED for now
+			                # (shows every country, not just current
+			                # watched_manually ones) since there's no search box
+			                # yet to narrow it down another way -- this is the
+			                # only sub-section where a brand new, not-yet-watched,
+			                # not-a-Great-Power country can actually be added.
+			                # See TODO.md for the search-box follow-up.
+			                flowcontainer = {
+			                    direction = vertical
+			                    parentanchor = hcenter
+			                    visible = "[And(GetVariableSystem.HasValue('message_settings_watchlist', 'true'), GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'manual'))]"
+
+			                    datamodel = "[MessageSettingsWindow.GetInterestingCountryItems]"
+
+			                    item = {
+			                    	smart_notifications_watchlist_manual_row = {}
 			                    }
 			                }
 
@@ -905,7 +1132,7 @@ types message_settings {
         }
     }
 
-	# Smart Notifications mod: Country Watchlist row (Phase 3, see TODO.md).
+	# Smart Notifications mod: Country Watchlist rows (Phase 3, see TODO.md).
 	# Modeled on diplomatically_interesting_country_list_item above for the
 	# flag/name part (confirmed-working bindings, reused as-is), but with
 	# our own checkbox instead of that type's unfinished dropdown -- wired
@@ -913,8 +1140,17 @@ types message_settings {
 	# one for the click (Execute), a different is_valid-only one for the
 	# checked state (IsValid) -- see that file's header comment for why a
 	# single SGUI can't do both.
-	type smart_notifications_watchlist_list_item = widget {
+	#
+	# Five near-identical types, one per sub-section (see the sub-navigation
+	# row and the flowcontainers above) -- GUI item types can't take
+	# parameters, so each section needs its own type differing only in the
+	# root widget's `visible` filter. The checkbox itself is IDENTICAL
+	# across all five: every row's checkbox always means "watched or not,
+	# period" (see watchlist_toggle_sgui's own header comment), regardless
+	# of which section it's shown in.
+	type smart_notifications_watchlist_watched_row = widget {
         size = { 660 44 }
+        visible = "[GetScriptedGui('watchlist_is_watched_check_sgui').IsValid(GuiScope.SetRoot(InterestingCountryItem.GetCountry.MakeScope).End)]"
 
         background = {
             using = entry_bg_simple
@@ -954,6 +1190,184 @@ types message_settings {
                     # see common/scripted_guis/watchlist_sgui.txt for why (is_valid
                     # doubles as an execute-gate, so it can't also be the toggle's
                     # own "am I currently watched" query).
+                    checked = "[GetScriptedGui('watchlist_is_watched_check_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
+                }
+            }
+        }
+    }
+
+	type smart_notifications_watchlist_great_power_row = widget {
+        size = { 660 44 }
+        visible = "[GetScriptedGui('watchlist_is_great_power_check_sgui').IsValid(GuiScope.SetRoot(InterestingCountryItem.GetCountry.MakeScope).End)]"
+
+        background = {
+            using = entry_bg_simple
+        }
+
+        hbox = {
+
+        	widget = {
+        		size = { 7 7 }
+        	}
+
+        	small_flag = {
+                datacontext = "[InterestingCountryItem.GetCountry]"
+            }
+
+            textbox = {
+                datacontext = "[InterestingCountryItem.GetCountry]"
+                text = "[Country.GetNameNoFlag]"
+                align = nobaseline
+                layoutpolicy_vertical = preferred
+                layoutpolicy_horizontal = preferred
+                maximumsize = { 590 -1 }
+                margin_left = 10
+                elide = right
+            }
+
+            widget = {
+                size = { 60 44 }
+                datacontext = "[InterestingCountryItem.GetCountry]"
+
+                checkbutton = {
+                    using = check_button
+                    size = { 24 24 }
+                    parentanchor = center
+                    onclick = "[GetScriptedGui('watchlist_toggle_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
+                    checked = "[GetScriptedGui('watchlist_is_watched_check_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
+                }
+            }
+        }
+    }
+
+	type smart_notifications_watchlist_neighbor_row = widget {
+        size = { 660 44 }
+        visible = "[GetScriptedGui('watchlist_is_flagged_neighbor_check_sgui').IsValid(GuiScope.SetRoot(InterestingCountryItem.GetCountry.MakeScope).End)]"
+
+        background = {
+            using = entry_bg_simple
+        }
+
+        hbox = {
+
+        	widget = {
+        		size = { 7 7 }
+        	}
+
+        	small_flag = {
+                datacontext = "[InterestingCountryItem.GetCountry]"
+            }
+
+            textbox = {
+                datacontext = "[InterestingCountryItem.GetCountry]"
+                text = "[Country.GetNameNoFlag]"
+                align = nobaseline
+                layoutpolicy_vertical = preferred
+                layoutpolicy_horizontal = preferred
+                maximumsize = { 590 -1 }
+                margin_left = 10
+                elide = right
+            }
+
+            widget = {
+                size = { 60 44 }
+                datacontext = "[InterestingCountryItem.GetCountry]"
+
+                checkbutton = {
+                    using = check_button
+                    size = { 24 24 }
+                    parentanchor = center
+                    onclick = "[GetScriptedGui('watchlist_toggle_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
+                    checked = "[GetScriptedGui('watchlist_is_watched_check_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
+                }
+            }
+        }
+    }
+
+	type smart_notifications_watchlist_rival_row = widget {
+        size = { 660 44 }
+        visible = "[GetScriptedGui('watchlist_is_flagged_rival_check_sgui').IsValid(GuiScope.SetRoot(InterestingCountryItem.GetCountry.MakeScope).End)]"
+
+        background = {
+            using = entry_bg_simple
+        }
+
+        hbox = {
+
+        	widget = {
+        		size = { 7 7 }
+        	}
+
+        	small_flag = {
+                datacontext = "[InterestingCountryItem.GetCountry]"
+            }
+
+            textbox = {
+                datacontext = "[InterestingCountryItem.GetCountry]"
+                text = "[Country.GetNameNoFlag]"
+                align = nobaseline
+                layoutpolicy_vertical = preferred
+                layoutpolicy_horizontal = preferred
+                maximumsize = { 590 -1 }
+                margin_left = 10
+                elide = right
+            }
+
+            widget = {
+                size = { 60 44 }
+                datacontext = "[InterestingCountryItem.GetCountry]"
+
+                checkbutton = {
+                    using = check_button
+                    size = { 24 24 }
+                    parentanchor = center
+                    onclick = "[GetScriptedGui('watchlist_toggle_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
+                    checked = "[GetScriptedGui('watchlist_is_watched_check_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
+                }
+            }
+        }
+    }
+
+	# Manually Added -- deliberately no `visible` filter (see the
+	# flowcontainer comment above for why: this is the only sub-section
+	# that can add a brand new country with no search box yet).
+	type smart_notifications_watchlist_manual_row = widget {
+        size = { 660 44 }
+
+        background = {
+            using = entry_bg_simple
+        }
+
+        hbox = {
+
+        	widget = {
+        		size = { 7 7 }
+        	}
+
+        	small_flag = {
+                datacontext = "[InterestingCountryItem.GetCountry]"
+            }
+
+            textbox = {
+                datacontext = "[InterestingCountryItem.GetCountry]"
+                text = "[Country.GetNameNoFlag]"
+                align = nobaseline
+                layoutpolicy_vertical = preferred
+                layoutpolicy_horizontal = preferred
+                maximumsize = { 590 -1 }
+                margin_left = 10
+                elide = right
+            }
+
+            widget = {
+                size = { 60 44 }
+                datacontext = "[InterestingCountryItem.GetCountry]"
+
+                checkbutton = {
+                    using = check_button
+                    size = { 24 24 }
+                    parentanchor = center
+                    onclick = "[GetScriptedGui('watchlist_toggle_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
                     checked = "[GetScriptedGui('watchlist_is_watched_check_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
                 }
             }
