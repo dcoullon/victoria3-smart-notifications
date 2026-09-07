@@ -111,3 +111,11 @@
  # Category bulk select/deselect buttons (added 2026-09-07).
  SMART_NOTIFICATIONS_WATCHLIST_SELECT_ALL:0 "Select All"
  SMART_NOTIFICATIONS_WATCHLIST_DESELECT_ALL:0 "Deselect All"
+
+ # Watched-tab provenance tags (added 2026-09-07) -- short abbreviations,
+ # full category name shown on hover via the tag's own tooltip (reuses
+ # the section nav labels above).
+ SMART_NOTIFICATIONS_WATCHLIST_TAG_GREAT_POWER:0 "#bold GP#!"
+ SMART_NOTIFICATIONS_WATCHLIST_TAG_NEIGHBOR:0 "#bold NB#!"
+ SMART_NOTIFICATIONS_WATCHLIST_TAG_RIVAL:0 "#bold RV#!"
+ SMART_NOTIFICATIONS_WATCHLIST_TAG_MANUAL:0 "#bold MA#!"

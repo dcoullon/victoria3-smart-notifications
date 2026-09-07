@@ -526,6 +526,32 @@ four are" so the list is never empty on first open.
       was working. **Needs a fresh, clean test** (ideally on countries
       never individually clicked before) to confirm Select All now
       covers the full matching set post-Bug-#1-fix.
+      **Re-tested by the user 2026-09-07 (post-Bug-#1-fix): Deselect All
+      on Neighbors left Spain and the USA checked.** Very likely correct,
+      by-design multi-flag behavior, not a new bug — both are plausible
+      Great Powers in a typical game (auto-watched at campaign start via
+      `watched_via_great_power`), and Deselect All on Neighbors only ever
+      clears `watched_via_neighbor` (see the data model above: the whole
+      point of 4 separate flags is that deselecting one category can't
+      silently drop a country kept for a different reason). Added
+      **Watched-tab provenance tags** (see below) specifically so this is
+      visible instead of looking like a bug — **not independently
+      confirmed the multi-flag explanation is actually what happened for
+      Spain/USA specifically; needs a look at their tags on the Watched
+      tab (or the debug.log taps) to be sure**, rather than the general
+      design principle alone.
+- [x] **Watched-tab provenance tags — BUILT 2026-09-07, not yet seen
+      in-game.** Per the original v1 spec ("small tags showing which
+      category(ies) currently apply, e.g. 'Prussia — Great Power,
+      Neighbor'") — this part was never actually built in the original
+      2026-09-06 pass. Added directly in response to the Deselect-All
+      confusion above: up to 4 small abbreviation tags (GP/NB/RV/MA,
+      full name on hover) next to each Watched-tab row, driven by 3 new
+      flag-only checks (`watchlist_is_flagged_great_power_check_sgui`/
+      `_neighbor_check_sgui`/`_rival_check_sgui`, `watchlist_sgui.txt` --
+      distinct from the live adjacency/rivalry checks used for section
+      filtering, since the tag should reflect what's actually recorded,
+      not current live status).
 - [~] **"Add a Country" — deliberately still unfiltered; a real search
       box was investigated and found genuinely blocked, not just
       unbuilt.** Vanilla's own country search (`diplomatic_overview.gui`)
@@ -560,6 +586,20 @@ four are" so the list is never empty on first open.
       Rivals/Great Powers weren't given the same treatment: both are
       naturally small (a handful of declared rivals; Great Power count
       is capped by `country_ranks`), so no grouping need was evident.
+      **Real bug found live 2026-09-07, fixed same day (confirmed by the
+      user's screenshot — garbled, overlapping header and row text on
+      the Neighbors tab):** the 4 continent flowcontainers were direct
+      siblings of the outer `container` widget, same as every other
+      top-level section in this file — that only ever worked before
+      because every other section here is mutually exclusive (`visible`
+      never true for two siblings at once); `container` does NOT
+      auto-stack children that are simultaneously visible, and these 4
+      ARE all visible together by design, so they rendered on top of
+      each other instead of stacking. Fixed by wrapping all 4 in one
+      outer `flowcontainer` (`direction = vertical`), which does the
+      stacking — same technique already used throughout this file for a
+      single section's own rows, just one level higher this time.
+      **Not yet re-confirmed live.**
 - [ ] **v2 / stretch, only if v1 proves too broad in practice** —
       restrict the manual-add search list to countries within the
       player's declared strategic interest regions

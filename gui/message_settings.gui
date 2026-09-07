@@ -782,87 +782,104 @@ types message_settings {
 			                # `GetGeographicRegion(...).GetName` reuses vanilla's
 			                # own continent localization directly rather than
 			                # hardcoding new header text.
+			                #
+			                # FIX 2026-09-07: these 4 sub-groups were originally
+			                # direct siblings under the outer `container` above
+			                # (like every other top-level section here), but
+			                # `container` does NOT auto-stack simultaneously-visible
+			                # children -- it only ever worked before because every
+			                # other section here is mutually exclusive (`visible`
+			                # never true for two siblings at once). These 4 ARE all
+			                # visible together by design, so they rendered on top
+			                # of each other (confirmed by the user's screenshot --
+			                # garbled overlapping header/row text). Wrapped in one
+			                # outer `flowcontainer` (direction = vertical) so it
+			                # does the stacking instead, same technique already
+			                # used throughout this file for stacking a section's own
+			                # rows.
 			                flowcontainer = {
 			                    direction = vertical
 			                    parentanchor = hcenter
 			                    visible = "[And(GetVariableSystem.HasValue('message_settings_watchlist', 'true'), GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'neighbors'))]"
 
-			                    textbox = {
-			                    	text = "[GetGeographicRegion('geographic_region_europe').GetName]"
-			                    	autoresize = yes
-			                    	align = nobaseline
-			                    	default_format = "#title"
-			                    	margin_top = 6
-			                    	margin_left = 5
+			                    flowcontainer = {
+			                        direction = vertical
+			                        parentanchor = hcenter
+
+			                        textbox = {
+			                        	text = "[GetGeographicRegion('geographic_region_europe').GetName]"
+			                        	autoresize = yes
+			                        	align = nobaseline
+			                        	default_format = "#title"
+			                        	margin_top = 6
+			                        	margin_left = 5
+			                        }
+
+			                        datamodel = "[MessageSettingsWindow.GetInterestingCountryItems]"
+
+			                        item = {
+			                        	smart_notifications_watchlist_neighbor_europe_row = {}
+			                        }
 			                    }
 
-			                    datamodel = "[MessageSettingsWindow.GetInterestingCountryItems]"
+			                    flowcontainer = {
+			                        direction = vertical
+			                        parentanchor = hcenter
 
-			                    item = {
-			                    	smart_notifications_watchlist_neighbor_europe_row = {}
-			                    }
-			                }
+			                        textbox = {
+			                        	text = "[GetGeographicRegion('geographic_region_africa').GetName]"
+			                        	autoresize = yes
+			                        	align = nobaseline
+			                        	default_format = "#title"
+			                        	margin_top = 6
+			                        	margin_left = 5
+			                        }
 
-			                flowcontainer = {
-			                    direction = vertical
-			                    parentanchor = hcenter
-			                    visible = "[And(GetVariableSystem.HasValue('message_settings_watchlist', 'true'), GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'neighbors'))]"
+			                        datamodel = "[MessageSettingsWindow.GetInterestingCountryItems]"
 
-			                    textbox = {
-			                    	text = "[GetGeographicRegion('geographic_region_africa').GetName]"
-			                    	autoresize = yes
-			                    	align = nobaseline
-			                    	default_format = "#title"
-			                    	margin_top = 6
-			                    	margin_left = 5
-			                    }
-
-			                    datamodel = "[MessageSettingsWindow.GetInterestingCountryItems]"
-
-			                    item = {
-			                    	smart_notifications_watchlist_neighbor_africa_row = {}
-			                    }
-			                }
-
-			                flowcontainer = {
-			                    direction = vertical
-			                    parentanchor = hcenter
-			                    visible = "[And(GetVariableSystem.HasValue('message_settings_watchlist', 'true'), GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'neighbors'))]"
-
-			                    textbox = {
-			                    	text = "[GetGeographicRegion('geographic_region_asia').GetName]"
-			                    	autoresize = yes
-			                    	align = nobaseline
-			                    	default_format = "#title"
-			                    	margin_top = 6
-			                    	margin_left = 5
+			                        item = {
+			                        	smart_notifications_watchlist_neighbor_africa_row = {}
+			                        }
 			                    }
 
-			                    datamodel = "[MessageSettingsWindow.GetInterestingCountryItems]"
+			                    flowcontainer = {
+			                        direction = vertical
+			                        parentanchor = hcenter
 
-			                    item = {
-			                    	smart_notifications_watchlist_neighbor_asia_row = {}
+			                        textbox = {
+			                        	text = "[GetGeographicRegion('geographic_region_asia').GetName]"
+			                        	autoresize = yes
+			                        	align = nobaseline
+			                        	default_format = "#title"
+			                        	margin_top = 6
+			                        	margin_left = 5
+			                        }
+
+			                        datamodel = "[MessageSettingsWindow.GetInterestingCountryItems]"
+
+			                        item = {
+			                        	smart_notifications_watchlist_neighbor_asia_row = {}
+			                        }
 			                    }
-			                }
 
-			                flowcontainer = {
-			                    direction = vertical
-			                    parentanchor = hcenter
-			                    visible = "[And(GetVariableSystem.HasValue('message_settings_watchlist', 'true'), GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'neighbors'))]"
+			                    flowcontainer = {
+			                        direction = vertical
+			                        parentanchor = hcenter
 
-			                    textbox = {
-			                    	text = "[GetGeographicRegion('geographic_region_americas').GetName]"
-			                    	autoresize = yes
-			                    	align = nobaseline
-			                    	default_format = "#title"
-			                    	margin_top = 6
-			                    	margin_left = 5
-			                    }
+			                        textbox = {
+			                        	text = "[GetGeographicRegion('geographic_region_americas').GetName]"
+			                        	autoresize = yes
+			                        	align = nobaseline
+			                        	default_format = "#title"
+			                        	margin_top = 6
+			                        	margin_left = 5
+			                        }
 
-			                    datamodel = "[MessageSettingsWindow.GetInterestingCountryItems]"
+			                        datamodel = "[MessageSettingsWindow.GetInterestingCountryItems]"
 
-			                    item = {
-			                    	smart_notifications_watchlist_neighbor_americas_row = {}
+			                        item = {
+			                        	smart_notifications_watchlist_neighbor_americas_row = {}
+			                        }
 			                    }
 			                }
 
@@ -1339,9 +1356,65 @@ types message_settings {
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 590 -1 }
+                maximumsize = { 360 -1 }
                 margin_left = 10
                 elide = right
+            }
+
+            # Provenance tags (added 2026-09-07, see the SGUI comment in
+            # watchlist_sgui.txt) -- shows WHY this country is watched, so
+            # a category's Deselect All leaving it checked (because it's
+            # also watched a different way) is visibly explained instead
+            # of looking like a bug. Up to 4 tags, each independently
+            # visible; tooltip carries the full category name.
+            widget = {
+                size = { 230 44 }
+                datacontext = "[InterestingCountryItem.GetCountry]"
+
+                hbox = {
+                	parentanchor = vcenter
+                	spacing = 4
+
+                	textbox = {
+                		visible = "[GetScriptedGui('watchlist_is_flagged_great_power_check_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
+                		text = "SMART_NOTIFICATIONS_WATCHLIST_TAG_GREAT_POWER"
+                		tooltip = "SMART_NOTIFICATIONS_WATCHLIST_SECTION_GREAT_POWERS"
+                		autoresize = yes
+                		align = nobaseline
+                		fontsize_min = 12
+                		alpha = 0.75
+                	}
+
+                	textbox = {
+                		visible = "[GetScriptedGui('watchlist_is_flagged_neighbor_check_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
+                		text = "SMART_NOTIFICATIONS_WATCHLIST_TAG_NEIGHBOR"
+                		tooltip = "SMART_NOTIFICATIONS_WATCHLIST_SECTION_NEIGHBORS"
+                		autoresize = yes
+                		align = nobaseline
+                		fontsize_min = 12
+                		alpha = 0.75
+                	}
+
+                	textbox = {
+                		visible = "[GetScriptedGui('watchlist_is_flagged_rival_check_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
+                		text = "SMART_NOTIFICATIONS_WATCHLIST_TAG_RIVAL"
+                		tooltip = "SMART_NOTIFICATIONS_WATCHLIST_SECTION_RIVALS"
+                		autoresize = yes
+                		align = nobaseline
+                		fontsize_min = 12
+                		alpha = 0.75
+                	}
+
+                	textbox = {
+                		visible = "[GetScriptedGui('watchlist_is_flagged_manual_check_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
+                		text = "SMART_NOTIFICATIONS_WATCHLIST_TAG_MANUAL"
+                		tooltip = "SMART_NOTIFICATIONS_WATCHLIST_SECTION_MANUAL"
+                		autoresize = yes
+                		align = nobaseline
+                		fontsize_min = 12
+                		alpha = 0.75
+                	}
+                }
             }
 
             widget = {

@@ -16,6 +16,21 @@ commit that ships a new feature (however small — "added a new
 notification" counts), so `0.20` → `0.21` → `0.22`. Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.26] — 2026-09-07
+
+### Fixed
+
+- The Watchlist tab's Neighbors list no longer renders with overlapping,
+  garbled text — its four continent groups now stack properly instead of
+  drawing on top of each other.
+
+### Added
+
+- The Watched list now shows small tags next to each country explaining
+  *why* it's watched (Great Power / Neighbor / Rival / manually added),
+  so it's clear when a country stays checked after a category's Deselect
+  All because it's also watched for a different reason.
+
 ## [0.25] — 2026-09-07
 
 ### Added
