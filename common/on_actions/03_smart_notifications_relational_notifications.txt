@@ -1,0 +1,135 @@
+﻿# Phase 4 -- Relational Notification Engine (see TODO.md). The actual
+# payoff of the Watchlist feature: elevate a diplomatic play's
+# notification when a watched country (or the player) is involved,
+# demote it to the ambient feed otherwise.
+#
+# Scope for this first pass (confirmed with the user 2026-09-07): the
+# three Diplomatic-Play-rooted events with a clean, confirmed hook --
+# play started, someone joined a side, and the play became a war. War
+# end/peace already gets popup+treaty-terms coverage from Phase 2's
+# existing (unconditional) peace/capitulation notifications, and
+# invasions have no moddable hook for 3 of their 4 keys (see the Dev
+# Tooling section of TODO.md) -- both deferred rather than bolted on
+# incompletely.
+#
+# Per the modding rules in the game's own common/on_actions/_on_actions.md
+# (and CLAUDE.md): never redefine a vanilla on_action's effect directly,
+# append our own on_action name to its `on_actions = {}` list instead.
+# Root = Diplomatic Play for all three (confirmed via vanilla's own
+# comments in common/on_actions/00_code_on_actions.txt), so scope:actor/
+# scope:target/scope:recipient are already bound the same way they are
+# for vanilla's own diplo_play_start_notification/join_side/war_start --
+# confirmed via their own localization (interfaces_l_english.yml) using
+# exactly those scope names.
+#
+# Per CLAUDE.md's override-hierarchy note: post_notification can't switch
+# notification_type per call, so "toast for watched, feed for everyone
+# else" on what's conceptually one event needs two separate keys/groups,
+# chosen here by script. Confirmed with the user (2026-09-07): this
+# REPLACES the existing vanilla notification for these 3 groups (muted to
+# `none` in common/messages/00_messages.txt) rather than adding an extra
+# alert alongside it, so a watched play produces exactly one notification,
+# not two.
+
+on_diplo_play_start = {
+	on_actions = {
+		smart_notifications_diplo_play_start
+	}
+}
+
+on_diplo_play_join_side = {
+	on_actions = {
+		smart_notifications_diplo_play_join_side
+	}
+}
+
+on_diplo_play_war_start = {
+	on_actions = {
+		smart_notifications_diplo_play_war_start
+	}
+}
+
+# Shared "is this diplomatic play worth a prominent notification" check,
+# duplicated inline in each on_action below (scripted triggers can't be
+# shared as a value the way effects can via a variable, and these need
+# to run inside the SGUI/on_action's own `if` block) rather than
+# factored into common/scripted_triggers/, since only these three
+# on_actions use it -- revisit if a fourth caller shows up.
+#
+# any_scope_play_involved ("Iterate through all involved in a:
+# diplomatic play", confirmed real via the game's own script_docs
+# effects.log) lets us check every participant's watched flags without
+# needing a live "who's my neighbor" comparison here at all -- the
+# Watchlist's 4 flags are exactly the pre-computed answer to that
+# question. `is_player = yes` is included alongside the 4 flags because
+# a diplomatic play involving the player directly is obviously always
+# worth a prominent notification, watchlist or not.
+
+# Root = Diplomatic Play
+smart_notifications_diplo_play_start = {
+	effect = {
+		if = {
+			limit = {
+				any_scope_play_involved = {
+					OR = {
+						is_player = yes
+						has_variable = watched_via_great_power
+						has_variable = watched_via_neighbor
+						has_variable = watched_via_rival
+						has_variable = watched_manually
+					}
+				}
+			}
+			post_notification = smart_notifications_diplo_play_start_watched
+		}
+		else = {
+			post_notification = smart_notifications_diplo_play_start_quiet
+		}
+	}
+}
+
+# Root = Diplomatic Play
+smart_notifications_diplo_play_join_side = {
+	effect = {
+		if = {
+			limit = {
+				any_scope_play_involved = {
+					OR = {
+						is_player = yes
+						has_variable = watched_via_great_power
+						has_variable = watched_via_neighbor
+						has_variable = watched_via_rival
+						has_variable = watched_manually
+					}
+				}
+			}
+			post_notification = smart_notifications_diplo_play_join_side_watched
+		}
+		else = {
+			post_notification = smart_notifications_diplo_play_join_side_quiet
+		}
+	}
+}
+
+# Root = Diplomatic Play
+smart_notifications_diplo_play_war_start = {
+	effect = {
+		if = {
+			limit = {
+				any_scope_play_involved = {
+					OR = {
+						is_player = yes
+						has_variable = watched_via_great_power
+						has_variable = watched_via_neighbor
+						has_variable = watched_via_rival
+						has_variable = watched_manually
+					}
+				}
+			}
+			post_notification = smart_notifications_diplo_play_war_start_watched
+		}
+		else = {
+			post_notification = smart_notifications_diplo_play_war_start_quiet
+		}
+	}
+}

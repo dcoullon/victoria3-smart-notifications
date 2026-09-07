@@ -95,7 +95,13 @@ diplo_play_war_start_notification = {
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
-	notification_type = popup
+	# Muted 2026-09-07 (Phase 4, see TODO.md): replaced by
+	# smart_notifications_diplo_play_war_start_watched/_quiet, posted
+	# instead of this key by
+	# common/on_actions/03_smart_notifications_relational_notifications.txt
+	# based on whether a watched country (or the player) is involved --
+	# see that file's header comment for the full architecture note.
+	notification_type = none
 	popup_name = war_started
 
 	on_created_soundeffect = "event:/SFX/UI/Military/to_war_popup_notification"
@@ -298,7 +304,9 @@ diplo_play_start_notification = {
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
-	notification_type = toast
+	# Muted 2026-09-07 (Phase 4) -- see diplo_play_war_start_notification's
+	# comment above and 03_smart_notifications_relational_notifications.txt.
+	notification_type = none
 	color = neutral
 }
 
@@ -328,13 +336,17 @@ diplo_play_join_side_notification = {
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
-	# Reverted to vanilla default (toast) for the first release. This fires every
-	# time any country (subjects/dominions included) joins a side of a diplomatic
-	# play/war, which is the source of the British-dominion call-to-arms spam --
-	# muting just subjects/dominions isn't possible at the notification_type level
-	# (it applies to the whole message key, not scoped by trigger scope), so a real
-	# fix needs a scripted condition elsewhere. Revisit in a later release.
-	notification_type = toast
+	# Was reverted to vanilla default (toast) for the first release, citing the
+	# British-dominion call-to-arms spam and needing a scripted condition to fix
+	# it properly rather than a blunt notification_type change. Phase 4 (see
+	# TODO.md) IS that scripted condition -- muted 2026-09-07, replaced by
+	# smart_notifications_diplo_play_join_side_watched/_quiet
+	# (03_smart_notifications_relational_notifications.txt), which only
+	# elevates a join-side event when a watched country (or the player) is
+	# involved -- a dominion/subject auto-joining their overlord's side no
+	# longer pops a toast unless that dominion (or someone else in the play)
+	# happens to be on the watchlist.
+	notification_type = none
 	color = neutral
 }
 
@@ -2082,6 +2094,88 @@ smart_notifications_truce_expired = {
 	# 02_smart_notifications_truce_tracker.txt), scope:target = the country
 	# whose truce with us just ended, saved via save_scope_as before
 	# switching back to root.
+	notification_type = toast
+	color = neutral
+}
+
+# Phase 4 -- Relational Notification Engine (see TODO.md and
+# common/on_actions/03_smart_notifications_relational_notifications.txt).
+# Each vanilla diplo play event below is replaced by a watched/quiet pair,
+# posted instead of the (now-muted) vanilla key depending on whether a
+# watched country or the player is involved. `type = diplomatic_play` and
+# scope:actor/scope:target/scope:recipient bindings match vanilla's own
+# equivalents exactly (confirmed via interfaces_l_english.yml), since
+# these post from the same on_action scope context. Two separate groups
+# per event (not one shared group) so the player can independently
+# reconfigure each urgency tier in Message Settings, same reasoning as
+# Phase 1's invasion/subject group splits.
+
+smart_notifications_diplo_play_start_watched = {
+	type = diplomatic_play
+	group = "smart_notifications_diplo_play_start_watched_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = toast
+	color = neutral
+}
+
+smart_notifications_diplo_play_start_quiet = {
+	type = diplomatic_play
+	group = "smart_notifications_diplo_play_start_quiet_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = feed
+	color = neutral
+}
+
+smart_notifications_diplo_play_join_side_watched = {
+	type = diplomatic_play
+	group = "smart_notifications_diplo_play_join_side_watched_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = toast
+	color = neutral
+}
+
+smart_notifications_diplo_play_join_side_quiet = {
+	type = diplomatic_play
+	group = "smart_notifications_diplo_play_join_side_quiet_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = feed
+	color = neutral
+}
+
+smart_notifications_diplo_play_war_start_watched = {
+	type = diplomatic_play
+	group = "smart_notifications_diplo_play_war_start_watched_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	# Preserves today's popup+auto-pause escalation (vanilla's own
+	# war_started popup layout, confirmed real -- the only popup_name used
+	# anywhere with type = diplomatic_play in vanilla) for war-starts that
+	# actually involve someone worth caring about; unwatched ones are
+	# demoted to the quiet variant below instead of always popping up.
+	notification_type = popup
+	popup_name = war_started
+
+	on_created_soundeffect = "event:/SFX/UI/Military/to_war_popup_notification"
+}
+
+smart_notifications_diplo_play_war_start_quiet = {
+	type = diplomatic_play
+	group = "smart_notifications_diplo_play_war_start_quiet_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	# Toast, not feed -- a war starting somewhere is still more notable
+	# than an ordinary diplomatic play starting, even when nobody on the
+	# watchlist is involved.
 	notification_type = toast
 	color = neutral
 }

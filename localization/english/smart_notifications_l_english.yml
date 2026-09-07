@@ -38,6 +38,44 @@
  notification_smart_notifications_truce_expired_name:0 "Truce with [SCOPE.sC('smart_notifications_truce_partner').GetNameNoFormatting] has expired"
  notification_smart_notifications_truce_expired_desc:0 "Our truce with [SCOPE.sC('smart_notifications_truce_partner').GetNameNoFormatting] has run out. We are no longer protected from a new [concept_diplomatic_play] or [concept_war] against them, nor they from us."
 
+ # Phase 4 -- Relational Notification Engine (see TODO.md and
+ # 03_smart_notifications_relational_notifications.txt). Text/scope
+ # bindings modeled directly on vanilla's own
+ # diplo_play_start_third_party_notification (confirmed real, same
+ # scope:actor/scope:target bindings, same
+ # SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName
+ # pattern for the play's type name), substituting .GetNameNoFormatting
+ # for .GetName per this mod's own established convention.
+ smart_notifications_diplo_play_start_watched_group:0 "Diplomatic Play Started, Watched Country Involved (Smart Notifications)"
+ notification_smart_notifications_diplo_play_start_watched_tooltip:0 "#header $notification_smart_notifications_diplo_play_start_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_start_watched_desc$"
+ notification_smart_notifications_diplo_play_start_watched_name:0 "[SCOPE.sC('actor').GetFlagTextIcon] [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b]"
+ notification_smart_notifications_diplo_play_start_watched_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] started a [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] against [SCOPE.sC('target').GetNameNoFormatting]."
+
+ smart_notifications_diplo_play_start_quiet_group:0 "Diplomatic Play Started, Ambient (Smart Notifications)"
+ notification_smart_notifications_diplo_play_start_quiet_tooltip:0 "#header $notification_smart_notifications_diplo_play_start_quiet_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_start_quiet_desc$"
+ notification_smart_notifications_diplo_play_start_quiet_name:0 "[SCOPE.sC('actor').GetFlagTextIcon] [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b]"
+ notification_smart_notifications_diplo_play_start_quiet_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] started a [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] against [SCOPE.sC('target').GetNameNoFormatting]."
+
+ smart_notifications_diplo_play_join_side_watched_group:0 "Diplomatic Play Join Side, Watched Country Involved (Smart Notifications)"
+ notification_smart_notifications_diplo_play_join_side_watched_tooltip:0 "#header $notification_smart_notifications_diplo_play_join_side_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_join_side_watched_desc$"
+ notification_smart_notifications_diplo_play_join_side_watched_name:0 "[SCOPE.sC('actor').GetNameNoFormatting] sides with [SCOPE.sC('target').GetNameNoFormatting]"
+ notification_smart_notifications_diplo_play_join_side_watched_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] sided with [SCOPE.sC('target').GetNameNoFormatting] in the [concept_diplomatic_play] against [SCOPE.sC('recipient').GetNameNoFormatting]."
+
+ smart_notifications_diplo_play_join_side_quiet_group:0 "Diplomatic Play Join Side, Ambient (Smart Notifications)"
+ notification_smart_notifications_diplo_play_join_side_quiet_tooltip:0 "#header $notification_smart_notifications_diplo_play_join_side_quiet_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_join_side_quiet_desc$"
+ notification_smart_notifications_diplo_play_join_side_quiet_name:0 "[SCOPE.sC('actor').GetNameNoFormatting] sides with [SCOPE.sC('target').GetNameNoFormatting]"
+ notification_smart_notifications_diplo_play_join_side_quiet_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] sided with [SCOPE.sC('target').GetNameNoFormatting] in the [concept_diplomatic_play] against [SCOPE.sC('recipient').GetNameNoFormatting]."
+
+ smart_notifications_diplo_play_war_start_watched_group:0 "Diplomatic Play War Start, Watched Country Involved (Smart Notifications)"
+ notification_smart_notifications_diplo_play_war_start_watched_tooltip:0 "#header $notification_smart_notifications_diplo_play_war_start_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_war_start_watched_desc$"
+ notification_smart_notifications_diplo_play_war_start_watched_name:0 "War Erupts"
+ notification_smart_notifications_diplo_play_war_start_watched_desc:0 "The [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] between [SCOPE.sC('actor').GetNameNoFormatting] and [SCOPE.sC('target').GetNameNoFormatting] has escalated into open [concept_war]."
+
+ smart_notifications_diplo_play_war_start_quiet_group:0 "Diplomatic Play War Start, Ambient (Smart Notifications)"
+ notification_smart_notifications_diplo_play_war_start_quiet_tooltip:0 "#header $notification_smart_notifications_diplo_play_war_start_quiet_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_war_start_quiet_desc$"
+ notification_smart_notifications_diplo_play_war_start_quiet_name:0 "War Erupts"
+ notification_smart_notifications_diplo_play_war_start_quiet_desc:0 "The [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] between [SCOPE.sC('actor').GetNameNoFormatting] and [SCOPE.sC('target').GetNameNoFormatting] has escalated into open [concept_war]."
+
  # Amendment-repealable alert (see 01_smart_notifications_alerts.txt).
  #
  # CORRECTED 2026-09-06: an alert has TWO separate name-shaped loc keys, not

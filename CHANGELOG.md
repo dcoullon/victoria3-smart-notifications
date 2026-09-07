@@ -16,6 +16,21 @@ commit that ships a new feature (however small — "added a new
 notification" counts), so `0.20` → `0.21` → `0.22`. Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.25] — 2026-09-07
+
+### Added
+
+- The Watchlist now actually affects notifications: a diplomatic play
+  starting, someone joining a side, or a play turning into war is now
+  toast/popup only when a country you're watching (or you) is involved —
+  otherwise it stays in the quiet background feed.
+
+### Changed
+
+- As a result of the above, dominions/subjects auto-joining their
+  overlord's side no longer spam a toast for every single one — only
+  when the play itself involves someone you're watching.
+
 ## [0.24] — 2026-09-07
 
 ### Fixed

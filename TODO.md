@@ -57,13 +57,17 @@ Confirm the simplest possible mod actually loads in-game before anything else.
 
 ## Phase 1 — Signal-to-Noise Baseline (target: v0.1.0)
 
-- [~] **Dominion & Subject War Mute** — *not shipped as scoped.*
-      `diplo_play_join_side_notification` currently matches vanilla (`toast`).
-      A blunt `notification_type = none` would mute the dominion/subject spam
-      but also every legitimate great-power join — that trade-off was
-      rejected. Properly scoping "mute only for subjects/dominions" needs
-      relational filtering, which doesn't exist until **Phase 4**. Tracked
-      there; this checkbox stays open until Phase 4 lands.
+- [x] **Dominion & Subject War Mute** — shipped 2026-09-07 as part of
+      Phase 4's relational engine landing (see below), not as a blunt
+      `notification_type` change. `diplo_play_join_side_notification` is
+      now muted entirely and replaced by
+      `smart_notifications_diplo_play_join_side_watched`/`_quiet`
+      (`common/on_actions/03_smart_notifications_relational_notifications.txt`),
+      which only elevates a join-side event to toast when a watched
+      country (or the player) is involved — a dominion/subject
+      auto-joining its overlord's side now stays in the quiet feed unless
+      someone in the play is actually on the watchlist. **Not yet
+      confirmed in-game.**
 - [x] **Conscription Noise Reduction** — shipped as a blunt global demotion:
       `country_conscription` is `none` for everyone (see
       [00_messages.txt:1489](common/messages/00_messages.txt)), not scoped to
@@ -581,15 +585,43 @@ what's conceptually the same event needs **two separate message keys/groups**
 on_action choosing which one to `post_notification`. Plan the message key
 list for this phase with that in mind before writing the on_action.
 
-- [ ] **On-Action Interception** — catch `on_diplomatic_play_start`,
-      `on_war_begins`, and major leader deaths.
-- [ ] **Relational Scope Filtering** — evaluate whether participants are
-      watched (`has_variable = watched_country`), Great Powers
-      (`is_country_type = great_power`), or direct neighbors
-      (`is_neighbor_of = root`).
-- [ ] **Targeted Alerts** — prominent toasts/modals with auto-pause for
-      priority nations; untracked minor nations stay in the quiet background
-      feed.
+- [~] **On-Action Interception / Relational Scope Filtering / Targeted
+      Alerts — v1 BUILT 2026-09-07, not yet confirmed in-game.** Scoped
+      with the user to the 3 diplo-play events with a clean, confirmed
+      hook (real on_action names found via `common/on_actions/
+      00_code_on_actions.txt`, not the approximate `on_diplomatic_play_start`/
+      `on_war_begins` names this bullet originally guessed at):
+      `on_diplo_play_start`, `on_diplo_play_join_side`,
+      `on_diplo_play_war_start` (all Root = Diplomatic Play). Deferred:
+      war end/peace (already gets popup+treaty-terms coverage from
+      Phase 2's existing, unconditional peace/capitulation
+      notifications) and invasions (no moddable hook exists for 3 of its
+      4 keys — see Dev Tooling below — only `on_invasion_succeeded` is
+      real, and even that can't suppress the vanilla notification, only
+      add a supplementary one; deferred rather than shipped
+      asymmetrically). Leader deaths (this bullet's original third
+      target) dropped entirely — never actually in scope per the 2026-09-06
+      scope decision under Phase 3 ("diplo plays & wars only for v1"),
+      this bullet's own wording just predated that decision and was
+      never reconciled with it until now.
+      Implementation:
+      [03_smart_notifications_relational_notifications.txt](common/on_actions/03_smart_notifications_relational_notifications.txt)
+      appends to all 3 vanilla on_actions (never redefines their effect
+      directly, per CLAUDE.md) and uses `any_scope_play_involved`
+      (confirmed real via the game's own `script_docs` effects.log —
+      "Iterate through all involved in a: diplomatic play") to check
+      every participant's watched flags, `OR`ed with `is_player = yes`
+      so a play involving the player directly is always elevated
+      regardless of watchlist. Per the architecture note above and
+      confirmed with the user 2026-09-07: **replaces** vanilla's own
+      notification for these 3 groups (muted to `notification_type =
+      none` in `00_messages.txt`) with a watched/quiet pair each —
+      watched → toast (war-start → `popup`, preserving vanilla's own
+      war-start escalation only for wars that actually involve someone
+      watched), quiet → feed (war-start quiet → `toast`, since a war
+      starting is still more notable than an ordinary play). This also
+      lands the long-open Phase 1 "Dominion & Subject War Mute" item —
+      see that checkbox above.
 - [ ] **Country renaming caveat (from user's WIP doc, 2026-09-05):** a
       watched-country flag stored as a scope variable on the country should
       survive a revolution/government change that renames/reforms the
