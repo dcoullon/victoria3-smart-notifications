@@ -101,10 +101,24 @@ diplo_play_war_start_notification = {
 	# common/on_actions/03_smart_notifications_relational_notifications.txt
 	# based on whether a watched country (or the player) is involved --
 	# see that file's header comment for the full architecture note.
+	#
+	# `popup_name`/`on_created_soundeffect` REMOVED 2026-09-08: the user
+	# confirmed a real, reproducible double full-screen popup when a war
+	# starts involving them -- exact same screen twice in a row. Our own
+	# script (03_smart_notifications_relational_notifications.txt) only
+	# ever calls post_notification once (confirmed via a single SNW_FILTER
+	# decision line, no DUPLICATE_SUPPRESSED nearby), and no other message
+	# key shares `popup_name = war_started` besides this one and our
+	# replacement -- so the leading hypothesis is that this muted key's
+	# own popup_name/sound references were still being processed at some
+	# layer independent of notification_type's toast/feed/popup gating,
+	# stacking with our replacement's own popup. This was also the ONLY
+	# muted key anywhere in this file still carrying leftover presentation
+	# properties (confirmed via a full scan) -- every other muted key
+	# cleanly has just notification_type/color, matching what's restored
+	# here. UNCONFIRMED until the user sees another war start involving
+	# them.
 	notification_type = none
-	popup_name = war_started
-
-	on_created_soundeffect = "event:/SFX/UI/Military/to_war_popup_notification"
 }
 
 acquired_technology_notification = {

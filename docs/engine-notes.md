@@ -235,21 +235,28 @@ any deliberate convention.
 **Convention adopted:** any message group or alert type that is genuinely
 **new content this mod created** (not a vanilla notification we only
 re-tuned `notification_type` on, and not a vanilla notification we split
-into a new group for independent priority) gets a `" (Smart Notifications)"`
-suffix on whichever loc string is the **settings-list label** (parentheses,
-not square brackets — see § Literal `[...]` in loc text below; the first
+into a new group for independent priority) gets a `"(SN) "` prefix on
+whichever loc string is the **settings-list label** (parentheses, not
+square brackets — see § Literal `[...]` in loc text below; the first
 version of this convention used brackets and broke every string it
 touched):
 - For messages, that's the `group` loc key (e.g.
-  `smart_notifications_truce_expired_group:0 "Truce Expired (Smart
-  Notifications)"`) — not the message's own `_name`/`_desc`, which is the
-  actual toast/popup sentence shown in-game and reads awkwardly with a
-  tag appended mid-sentence.
+  `smart_notifications_truce_expired_group:0 "(SN) Truce Expired"`) — not
+  the message's own `_name`/`_desc`, which is the actual toast/popup
+  sentence shown in-game and reads awkwardly with a tag prepended.
 - For alerts, there's no separate settings-list label — an alert's own
   `_name` loc *is* both its Message Settings row label and its ribbon
   tooltip title, so tagging `_name` covers both automatically (e.g.
-  `alert_smart_notifications_amendment_repealable_alert_name:0 "Amendment
-  Repeal Available (Smart Notifications)"`).
+  `alert_smart_notifications_amendment_repealable_alert_name:0 "(SN)
+  Amendment Repeal Available"`).
+
+**REVISED 2026-09-08** — this started as a trailing `" (Smart
+Notifications)"` suffix, changed to a leading `"(SN) "` prefix per the
+user after two real problems with actually using the settings screen:
+the fixed-width label column truncates hard, and the suffix — the one
+thing marking a row as ours — was exactly the part getting cut off; and
+the long form made every already-long label longer still. A short prefix
+fixes both at once: visible even when truncated, and far shorter.
 
 **Explicitly NOT tagged:** `invasion_against_us_notification_group` and
 `diplo_play_subject_overlord_notification_group` (Phase 1's group-splits)

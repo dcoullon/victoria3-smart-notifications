@@ -10,12 +10,12 @@
  diplo_play_subject_overlord_notification_group:0 "Subject Released (Ours)"
 
  # Truce expiry watcher (see 02_smart_notifications_truce_tracker.txt).
- # The " (Smart Notifications)" suffix on the *settings-list label* (not the
- # in-game toast text itself, which stays a plain sentence) is a mod-wide
- # convention -- see CLAUDE.md/engine-notes.md "Tagging mod-created
- # notifications" -- so players can tell at a glance, in Message Settings,
- # which rows are new content this mod added vs. a vanilla notification
- # we only re-tuned or split into its own group.
+ # The "(SN) " prefix on the *settings-list label* (not the in-game toast
+ # text itself, which stays a plain sentence) is a mod-wide convention --
+ # see CLAUDE.md/engine-notes.md "Tagging mod-created notifications" -- so
+ # players can tell at a glance, in Message Settings, which rows are new
+ # content this mod added vs. a vanilla notification we only re-tuned or
+ # split into its own group.
  #
  # CORRECTED 2026-09-06: this was originally "[Smart Notifications]" with
  # square brackets -- broke the entire string. Confirmed via a real
@@ -25,7 +25,17 @@
  # with argument `Notifications`" and failed outright, leaving the whole
  # row blank in Message Settings (confirmed by the user's screenshot).
  # Parentheses have no special meaning and are safe.
- smart_notifications_truce_expired_group:0 "Truce Expired (Smart Notifications)"
+ #
+ # REVISED 2026-09-08 per the user: moved from a trailing
+ # " (Smart Notifications)" suffix to a short "(SN) " prefix on every
+ # label. Two real problems with the old suffix, both raised by the user
+ # after actually using the settings screen: (1) the fixed-width label
+ # column truncates hard, and the suffix -- the one thing marking a row as
+ # ours -- was exactly the part getting cut off; (2) it made every label
+ # needlessly long. A short prefix fixes both: it's the first thing
+ # visible even when truncated, and it's 5 characters instead of 22.
+ # Applies to every group label below and the alert labels further down.
+ smart_notifications_truce_expired_group:0 "(SN) Truce Expired"
  notification_smart_notifications_truce_expired_tooltip:0 "#header $notification_smart_notifications_truce_expired_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_truce_expired_desc$"
  # CORRECTED 2026-09-06: `.GetName` is not a valid function here -- confirmed
  # via a real error.log entry ("Could not find data system function
@@ -46,32 +56,32 @@
  # SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName
  # pattern for the play's type name), substituting .GetNameNoFormatting
  # for .GetName per this mod's own established convention.
- smart_notifications_diplo_play_start_watched_group:0 "Diplomatic Play Started, Watched Country Involved (Smart Notifications)"
+ smart_notifications_diplo_play_start_watched_group:0 "(SN) Diplomatic Play Started, Watched Country Involved"
  notification_smart_notifications_diplo_play_start_watched_tooltip:0 "#header $notification_smart_notifications_diplo_play_start_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_start_watched_desc$"
  notification_smart_notifications_diplo_play_start_watched_name:0 "[SCOPE.sC('actor').GetFlagTextIcon] [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b]"
  notification_smart_notifications_diplo_play_start_watched_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] started a [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] against [SCOPE.sC('target').GetNameNoFormatting]."
 
- smart_notifications_diplo_play_start_quiet_group:0 "Diplomatic Play Started, Ambient (Smart Notifications)"
+ smart_notifications_diplo_play_start_quiet_group:0 "(SN) Diplomatic Play Started, Ambient"
  notification_smart_notifications_diplo_play_start_quiet_tooltip:0 "#header $notification_smart_notifications_diplo_play_start_quiet_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_start_quiet_desc$"
  notification_smart_notifications_diplo_play_start_quiet_name:0 "[SCOPE.sC('actor').GetFlagTextIcon] [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b]"
  notification_smart_notifications_diplo_play_start_quiet_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] started a [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] against [SCOPE.sC('target').GetNameNoFormatting]."
 
- smart_notifications_diplo_play_join_side_watched_group:0 "Diplomatic Play Join Side, Watched Country Involved (Smart Notifications)"
+ smart_notifications_diplo_play_join_side_watched_group:0 "(SN) Diplomatic Play Join Side, Watched Country Involved"
  notification_smart_notifications_diplo_play_join_side_watched_tooltip:0 "#header $notification_smart_notifications_diplo_play_join_side_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_join_side_watched_desc$"
  notification_smart_notifications_diplo_play_join_side_watched_name:0 "[SCOPE.sC('actor').GetNameNoFormatting] sides with [SCOPE.sC('target').GetNameNoFormatting]"
  notification_smart_notifications_diplo_play_join_side_watched_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] sided with [SCOPE.sC('target').GetNameNoFormatting] in the [concept_diplomatic_play] against [SCOPE.sC('recipient').GetNameNoFormatting]."
 
- smart_notifications_diplo_play_join_side_quiet_group:0 "Diplomatic Play Join Side, Ambient (Smart Notifications)"
+ smart_notifications_diplo_play_join_side_quiet_group:0 "(SN) Diplomatic Play Join Side, Ambient"
  notification_smart_notifications_diplo_play_join_side_quiet_tooltip:0 "#header $notification_smart_notifications_diplo_play_join_side_quiet_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_join_side_quiet_desc$"
  notification_smart_notifications_diplo_play_join_side_quiet_name:0 "[SCOPE.sC('actor').GetNameNoFormatting] sides with [SCOPE.sC('target').GetNameNoFormatting]"
  notification_smart_notifications_diplo_play_join_side_quiet_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] sided with [SCOPE.sC('target').GetNameNoFormatting] in the [concept_diplomatic_play] against [SCOPE.sC('recipient').GetNameNoFormatting]."
 
- smart_notifications_diplo_play_war_start_watched_group:0 "Diplomatic Play War Start, Watched Country Involved (Smart Notifications)"
+ smart_notifications_diplo_play_war_start_watched_group:0 "(SN) Diplomatic Play War Start, Watched Country Involved"
  notification_smart_notifications_diplo_play_war_start_watched_tooltip:0 "#header $notification_smart_notifications_diplo_play_war_start_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_war_start_watched_desc$"
  notification_smart_notifications_diplo_play_war_start_watched_name:0 "War Erupts"
  notification_smart_notifications_diplo_play_war_start_watched_desc:0 "The [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] between [SCOPE.sC('actor').GetNameNoFormatting] and [SCOPE.sC('target').GetNameNoFormatting] has escalated into open [concept_war]."
 
- smart_notifications_diplo_play_war_start_quiet_group:0 "Diplomatic Play War Start, Ambient (Smart Notifications)"
+ smart_notifications_diplo_play_war_start_quiet_group:0 "(SN) Diplomatic Play War Start, Ambient"
  notification_smart_notifications_diplo_play_war_start_quiet_tooltip:0 "#header $notification_smart_notifications_diplo_play_war_start_quiet_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_war_start_quiet_desc$"
  notification_smart_notifications_diplo_play_war_start_quiet_name:0 "War Erupts"
  notification_smart_notifications_diplo_play_war_start_quiet_desc:0 "The [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] between [SCOPE.sC('actor').GetNameNoFormatting] and [SCOPE.sC('target').GetNameNoFormatting] has escalated into open [concept_war]."
@@ -87,12 +97,12 @@
  # diplo_play_subject_released (below) genuinely has no primary-key
  # sibling, so it keeps its own watched/quiet pair and loc.
 
- smart_notifications_diplo_play_subject_released_watched_group:0 "Diplomatic Play Subject Released, Watched Country Involved (Smart Notifications)"
+ smart_notifications_diplo_play_subject_released_watched_group:0 "(SN) Diplomatic Play Subject Released, Watched Country Involved"
  notification_smart_notifications_diplo_play_subject_released_watched_tooltip:0 "#header $notification_smart_notifications_diplo_play_subject_released_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_subject_released_watched_desc$"
  notification_smart_notifications_diplo_play_subject_released_watched_name:0 "[SCOPE.sC('target').GetNameNoFormatting] breaks free"
  notification_smart_notifications_diplo_play_subject_released_watched_desc:0 "Due to the failure of [SCOPE.sC('actor').GetNameNoFormatting] to protect their subject [SCOPE.sC('target').GetNameNoFormatting] their pact is now null and void."
 
- smart_notifications_diplo_play_subject_released_quiet_group:0 "Diplomatic Play Subject Released, Ambient (Smart Notifications)"
+ smart_notifications_diplo_play_subject_released_quiet_group:0 "(SN) Diplomatic Play Subject Released, Ambient"
  notification_smart_notifications_diplo_play_subject_released_quiet_tooltip:0 "#header $notification_smart_notifications_diplo_play_subject_released_quiet_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_subject_released_quiet_desc$"
  notification_smart_notifications_diplo_play_subject_released_quiet_name:0 "[SCOPE.sC('target').GetNameNoFormatting] breaks free"
  notification_smart_notifications_diplo_play_subject_released_quiet_desc:0 "Due to the failure of [SCOPE.sC('actor').GetNameNoFormatting] to protect their subject [SCOPE.sC('target').GetNameNoFormatting] their pact is now null and void."
@@ -101,8 +111,8 @@
  # 06_smart_notifications_diplomatic_action_filtering.txt). Group labels
  # only -- deliberately no notification_..._name/_desc/_tooltip keys, see
  # 00_messages.txt's comment on these two message defs for why.
- smart_notifications_diplomatic_action_watched_group:0 "Diplomatic Action, Watched Country Involved (Smart Notifications)"
- smart_notifications_diplomatic_action_quiet_group:0 "Diplomatic Action, Ambient (Smart Notifications)"
+ smart_notifications_diplomatic_action_watched_group:0 "(SN) Diplomatic Action, Watched Country Involved"
+ smart_notifications_diplomatic_action_quiet_group:0 "(SN) Diplomatic Action, Ambient"
 
  # Amendment-repealable alert (see 01_smart_notifications_alerts.txt).
  #
@@ -118,9 +128,9 @@
  # notification-tagging convention, since both are settings-adjacent labels
  # rather than the sentence-shaped tooltip desc. Also corrected from
  # square brackets to parentheses -- see the truce entry above for why.
- alert_smart_notifications_amendment_repealable_alert_name:0 "Amendment Repeal Available (Smart Notifications)"
+ alert_smart_notifications_amendment_repealable_alert_name:0 "(SN) Amendment Repeal Available"
  alert_smart_notifications_amendment_repealable_alert_desc:0 "At least one amendment on one of our active laws can now be repealed without contesting a new enactment vote."
- smart_notifications_amendment_repealable_alert_setting_name:0 "Amendment Repeal Available (Smart Notifications)"
+ smart_notifications_amendment_repealable_alert_setting_name:0 "(SN) Amendment Repeal Available"
 
  # Country Watchlist tab (see gui/message_settings.gui and TODO.md Phase 3).
  SMART_NOTIFICATIONS_WATCHLIST_TAB:0 "Watchlist"

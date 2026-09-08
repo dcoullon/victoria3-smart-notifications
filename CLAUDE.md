@@ -32,7 +32,7 @@ link it.
 - A country's name in dynamic text/loc/`debug_log` is `.GetNameNoFormatting`, **never** plain `.GetName` (the latter errors outright: "Could not find data system function"). See engine-notes.md § `GetName` is not a valid dynamic-text function.
 - The debug-logging effect is `debug_log`, not `log` (which doesn't exist) — writes to `debug.log`, not `game.log`.
 - Before applying a country-only trigger (e.g. `is_player`) to a scope, confirm that scope is actually a country — several on_actions root on Diplomatic Play/Demand/Action instead. See engine-notes.md § Scope types are not all countries.
-- Any brand-new message group or alert type this mod introduces (not a vanilla one we only re-tuned or split) gets a `" (Smart Notifications)"` suffix on its Message-Settings-visible label (a message's `group` loc, or an alert's `_name` loc) — never on the in-game toast/popup body text itself. See engine-notes.md § Tagging mod-created notifications.
+- Any brand-new message group or alert type this mod introduces (not a vanilla one we only re-tuned or split) gets a `"(SN) "` prefix on its Message-Settings-visible label (a message's `group` loc, or an alert's `_name` loc) — never on the in-game toast/popup body text itself. See engine-notes.md § Tagging mod-created notifications.
 
 ## 4. Autonomous Quality Assurance
 
