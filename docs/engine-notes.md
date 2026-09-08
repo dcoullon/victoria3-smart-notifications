@@ -278,6 +278,18 @@ thing marking a row as ours — was exactly the part getting cut off; and
 the long form made every already-long label longer still. A short prefix
 fixes both at once: visible even when truncated, and far shorter.
 
+**EXTENDED 2026-09-08** to also cover standalone in-panel UI labels this
+mod adds to a vanilla screen — specifically the law commitment feature's
+"Alert me when I can pass this" checkbox
+(`gui/politics_panel_change_law.gui`). Originally left untagged on the
+reasoning that the convention was about Message-Settings rows
+specifically, not general UI text; the user explicitly asked for the tag
+here too, since it's still mod-created content a player could mistake for
+a vanilla control otherwise. Convention now: `"(SN) "` applies to any
+label surfacing that this mod added something, not only Message Settings
+rows — the toast/popup body/desc sentence remains the one place it never
+goes.
+
 **Explicitly NOT tagged:** `invasion_against_us_notification_group` and
 `diplo_play_subject_overlord_notification_group` (Phase 1's group-splits)
 — the underlying notification is 100% vanilla content; we only gave it its

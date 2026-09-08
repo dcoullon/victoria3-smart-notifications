@@ -567,27 +567,22 @@ types politics_panel_change_law {
 					# and REMOVED same day -- see the "list of laws" vbox
 					# further up in this file for why.
 					#
-					# CONFIRMED NOT WORKING 2026-09-08 via the user's live test:
-					# clicking does nothing, for laws on either side of the
-					# 50% threshold. This is now the leading, most likely
-					# explanation for why: `scope = law` (in
-					# common/scripted_guis/smart_notifications_law_notify_sgui.txt)
-					# has ZERO precedent anywhere in the base game -- an
-					# exhaustive grep of every `scope = ` line across every
-					# vanilla scripted_gui shows only country/state/character/
-					# political_movement ever used, never law. Combined with
-					# zero examples of `Law.MakeScope` (also checked
-					# exhaustively) or ANY `<type>.MakeScope` for a
-					# database/instance type outside those same four, the
-					# working theory has flipped from "unconfirmed but
-					# plausible" to "likely unsupported by the engine" --
-					# scripted GUIs may simply be restricted to those four
-					# scope kinds. Not yet fully proven either way; the
-					# SNW_LAW_NOTIFY debug_log tap in the scripted_gui file
-					# still stands as the fastest way to tell "the call never
-					# ran" (Law.MakeScope failed) apart from "it ran but wrote
-					# somewhere the check-side can't see." See TODO.md for the
-					# path-forward options this now needs before rebuilding.
+					# CONFIRMED NOT WORKING 2026-09-08 via the user's live test
+					# (clicking did nothing), then ROOT-CAUSED via error.log --
+					# NOT a `Law.MakeScope`/scope-restriction problem after all.
+					# The engine's own error was explicit: "has_variable trigger
+					# [ This scope doesn't support variables. Scope: Law ... ]",
+					# repeated for every law tested. `Law.MakeScope` and the
+					# `.Execute()`/`.IsValid()` dispatch were actually working
+					# correctly the whole time (the error named the exact law
+					# clicked) -- `law` scope itself just categorically cannot
+					# hold variables, engine-wide. FIXED same day by moving the
+					# flag to a country-scope, per-law-type static variable
+					# instead (root here stays `Law.MakeScope`, only the
+					# scripted_gui's internal storage changed) -- see
+					# common/scripted_guis/smart_notifications_law_notify_sgui.txt
+					# and
+					# common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt.
 					hbox = {
 						layoutpolicy_horizontal = preferred
 						spacing = 4

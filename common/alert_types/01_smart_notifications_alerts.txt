@@ -137,17 +137,24 @@ smart_notifications_law_commitment_alert = {
 	# enacting something, which is exactly what this feature exists to
 	# help decide).
 	#
+	# REVISED 2026-09-08: the "wanted" flag was confirmed live NOT to
+	# work when stored directly on the `law` scope -- error.log showed,
+	# for every law type tested, "has_variable trigger [ This scope
+	# doesn't support variables. Scope: Law ... ]" -- `law` scope
+	# categorically cannot hold variables in this engine. Moved to a
+	# country-scope, per-law-type static variable instead; see
+	# common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt
+	# (the generated law_type <-> variable_name mapping, shared with the
+	# check_sgui's own `is_valid`) for the detail.
+	#
 	# All confirmed real via script_docs triggers.log/event_targets.log:
 	# - any_law -- "iterate through all laws in a country" (country scope,
 	#   target = law), unlike any_active_law which only sees the one
 	#   active law per group -- this needs to see every AVAILABLE law
 	#   option, flagged or not, active or not.
-	# - has_variable = smart_notifications_wanted_law -- set directly on
-	#   the LAW object itself (not the country, not a law_type-keyed
-	#   country variable) by our checkbox; see the scripted_gui file for
-	#   why a `law` scope (a country's own per-law-type record, distinct
-	#   from the global `law_type` database entry) is the right variable
-	#   holder here.
+	# - smart_notifications_law_matches_wanted_flag -- shared scripted
+	#   trigger, true if THIS (the iterated law) matches one of the
+	#   country's flagged law types.
 	# - can_be_enacted = yes (law scope) -- "checks if a law could be
 	#   enacted by its country, considering its current situation";
 	#   excludes the already-active law in its group and anything
@@ -167,7 +174,7 @@ smart_notifications_law_commitment_alert = {
 	#   too late in practice.
 	valid = {
 		any_law = {
-			has_variable = smart_notifications_wanted_law
+			smart_notifications_law_matches_wanted_flag = yes
 			can_be_enacted = yes
 			enactment_chance_for_law = {
 				target = THIS.type

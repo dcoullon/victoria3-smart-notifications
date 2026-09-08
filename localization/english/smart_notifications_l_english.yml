@@ -222,12 +222,14 @@
  smart_notifications_law_commitment_alert_setting_name:0 "(SN) Law Ready to Enact"
 
  # "Notify me" checkbox on the law detail panel itself (see
- # gui/politics_panel_change_law.gui) -- not settings-adjacent, so no (SN)
- # tag per CLAUDE.md's tagging rule (that's for Message-Settings-visible
- # labels only, not in-panel UI text).
- # Wording tightened 2026-09-08 per the user ("Notify Me" alone was too
- # vague about what it does).
- SMART_NOTIFICATIONS_LAW_NOTIFY_LABEL:0 "Alert Me When I Can Pass This"
+ # gui/politics_panel_change_law.gui). REVISED 2026-09-08 per the user,
+ # who wants the (SN) tag here too -- extends CLAUDE.md's tagging rule
+ # (originally scoped to Message-Settings-visible labels only) to this
+ # in-panel checkbox label as well. Wording tightened same day ("Notify
+ # Me" alone was too vague about what it does); sentence case per the
+ # user -- only the leading word and the pronoun "I" are capitalized, not
+ # every word.
+ SMART_NOTIFICATIONS_LAW_NOTIFY_LABEL:0 "(SN) Alert me when I can pass this"
  SMART_NOTIFICATIONS_LAW_NOTIFY_TOOLTIP:0 "Get a notification when this law has more support than pushback and is worth enacting."
 
  # Country Watchlist tab (see gui/message_settings.gui and TODO.md Phase 3).

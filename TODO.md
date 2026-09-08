@@ -1560,6 +1560,82 @@ commitment alert before it was ever seen live. All fixed same day:
    This", tooltip similarly reworded to name the actual condition
    (support vs. pushback) rather than a vague "chance becomes good."
 
+## Third playtest round — 2026-09-08, same day
+
+1. **Confirmed working**: taxation deficit aggregation (both the
+   `ag_*` loc and the `common/alert_groups/` registration together were
+   the complete fix).
+2. **Checked, no fix needed**: only the taxation deficit alert uses
+   `alert_group` — amendment/agitator/law-commitment fire at most once
+   per country, never needed grouping. All four alerts already have
+   complete `_name`/`_desc`/`_hint`/`_action`/`_setting_name` loc from the
+   prior round.
+3. **Law commitment checkbox — ROOT CAUSE FOUND (not a guess), and FIXED
+   same day.** Checked `error.log` directly (per the user's ask — Claude
+   checks logs itself now, not the user) rather than continuing to guess.
+   Found, verbatim, for every law type tested: `has_variable trigger
+   [ This scope doesn't support variables. Scope: Law <name> (<id>) ]`.
+   This is genuinely good news buried in a bug report: `Law.MakeScope`
+   and the `.Execute()`/`.IsValid()` dispatch through it were ALREADY
+   working correctly — the error message itself named the exact law
+   clicked each time, proving the scripted GUI plumbing was never the
+   problem. The actual issue is narrower and now fully confirmed: `law`
+   scope objects cannot hold variables at all, engine-wide, for any law.
+   **Fix, built and shipped:** kept the checkbox rooted at `Law.MakeScope`
+   (proven to work) but moved the flag itself onto the COUNTRY (`ROOT`,
+   fully proven throughout this whole mod), using one static,
+   per-law-type variable name (`smart_notifications_wanted_law_<type>`)
+   matched via `THIS.type = law_type:X` comparisons. Since effects can't
+   build a variable name dynamically (`Concatenate` is GUI/loc-only, not
+   available in script effects), this needs one branch per real law
+   type — mechanically generated (not hand-typed) from every law_type key
+   in the installed game's own `common/laws/*.txt` (126 at generation
+   time), covering:
+   - [common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt](common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt)
+     — new shared scripted_trigger, `smart_notifications_law_matches_wanted_flag`,
+     the single source of truth for the law_type↔variable_name mapping,
+     reused by both the check_sgui's `is_valid` and the alert's `valid`
+     (avoids tripling 126 branches across three places).
+   - [common/scripted_guis/smart_notifications_law_notify_sgui.txt](common/scripted_guis/smart_notifications_law_notify_sgui.txt)
+     — the toggle SGUI's effect, one `if`/`else_if` branch per law type
+     (needs its own copy since it performs an action, not just a check).
+   - [common/alert_types/01_smart_notifications_alerts.txt](common/alert_types/01_smart_notifications_alerts.txt)'s
+     `smart_notifications_law_commitment_alert` — `valid` now calls the
+     shared scripted_trigger instead of a plain `has_variable` on `law`
+     scope.
+   **On future DLC/patches adding new law types** (the user's explicit
+   ask): this list is regenerable, not hand-maintained — re-extracting
+   law_type keys from `common/laws/*.txt` and re-running the same
+   generation covers new laws. Until regenerated, a brand-new law type
+   simply matches no branch, so its checkbox silently does nothing for
+   that one law specifically — it doesn't error, and doesn't affect any
+   existing law's entry. Law_type keys themselves are static database
+   identifiers (unlike a country's tag, which genuinely can change
+   identity mid-campaign per the Phase 3/4 renaming caveat elsewhere in
+   this file) — Paradox renaming an EXISTING key in a future patch would
+   need the same kind of update any mod referencing vanilla content
+   would, not something specific to this design.
+   **On performance** (the user's explicit ask): walked through the cost
+   of all three pieces before building — the toggle only runs on click
+   (irrelevant), the check's `is_valid` runs once per frame while the
+   detail panel is open (~126 cheap short-circuiting comparisons, trivial
+   next to what the engine already evaluates per frame elsewhere), and
+   the alert's `valid` runs on the normal alert refresh cadence, not
+   every frame, with `has_variable` false for essentially all 126
+   branches in the typical case (few laws flagged at once). Judged not a
+   meaningful performance concern; flagging this plainly per the user's
+   instruction to skip the feature entirely if it were.
+4. **Checkbox label re-tagged and re-cased per the user**: `(SN) Alert me
+   when I can pass this` — CLAUDE.md's tagging convention extended to
+   cover standalone in-panel UI labels too (previously scoped to
+   Message-Settings rows only), and only the leading word plus the
+   pronoun "I" are capitalized, not every word. See
+   [docs/engine-notes.md § Tagging mod-created notifications](docs/engine-notes.md)
+   for the extension writeup.
+   **Not yet re-confirmed live** — needs another test: does the checkbox
+   now actually toggle, and does the alert fire for a flagged-but-not-yet-
+   enacting law.
+
 ## New notifications/alerts backlog — sized and sequenced 2026-09-08
 
 All four items below are **P1 per the user**. This is the recommended
