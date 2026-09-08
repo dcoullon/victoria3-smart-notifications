@@ -104,14 +104,34 @@ on_diplo_play_subject_released = {
 # factored into common/scripted_triggers/, since only these three
 # on_actions use it -- revisit if a fourth caller shows up.
 #
-# any_scope_play_involved ("Iterate through all involved in a:
-# diplomatic play", confirmed real via the game's own script_docs
-# effects.log) lets us check every participant's watched flags without
-# needing a live "who's my neighbor" comparison here at all -- the
-# Watchlist's 4 flags are exactly the pre-computed answer to that
-# question. `is_player = yes` is included alongside the 4 flags because
-# a diplomatic play involving the player directly is obviously always
-# worth a prominent notification, watchlist or not.
+# CORRECTED 2026-09-08, real bug found via the user's second playtest:
+# `any_scope_play_involved = { smart_notifications_is_watched = yes }`
+# alone was WRONG -- confirmed via two real revolutions (Bali, Sulu) that
+# showed Great Britain, United Netherlands, Portugal and Spain (this
+# mod's whole watchlist) all counting as "involved" despite having zero
+# connection to either country's internal politics, elevating both to a
+# toast the user rightly called "super painful". `any_scope_play_involved`
+# ("Iterate through all involved in a: diplomatic play", confirmed real
+# via effects.log) evidently includes every eligible-but-uncommitted
+# potential intervener, not just genuine committed sides -- essentially
+# any Great Power, for any play, anywhere, since Great Powers are broadly
+# eligible to intervene in nearly everything. Tried
+# `is_diplomatic_play_committed_participant` as a narrower replacement
+# first; ALSO wrong, confirmed the same way (Great Britain/Netherlands
+# showed `committed=yes` for both unrelated revolutions) -- turned out to
+# be a GLOBAL check ("is this country committed to ANY diplomatic play
+# right now", per triggers.log), so a Great Power committed to some
+# unrelated play elsewhere in the world still false-positives.
+# `is_diplomatic_play_participant_with = scope:actor` (pairwise, "is this
+# country a committed participant in the SAME diplomatic play as
+# scope:actor") is the one that's actually correct: confirmed against
+# both Bali and Sulu, only the real actor/target ever showed
+# `participant_with_actor=yes`, every Great Power correctly showed `no`.
+# ANDed with `smart_notifications_is_watched` below so only a WATCHED
+# genuine participant elevates the play -- the Watchlist's 4 flags (plus
+# `is_player = yes`, baked into smart_notifications_is_watched itself)
+# are still the pre-computed answer to "do we care", just now gated on
+# actually being in the play rather than merely eligible to join it.
 
 # Root = Diplomatic Play. Hooked from on_diplo_play_start_third_party, NOT
 # on_diplo_play_start -- see the header comment's "CORRECTED 2026-09-07"
@@ -141,7 +161,10 @@ smart_notifications_diplo_play_start = {
 			set_variable = { name = smart_notifications_start_notified_recently value = yes days = 1 }
 			if = {
 				limit = {
-					any_scope_play_involved = { smart_notifications_is_watched = yes }
+					any_scope_play_involved = {
+						is_diplomatic_play_participant_with = scope:actor
+						smart_notifications_is_watched = yes
+					}
 				}
 				post_notification = smart_notifications_diplo_play_start_watched
 				debug_log = "SNW_FILTER|start|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
@@ -169,28 +192,11 @@ smart_notifications_diplo_play_start = {
 				debug_log = "SNW_FILTER|start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=no"
 			}
 
-			# NEW diagnostic (2026-09-08) -- a real session showed Great
-			# Britain/Portugal/Spain/Netherlands (this mod's watchlist) as
-			# "involved" in diplomatic plays with zero real connection to
-			# them (a Two Sicilies internal revolution, a Rwanda internal
-			# revolution) -- any_scope_play_involved appears to include
-			# every eligible/undecided potential intervener, not just
-			# actual committed sides, which would make watchlist elevation
-			# fire for nearly every play in the world once a few Great
-			# Powers are watched. Checking two more specific triggers
-			# found in the game's own triggers.log
-			# (is_diplomatic_play_committed_participant,
-			# is_diplomatic_play_participant_with) to see if either one
-			# correctly narrows this down to real participants before
-			# rewriting the filter -- do not trust this data until it's
-			# been seen fire for a case like the Two Sicilies one above.
-			if = {
-				limit = { is_diplomatic_play_committed_participant = yes }
-				debug_log = "SNW_FILTER|start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|committed=yes"
-			}
-			else = {
-				debug_log = "SNW_FILTER|start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|committed=no"
-			}
+			# Confirmed correct 2026-09-08 against 2 real revolutions
+			# (Bali, Sulu) -- see the header comment above for the full
+			# story of why this replaced any_scope_play_involved's own
+			# broad "involved" concept, and why is_diplomatic_play_committed_participant
+			# (tried and rejected first) is gone from here now.
 			if = {
 				limit = { is_diplomatic_play_participant_with = scope:actor }
 				debug_log = "SNW_FILTER|start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|participant_with_actor=yes"
@@ -216,7 +222,10 @@ smart_notifications_diplo_play_join_side = {
 			set_variable = { name = smart_notifications_join_side_notified_recently value = yes days = 1 }
 			if = {
 				limit = {
-					any_scope_play_involved = { smart_notifications_is_watched = yes }
+					any_scope_play_involved = {
+						is_diplomatic_play_participant_with = scope:actor
+						smart_notifications_is_watched = yes
+					}
 				}
 				post_notification = smart_notifications_diplo_play_join_side_watched
 				debug_log = "SNW_FILTER|join_side|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|ELEVATED"
@@ -244,15 +253,8 @@ smart_notifications_diplo_play_join_side = {
 				debug_log = "SNW_FILTER|join_side|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=no"
 			}
 
-			# NEW diagnostic (2026-09-08) -- see smart_notifications_diplo_play_start's
-			# copy of this same block above for the full writeup.
-			if = {
-				limit = { is_diplomatic_play_committed_participant = yes }
-				debug_log = "SNW_FILTER|join_side|involved|country=[THIS.GetCountry.GetNameNoFormatting]|committed=yes"
-			}
-			else = {
-				debug_log = "SNW_FILTER|join_side|involved|country=[THIS.GetCountry.GetNameNoFormatting]|committed=no"
-			}
+			# Confirmed correct 2026-09-08 -- see smart_notifications_diplo_play_start's
+			# copy of this block above for the full writeup.
 			if = {
 				limit = { is_diplomatic_play_participant_with = scope:actor }
 				debug_log = "SNW_FILTER|join_side|involved|country=[THIS.GetCountry.GetNameNoFormatting]|participant_with_actor=yes"
@@ -276,7 +278,10 @@ smart_notifications_diplo_play_war_start = {
 			set_variable = { name = smart_notifications_war_start_notified_recently value = yes days = 1 }
 			if = {
 				limit = {
-					any_scope_play_involved = { smart_notifications_is_watched = yes }
+					any_scope_play_involved = {
+						is_diplomatic_play_participant_with = scope:actor
+						smart_notifications_is_watched = yes
+					}
 				}
 				post_notification = smart_notifications_diplo_play_war_start_watched
 				debug_log = "SNW_FILTER|war_start|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
@@ -304,15 +309,8 @@ smart_notifications_diplo_play_war_start = {
 				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=no"
 			}
 
-			# NEW diagnostic (2026-09-08) -- see smart_notifications_diplo_play_start's
-			# copy of this same block above for the full writeup.
-			if = {
-				limit = { is_diplomatic_play_committed_participant = yes }
-				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|committed=yes"
-			}
-			else = {
-				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|committed=no"
-			}
+			# Confirmed correct 2026-09-08 -- see smart_notifications_diplo_play_start's
+			# copy of this block above for the full writeup.
 			if = {
 				limit = { is_diplomatic_play_participant_with = scope:actor }
 				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|participant_with_actor=yes"
@@ -334,7 +332,10 @@ smart_notifications_diplo_play_subject_released = {
 			set_variable = { name = smart_notifications_subject_released_notified_recently value = yes days = 1 }
 			if = {
 				limit = {
-					any_scope_play_involved = { smart_notifications_is_watched = yes }
+					any_scope_play_involved = {
+						is_diplomatic_play_participant_with = scope:actor
+						smart_notifications_is_watched = yes
+					}
 				}
 				post_notification = smart_notifications_diplo_play_subject_released_watched
 				debug_log = "SNW_FILTER|subject_released|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"

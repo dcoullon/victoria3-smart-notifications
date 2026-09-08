@@ -705,19 +705,38 @@ list for this phase with that in mind before writing the on_action.
       = scope:actor` (pairwise, "is this country a committed participant
       in the SAME play as the actor" — the more promising one, since it's
       actually scoped to this specific play rather than any play
-      anywhere). Per CLAUDE.md's never-guess rule, the actual filter logic
-      (swapping `any_scope_play_involved` for a narrower committed-only
-      check) is NOT being rewritten until a real session confirms which
-      of these two triggers correctly says "no" for Great Britain in a
-      Two-Sicilies-shaped case while still saying "yes" for genuine
-      participants (e.g. an actual war combatant). **User's own read,
-      2026-09-08:** "involved" is broad by design — it likely just means
-      a country *can* participate in the play (probably gated by having
-      sufficiently high interest in the region/parties), not that it has.
-      Consistent with the Great Power pattern observed. Next step: get one
-      more `SNW_FILTER|...|committed=`/`participant_with_actor=` log
-      sample, then rebuild the elevation check around whichever trigger
-      proves correct.
+      anywhere). **User's own read, 2026-09-08:** "involved" is broad by
+      design — it likely just means a country *can* participate in the
+      play (probably gated by having sufficiently high interest in the
+      region/parties), not that it has. Exactly matched what the data
+      showed next.
+      **FIXED same day, confirmed against 2 more real revolutions (Bali,
+      Sulu).** Both candidate replacements got tested with real log data
+      before either was trusted: `is_diplomatic_play_committed_participant`
+      turned out to ALSO be wrong — it's a GLOBAL check ("committed to ANY
+      play right now"), so Great Britain/Netherlands still false-positived
+      by being committed to some unrelated play elsewhere in the world at
+      the same time. `is_diplomatic_play_participant_with = scope:actor`
+      (pairwise, same-play-scoped) proved correct both times: only the
+      real actor/target ever showed `participant_with_actor=yes`, every
+      Great Power correctly showed `no`. The elevation check in
+      [03_smart_notifications_relational_notifications.txt](common/on_actions/03_smart_notifications_relational_notifications.txt)
+      now reads `any_scope_play_involved = { is_diplomatic_play_participant_with
+      = scope:actor  smart_notifications_is_watched = yes }` — ANDed, so
+      only a watched country that's a genuine committed participant of
+      THIS specific play elevates it. Applied to all 4 events (start,
+      join_side, war_start, subject_released) for consistency; only
+      start/join_side/war_start have real confirming data so far.
+      **Same session also fixed a second, independently-confirmed bug:**
+      the user caught that my first "duplicate join-side notification =
+      harmless toast/feed rendering" theory was wrong (based on an
+      incomplete log excerpt) — the full log showed
+      `on_diplo_play_join_side` firing 13 times identically for one real
+      event. Fixed with a `days=1` same-play dedup guard (confirmed-real
+      vanilla `set_variable`-with-expiry pattern) on all 4 events. Neither
+      fix confirmed in-game yet — needs a restart plus fresh diplo-play
+      activity to verify both the correct elevation AND that the dedup
+      guard doesn't also swallow genuinely distinct same-day events.
 - [~] **Third-party notification filtering — the 3 Diplomatic-Play-rooted
       keys BUILT 2026-09-07, two real bugs found and fixed the same day via
       the user's first live playtest, `diplo_play_subject_released` still
