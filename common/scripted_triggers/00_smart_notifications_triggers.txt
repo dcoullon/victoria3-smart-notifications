@@ -17,6 +17,10 @@
 # comparison -- see TODO.md's "Data model" section on why the watchlist
 # is stored as 4 static provenance flags rather than evaluated live.
 smart_notifications_is_watched = {
+	# Decentralized countries never count as watched, even with a stale
+	# flag set before that exclusion existed -- `every_country` cannot
+	# reach them to clear it (see docs/engine-notes.md).
+	NOT = { is_country_type = decentralized }
 	OR = {
 		is_player = yes
 		has_variable = watched_via_great_power

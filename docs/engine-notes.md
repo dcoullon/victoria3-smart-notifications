@@ -65,6 +65,44 @@ Confirmed the hard way: an early debug tool used `[Root.GetName]` /
 playtest, before anyone checked `error.log`. Always verify a bracket
 expression against a real vanilla example before trusting it.
 
+## `every_country` does not appear to reach decentralized countries
+
+Confirmed empirically 2026-09-07, and it invalidates the docs: the
+`script_docs` dump describes both `every_country` and `any_country` as
+"Iterate through all countries globally" with no stated exclusion.
+
+The evidence is unusually clean. The Watchlist's "Deselect All" clears
+flags with a plain `every_country` sweep. After a click, **exactly two
+countries kept their flags: Anangu and Loango — both decentralized.**
+Everything else cleared. The user then unchecked those two by hand (the
+per-row checkbox drives a scripted GUI rooted on that specific country, so
+it does not iterate) and every bulk action behaved correctly afterwards.
+
+This retro-explains the entire "Select All doesn't select everything"
+saga, which cost several rounds and three wrong diagnoses: decentralized
+neighbours were never skipped because of adjacency semantics, a bad root,
+or a broken effect body. `every_country` simply never visited them, so no
+rewrite of the effect body could ever have fixed it.
+
+**Consequences for this mod:**
+- Decentralized countries are excluded from the Watchlist everywhere: row
+  filters, bulk action limits, the game-start population, the
+  `watchlist_is_watched_check_sgui` display check, and the runtime
+  `smart_notifications_is_watched` trigger. "Decentralized ⇒ never
+  watched" is a hard invariant rather than a filter in one place.
+- A stale flag set on a decentralized country *before* those exclusions
+  existed cannot be cleared by any bulk action. It is instead rendered
+  inert: both the display check and the runtime trigger refuse to treat a
+  decentralized country as watched. Only the per-row checkbox can actually
+  remove such a flag.
+
+**Lesson:** an iterator's documented description is not a guarantee about
+which objects it visits. When a bulk operation misses a *specific,
+nameable subset* rather than failing wholesale, suspect the iterator's
+coverage before rewriting the body — "which items were missed, and what do
+they have in common" is a much faster question than "why is my effect
+wrong".
+
 ## `THIS` needs a cast: `[THIS.GetCountry.GetNameNoFormatting]`, never `[THIS.GetNameNoFormatting]`
 
 Confirmed 2026-09-07 from the user's own `debug.log`. Every `debug_log`
