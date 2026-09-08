@@ -176,13 +176,28 @@ smart_notifications_law_commitment_alert = {
 	#   directly inside `any_law` would run with the CURRENT scope set to
 	#   the iterated LAW, not country, since that's what `any_law`
 	#   rebinds unqualified triggers to -- the exact same class of error
-	#   already confirmed twice via error.log for this feature. Fixed by
-	#   `save_scope_as`-ing the law's own type (mirroring the confirmed
-	#   real pattern already used in
-	#   common/on_actions/02_smart_notifications_truce_tracker.txt to
-	#   carry a reference across a `root = { ... }` scope switch) and
-	#   running the actual check from `root` (=country, confirmed correct
-	#   at this alert's top level per `script_context = player_country`).
+	#   already confirmed twice via error.log for this feature.
+	#
+	#   FIRST FIX WAS ITSELF WRONG, confirmed live 2026-09-08 (the alert
+	#   never fired even for a law with success clearly > stall):
+	#   `save_scope_as` is an EFFECT, and `valid` is a pure TRIGGER
+	#   block -- effects cannot run inside a trigger at all. error.log
+	#   confirmed exactly this: "Event target
+	#   'smart_notifications_law_commitment_candidate' is used but is
+	#   never set. Setting it in an unused scripted trigger or effect
+	#   does not count" -- the save silently never happened, so the
+	#   `target` reference was always undefined and the whole condition
+	#   always failed. **Real fix**: `prev` -- a genuine trigger-side
+	#   scope link ("the previous scope", confirmed real and used this
+	#   exact way in vanilla's own
+	#   `common/achievements/ip2_pivot_of_empire_achievements.txt`:
+	#   `harvest_condition_intensity = { target = prev.owner value > 5
+	#   }`) -- needs no effect at all. Entering `THIS.owner = { ... }`
+	#   switches current scope to the country (a plain scope transition,
+	#   valid in triggers), and `prev` inside that block refers back to
+	#   the law scope we just left, so `prev.type` is exactly the law
+	#   type `target` needs -- all pure trigger syntax, no save/root
+	#   effect trick required.
 	#   UNCONFIRMED threshold, same open question as before: 0.5 is a
 	#   reasonable "better support than pushback" guess, not checked
 	#   against how vanilla's own UI colors this number -- first thing to
@@ -191,12 +206,9 @@ smart_notifications_law_commitment_alert = {
 		any_law = {
 			smart_notifications_law_matches_wanted_flag = yes
 			can_be_enacted = yes
-			THIS.type = {
-				save_scope_as = smart_notifications_law_commitment_candidate
-			}
-			root = {
+			THIS.owner = {
 				enactment_chance_for_law = {
-					target = scope:smart_notifications_law_commitment_candidate
+					target = prev.type
 					value > 0.5
 				}
 			}

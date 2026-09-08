@@ -1717,6 +1717,51 @@ conclusive either way.
   both are documented `law`-scope triggers and correctly stay evaluated
   with `THIS` = law throughout; no further issues found by this pass.
 
+## Fifth playtest round — 2026-09-08, same day
+
+**Toggle confirmed working.** The checkbox now correctly flags/unflags a
+specific law. Two NEW real bugs found, both from the pre-emptive fix
+above — the audit caught the right category of problem (scope
+confusion) but the specific fix chosen was itself wrong in a different
+way, confirmed live and by `error.log`:
+
+1. **The `save_scope_as`/`root = {}` fix for the alert's
+   `enactment_chance_for_law` never actually worked** — the user flagged
+   a law with success clearly greater than stall and never saw the
+   alert. `error.log`: `Event target
+   'smart_notifications_law_commitment_candidate' is used but is never
+   set. Setting it in an unused scripted trigger or effect does not
+   count.` Root cause: `save_scope_as` is an EFFECT, and an alert's
+   `valid` block is a pure TRIGGER context — effects cannot run inside a
+   trigger at all, so the save silently never happened and the `target`
+   reference was permanently undefined, making the whole condition
+   always false. **Real fix**: `prev` — a genuine trigger-side scope
+   link ("the previous scope"), confirmed real via a live vanilla
+   example doing the exact same thing
+   (`common/achievements/ip2_pivot_of_empire_achievements.txt`:
+   `harvest_condition_intensity = { target = prev.owner value > 5 }`).
+   Needs no effect: enter `THIS.owner = { ... }` (a plain scope
+   transition, valid in triggers) and reference `prev.type` from inside
+   it to mean "the law we just came from"'s type. Rewritten in
+   [common/alert_types/01_smart_notifications_alerts.txt](common/alert_types/01_smart_notifications_alerts.txt).
+2. **The diagnostic probe itself had a bug**, caught via `error.log`
+   before it ever produced a useful line: `Unknown effect any_law at
+   common/on_actions/08_smart_notifications_law_commitment_probe.txt:31`.
+   `any_law` is trigger-only; the effect-side iterator is a different
+   keyword, `every_law` (confirmed: effects.log documents it separately,
+   "Iterate through all laws in a country"). Fixed in
+   [common/on_actions/08_smart_notifications_law_commitment_probe.txt](common/on_actions/08_smart_notifications_law_commitment_probe.txt).
+
+**Lesson for this whole feature, now confirmed three times over**:
+`any_X`/`every_X` and effect-vs-trigger context are NOT
+interchangeable even when they read almost identically — this is now
+the single most error-prone corner of this entire mod, more so than
+anything from earlier phases. **Not yet re-confirmed live** — needs
+another flag on a law with success > stall to confirm the alert now
+actually fires; the second flagged law (stall > success, per the user)
+remains a good negative-control test once its odds eventually cross
+50%.
+
 ## New notifications/alerts backlog — sized and sequenced 2026-09-08
 
 All four items below are **P1 per the user**. This is the recommended

@@ -18,6 +18,16 @@
 # exactly why, without needing new instrumentation added after the fact.
 #
 # DELETE once the law commitment alert is confirmed working live.
+#
+# CORRECTED 2026-09-08 before ever running: `any_law` is trigger-only
+# (confirmed: effects.log documents the effect-side iterator as a
+# DIFFERENT keyword, `every_law` -- "Iterate through all laws in a
+# country" -- while `any_law` only appears in triggers.log). Using
+# `any_law` inside this file's `effect` block produced a real, confirmed
+# "Unknown effect any_law" error live -- caught the same session as the
+# alert's own `save_scope_as`-in-a-trigger mistake below, same general
+# lesson: trigger-only and effect-only keywords that read almost
+# identically are not interchangeable.
 on_monthly_pulse_country = {
 	on_actions = {
 		smart_notifications_law_commitment_probe
@@ -28,7 +38,7 @@ smart_notifications_law_commitment_probe = {
 	effect = {
 		if = {
 			limit = { is_player = yes }
-			any_law = {
+			every_law = {
 				limit = { smart_notifications_law_matches_wanted_flag = yes }
 				debug_log = "SNW_LAW_ALERT|probe|considering|law=[THIS.GetNameNoFormatting]"
 				if = {
