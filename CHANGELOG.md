@@ -19,6 +19,28 @@ instrumentation and doc-only changes get a commit but **no** version bump
 unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.33] — 2026-09-08
+
+### Added
+
+- **Relational notification filtering — now confirmed working end-to-end
+  in-game.** A diplomatic play starting, a country joining a side, a play
+  escalating to war, and a subject breaking free all now correctly stay
+  quiet unless a Watchlist country (or you) is a genuine participant —
+  confirmed against multiple real plays during a live session, including
+  ones with no connection to the Watchlist at all (correctly stayed
+  quiet) and ones where a Watchlist country turned out to be legitimately
+  involved as an overlord or backer (correctly elevated).
+
+### Fixed
+
+- Two real bugs found via live playtesting and fixed the same day:
+  notifications for an unrelated country's internal revolution/secession
+  could incorrectly pop up just because a Great Power on the Watchlist
+  was merely *eligible* to intervene, not actually involved; and some
+  diplomatic play notifications could fire several times in a row for the
+  same event.
+
 ## [0.32] — 2026-09-07
 
 ### Added

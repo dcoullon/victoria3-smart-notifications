@@ -610,8 +610,13 @@ what's conceptually the same event needs **two separate message keys/groups**
 on_action choosing which one to `post_notification`. Plan the message key
 list for this phase with that in mind before writing the on_action.
 
-- [~] **On-Action Interception / Relational Scope Filtering / Targeted
-      Alerts — v1 BUILT 2026-09-07, not yet confirmed in-game.** Scoped
+- [x] **On-Action Interception / Relational Scope Filtering / Targeted
+      Alerts — v1 BUILT 2026-09-07, CONFIRMED WORKING 2026-09-08** (v0.33)
+      via a live session: unrelated plays (Bali, Sulu) correctly stayed
+      quiet, and a play where a Watchlist country was a genuine backer
+      (Kathiri, via Great Britain as overlord) correctly elevated — see
+      the "CRITICAL BUG"/"FIXED" writeup further down for the two real
+      bugs this took to get right. Scoped
       with the user to the 3 diplo-play events with a clean, confirmed
       hook (real on_action names found via `common/on_actions/
       00_code_on_actions.txt`, not the approximate `on_diplomatic_play_start`/
@@ -733,10 +738,29 @@ list for this phase with that in mind before writing the on_action.
       incomplete log excerpt) — the full log showed
       `on_diplo_play_join_side` firing 13 times identically for one real
       event. Fixed with a `days=1` same-play dedup guard (confirmed-real
-      vanilla `set_variable`-with-expiry pattern) on all 4 events. Neither
-      fix confirmed in-game yet — needs a restart plus fresh diplo-play
-      activity to verify both the correct elevation AND that the dedup
-      guard doesn't also swallow genuinely distinct same-day events.
+      vanilla `set_variable`-with-expiry pattern) on all 4 events.
+      **Elevation fix CONFIRMED WORKING 2026-09-08** via a fresh session
+      after restart: a Bali revolution and a Sulu revolution both
+      correctly stayed quiet (no Watchlist country genuinely involved), a
+      Kathiri revolution correctly elevated (Great Britain is Kathiri's
+      overlord — a real, legitimate case, not the old false-positive
+      bug), and multiple war-starts elevated/quieted correctly depending
+      on whether Portugal or a Watchlist country was the actual
+      combatant. **Dedup guard not yet stress-tested** — 0
+      `DUPLICATE_SUPPRESSED` lines appeared this session, meaning the
+      13x-repeat scenario didn't recur to actually exercise the guard;
+      still believed correct (the mechanism is standard, confirmed-real
+      vanilla usage) but wants a session where it visibly fires before
+      fully closing this out.
+      **New, still-open report (2026-09-08, unconfirmed):** the user
+      thinks a war starting that involves the player produces two popups
+      in a row. `SNW_FILTER|war_start` logs show our own code posting
+      exactly once for the one Portugal-involved war seen so far, and no
+      second vanilla on_action exists for "war starts" per
+      `00_code_on_actions.txt` — so if real, the second popup's source is
+      currently unidentified. Asked the user to note both popups' exact
+      title text next time it happens, since nothing in our logs can
+      currently distinguish this from a UI-only phenomenon.
 - [~] **Third-party notification filtering — the 3 Diplomatic-Play-rooted
       keys BUILT 2026-09-07, two real bugs found and fixed the same day via
       the user's first live playtest, `diplo_play_subject_released` still
