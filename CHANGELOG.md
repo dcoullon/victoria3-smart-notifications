@@ -19,6 +19,21 @@ instrumentation and doc-only changes get a commit but **no** version bump
 unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.32] — 2026-09-07
+
+### Added
+
+- **Country Watchlist selector — now working end-to-end** (confirmed
+  in-game). A Watchlist tab in Message Settings with five views: Watched,
+  Great Powers, Neighbors (grouped by continent), Rivals, and Add a
+  Country. Each row has a checkbox, and each tab has Select All /
+  Deselect All acting on everything shown in that tab. Great
+  Powers/neighbours/rivals are populated automatically at the start of a
+  new campaign.
+- Decentralized countries are excluded from the Watchlist throughout —
+  watching one isn't meaningful, and they were the source of Select All
+  appearing to skip entries.
+
 ## [0.31] — 2026-09-07
 
 ### Added

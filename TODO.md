@@ -479,8 +479,8 @@ four are" so the list is never empty on first open.
       been misread as the list being over-inclusive). Briefly rewritten
       to a global-variable lookup on that wrong diagnosis and then
       restored — the actual bug was in the bulk actions, see below.
-- [~] **Bulk-select/deselect buttons — root cause found 2026-09-07 (by the
-      user), pending in-game confirmation.** Select All appeared to skip
+- [x] **Bulk-select/deselect buttons — CONFIRMED WORKING IN-GAME
+      2026-09-07.** Root cause found by the user. Select All appeared to skip
       countries on the Neighbors tab across many versions. It was not the
       effect body (rewritten three times: root -> global variable ->
       is_player+save_scope_as) and not the invocation: the root probes
@@ -506,6 +506,12 @@ four are" so the list is never empty on first open.
       **Note:** an existing save may still carry `watched_via_*` flags on
       decentralized countries from an earlier campaign-start population;
       they'll show on the Watched tab until cleared with Deselect All.
+      **Temporary diagnostics removed 2026-09-07** (probe buttons, probe
+      SGUIs, their loc keys, and the SNW_BULK taps) now that the selector
+      is confirmed. The working mechanism — `is_player` + `save_scope_as`
+      for the player, and the decentralized exclusion — is pinned in
+      `tools/validate_syntax.py`'s KNOWN_GOOD list so it can't be
+      refactored away silently.
 - [x] **Watched-tab provenance tags — BUILT 2026-09-07, not yet seen
       in-game.** Per the original v1 spec ("small tags showing which
       category(ies) currently apply, e.g. 'Prussia — Great Power,

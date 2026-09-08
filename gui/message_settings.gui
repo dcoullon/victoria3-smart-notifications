@@ -668,47 +668,6 @@ types message_settings {
 					}
 				}
 
-				# ############################################################
-				# TEMPORARY diagnostic row (2026-09-07) -- DELETE once the bulk
-				# buttons work. Three buttons differing ONLY in how they name
-				# the player for GuiScope.SetRoot. Each calls a log-only
-				# scripted GUI (watchlist_probe_root_*_sgui). Click each once,
-				# then grep debug.log for SNW_ROOT: whichever logs is the root
-				# form that actually yields a usable country scope, and the
-				# real bulk buttons get rewired to that form. Nothing here
-				# changes any watchlist state.
-				flowcontainer = {
-					parentanchor = hcenter
-					spacing = 6
-					margin_bottom = 5
-					visible = "[GetVariableSystem.HasValue('message_settings_watchlist', 'true')]"
-
-					widget = {
-						size = { 140 28 }
-						datacontext = "[GetMetaPlayer.GetPlayedOrObservedCountry]"
-						button = {
-							size = { 100% 100% }
-							using = default_button
-							text = "SMART_NOTIFICATIONS_WATCHLIST_PROBE_A"
-							onclick = "[GetScriptedGui('watchlist_probe_root_a_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
-						}
-					}
-
-					button = {
-						size = { 140 28 }
-						using = default_button
-						text = "SMART_NOTIFICATIONS_WATCHLIST_PROBE_B"
-						onclick = "[GetScriptedGui('watchlist_probe_root_b_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
-					}
-
-					button = {
-						size = { 140 28 }
-						using = default_button
-						text = "SMART_NOTIFICATIONS_WATCHLIST_PROBE_C"
-						onclick = "[GetScriptedGui('watchlist_probe_root_c_sgui').Execute(GuiScope.SetRoot(GetMetaPlayer.GetPlayedOrObservedCountry.MakeScope).End)]"
-					}
-				}
-
 				# Smart Notifications mod: Country Watchlist tab header row.
 				flowcontainer = {
 					parentanchor = hcenter

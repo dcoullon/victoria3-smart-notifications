@@ -80,18 +80,27 @@ KNOWN_GOOD = [
     ("common/scripted_guis/watchlist_sgui.txt",
      "this ?= root",
      "Watchlist Rivals ROW check must compare against root (the row's country)"),
-    # NOTE: there is deliberately NO invariant pinning how the BULK actions
-    # find the player. Only confirmed-working behaviour belongs in this list,
-    # and the bulk buttons have never been confirmed working: three
-    # approaches have now been tried (root, a global variable, and now
-    # is_player + save_scope_as mirroring the game-start hook). Pinning an
-    # unconfirmed approach would just cement whichever guess was current.
-    # Add an entry here once a playtest confirms Select All actually works.
     ("common/on_actions/00_smart_notifications_on_actions.txt",
      "limit = { is_player = yes }",
      "The game-start hook must keep finding the player by trigger -- this is "
      "the one player-identification pattern proven to work in this codebase, "
-     "and the bulk actions are now modelled on it"),
+     "and the bulk actions are modelled on it"),
+    # Added 2026-09-07 once the user confirmed the country selector works
+    # end-to-end. Both entries below are the mechanism that finally made the
+    # bulk buttons work, after three failed approaches (root, a global
+    # variable, then this). Do not "simplify" either one away.
+    ("common/scripted_guis/watchlist_sgui.txt",
+     "save_scope_as = snw_bulk_player",
+     "Watchlist BULK actions must find the player with is_player + "
+     "save_scope_as. `root` is NOT a usable country in a button-triggered "
+     "scripted GUI (proven by the 2026-09-07 root probes: the effect runs, "
+     "but the root cannot be resolved as a country)"),
+    ("common/scripted_guis/watchlist_sgui.txt",
+     "NOT = { is_country_type = decentralized }",
+     "Decentralized countries must stay excluded from the Watchlist. They "
+     "were the countries Select All appeared to 'miss' -- adjacent for "
+     "display but not picked up by the bulk scan. Excluding them is what "
+     "makes the displayed list and the bulk actions agree"),
 ]
 
 
