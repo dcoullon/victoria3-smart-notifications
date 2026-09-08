@@ -1,4 +1,4 @@
-# Victoria 3 — Smart Notifications & Watchlist: Roadmap
+﻿# Victoria 3 — Smart Notifications & Watchlist: Roadmap
 
 This is the living backlog/roadmap for the mod. It's forward-looking (what's
 planned and what's in progress). For a player-facing, backward-looking record
@@ -471,21 +471,32 @@ four are" so the list is never empty on first open.
       (`watchlist_is_great_power_check_sgui`, `country_rank >=
       rank_value:great_power`), browses anyone currently a Great Power
       regardless of watched status, exactly per the original spec.
-- [x] **Neighbors / Rivals — UPGRADED 2026-09-07 to true live checks,
-      the original spec.** The "no confirmed way to reference the
-      player" blocker was real for the *specific* technique tried
-      (passing the player in as a GuiScope value), but not for the
-      problem itself — found a different, fully-confirmed way around it:
-      `any_country = { is_player = yes <triggers using root> }` locates
-      the player from *inside* the trigger block instead of needing it
-      passed in from the GUI side (confirmed real vanilla idiom — see
-      [docs/engine-notes.md § No confirmed way to pass the player in as a GuiScope AddScope value — RESOLVED](docs/engine-notes.md)).
-      `watchlist_is_neighbor_check_sgui`/`watchlist_is_rival_check_sgui`
-      now browse "anyone currently adjacent/rivaled," not just previously
-      flagged countries. **Confirmed live 2026-09-07** — the user's v0.23
-      test showed both sections populating correctly (previously empty
-      for the boring reason above: the flag-based version depended on a
-      game-start hook that had never run for that save).
+- [~] **Neighbors / Rivals live checks — REWRITTEN 2026-09-07 (second
+      attempt), not yet confirmed in-game.** Attempt 1 used
+      `any_country = { is_player = yes <trigger using root> }` inside the
+      row's `is_valid`; verified against real vanilla examples first, but
+      every one of those examples is effect/on_action context, and the
+      idiom did not behave the same inside a scripted_gui `is_valid`.
+      Confirmed live: the Neighbors tab listed obvious non-neighbours
+      (Horn-of-Africa minors in a Portugal game) — a strict superset of
+      the truth — which also explains BOTH bulk-action complaints
+      ("Select All doesn't select everything", "Deselect All leaves rows
+      checked"): the bulk actions were correct all along, the list they
+      were judged against was not. Rewritten to route around the
+      uncertainty entirely: a global variable
+      (`smart_notifications_player_country`) holds the player's country,
+      so each row check is one flat trigger on the row's own scope —
+      `is_adjacent_to_country = global_var:...` for Neighbors,
+      `any_rivaling_country = { this ?= global_var:... }` for Rivals — no
+      iterator, no `is_player`, no `root`. Both halves have direct vanilla
+      precedent. Set at game start + refreshed monthly (self-heals on
+      older saves, follows a tag switch) + refreshed by every bulk button
+      (so a click fixes the display immediately). Full writeup and the
+      three lessons in
+      [docs/engine-notes.md § A trigger idiom that works in script can still misbehave inside a scripted_gui](docs/engine-notes.md).
+      **Note: the Rivals tab was probably also showing wrong content
+      (countries anyone rivals, not ones the player rivals) — it looked
+      fine only because that set is small and plausible.**
 - [~] **Bulk-select/deselect buttons — BUILT 2026-09-07, UX SIMPLIFIED
       2026-09-07 per the user, not yet re-confirmed in-game.** One
       Select All / Deselect All pair per tab (Watched/Great Powers/

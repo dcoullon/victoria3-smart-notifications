@@ -22,6 +22,20 @@ smart_notifications_truce_tracker = {
 	effect = {
 		if = {
 			limit = { is_player = yes }
+
+			# Keep the global "who is the player" pointer fresh (Phase 3
+			# watchlist -- see watchlist_sgui.txt's header comment on why
+			# the row checks can't identify the player themselves). Set
+			# here rather than only at game start so it self-heals on any
+			# save that predates this feature, and follows the player
+			# through a tag switch. One variable write per month; the
+			# value is a country scope, which vanilla itself does
+			# (`set_global_variable = { name = circassia_recognizer value
+			# = ROOT }` in common/decisions/01_russia_decisions.txt).
+			set_global_variable = {
+				name = smart_notifications_player_country
+				value = this
+			}
 			# TEMPORARY debug tap (2026-09-06, delete with the ones below): one
 			# line per player-country monthly pulse, so we can confirm this
 			# on_action is even firing at all every month, independent of

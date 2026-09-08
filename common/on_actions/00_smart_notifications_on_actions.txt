@@ -22,6 +22,15 @@ smart_notifications_on_game_started = {
 			limit = { is_player = yes }
 			post_notification = smart_notifications_mod_loaded
 
+			# Global "who is the player" pointer, used by the Watchlist's
+			# per-row checks (see watchlist_sgui.txt). Also refreshed
+			# monthly by 02_smart_notifications_truce_tracker.txt so it
+			# self-heals on saves predating this.
+			set_global_variable = {
+				name = smart_notifications_player_country
+				value = this
+			}
+
 			# Phase 3 watchlist smart defaults (see TODO.md "Data model" and
 			# "Defaults at game start") -- run the same bulk-select a player
 			# could later trigger by hand from the management screen, once,

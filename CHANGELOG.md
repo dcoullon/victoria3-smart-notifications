@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 All notable player-facing changes to this mod are recorded here, in the
 [Keep a Changelog](https://keepachangelog.com/) style: grouped by version,
@@ -15,6 +15,16 @@ marks a major milestone; the hundredths digit increments by `0.01` on every
 commit that ships a new feature (however small — "added a new
 notification" counts), so `0.20` → `0.21` → `0.22`. Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
+
+## [0.28] — 2026-09-07
+
+### Fixed
+
+- The Watchlist's Neighbors tab was listing countries that aren't
+  actually your neighbours, which in turn made Select All and Deselect
+  All look broken on that tab — they were correct, the list wasn't. The
+  Rivals tab had the same underlying flaw. Both now check against your
+  own country directly.
 
 ## [0.27] — 2026-09-07
 

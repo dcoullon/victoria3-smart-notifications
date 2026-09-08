@@ -359,6 +359,66 @@ specific GUI mechanism looks unconfirmed/unsafe, look for a way to route
 around the need for it (a trigger-side lookup, or a `datacontext`
 rebind) before concluding the feature is blocked.
 
+## A trigger idiom that works in script can still misbehave inside a scripted_gui — use a global variable for "the player"
+
+Found 2026-09-07, the third GUI-semantics bug in this feature and the
+most instructive one. The Watchlist's Neighbors/Rivals row checks used
+`any_country = { is_player = yes <trigger comparing to root> }` to
+identify the player from inside a scripted_gui's `is_valid`. That idiom
+is genuinely real and genuinely works — vanilla uses it
+(`common/scripted_buttons/00_balkan_wars_buttons.txt`,
+`events/ethiopia.txt`, `events/krakow_events.txt`) and this mod's own
+game-start hook depends on it. It was verified against real vanilla
+examples before shipping, exactly as this file's rules require. **It
+still didn't work here**, because every one of those examples is in
+effect/on_action context, and none is inside a scripted_gui's `is_valid`.
+
+Symptom: the Neighbors tab listed obvious non-neighbours (Horn-of-Africa
+minors in a Portugal game) — a strict superset of the real answer — while
+the bulk Select All, which has the player as `root` directly and never
+calls `is_player`, flagged exactly the plausible ones. The two derived
+symptoms both followed from that one cause and both looked like separate
+bugs: "Select All doesn't select everything" and "Deselect All leaves
+rows checked" were really "the list is showing rows the bulk actions
+correctly don't match."
+
+Root cause was never conclusively isolated between the two candidates
+(`is_player` not filtering, vs. `root` not surviving the nested iterator
+in this context; the evidence fits the former, since the Rivals tab
+stayed populated rather than going empty). **The fix was to stop needing
+either.** A global variable holds the player's country, so each row check
+is one flat trigger on the row's own scope — no iterator, no `is_player`,
+no `root`:
+
+```
+set_global_variable = { name = smart_notifications_player_country value = this }   # effect context
+is_adjacent_to_country = global_var:smart_notifications_player_country            # trigger, any context
+```
+
+Both halves have direct vanilla precedent: storing a country scope in a
+global variable (`set_global_variable = { name = circassia_recognizer
+value = ROOT }`, `common/decisions/01_russia_decisions.txt`) and
+comparing one in a trigger (`global_var:chinese_central_government ?=
+THIS`, `common/diplomatic_plays/00_diplomatic_plays.txt`). The variable
+is set at game start and refreshed on the monthly pulse (so it self-heals
+on older saves and follows a tag switch), and every bulk button refreshes
+it too so a click fixes the display immediately.
+
+**Lessons, both worth carrying:**
+1. "Verified against a real vanilla example" is necessary but not
+   sufficient — check the example is in *the same evaluation context*.
+   Effect/on_action context and scripted_gui `is_valid` context are not
+   interchangeable, and this is now the third bug from assuming they are
+   (after `is_valid` doubling as an execute gate, and `container` not
+   stacking simultaneously-visible children).
+2. When a construct's behaviour in a context can't be pinned down, prefer
+   restructuring so the construct isn't needed at all over picking
+   whichever explanation seems likeliest. A flat trigger against a stored
+   value has no scope-nesting semantics left to get wrong.
+3. Symptoms reported against a *list* may be bugs in the list, not in the
+   actions being judged against it. Both bulk actions here were correct
+   the whole time.
+
 ## No generic substring-search filter available for a custom country list
 
 Investigated 2026-09-07 while scoping the "Add a Country" search box
