@@ -1808,6 +1808,70 @@ itself. If this specific line is still wrong, that reflects a genuine
 limit on what's checkable without running the game, not a repeat of the
 same shortcut.
 
+## Sixth playtest round — 2026-09-08, same day
+
+**The `prev.type` fix works — the probe confirms it, cleanly, with no
+errors.** `debug.log` showed, for a flagged law:
+`SNW_LAW_ALERT|probe|considering` → `can_be_enacted=yes` →
+`chance_over_threshold=no` — no scope errors, meaning the whole
+`THIS.owner = { enactment_chance_for_law = { target = prev.type ... } }`
+chain evaluated successfully this time. Real progress, not another dead
+end.
+
+**Two separate findings from this round, one a real bug (fixed), one
+likely a metric mismatch (not a bug, needs a decision):**
+
+1. **Checkbox silently did nothing on "Merchant Navy" — REAL BUG,
+   FOUND AND FIXED.** Root cause: the original law_type extraction used
+   `grep -E "^law_"` against every `common/laws/*.txt` file — but ALL 24
+   of those files carry a UTF-8 BOM, and a BOM's bytes sit before the
+   very first line's content, breaking the `^` anchor for exactly the
+   FIRST law_type entry in each file. `law_merchant_navy` is literally
+   line 1 of `00_navy_model.txt`. Re-extracted BOM-aware (Python,
+   `encoding='utf-8-sig'`) and found **12 missing law types total**, not
+   just this one: `law_guild_system`, `law_hereditary_bureaucrats`,
+   `law_merchant_navy`, `law_no_colonial_affairs`, `law_no_health_system`,
+   `law_no_home_affairs`, `law_no_migration_controls`, `law_no_police`,
+   `law_no_schools`, `law_no_social_security`, `law_peasant_levies`,
+   `law_serfdom` — every one of them the first entry in its own file.
+   Regenerated
+   [common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt](common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt)
+   and
+   [common/scripted_guis/smart_notifications_law_notify_sgui.txt](common/scripted_guis/smart_notifications_law_notify_sgui.txt)
+   from the corrected 138-law list. This also directly answers the
+   user's earlier question about future DLC laws: the mechanism already
+   degrades gracefully (an unmatched law's checkbox just does nothing,
+   confirmed by this exact incident) — the fix here was to correct which
+   laws were IN the list today, not the degrade-gracefully design itself,
+   which held up as intended.
+2. **"No Worker's Rights" flagged with success > stall, alert never
+   fired — likely NOT a bug, a metric mismatch worth a decision.** The
+   probe's own log is unambiguous: `can_be_enacted=yes` but
+   `chance_over_threshold=no`. The user's "success > stall" comparison is
+   the law list's per-CHECKPOINT outcome breakdown (Success/Advance/
+   Debate/Stall — the next roll only); `enactment_chance_for_law` is
+   documented as "the enactment success chance," which reads more like an
+   overall/compounded probability across the whole (possibly
+   multi-checkpoint) enactment process, not the same figure. A law can
+   clear one checkpoint's odds comfortably while its OVERALL chance of
+   ultimately becoming active is still under 50%, especially early in a
+   multi-phase enactment. Nothing in the log suggests a script error —
+   the condition was checked correctly and came back false. **Needs a
+   user decision**, not a code fix by default: lower the 0.5 threshold,
+   swap to a different trigger if a closer match to the per-checkpoint
+   number exists, or confirm this is actually the intended, more
+   holistic signal and simply wait longer to see it fire.
+
+**Also answered directly: alert timing.** The alert itself is NOT tied
+to the monthly probe — alerts globally re-evaluate every
+`ALERTS_FRAMES_BETWEEN_UPDATES` (5) frames, i.e. multiple times per
+second, the same as every other alert in the game. Only the TEMPORARY
+diagnostic probe
+([common/on_actions/08_smart_notifications_law_commitment_probe.txt](common/on_actions/08_smart_notifications_law_commitment_probe.txt))
+is monthly — that's what needed the wait, not the alert. If the
+underlying condition is ever true, the real alert would show up within a
+second or two, not a month.
+
 ## New notifications/alerts backlog — sized and sequenced 2026-09-08
 
 All four items below are **P1 per the user**. This is the recommended

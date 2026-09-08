@@ -6,13 +6,20 @@
 # mapping in exactly ONE place rather than tripling it.
 #
 # GENERATED 2026-09-08 by a one-off local script (not checked in) from
-# every real law_type key in the installed game's own
-# common/laws/*.txt (126 at the time of generation). Mechanical and
-# regenerable -- re-run the same extraction if Paradox adds new law types
-# in a future update; existing entries are unaffected either way, and a
-# brand-new law type simply doesn't match any branch here until the list
-# is refreshed (never flags as wanted, never breaks anything else). This
-# is why storage lives on the COUNTRY (via a static, per-law-type variable
+# every real law_type key in the installed game's own common/laws/*.txt
+# (138 at generation time -- REVISED from an initial, incomplete 126:
+# every one of these 24 files carries a UTF-8 BOM, and the original
+# extraction's `^law_` regex anchor failed to match on any file's FIRST
+# entry specifically because the BOM's bytes sit before it on that same
+# line -- confirmed live via the user reporting one specific law's
+# checkbox, "Merchant Navy", silently doing nothing: `law_merchant_navy`
+# is line 1 of common/laws/00_navy_model.txt. Re-extracted BOM-aware,
+# recovering 12 missed law types total). Mechanical and regenerable --
+# re-run the same extraction if Paradox adds new law types in a future
+# update; existing entries are unaffected either way, and a brand-new law
+# type simply doesn't match any branch here until the list is refreshed
+# (never flags as wanted, never breaks anything else). This is why
+# storage lives on the COUNTRY (via a static, per-law-type variable
 # name) rather than on the `law` scope itself: confirmed via a real
 # error.log entry ("has_variable trigger [ This scope doesn't support
 # variables. Scope: Law ... ]") that `law` scope categorically cannot
@@ -79,6 +86,8 @@ smart_notifications_law_matches_wanted_flag = {
 		AND = { THIS.type = law_type:law_frontier_colonization  THIS.owner = { has_variable = smart_notifications_wanted_law_frontier_colonization } }
 		AND = { THIS.type = law_type:law_graduated_taxation  THIS.owner = { has_variable = smart_notifications_wanted_law_graduated_taxation } }
 		AND = { THIS.type = law_type:law_guaranteed_liberties  THIS.owner = { has_variable = smart_notifications_wanted_law_guaranteed_liberties } }
+		AND = { THIS.type = law_type:law_guild_system  THIS.owner = { has_variable = smart_notifications_wanted_law_guild_system } }
+		AND = { THIS.type = law_type:law_hereditary_bureaucrats  THIS.owner = { has_variable = smart_notifications_wanted_law_hereditary_bureaucrats } }
 		AND = { THIS.type = law_type:law_hindu_caste_codified  THIS.owner = { has_variable = smart_notifications_wanted_law_hindu_caste_codified } }
 		AND = { THIS.type = law_type:law_hindu_caste_enforced  THIS.owner = { has_variable = smart_notifications_wanted_law_hindu_caste_enforced } }
 		AND = { THIS.type = law_type:law_hindu_caste_not_enforced  THIS.owner = { has_variable = smart_notifications_wanted_law_hindu_caste_not_enforced } }
@@ -98,6 +107,7 @@ smart_notifications_law_matches_wanted_flag = {
 		AND = { THIS.type = law_type:law_manorialism  THIS.owner = { has_variable = smart_notifications_wanted_law_manorialism } }
 		AND = { THIS.type = law_type:law_mass_conscription  THIS.owner = { has_variable = smart_notifications_wanted_law_mass_conscription } }
 		AND = { THIS.type = law_type:law_mercantilism  THIS.owner = { has_variable = smart_notifications_wanted_law_mercantilism } }
+		AND = { THIS.type = law_type:law_merchant_navy  THIS.owner = { has_variable = smart_notifications_wanted_law_merchant_navy } }
 		AND = { THIS.type = law_type:law_migration_controls  THIS.owner = { has_variable = smart_notifications_wanted_law_migration_controls } }
 		AND = { THIS.type = law_type:law_militarized_police  THIS.owner = { has_variable = smart_notifications_wanted_law_militarized_police } }
 		AND = { THIS.type = law_type:law_millet_system  THIS.owner = { has_variable = smart_notifications_wanted_law_millet_system } }
@@ -107,6 +117,13 @@ smart_notifications_law_matches_wanted_flag = {
 		AND = { THIS.type = law_type:law_national_militia  THIS.owner = { has_variable = smart_notifications_wanted_law_national_militia } }
 		AND = { THIS.type = law_type:law_national_supremacy  THIS.owner = { has_variable = smart_notifications_wanted_law_national_supremacy } }
 		AND = { THIS.type = law_type:law_neo_absolutism  THIS.owner = { has_variable = smart_notifications_wanted_law_neo_absolutism } }
+		AND = { THIS.type = law_type:law_no_colonial_affairs  THIS.owner = { has_variable = smart_notifications_wanted_law_no_colonial_affairs } }
+		AND = { THIS.type = law_type:law_no_health_system  THIS.owner = { has_variable = smart_notifications_wanted_law_no_health_system } }
+		AND = { THIS.type = law_type:law_no_home_affairs  THIS.owner = { has_variable = smart_notifications_wanted_law_no_home_affairs } }
+		AND = { THIS.type = law_type:law_no_migration_controls  THIS.owner = { has_variable = smart_notifications_wanted_law_no_migration_controls } }
+		AND = { THIS.type = law_type:law_no_police  THIS.owner = { has_variable = smart_notifications_wanted_law_no_police } }
+		AND = { THIS.type = law_type:law_no_schools  THIS.owner = { has_variable = smart_notifications_wanted_law_no_schools } }
+		AND = { THIS.type = law_type:law_no_social_security  THIS.owner = { has_variable = smart_notifications_wanted_law_no_social_security } }
 		AND = { THIS.type = law_type:law_no_womens_rights  THIS.owner = { has_variable = smart_notifications_wanted_law_no_womens_rights } }
 		AND = { THIS.type = law_type:law_no_workers_rights  THIS.owner = { has_variable = smart_notifications_wanted_law_no_workers_rights } }
 		AND = { THIS.type = law_type:law_old_age_pension  THIS.owner = { has_variable = smart_notifications_wanted_law_old_age_pension } }
@@ -114,6 +131,7 @@ smart_notifications_law_matches_wanted_flag = {
 		AND = { THIS.type = law_type:law_organic_regulation  THIS.owner = { has_variable = smart_notifications_wanted_law_organic_regulation } }
 		AND = { THIS.type = law_type:law_outlawed_dissent  THIS.owner = { has_variable = smart_notifications_wanted_law_outlawed_dissent } }
 		AND = { THIS.type = law_type:law_parliamentary_republic  THIS.owner = { has_variable = smart_notifications_wanted_law_parliamentary_republic } }
+		AND = { THIS.type = law_type:law_peasant_levies  THIS.owner = { has_variable = smart_notifications_wanted_law_peasant_levies } }
 		AND = { THIS.type = law_type:law_peasant_proprietorship  THIS.owner = { has_variable = smart_notifications_wanted_law_peasant_proprietorship } }
 		AND = { THIS.type = law_type:law_people_of_the_book  THIS.owner = { has_variable = smart_notifications_wanted_law_people_of_the_book } }
 		AND = { THIS.type = law_type:law_per_capita_based_taxation  THIS.owner = { has_variable = smart_notifications_wanted_law_per_capita_based_taxation } }
@@ -136,6 +154,7 @@ smart_notifications_law_matches_wanted_flag = {
 		AND = { THIS.type = law_type:law_right_to_associate  THIS.owner = { has_variable = smart_notifications_wanted_law_right_to_associate } }
 		AND = { THIS.type = law_type:law_sakoku  THIS.owner = { has_variable = smart_notifications_wanted_law_sakoku } }
 		AND = { THIS.type = law_type:law_secret_police  THIS.owner = { has_variable = smart_notifications_wanted_law_secret_police } }
+		AND = { THIS.type = law_type:law_serfdom  THIS.owner = { has_variable = smart_notifications_wanted_law_serfdom } }
 		AND = { THIS.type = law_type:law_shinsengumi  THIS.owner = { has_variable = smart_notifications_wanted_law_shinsengumi } }
 		AND = { THIS.type = law_type:law_single_party_state  THIS.owner = { has_variable = smart_notifications_wanted_law_single_party_state } }
 		AND = { THIS.type = law_type:law_slave_trade  THIS.owner = { has_variable = smart_notifications_wanted_law_slave_trade } }

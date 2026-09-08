@@ -22,7 +22,9 @@
 # comparisons -- effects can't build a variable NAME dynamically
 # (Concatenate is a GUI/loc-only function, not available here), so this
 # needs one branch per real law type. GENERATED 2026-09-08 from every
-# law_type key in common/laws/*.txt (126 at generation time) -- see
+# law_type key in common/laws/*.txt (138 at generation time, corrected
+# from an initial, BOM-related 126 -- see the scripted_trigger file
+# above for the fuller writeup) -- see
 # common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt
 # for the read-side twin of this mapping (kept in sync, regenerate both
 # together). A future DLC/patch adding new law types simply won't have a
@@ -596,6 +598,30 @@ smart_notifications_law_notify_toggle_sgui = {
 			}
 		}
 		else_if = {
+			limit = { THIS.type = law_type:law_guild_system }
+			THIS.owner = {
+				if = {
+					limit = { has_variable = smart_notifications_wanted_law_guild_system }
+					remove_variable = smart_notifications_wanted_law_guild_system
+				}
+				else = {
+					set_variable = smart_notifications_wanted_law_guild_system
+				}
+			}
+		}
+		else_if = {
+			limit = { THIS.type = law_type:law_hereditary_bureaucrats }
+			THIS.owner = {
+				if = {
+					limit = { has_variable = smart_notifications_wanted_law_hereditary_bureaucrats }
+					remove_variable = smart_notifications_wanted_law_hereditary_bureaucrats
+				}
+				else = {
+					set_variable = smart_notifications_wanted_law_hereditary_bureaucrats
+				}
+			}
+		}
+		else_if = {
 			limit = { THIS.type = law_type:law_hindu_caste_codified }
 			THIS.owner = {
 				if = {
@@ -824,6 +850,18 @@ smart_notifications_law_notify_toggle_sgui = {
 			}
 		}
 		else_if = {
+			limit = { THIS.type = law_type:law_merchant_navy }
+			THIS.owner = {
+				if = {
+					limit = { has_variable = smart_notifications_wanted_law_merchant_navy }
+					remove_variable = smart_notifications_wanted_law_merchant_navy
+				}
+				else = {
+					set_variable = smart_notifications_wanted_law_merchant_navy
+				}
+			}
+		}
+		else_if = {
 			limit = { THIS.type = law_type:law_migration_controls }
 			THIS.owner = {
 				if = {
@@ -932,6 +970,90 @@ smart_notifications_law_notify_toggle_sgui = {
 			}
 		}
 		else_if = {
+			limit = { THIS.type = law_type:law_no_colonial_affairs }
+			THIS.owner = {
+				if = {
+					limit = { has_variable = smart_notifications_wanted_law_no_colonial_affairs }
+					remove_variable = smart_notifications_wanted_law_no_colonial_affairs
+				}
+				else = {
+					set_variable = smart_notifications_wanted_law_no_colonial_affairs
+				}
+			}
+		}
+		else_if = {
+			limit = { THIS.type = law_type:law_no_health_system }
+			THIS.owner = {
+				if = {
+					limit = { has_variable = smart_notifications_wanted_law_no_health_system }
+					remove_variable = smart_notifications_wanted_law_no_health_system
+				}
+				else = {
+					set_variable = smart_notifications_wanted_law_no_health_system
+				}
+			}
+		}
+		else_if = {
+			limit = { THIS.type = law_type:law_no_home_affairs }
+			THIS.owner = {
+				if = {
+					limit = { has_variable = smart_notifications_wanted_law_no_home_affairs }
+					remove_variable = smart_notifications_wanted_law_no_home_affairs
+				}
+				else = {
+					set_variable = smart_notifications_wanted_law_no_home_affairs
+				}
+			}
+		}
+		else_if = {
+			limit = { THIS.type = law_type:law_no_migration_controls }
+			THIS.owner = {
+				if = {
+					limit = { has_variable = smart_notifications_wanted_law_no_migration_controls }
+					remove_variable = smart_notifications_wanted_law_no_migration_controls
+				}
+				else = {
+					set_variable = smart_notifications_wanted_law_no_migration_controls
+				}
+			}
+		}
+		else_if = {
+			limit = { THIS.type = law_type:law_no_police }
+			THIS.owner = {
+				if = {
+					limit = { has_variable = smart_notifications_wanted_law_no_police }
+					remove_variable = smart_notifications_wanted_law_no_police
+				}
+				else = {
+					set_variable = smart_notifications_wanted_law_no_police
+				}
+			}
+		}
+		else_if = {
+			limit = { THIS.type = law_type:law_no_schools }
+			THIS.owner = {
+				if = {
+					limit = { has_variable = smart_notifications_wanted_law_no_schools }
+					remove_variable = smart_notifications_wanted_law_no_schools
+				}
+				else = {
+					set_variable = smart_notifications_wanted_law_no_schools
+				}
+			}
+		}
+		else_if = {
+			limit = { THIS.type = law_type:law_no_social_security }
+			THIS.owner = {
+				if = {
+					limit = { has_variable = smart_notifications_wanted_law_no_social_security }
+					remove_variable = smart_notifications_wanted_law_no_social_security
+				}
+				else = {
+					set_variable = smart_notifications_wanted_law_no_social_security
+				}
+			}
+		}
+		else_if = {
 			limit = { THIS.type = law_type:law_no_womens_rights }
 			THIS.owner = {
 				if = {
@@ -1012,6 +1134,18 @@ smart_notifications_law_notify_toggle_sgui = {
 				}
 				else = {
 					set_variable = smart_notifications_wanted_law_parliamentary_republic
+				}
+			}
+		}
+		else_if = {
+			limit = { THIS.type = law_type:law_peasant_levies }
+			THIS.owner = {
+				if = {
+					limit = { has_variable = smart_notifications_wanted_law_peasant_levies }
+					remove_variable = smart_notifications_wanted_law_peasant_levies
+				}
+				else = {
+					set_variable = smart_notifications_wanted_law_peasant_levies
 				}
 			}
 		}
@@ -1276,6 +1410,18 @@ smart_notifications_law_notify_toggle_sgui = {
 				}
 				else = {
 					set_variable = smart_notifications_wanted_law_secret_police
+				}
+			}
+		}
+		else_if = {
+			limit = { THIS.type = law_type:law_serfdom }
+			THIS.owner = {
+				if = {
+					limit = { has_variable = smart_notifications_wanted_law_serfdom }
+					remove_variable = smart_notifications_wanted_law_serfdom
+				}
+				else = {
+					set_variable = smart_notifications_wanted_law_serfdom
 				}
 			}
 		}
