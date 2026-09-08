@@ -806,6 +806,21 @@ list for this phase with that in mind before writing the on_action.
       and the new diplomatic_action filter, so which exact key posted is
       never in doubt from the log, even though it can't resolve a
       rendering-vs-override question on its own.
+      **Third report, same day, second confirmed correct-but-toast-feeling
+      instance:** "German Empire sides with Kaarta" — logged
+      `posted_key=smart_notifications_diplo_play_join_side_quiet|...|QUIET`,
+      all 4 watchlist countries confirmed `participant_with_actor=no`.
+      Both incidents so far are `join_side` events. **My second theory
+      ("a native activity-ticker card tied to having the play's detail
+      panel open") was also directly rejected by the user** — they opened
+      the panel BY CLICKING the notification itself, meaning it rendered
+      prominently while the panel was still closed. Two hypotheses down;
+      script genuinely cannot see how something renders, so the
+      Message-Settings-override check above (still unconfirmed by the
+      user) remains the only concrete next step — no further script-side
+      diagnostic is possible without new information from an actual
+      in-game observation (e.g. does the card auto-dismiss like a toast,
+      or sit until dismissed like a feed entry?).
 - [~] **Third-party notification filtering — the 3 Diplomatic-Play-rooted
       keys BUILT 2026-09-07, two real bugs found and fixed the same day via
       the user's first live playtest, `diplo_play_subject_released` still
@@ -935,6 +950,34 @@ list for this phase with that in mind before writing the on_action.
       `_watched` message variants once the rest is stable; deliberately
       not built yet to avoid tuning presentation on top of behaviour that
       is still being fixed.
+- [ ] **Auto-pin diplomatic plays involving watched countries in the
+      "Ongoing Diplomatic Plays" outliner — requested 2026-09-08, longer
+      term, real blocker found, not scoped for now.** The user's ask: a
+      play genuinely involving a watched country should show in that
+      right-side widget automatically, the same way it already
+      auto-shows for plays the player is a committed participant of.
+      Investigated the mechanism: a play shows there only if
+      `DiplomaticPlay.IsPinnedInOutliner` is true (confirmed in
+      [gui/outliner_ongoing_types.gui](gui/outliner_ongoing_types.gui)),
+      toggled today only via the star icon in
+      [gui/diplomatic_play_panel.gui](gui/diplomatic_play_panel.gui)
+      (`onclick = "[DiplomaticPlay.TogglePinInOutliner]"`). **Real
+      blocker:** `TogglePinInOutliner`/`IsPinnedInOutliner` are GUI-only —
+      confirmed via an exhaustive grep of the game's own `effects.log`
+      and `triggers.log`, zero hits for either — there is no
+      script-callable effect to set this from an on_action the way we've
+      set everything else in this mod. This matches the exact same wall
+      Phase 3 hit and gave up on for the country-panel pin button
+      (`Country.TogglePinInOutliner`, same GUI-only pattern, see the
+      "Country Panel Bookmark Button — dropped" entry under Phase 3
+      above). Not automatically ruled impossible — a scripted_gui might
+      be able to invoke a GUI-scope function the way
+      `watchlist_sgui.txt` does for the Watchlist checkbox, but that
+      pattern is GUI-click-triggers-script, the opposite direction of
+      what's needed here (script-event-triggers-GUI-function) — genuinely
+      unresearched, don't assume it's the same trick. Real workaround
+      available to the player today, no mod change needed: click the
+      star icon on any play's own detail panel to pin it manually.
 - [ ] **Country renaming caveat (from user's WIP doc, 2026-09-05):** a
       watched-country flag stored as a scope variable on the country should
       survive a revolution/government change that renames/reforms the
