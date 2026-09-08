@@ -30,3 +30,52 @@ smart_notifications_amendment_repealable_alert = {
 	type = important_action
 	color = green
 }
+
+smart_notifications_agitator_invite_available_alert = {
+	script_context = player_country
+	texture = "gfx/interface/icons/character_role_icons/agitator.dds"
+
+	# All three triggers below confirmed real via the game's own
+	# script_docs triggers.log and cross-referenced against vanilla's own
+	# `invite_exile` character interaction
+	# (common/character_interactions/00_character_interactions.txt), which
+	# this alert is meant to mirror the eligibility of exactly:
+	# - has_dlc_feature = agitators -- confirmed real (used by
+	#   grant_leadership_to_agitator/grant_command_to_agitator in the same
+	#   file); agitators are gated behind the Voice of the People
+	#   Immersion Pack, not base game content.
+	# - empty_agitator_slots -- country-scope trigger, "checks number of
+	#   empty agitator slots in a country".
+	# - any_character_in_exile_pool / can_agitate -- any_character_in_exile_pool
+	#   is a global iterator (no scope needed) over the exile pool;
+	#   can_agitate = <country> checks whether the scoped character is
+	#   eligible to agitate that country. This is the exact same pairing
+	#   `invite_exile`'s own `possible` block uses
+	#   (`can_agitate = scope:actor`), so this reuses vanilla's real
+	#   eligibility gate instead of guessing a new one.
+	valid = {
+		has_dlc_feature = agitators
+		empty_agitator_slots >= 1
+		any_character_in_exile_pool = {
+			can_agitate = ROOT
+		}
+	}
+
+	# UNCONFIRMED, needs in-game verification: vanilla's `invite_exile`
+	# interaction also carries its own cooldown (cooldown = { days =
+	# normal_modifier_time }, 1825 days = 5 years -- exactly the ~5-year
+	# figure the user described) after a successful invite. That's a
+	# native per-interaction cooldown with no documented trigger to query
+	# it directly from script (see docs/engine-notes.md). The working
+	# assumption is that this doesn't matter in practice: the slot the
+	# invited agitator now occupies stays filled for ~5-7.5 years
+	# (add_career_length months = 60-90 on invite), so empty_agitator_slots
+	# should already read 0 for the whole cooldown window on its own,
+	# naturally keeping this alert quiet without needing to check the
+	# cooldown separately. If a session ever shows this alert firing while
+	# the Invite Exile interaction is still greyed out on cooldown, that
+	# assumption was wrong and needs revisiting.
+	open_panel = politics|default
+	type = important_action
+	color = green
+}

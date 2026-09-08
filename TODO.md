@@ -1423,24 +1423,45 @@ More candidates surfaced in the user's WIP doc (2026-09-05), same
 monthly-pulse + repeat-guard shape as the Law Commitment idea above —
 grouping them here rather than writing three near-duplicate sections:
 
-- [ ] **New alert: agitator invite available — requested 2026-09-08, not
-      scoped yet.** Per the user: only show the alert when (a) there's an
-      open invite slot AND (b) the "eligible to invite" list isn't empty
-      — either condition alone isn't enough. Needs research before
-      building: (1) whether agitators/political movements are gated
-      behind a specific DLC — check before investing time; (2) the real
-      trigger names for "has an open agitator slot" and "eligible
-      candidate list is non-empty" (don't guess — check `triggers.log`/
-      `effects.log` the way every other feature in this mod has); (3) the
-      user flagged a ~5-year cooldown after inviting someone creates a
-      "can invite" timer — the alert's trigger needs to naturally respect
-      this (i.e. it should already read as false during the cooldown if
-      the slot-open check is accurate), but confirm this rather than
-      assume. Same shape as the existing amendment-repeal alert
-      ([common/alert_types/01_smart_notifications_alerts.txt](common/alert_types/01_smart_notifications_alerts.txt))
-      — no GUI work needed, just a new alert_type + trigger + loc
-      (remember both `_name` and `_setting_name` loc keys, per the "An
-      alert type needs TWO name-shaped loc keys" engine-notes entry).
+- [~] **New alert: agitator invite available — BUILT 2026-09-08, not yet
+      confirmed in-game.** Research done first, per the plan: (1) agitators
+      ARE DLC-gated — `has_dlc_feature = agitators` (confirmed real,
+      already used by vanilla's own `grant_leadership_to_agitator`/
+      `grant_command_to_agitator` interactions in
+      `common/character_interactions/00_character_interactions.txt`) —
+      part of the Voice of the People Immersion Pack, not base game. (2)
+      Real trigger names confirmed via `triggers.log`:
+      `empty_agitator_slots >= 1` (country scope) for the open-slot half,
+      and `any_character_in_exile_pool = { can_agitate = ROOT }` for the
+      non-empty-eligible-list half — `any_character_in_exile_pool` is a
+      global iterator (no scope needed) over the exile pool, `can_agitate`
+      is the exact same country-eligibility check vanilla's own
+      `invite_exile` interaction gates its `possible` block with
+      (`can_agitate = scope:actor`), so this mirrors real vanilla
+      eligibility rather than a guessed condition. (3) The ~5-year
+      cooldown is real and confirmed exactly: `invite_exile`'s own
+      `cooldown = { days = normal_modifier_time }` where
+      `normal_modifier_time = 1825` days (`common/script_values/
+      event_values.txt`) = 5 years. **Not directly queryable from
+      script** — no documented trigger exists for "is this specific
+      character-interaction on cooldown". Working assumption, UNCONFIRMED:
+      the invited agitator's own tenure (`add_career_length` months =
+      60-90 on invite, i.e. ~5-7.5 years) should keep their slot occupied
+      for the whole cooldown window anyway, so `empty_agitator_slots`
+      should naturally stay at 0 and keep this alert quiet without a
+      separate cooldown check — but if a session ever shows this alert
+      lit up while Invite Exile is still greyed out on cooldown, that
+      assumption is wrong and needs revisiting. Shipped:
+      [common/alert_types/01_smart_notifications_alerts.txt](common/alert_types/01_smart_notifications_alerts.txt)
+      (`smart_notifications_agitator_invite_available_alert`, `type =
+      important_action`, `open_panel = politics|default` matching the
+      exile pool's own overlay on the Politics Overview tab), loc in
+      [smart_notifications_l_english.yml](localization/english/smart_notifications_l_english.yml)
+      (both `_name`/`_desc` and the separate `_setting_name`, per the "two
+      name-shaped loc keys" engine-notes entry). **Needs in-game
+      confirmation**, same caveat as every other alert here: an open slot
+      + an eligible exile actually appearing, and specifically a session
+      spanning the ~5-year cooldown to check the assumption above.
 - [ ] **New alert: state in taxation deficit — requested 2026-09-08, not
       scoped yet.** Per the user: alert when a state is losing money to a
       taxation deficit (a specific "Xk/Wk lost" figure they referenced,

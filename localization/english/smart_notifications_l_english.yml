@@ -151,6 +151,14 @@
  alert_smart_notifications_amendment_repealable_alert_desc:0 "At least one amendment on one of our active laws can now be repealed without contesting a new enactment vote."
  smart_notifications_amendment_repealable_alert_setting_name:0 "(SN) Amendment Repeal Available"
 
+ # Agitator invite alert (see common/alert_types/01_smart_notifications_alerts.txt
+ # and TODO.md's sized backlog). Same two-key shape as the amendment alert
+ # above -- ribbon tooltip name/desc plus the separate _setting_name Message
+ # Settings row label.
+ alert_smart_notifications_agitator_invite_available_alert_name:0 "(SN) Agitator Invite Available"
+ alert_smart_notifications_agitator_invite_available_alert_desc:0 "We have an open agitator slot and at least one exiled agitator eligible to invite."
+ smart_notifications_agitator_invite_available_alert_setting_name:0 "(SN) Agitator Invite Available"
+
  # Country Watchlist tab (see gui/message_settings.gui and TODO.md Phase 3).
  SMART_NOTIFICATIONS_WATCHLIST_TAB:0 "Watchlist"
  SMART_NOTIFICATIONS_WATCHLIST_COLUMN_COUNTRY:0 "Country"
