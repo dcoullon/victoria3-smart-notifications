@@ -177,11 +177,13 @@
  # (no dynamic law-name reference) since clicking it opens straight to the
  # Laws tab where the specific law is visible anyway -- same lower-risk
  # call the amendment-repeal alert above already made, for the same reason.
- alert_smart_notifications_law_commitment_alert_name:0 "(SN) Law Likely to Pass"
- alert_smart_notifications_law_commitment_alert_desc:0 "The law you're enacting and asked to be notified about now has a good chance of passing."
- smart_notifications_law_commitment_alert_setting_name:0 "(SN) Law Likely to Pass"
+ # REVISED 2026-09-08: wording updated to match the flag now meaning "a
+ # specific law you flagged," not "whatever you're currently enacting."
+ alert_smart_notifications_law_commitment_alert_name:0 "(SN) Law Ready to Enact"
+ alert_smart_notifications_law_commitment_alert_desc:0 "A law you flagged now has more support than pushback and is worth enacting."
+ smart_notifications_law_commitment_alert_setting_name:0 "(SN) Law Ready to Enact"
 
- # "Notify me" checkbox on the law-enactment screen itself (see
+ # "Notify me" checkbox on the law detail panel itself (see
  # gui/politics_panel_change_law.gui) -- not settings-adjacent, so no (SN)
  # tag per CLAUDE.md's tagging rule (that's for Message-Settings-visible
  # labels only, not in-panel UI text).

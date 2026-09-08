@@ -125,37 +125,59 @@ smart_notifications_law_commitment_alert = {
 	# The biggest/highest-risk item in TODO.md's sized backlog -- see
 	# common/scripted_guis/smart_notifications_law_notify_sgui.txt (the
 	# opt-in checkbox toggle) and
-	# gui/politics_panel_change_law.gui (where the checkbox actually lives,
-	# on the currently-enacting-law panel) for the two other pieces this
+	# gui/politics_panel_change_law.gui (where the checkbox actually
+	# lives, on the law detail panel) for the two other pieces this
 	# depends on.
 	#
-	# All three triggers confirmed real via script_docs triggers.log:
-	# - enacting_any_law = yes -- "checks if you're enacting any law",
-	#   country scope.
-	# - has_variable = smart_notifications_watching_enactment -- set by our
-	#   own checkbox; see the scripted_gui file for exactly what this flag
-	#   means (the CURRENT enactment, not a specific law type) and the
-	#   accepted tradeoff around cancelling and re-enacting.
-	# - enactment_chance > 0.5 -- "current enactment success chance in
-	#   scope country" (country scope, no target law needed, matching the
-	#   fact that this whole feature reads as "the enactment in progress"
-	#   rather than a specific law). UNCONFIRMED threshold, per TODO.md's
-	#   own open question: 0.5 is a reasonable "better than even odds"
-	#   guess (the trigger's own docs example uses a 0-1 fraction, e.g.
-	#   `value > 0.2`), but whether this matches how vanilla's own UI
-	#   colors the number as "likely to pass" hasn't been checked against
-	#   real gameplay -- first thing to tune if the alert fires too early
-	#   or too late in practice.
+	# REVISED 2026-09-08 per the user: this must flag a SPECIFIC law the
+	# player wants and tell them when IT now has more support than
+	# pushback -- not "notify me about whatever I happen to be enacting
+	# right now" (the first version built, which the user correctly
+	# rejected as useless: it only worked once you'd already committed to
+	# enacting something, which is exactly what this feature exists to
+	# help decide).
+	#
+	# All confirmed real via script_docs triggers.log/event_targets.log:
+	# - any_law -- "iterate through all laws in a country" (country scope,
+	#   target = law), unlike any_active_law which only sees the one
+	#   active law per group -- this needs to see every AVAILABLE law
+	#   option, flagged or not, active or not.
+	# - has_variable = smart_notifications_wanted_law -- set directly on
+	#   the LAW object itself (not the country, not a law_type-keyed
+	#   country variable) by our checkbox; see the scripted_gui file for
+	#   why a `law` scope (a country's own per-law-type record, distinct
+	#   from the global `law_type` database entry) is the right variable
+	#   holder here.
+	# - can_be_enacted = yes (law scope) -- "checks if a law could be
+	#   enacted by its country, considering its current situation";
+	#   excludes the already-active law in its group and anything
+	#   currently blocked, so this alert self-cleans once a flagged law
+	#   passes or becomes unavailable, with no separate reset needed.
+	# - enactment_chance_for_law = { target = THIS.type value > 0.5 } --
+	#   "the enactment success chance in scope country for GIVEN law"
+	#   (country scope, needs a law_type target) -- unlike plain
+	#   `enactment_chance`, this works whether or not the country is
+	#   actively enacting that law yet, which is exactly the "tell me when
+	#   it's worth starting" case this feature is for. `THIS.type` is the
+	#   confirmed real law -> law_type link (event_targets.log: "Scope
+	#   from an object to its type"). UNCONFIRMED threshold, same open
+	#   question as before: 0.5 is a reasonable "better support than
+	#   pushback" guess, not checked against how vanilla's own UI colors
+	#   this number -- first thing to tune if the alert fires too early or
+	#   too late in practice.
 	valid = {
-		enacting_any_law = yes
-		has_variable = smart_notifications_watching_enactment
-		enactment_chance > 0.5
+		any_law = {
+			has_variable = smart_notifications_wanted_law
+			can_be_enacted = yes
+			enactment_chance_for_law = {
+				target = THIS.type
+				value > 0.5
+			}
+		}
 	}
 
 	# "politics|laws" is the confirmed real tab identifier for the Laws
-	# tab (gui/politics_panel.gui: `InformationPanel.SelectTab('laws')`),
-	# so clicking the alert opens straight to the law being enacted rather
-	# than the Politics Overview.
+	# tab (gui/politics_panel.gui: `InformationPanel.SelectTab('laws')`).
 	open_panel = politics|laws
 	type = important_action
 	color = green

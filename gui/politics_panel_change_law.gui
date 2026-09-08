@@ -534,33 +534,31 @@ types politics_panel_change_law {
 						expand = {}
 					}
 
-					# Smart Notifications mod: per-enactment "notify me" opt-in
+					# Smart Notifications mod: "notify me about THIS law" opt-in
 					# (see TODO.md and
 					# common/alert_types/01_smart_notifications_alerts.txt's
-					# smart_notifications_law_commitment_alert). Same visible
-					# condition and hbox/margin/spacing shape as the vanilla
-					# "Setbacks" row directly above -- copied deliberately
-					# rather than inventing new layout.
+					# smart_notifications_law_commitment_alert). REVISED
+					# 2026-09-08 per the user: flags the SPECIFIC law shown on
+					# this panel, not "whatever I'm currently enacting" (the
+					# first version built here, which the user correctly
+					# rejected as useless for deciding whether to START
+					# enacting something). Deliberately visible whenever this
+					# panel is showing a law at all -- selected-but-not-yet-
+					# enacting is exactly the case this feature is for -- not
+					# gated to `Law.IsBeingEnacted` like the vanilla
+					# "Setbacks" row above it (whose own condition it
+					# otherwise copies: same hbox/margin/spacing shape).
 					#
-					# Root = the player's OWN COUNTRY (GetPlayer.Self.MakeScope),
-					# not the law itself -- see
+					# Root = `law` (Law.MakeScope), not country -- see
 					# common/scripted_guis/smart_notifications_law_notify_sgui.txt
-					# for why: this flags "the enactment currently in
-					# progress" as one the player wants a heads-up on, not a
-					# specific law type by name, matching what
-					# `enactment_chance` (used by the alert) is itself scoped
-					# to -- the country's current enactment, not a per-law
-					# value. `GetPlayer.Self.MakeScope` mirrors the
-					# `Country.MakeScope` pattern already proven throughout
-					# gui/message_settings.gui's Watchlist checkboxes;
-					# `GetPlayer.Self` itself is already used elsewhere in
-					# THIS vanilla file (e.g. the blocking-requirements calls
-					# above) as the country argument, so this isn't a new
-					# dynamic-text guess, just a new combination of two
-					# already-confirmed pieces -- first thing to check
-					# in-game if this checkbox doesn't visibly toggle.
+					# for the full reasoning and the one real unconfirmed risk
+					# here: no vanilla file anywhere calls `Law.MakeScope`
+					# specifically, so this extrapolates from the same
+					# `<Type>.MakeScope` pattern already proven for
+					# Character/State/Country/PoliticalMovement rather than
+					# copying a confirmed example -- first thing to check
+					# in-game if this checkbox doesn't render or toggle.
 					hbox = {
-						visible = "[Law.IsBeingEnacted]"
 						layoutpolicy_horizontal = preferred
 						spacing = 4
 						margin = { 0 10 }
@@ -568,8 +566,8 @@ types politics_panel_change_law {
 						checkbutton = {
 							using = check_button
 							size = { 20 20 }
-							onclick = "[GetScriptedGui('smart_notifications_law_notify_toggle_sgui').Execute(GuiScope.SetRoot(GetPlayer.Self.MakeScope).End)]"
-							checked = "[GetScriptedGui('smart_notifications_law_notify_check_sgui').IsValid(GuiScope.SetRoot(GetPlayer.Self.MakeScope).End)]"
+							onclick = "[GetScriptedGui('smart_notifications_law_notify_toggle_sgui').Execute(GuiScope.SetRoot(Law.MakeScope).End)]"
+							checked = "[GetScriptedGui('smart_notifications_law_notify_check_sgui').IsValid(GuiScope.SetRoot(Law.MakeScope).End)]"
 							tooltip = "SMART_NOTIFICATIONS_LAW_NOTIFY_TOOLTIP"
 						}
 
