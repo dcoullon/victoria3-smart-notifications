@@ -1247,7 +1247,12 @@ diplo_play_start_third_party_notification = {
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
-	notification_type = feed
+	# Muted 2026-09-07 (Phase 4, see TODO.md): replaced by
+	# smart_notifications_diplo_play_start_third_party_watched/_quiet,
+	# posted instead of this key by
+	# common/on_actions/03_smart_notifications_relational_notifications.txt
+	# based on whether a watched country (or the player) is involved.
+	notification_type = none
 	color = neutral
 }
 
@@ -1257,7 +1262,10 @@ diplo_play_war_start_third_party_notification = {
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
-	notification_type = feed
+	# Muted 2026-09-07 (Phase 4, see TODO.md) -- see
+	# diplo_play_start_third_party_notification's comment above; replaced
+	# by smart_notifications_diplo_play_war_start_third_party_watched/_quiet.
+	notification_type = none
 	color = neutral
 }
 
@@ -1273,7 +1281,10 @@ diplo_play_subject_released_notification = {
 	# affecting the player directly. diplo_play_subject_released_overlord_notification
 	# (losing your OWN subject) split into its own group below so the two
 	# can differ without the "mixed Notification Types" warning. Was: feed.
-	notification_type = feed
+	# Muted 2026-09-07 (Phase 4, see TODO.md) -- replaced by
+	# smart_notifications_diplo_play_subject_released_watched/_quiet, same
+	# architecture as the two groups above.
+	notification_type = none
 	color = neutral
 }
 
@@ -2177,5 +2188,73 @@ smart_notifications_diplo_play_war_start_quiet = {
 	# than an ordinary diplomatic play starting, even when nobody on the
 	# watchlist is involved.
 	notification_type = toast
+	color = neutral
+}
+
+# Third-party notification filtering (see TODO.md's "Third-party
+# notification filtering" item). Same watched/quiet replacement
+# architecture as the three events above, for the 3 keys confirmed
+# filterable today: their root is also Diplomatic Play, so
+# any_scope_play_involved works unchanged. Vanilla's own level for all
+# three is feed, so watched keeps feed and unwatched drops one rung to
+# none, per the "unwatched = one rung quieter" convention.
+
+smart_notifications_diplo_play_start_third_party_watched = {
+	type = diplomatic_play
+	group = "smart_notifications_diplo_play_start_third_party_watched_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = feed
+	color = neutral
+}
+
+smart_notifications_diplo_play_start_third_party_quiet = {
+	type = diplomatic_play
+	group = "smart_notifications_diplo_play_start_third_party_quiet_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = none
+	color = neutral
+}
+
+smart_notifications_diplo_play_war_start_third_party_watched = {
+	type = diplomatic_play
+	group = "smart_notifications_diplo_play_war_start_third_party_watched_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = feed
+	color = neutral
+}
+
+smart_notifications_diplo_play_war_start_third_party_quiet = {
+	type = diplomatic_play
+	group = "smart_notifications_diplo_play_war_start_third_party_quiet_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = none
+	color = neutral
+}
+
+smart_notifications_diplo_play_subject_released_watched = {
+	type = diplomatic_play
+	group = "smart_notifications_diplo_play_subject_released_watched_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = feed
+	color = neutral
+}
+
+smart_notifications_diplo_play_subject_released_quiet = {
+	type = diplomatic_play
+	group = "smart_notifications_diplo_play_subject_released_quiet_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = none
 	color = neutral
 }

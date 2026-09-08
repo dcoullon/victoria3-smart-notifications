@@ -12,6 +12,20 @@
 # Tooling section of TODO.md) -- both deferred rather than bolted on
 # incompletely.
 #
+# Extended 2026-09-07 with the 3 genuinely third-party keys identified in
+# TODO.md's "Third-party notification filtering" inventory that also root
+# on Diplomatic Play: diplo_play_start_third_party_notification (own
+# on_action, on_diplo_play_start_third_party),
+# diplo_play_subject_released_notification (own on_action,
+# on_diplo_play_subject_released), and
+# diplo_play_war_start_third_party_notification (posted from the SAME
+# on_diplo_play_war_start on_action as the war-start pair above, so it's
+# handled inside smart_notifications_diplo_play_war_start's own effect
+# rather than a separate hook). The remaining ~15 third-party keys stay
+# blocked/unbuilt per that inventory -- Country-rooted ones need the
+# other side of the relationship, Diplomatic-Action/Pact-rooted ones have
+# no documented scope link out at all.
+#
 # Per the modding rules in the game's own common/on_actions/_on_actions.md
 # (and CLAUDE.md): never redefine a vanilla on_action's effect directly,
 # append our own on_action name to its `on_actions = {}` list instead.
@@ -46,6 +60,28 @@ on_diplo_play_join_side = {
 on_diplo_play_war_start = {
 	on_actions = {
 		smart_notifications_diplo_play_war_start
+	}
+}
+
+# Third-party notification filtering (see TODO.md's "Third-party
+# notification filtering" item). Both of these are confirmed Root =
+# Diplomatic Play (common/on_actions/00_code_on_actions.txt), so the same
+# any_scope_play_involved check applies unchanged. on_diplo_play_war_start
+# above already covers the third-party war-start key too -- vanilla posts
+# both diplo_play_war_start_notification and
+# diplo_play_war_start_third_party_notification from that one on_action,
+# so smart_notifications_diplo_play_war_start's effect (below) handles
+# both pairs itself rather than adding a second on_action hook here.
+
+on_diplo_play_start_third_party = {
+	on_actions = {
+		smart_notifications_diplo_play_start_third_party
+	}
+}
+
+on_diplo_play_subject_released = {
+	on_actions = {
+		smart_notifications_diplo_play_subject_released
 	}
 }
 
@@ -137,10 +173,12 @@ smart_notifications_diplo_play_war_start = {
 				any_scope_play_involved = { smart_notifications_is_watched = yes }
 			}
 			post_notification = smart_notifications_diplo_play_war_start_watched
+			post_notification = smart_notifications_diplo_play_war_start_third_party_watched
 			debug_log = "SNW_FILTER|war_start|ELEVATED"
 		}
 		else = {
 			post_notification = smart_notifications_diplo_play_war_start_quiet
+			post_notification = smart_notifications_diplo_play_war_start_third_party_quiet
 			debug_log = "SNW_FILTER|war_start|QUIET"
 		}
 
@@ -157,6 +195,40 @@ smart_notifications_diplo_play_war_start = {
 			else = {
 				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=no"
 			}
+		}
+	}
+}
+
+# Root = Diplomatic Play
+smart_notifications_diplo_play_start_third_party = {
+	effect = {
+		if = {
+			limit = {
+				any_scope_play_involved = { smart_notifications_is_watched = yes }
+			}
+			post_notification = smart_notifications_diplo_play_start_third_party_watched
+			debug_log = "SNW_FILTER|start_third_party|ELEVATED"
+		}
+		else = {
+			post_notification = smart_notifications_diplo_play_start_third_party_quiet
+			debug_log = "SNW_FILTER|start_third_party|QUIET"
+		}
+	}
+}
+
+# Root = Diplomatic Play
+smart_notifications_diplo_play_subject_released = {
+	effect = {
+		if = {
+			limit = {
+				any_scope_play_involved = { smart_notifications_is_watched = yes }
+			}
+			post_notification = smart_notifications_diplo_play_subject_released_watched
+			debug_log = "SNW_FILTER|subject_released|ELEVATED"
+		}
+		else = {
+			post_notification = smart_notifications_diplo_play_subject_released_quiet
+			debug_log = "SNW_FILTER|subject_released|QUIET"
 		}
 	}
 }

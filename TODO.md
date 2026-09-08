@@ -647,8 +647,27 @@ list for this phase with that in mind before writing the on_action.
       starting is still more notable than an ordinary play). This also
       lands the long-open Phase 1 "Dominion & Subject War Mute" item —
       see that checkbox above.
-- [~] **Third-party notification filtering — inventory done 2026-09-07,
-      probes shipped, filtering not built yet.** Cross-referenced every
+- [~] **Third-party notification filtering — the 3 Diplomatic-Play-rooted
+      keys BUILT 2026-09-07, not yet confirmed in-game.** Muted vanilla's
+      `diplo_play_start_third_party_notification`,
+      `diplo_play_war_start_third_party_notification`, and
+      `diplo_play_subject_released_notification` groups (all `none` in
+      `00_messages.txt`), replaced by watched/quiet pairs
+      (`smart_notifications_diplo_play_start_third_party_watched/_quiet`,
+      `_war_start_third_party_watched/_quiet`,
+      `_subject_released_watched/_quiet`) using the same
+      `any_scope_play_involved` check as the original 3 events, in
+      [03_smart_notifications_relational_notifications.txt](common/on_actions/03_smart_notifications_relational_notifications.txt).
+      Vanilla's own level for all three was `feed`, so watched keeps
+      `feed` and unwatched drops to `none` (one rung quieter, matching
+      convention). Two new on_action hooks
+      (`on_diplo_play_start_third_party`, `on_diplo_play_subject_released`);
+      the war-start third-party key piggybacks on the existing
+      `on_diplo_play_war_start` hook since vanilla posts both keys from
+      that one on_action. `SNW_FILTER` debug taps added, matching the
+      existing 3 events. **The remaining ~15 keys (Country-rooted and
+      Diplomatic-Action/Pact-rooted) are still blocked/unbuilt** — see the
+      inventory below, unchanged. Cross-referenced every
       `post_notification` in vanilla's `00_code_on_actions.txt` (99 have a
       moddable hook; the rest are native engine code and can never be
       filtered) against this mod's own message file. Findings:

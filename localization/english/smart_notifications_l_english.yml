@@ -76,6 +76,42 @@
  notification_smart_notifications_diplo_play_war_start_quiet_name:0 "War Erupts"
  notification_smart_notifications_diplo_play_war_start_quiet_desc:0 "The [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] between [SCOPE.sC('actor').GetNameNoFormatting] and [SCOPE.sC('target').GetNameNoFormatting] has escalated into open [concept_war]."
 
+ # Third-party notification filtering (see TODO.md). Text/scope bindings
+ # modeled directly on vanilla's own diplo_play_start_third_party_notification/
+ # diplo_play_war_start_third_party_notification/
+ # diplo_play_subject_released_notification (confirmed real scope:actor/
+ # scope:target bindings), substituting .GetNameNoFormatting for .GetName
+ # per this mod's own established convention.
+ smart_notifications_diplo_play_start_third_party_watched_group:0 "Diplomatic Play Start (Third Party), Watched Country Involved (Smart Notifications)"
+ notification_smart_notifications_diplo_play_start_third_party_watched_tooltip:0 "#header $notification_smart_notifications_diplo_play_start_third_party_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_start_third_party_watched_desc$"
+ notification_smart_notifications_diplo_play_start_third_party_watched_name:0 "[SCOPE.sC('actor').GetFlagTextIcon] [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] in [SCOPE.GetRootScope.GetDiplomaticPlay.GetStrategicRegion.GetName]"
+ notification_smart_notifications_diplo_play_start_third_party_watched_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] started a [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] against [SCOPE.sC('target').GetNameNoFormatting]."
+
+ smart_notifications_diplo_play_start_third_party_quiet_group:0 "Diplomatic Play Start (Third Party), Ambient (Smart Notifications)"
+ notification_smart_notifications_diplo_play_start_third_party_quiet_tooltip:0 "#header $notification_smart_notifications_diplo_play_start_third_party_quiet_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_start_third_party_quiet_desc$"
+ notification_smart_notifications_diplo_play_start_third_party_quiet_name:0 "[SCOPE.sC('actor').GetFlagTextIcon] [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] in [SCOPE.GetRootScope.GetDiplomaticPlay.GetStrategicRegion.GetName]"
+ notification_smart_notifications_diplo_play_start_third_party_quiet_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] started a [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] against [SCOPE.sC('target').GetNameNoFormatting]."
+
+ smart_notifications_diplo_play_war_start_third_party_watched_group:0 "Diplomatic Play War Start (Third Party), Watched Country Involved (Smart Notifications)"
+ notification_smart_notifications_diplo_play_war_start_third_party_watched_tooltip:0 "#header $notification_smart_notifications_diplo_play_war_start_third_party_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_war_start_third_party_watched_desc$"
+ notification_smart_notifications_diplo_play_war_start_third_party_watched_name:0 "War between [SCOPE.sC('actor').GetNameNoFormatting] and [SCOPE.sC('target').GetNameNoFormatting]"
+ notification_smart_notifications_diplo_play_war_start_third_party_watched_desc:0 "War has broken out between [SCOPE.sC('actor').GetNameNoFormatting] and [SCOPE.sC('target').GetNameNoFormatting]."
+
+ smart_notifications_diplo_play_war_start_third_party_quiet_group:0 "Diplomatic Play War Start (Third Party), Ambient (Smart Notifications)"
+ notification_smart_notifications_diplo_play_war_start_third_party_quiet_tooltip:0 "#header $notification_smart_notifications_diplo_play_war_start_third_party_quiet_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_war_start_third_party_quiet_desc$"
+ notification_smart_notifications_diplo_play_war_start_third_party_quiet_name:0 "War between [SCOPE.sC('actor').GetNameNoFormatting] and [SCOPE.sC('target').GetNameNoFormatting]"
+ notification_smart_notifications_diplo_play_war_start_third_party_quiet_desc:0 "War has broken out between [SCOPE.sC('actor').GetNameNoFormatting] and [SCOPE.sC('target').GetNameNoFormatting]."
+
+ smart_notifications_diplo_play_subject_released_watched_group:0 "Diplomatic Play Subject Released, Watched Country Involved (Smart Notifications)"
+ notification_smart_notifications_diplo_play_subject_released_watched_tooltip:0 "#header $notification_smart_notifications_diplo_play_subject_released_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_subject_released_watched_desc$"
+ notification_smart_notifications_diplo_play_subject_released_watched_name:0 "[SCOPE.sC('target').GetNameNoFormatting] breaks free"
+ notification_smart_notifications_diplo_play_subject_released_watched_desc:0 "Due to the failure of [SCOPE.sC('actor').GetNameNoFormatting] to protect their subject [SCOPE.sC('target').GetNameNoFormatting] their pact is now null and void."
+
+ smart_notifications_diplo_play_subject_released_quiet_group:0 "Diplomatic Play Subject Released, Ambient (Smart Notifications)"
+ notification_smart_notifications_diplo_play_subject_released_quiet_tooltip:0 "#header $notification_smart_notifications_diplo_play_subject_released_quiet_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_subject_released_quiet_desc$"
+ notification_smart_notifications_diplo_play_subject_released_quiet_name:0 "[SCOPE.sC('target').GetNameNoFormatting] breaks free"
+ notification_smart_notifications_diplo_play_subject_released_quiet_desc:0 "Due to the failure of [SCOPE.sC('actor').GetNameNoFormatting] to protect their subject [SCOPE.sC('target').GetNameNoFormatting] their pact is now null and void."
+
  # Amendment-repealable alert (see 01_smart_notifications_alerts.txt).
  #
  # CORRECTED 2026-09-06: an alert has TWO separate name-shaped loc keys, not
