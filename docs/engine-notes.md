@@ -432,6 +432,45 @@ was working.
    the object); it is not reliable from the player accessor. Prefer a
    stored global for "the player".
 
+## Known-good invariants are enforced by the validator, not by comments
+
+Added 2026-09-07 after breaking the same confirmed-working code twice in
+three commits. The Watchlist's Neighbors row check
+(`any_country = { is_player = yes  is_adjacent_to_country = root }`) was
+verified correct in-game, then regressed twice:
+
+1. **v0.28, deliberately** — rewritten to a global-variable lookup on a
+   wrong diagnosis (a surprising-looking list was assumed wrong without
+   checking the game state; it was right).
+2. **v0.30, accidentally** — the restore and a blanket
+   `s.replace("is_adjacent_to_country = root", ...)` ran *in the same
+   script*, so the blanket replace clobbered the line the script had just
+   restored. Net effect: the check read "is the player adjacent to the
+   player" — always false, emptying the whole tab. It passed syntax
+   validation both times, because it was valid script that silently did
+   the wrong thing.
+
+Note the asymmetry that makes this trap easy to fall into: the ROW checks
+must use `root` (the GUI supplies the row's country, and that works),
+while the BULK actions must use the global player pointer (`root` is not
+reliably the player from a button). One file, one identical-looking
+expression, two opposite correct answers.
+
+`tools/validate_syntax.py` now asserts a `KNOWN_GOOD` list of required
+substrings covering both directions, so either kind of rewrite fails the
+check that already runs after every file change. Verified by reproducing
+the exact v0.30 blanket replace and confirming it now fails.
+
+**Lessons:**
+1. Never blanket string-replace across a file that also contains
+   deliberately similar-looking expressions with opposite meanings. Edit
+   the specific occurrence.
+2. A comment saying "do not change this" does not survive a regex. When
+   behaviour is confirmed working in-game and cannot be re-tested without
+   a human, pin it with a mechanical check.
+3. Silent-wrong-behaviour regressions need their own guard: syntax
+   validation by definition cannot catch them.
+
 ## No generic substring-search filter available for a custom country list
 
 Investigated 2026-09-07 while scoping the "Add a Country" search box

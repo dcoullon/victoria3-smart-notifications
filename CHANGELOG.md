@@ -16,6 +16,13 @@ commit that ships a new feature (however small — "added a new
 notification" counts), so `0.20` → `0.21` → `0.22`. Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.32] — 2026-09-07
+
+### Fixed
+
+- The Watchlist's Neighbors tab showed only the four continent headers
+  with no countries under them — a regression introduced in 0.30.
+
 ## [0.31] — 2026-09-07
 
 ### Added

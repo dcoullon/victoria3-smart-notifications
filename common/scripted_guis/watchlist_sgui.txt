@@ -245,14 +245,26 @@ watchlist_is_neighbor_check_sgui = {
 	scope = country
 
 	is_valid = {
-		# Is the player adjacent to this row's country? CONFIRMED CORRECT
-		# LIVE 2026-09-07 -- the user verified the resulting list is right
-		# for their game (a heavily-expanded Portugal really is adjacent to
-		# Horn-of-Africa minors). Briefly replaced with a global-variable
-		# lookup on a wrong diagnosis; restored.
+		# ############################################################
+		# KNOWN-GOOD. Confirmed correct in-game by the user 2026-09-07:
+		# the resulting list is right for their campaign (a heavily
+		# expanded Portugal really is adjacent to Horn-of-Africa minors,
+		# which was twice misread as the list being over-inclusive).
+		#
+		# `root` here is the ROW's country (set by the GUI via
+		# InterestingCountryItem.GetCountry.MakeScope) and `this` inside
+		# any_country is the player, so this reads "is the player adjacent
+		# to this row's country". It must NOT be rewritten to
+		# global_var:smart_notifications_player_country -- that makes it
+		# "is the player adjacent to the player", which is always false and
+		# empties the whole tab. That exact regression shipped twice
+		# (v0.28 deliberately, v0.30 by a careless blanket string-replace
+		# that clobbered the line it had just restored). Change nothing
+		# here without an in-game retest.
+		# ############################################################
 		any_country = {
 			is_player = yes
-			is_adjacent_to_country = global_var:smart_notifications_player_country
+			is_adjacent_to_country = root
 		}
 	}
 
@@ -264,9 +276,14 @@ watchlist_is_rival_check_sgui = {
 	scope = country
 
 	is_valid = {
-		# Does the player have this row's country as a declared rival?
-		# Confirmed correct live 2026-09-07 alongside the neighbour check
-		# above; briefly replaced on a wrong diagnosis, restored.
+		# ############################################################
+		# KNOWN-GOOD -- same rules as the neighbour check above: `root` is
+		# the ROW's country, `this` inside any_country is the player. Do
+		# not rewrite `root` here either. Confirmed correct in-game
+		# 2026-09-07 (survived the v0.30 regression only because its
+		# phrasing happened not to match the blanket replace that broke
+		# the neighbour check).
+		# ############################################################
 		any_country = {
 			is_player = yes
 			any_rival_country = {

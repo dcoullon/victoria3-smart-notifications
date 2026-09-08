@@ -59,6 +59,50 @@ def validate_file(file_path: Path):
     if square != 0: errors.append(f"Mismatch: {square} unclosed '['")
     return errors
 
+# --- Known-good invariants -------------------------------------------------
+# Confirmed-correct-in-game behaviour that has been broken by later edits more
+# than once. Syntax checking cannot catch these: the regressions were all
+# perfectly valid script that silently did the wrong thing. Each entry is
+# (file, required substring, why it matters).
+#
+# The Watchlist row checks in particular have now been broken twice by
+# rewriting `root` (the ROW's country, supplied by the GUI) into the global
+# player pointer, which turns "is the player adjacent to this row's country"
+# into "is the player adjacent to the player" -- always false, empties the
+# tab. The bulk actions are the opposite case: they genuinely need the global
+# pointer, because `root` is NOT reliably the player there. Both directions
+# are asserted so neither can be "fixed" into the other again.
+KNOWN_GOOD = [
+    ("common/scripted_guis/watchlist_sgui.txt",
+     "is_adjacent_to_country = root",
+     "Watchlist Neighbors ROW check must compare the row's country (root) "
+     "against the player, not the player against themselves"),
+    ("common/scripted_guis/watchlist_sgui.txt",
+     "this ?= root",
+     "Watchlist Rivals ROW check must compare against root (the row's country)"),
+    ("common/scripted_guis/watchlist_sgui.txt",
+     "is_adjacent_to_country = global_var:smart_notifications_player_country",
+     "Watchlist Neighbors BULK actions must use the global player pointer -- "
+     "root is not reliably the player in a button-triggered scripted GUI"),
+    ("common/on_actions/00_smart_notifications_on_actions.txt",
+     "set_global_variable = {",
+     "The global player pointer must still be set at campaign start, or the "
+     "Watchlist bulk actions silently do nothing on a fresh campaign"),
+]
+
+
+def check_known_good(root: Path):
+    errs = []
+    for rel, needle, why in KNOWN_GOOD:
+        path = root / rel
+        if not path.exists():
+            errs.append(f"{rel}: MISSING (expected to contain: {needle!r})")
+            continue
+        if needle not in path.read_text(encoding="utf-8-sig"):
+            errs.append(f"{rel}: lost {needle!r}\n      why: {why}")
+    return errs
+
+
 if __name__ == "__main__":
     target = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(".")
     has_err = False
@@ -69,6 +113,13 @@ if __name__ == "__main__":
                 has_err = True
                 print(f"FAIL: {path}")
                 for e in errs: print(f"  - {e}")
+
+    kg = check_known_good(target)
+    if kg:
+        has_err = True
+        print("FAIL: known-good invariant broken (confirmed-working behaviour regressed)")
+        for e in kg: print(f"  - {e}")
+
     if not has_err:
-        print("PASS: Syntax and brackets verified.")
+        print("PASS: Syntax, brackets and known-good invariants verified.")
     sys.exit(1 if has_err else 0)
