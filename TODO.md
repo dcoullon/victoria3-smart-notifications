@@ -1368,12 +1368,82 @@ so it doesn't re-fire every month afterward.
       government-type change, etc.) would reuse the same monthly-pulse +
       repeat-guard shape. Worth a dedicated phase if more of these show up.
 
+## New notifications/alerts backlog — sized and sequenced 2026-09-08
+
+All four items below are **P1 per the user**. This is the recommended
+build order (easiest/lowest-risk first), with a rough size estimate
+factoring in this project's own track record — GUI-touching work
+(Phase 3's Watchlist selector) took far more iterations than pure
+script/on_action work (Phase 4's relational filtering, or the existing
+amendment-repeal alert) ever did:
+
+1. **Verify the amendment-repeal alert — Size: S.** Already built (see
+   below), not new work — just needs in-game confirmation, and the user's
+   own note that "currently the requirements means they never really
+   become repealable" needs investigating: is `amendment_can_be_repealed`
+   just naturally rare, or does its trigger condition need revisiting?
+2. **New alert: agitator invite available — Size: M.** New alert_type,
+   same shape as the amendment-repeal one (no GUI work needed, just a
+   trigger + ribbon icon). Needs: confirming whether agitators are
+   DLC-gated content before investing further; a trigger checking for an
+   open invite slot AND a non-empty eligible-candidates list (both, not
+   just slot availability); and awareness of the ~5-year cooldown after
+   inviting someone, so the alert doesn't fire again during it.
+3. **New alert: state in taxation deficit — Size: M** (base version),
+   **L** if the "only alert when fixing it is net-positive" refinement is
+   pursued. New alert_type; needs finding the right state-economy value
+   for a taxation deficit and, for the refinement, a `script_value`
+   comparing the fix's benefit against added bureaucrat/paper upkeep —
+   real extra complexity, worth shipping the simple version first and
+   deciding separately whether the refinement is worth it.
+4. **"You can now pass a law you wanted" notification — Size: L.** The
+   biggest of the four: needs a genuinely new `common/scripted_guis/`
+   entry with a checkbox/button on the actual law-enactment GUI screen
+   (per-law opt-in), not just script/on_action work — the same category
+   of work as Phase 3's Watchlist selector, which took the most
+   iterations of anything shipped so far in this project. See the
+   existing scoping below for the details already worked out.
+
+Below are the original, more detailed entries for items 1 and 4 (kept
+from earlier scoping sessions), plus two new entries for items 2 and 3.
+
 More candidates surfaced in the user's WIP doc (2026-09-05), same
 monthly-pulse + repeat-guard shape as the Law Commitment idea above —
 grouping them here rather than writing three near-duplicate sections:
 
-- [~] **Truce expiry notification — built 2026-09-06, needs an in-game
-      truce to confirm.** The user confirmed (2026-09-06) they want this
+- [ ] **New alert: agitator invite available — requested 2026-09-08, not
+      scoped yet.** Per the user: only show the alert when (a) there's an
+      open invite slot AND (b) the "eligible to invite" list isn't empty
+      — either condition alone isn't enough. Needs research before
+      building: (1) whether agitators/political movements are gated
+      behind a specific DLC — check before investing time; (2) the real
+      trigger names for "has an open agitator slot" and "eligible
+      candidate list is non-empty" (don't guess — check `triggers.log`/
+      `effects.log` the way every other feature in this mod has); (3) the
+      user flagged a ~5-year cooldown after inviting someone creates a
+      "can invite" timer — the alert's trigger needs to naturally respect
+      this (i.e. it should already read as false during the cooldown if
+      the slot-open check is accurate), but confirm this rather than
+      assume. Same shape as the existing amendment-repeal alert
+      ([common/alert_types/01_smart_notifications_alerts.txt](common/alert_types/01_smart_notifications_alerts.txt))
+      — no GUI work needed, just a new alert_type + trigger + loc
+      (remember both `_name` and `_setting_name` loc keys, per the "An
+      alert type needs TWO name-shaped loc keys" engine-notes entry).
+- [ ] **New alert: state in taxation deficit — requested 2026-09-08, not
+      scoped yet.** Per the user: alert when a state is losing money to a
+      taxation deficit (a specific "Xk/Wk lost" figure they referenced,
+      exact value/trigger not yet identified — needs checking against
+      real state economy triggers/script_values, don't guess the name).
+      **Nice-to-have, not required for v1:** only fire if fixing the
+      deficit would be net-positive after accounting for the added
+      bureaucrat + paper upkeep cost of doing so — this needs a
+      `script_value` comparing the deficit's cost against that upkeep,
+      real extra complexity worth scoping separately once the base
+      version is confirmed working. Same shape as the amendment-repeal
+      alert otherwise — new alert_type, no GUI work.
+
+- [x] **Truce expiry notification — CONFIRMED DONE (marked complete by
+      the user 2026-09-08).** The user confirmed (2026-09-06) they want this
       despite the small country count, and only the "just expired" half is
       buildable (see the earlier finding below on why "expiring in one
       month" isn't). Shipped:
