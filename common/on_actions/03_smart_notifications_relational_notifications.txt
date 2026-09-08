@@ -70,20 +70,29 @@ smart_notifications_diplo_play_start = {
 	effect = {
 		if = {
 			limit = {
-				any_scope_play_involved = {
-					OR = {
-						is_player = yes
-						has_variable = watched_via_great_power
-						has_variable = watched_via_neighbor
-						has_variable = watched_via_rival
-						has_variable = watched_manually
-					}
-				}
+				any_scope_play_involved = { smart_notifications_is_watched = yes }
 			}
 			post_notification = smart_notifications_diplo_play_start_watched
+			debug_log = "SNW_FILTER|start|ELEVATED"
 		}
 		else = {
 			post_notification = smart_notifications_diplo_play_start_quiet
+			debug_log = "SNW_FILTER|start|QUIET"
+		}
+
+		# TEMPORARY instrumentation (2026-09-07) so a playtest can show
+		# exactly what was elevated vs quieted and why -- one line per
+		# participant with its watched status, alongside the decision
+		# above. Delete once the filtering is confirmed tuned correctly,
+		# same as the truce tracker's taps. Grep debug.log for SNW_FILTER.
+		every_scope_play_involved = {
+			if = {
+				limit = { smart_notifications_is_watched = yes }
+				debug_log = "SNW_FILTER|start|involved|country=[THIS.GetNameNoFormatting]|watched=yes"
+			}
+			else = {
+				debug_log = "SNW_FILTER|start|involved|country=[THIS.GetNameNoFormatting]|watched=no"
+			}
 		}
 	}
 }
@@ -93,20 +102,29 @@ smart_notifications_diplo_play_join_side = {
 	effect = {
 		if = {
 			limit = {
-				any_scope_play_involved = {
-					OR = {
-						is_player = yes
-						has_variable = watched_via_great_power
-						has_variable = watched_via_neighbor
-						has_variable = watched_via_rival
-						has_variable = watched_manually
-					}
-				}
+				any_scope_play_involved = { smart_notifications_is_watched = yes }
 			}
 			post_notification = smart_notifications_diplo_play_join_side_watched
+			debug_log = "SNW_FILTER|join_side|ELEVATED"
 		}
 		else = {
 			post_notification = smart_notifications_diplo_play_join_side_quiet
+			debug_log = "SNW_FILTER|join_side|QUIET"
+		}
+
+		# TEMPORARY instrumentation (2026-09-07) so a playtest can show
+		# exactly what was elevated vs quieted and why -- one line per
+		# participant with its watched status, alongside the decision
+		# above. Delete once the filtering is confirmed tuned correctly,
+		# same as the truce tracker's taps. Grep debug.log for SNW_FILTER.
+		every_scope_play_involved = {
+			if = {
+				limit = { smart_notifications_is_watched = yes }
+				debug_log = "SNW_FILTER|join_side|involved|country=[THIS.GetNameNoFormatting]|watched=yes"
+			}
+			else = {
+				debug_log = "SNW_FILTER|join_side|involved|country=[THIS.GetNameNoFormatting]|watched=no"
+			}
 		}
 	}
 }
@@ -116,20 +134,29 @@ smart_notifications_diplo_play_war_start = {
 	effect = {
 		if = {
 			limit = {
-				any_scope_play_involved = {
-					OR = {
-						is_player = yes
-						has_variable = watched_via_great_power
-						has_variable = watched_via_neighbor
-						has_variable = watched_via_rival
-						has_variable = watched_manually
-					}
-				}
+				any_scope_play_involved = { smart_notifications_is_watched = yes }
 			}
 			post_notification = smart_notifications_diplo_play_war_start_watched
+			debug_log = "SNW_FILTER|war_start|ELEVATED"
 		}
 		else = {
 			post_notification = smart_notifications_diplo_play_war_start_quiet
+			debug_log = "SNW_FILTER|war_start|QUIET"
+		}
+
+		# TEMPORARY instrumentation (2026-09-07) so a playtest can show
+		# exactly what was elevated vs quieted and why -- one line per
+		# participant with its watched status, alongside the decision
+		# above. Delete once the filtering is confirmed tuned correctly,
+		# same as the truce tracker's taps. Grep debug.log for SNW_FILTER.
+		every_scope_play_involved = {
+			if = {
+				limit = { smart_notifications_is_watched = yes }
+				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetNameNoFormatting]|watched=yes"
+			}
+			else = {
+				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetNameNoFormatting]|watched=no"
+			}
 		}
 	}
 }

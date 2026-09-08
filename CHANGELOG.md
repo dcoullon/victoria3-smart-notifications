@@ -16,6 +16,14 @@ commit that ships a new feature (however small — "added a new
 notification" counts), so `0.20` → `0.21` → `0.22`. Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.29] — 2026-09-07
+
+### Added
+
+- Debug logging of relational notification decisions (`SNW_FILTER` lines
+  in `debug.log`), recording whether each diplomatic play was elevated or
+  quieted and which countries were involved — for tuning during testing.
+
 ## [0.28] — 2026-09-07
 
 ### Fixed

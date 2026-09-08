@@ -1,0 +1,27 @@
+﻿# Shared triggers for the relational notification engine (Phase 4, see
+# TODO.md). scripted_triggers merge additively across files in this
+# folder, so this is a genuinely new file -- no vanilla file needed
+# copying (same as common/alert_types/, unlike common/messages/).
+#
+# Called as `smart_notifications_is_watched = yes` from a country scope.
+# Kept here rather than inlined because the relational on_actions repeat
+# this check several times each (decision + per-country logging), and
+# every future filtered notification will want the same one.
+
+# "Is this country one the player actually cares about" -- the runtime
+# half of the Watchlist. The player themselves always counts: an event
+# involving your own country is relevant whether or not you ever opened
+# the Watchlist screen.
+#
+# Deliberately just flag lookups, no trigger evaluation or cross-scope
+# comparison -- see TODO.md's "Data model" section on why the watchlist
+# is stored as 4 static provenance flags rather than evaluated live.
+smart_notifications_is_watched = {
+	OR = {
+		is_player = yes
+		has_variable = watched_via_great_power
+		has_variable = watched_via_neighbor
+		has_variable = watched_via_rival
+		has_variable = watched_manually
+	}
+}
