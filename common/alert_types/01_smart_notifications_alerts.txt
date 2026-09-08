@@ -117,3 +117,46 @@ smart_notifications_taxation_deficit_alert = {
 	color = green
 	alert_group = smart_notifications_taxation_deficit_states
 }
+
+smart_notifications_law_commitment_alert = {
+	script_context = player_country
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	# The biggest/highest-risk item in TODO.md's sized backlog -- see
+	# common/scripted_guis/smart_notifications_law_notify_sgui.txt (the
+	# opt-in checkbox toggle) and
+	# gui/politics_panel_change_law.gui (where the checkbox actually lives,
+	# on the currently-enacting-law panel) for the two other pieces this
+	# depends on.
+	#
+	# All three triggers confirmed real via script_docs triggers.log:
+	# - enacting_any_law = yes -- "checks if you're enacting any law",
+	#   country scope.
+	# - has_variable = smart_notifications_watching_enactment -- set by our
+	#   own checkbox; see the scripted_gui file for exactly what this flag
+	#   means (the CURRENT enactment, not a specific law type) and the
+	#   accepted tradeoff around cancelling and re-enacting.
+	# - enactment_chance > 0.5 -- "current enactment success chance in
+	#   scope country" (country scope, no target law needed, matching the
+	#   fact that this whole feature reads as "the enactment in progress"
+	#   rather than a specific law). UNCONFIRMED threshold, per TODO.md's
+	#   own open question: 0.5 is a reasonable "better than even odds"
+	#   guess (the trigger's own docs example uses a 0-1 fraction, e.g.
+	#   `value > 0.2`), but whether this matches how vanilla's own UI
+	#   colors the number as "likely to pass" hasn't been checked against
+	#   real gameplay -- first thing to tune if the alert fires too early
+	#   or too late in practice.
+	valid = {
+		enacting_any_law = yes
+		has_variable = smart_notifications_watching_enactment
+		enactment_chance > 0.5
+	}
+
+	# "politics|laws" is the confirmed real tab identifier for the Laws
+	# tab (gui/politics_panel.gui: `InformationPanel.SelectTab('laws')`),
+	# so clicking the alert opens straight to the law being enacted rather
+	# than the Politics Overview.
+	open_panel = politics|laws
+	type = important_action
+	color = green
+}

@@ -1527,25 +1527,72 @@ grouping them here rather than writing three near-duplicate sections:
       remaining-duration value exists (unlike obligations, which do have
       one), which is why only the edge-triggered "just expired" version
       exists at all.
-- [~] **"You can now pass a law you wanted" notification — scoped further
-      2026-09-06, not yet built.** The user clarified: this should only
-      fire for specific laws the player actually wants, not every law —
-      so the trigger side (`enacting_any_law = yes` +
-      `enactment_chance`, both confirmed real) isn't enough by itself; it
-      needs a **per-law opt-in**, the same "toggle a flag via a
-      scripted GUI button" shape as Phase 3's watchlist. Concretely: a
-      `common/scripted_guis/` entry on the law-enactment screen that sets a
-      variable on the law type (or a list of wanted law types on the
-      country) when the player clicks "notify me," and the alert's `valid`
-      trigger checks `enacting_any_law = yes` + that law being flagged +
-      `enactment_chance > <threshold>`. **This is now the same shape as
-      Phase 3's watchlist toggle** (Country Panel Bookmark Button) — worth
-      building whichever of the two comes first as the template for the
-      other. **Still open:** what enactment-chance threshold reads as
-      "will pass" (likely `> 0.5`, needs checking against how vanilla's own
-      UI colors that number) and where exactly on the law-enactment GUI a
-      button anchors cleanly. Remember the notification-tagging convention
-      below when this ships.
+- [~] **"You can now pass a law you wanted" notification — BUILT
+      2026-09-08, the biggest item in the sized backlog, not yet seen
+      in-game.** Landed a real simplification during scoping that avoided
+      the riskiest part of the original plan: rather than flagging
+      individual LAW TYPES as "wanted" (which would have needed either an
+      unconfirmed law_type-scoped variable, or an unconfirmed
+      `LawType.MakeScope` GUI call — neither has any vanilla precedent
+      anywhere, confirmed via an exhaustive grep of both `common/` and
+      `gui/`), the flag instead means "notify me about the enactment
+      **currently in progress**" — which turns out to be *exactly* what
+      `enactment_chance` itself already means (confirmed via triggers.log:
+      it's a country-scope value, no target law parameter, "the current
+      enactment success chance in scope country" — not a per-law-type
+      value at all). So a single country-scope boolean
+      (`smart_notifications_watching_enactment`) is both sufficient and
+      more accurate to the game's own data model than the originally
+      planned per-law design, not just a shortcut. Accepted tradeoff:
+      cancelling one enactment and starting a different one before the
+      first resolves would otherwise carry the flag over onto the new
+      law — mitigated by clearing the flag from a new, confirmed-real
+      `on_law_enactment_started` hook (present in vanilla's own
+      `00_code_on_actions.txt`) every time a fresh enactment begins.
+      Shipped, three pieces:
+      1. [common/scripted_guis/smart_notifications_law_notify_sgui.txt](common/scripted_guis/smart_notifications_law_notify_sgui.txt)
+         — toggle/check SGUI pair, same is_valid-also-gates-Execute split
+         as `watchlist_sgui.txt` (Phase 3's own hard-won lesson, applied
+         proactively this time instead of being re-discovered the hard
+         way).
+      2. [gui/politics_panel_change_law.gui](gui/politics_panel_change_law.gui)
+         — a new, genuinely new full-file GUI override (transcription
+         double-checked with a real `diff` against the vanilla file before
+         committing — confirmed byte-identical apart from the intended
+         insertion). Adds a "Notify Me" checkbox + label, styled and
+         positioned as a sibling to vanilla's own "Setbacks" row (same
+         `visible = [Law.IsBeingEnacted]` condition, same hbox/margin/
+         spacing), wired to the SGUI pair via `GetPlayer.Self.MakeScope`
+         — `GetPlayer.Self` is already used elsewhere in this exact
+         vanilla file as a country argument, and `X.MakeScope` is the
+         exact pattern already proven throughout `gui/message_settings.gui`
+         for the Watchlist checkboxes, so this combines two
+         separately-confirmed pieces rather than guessing a wholly new
+         one — but the specific combination is still unconfirmed, and is
+         the **first thing to check in-game**: does the checkbox render
+         and actually toggle at all.
+      3. [common/alert_types/01_smart_notifications_alerts.txt](common/alert_types/01_smart_notifications_alerts.txt)
+         (`smart_notifications_law_commitment_alert`) — `valid =
+         { enacting_any_law = yes  has_variable =
+         smart_notifications_watching_enactment  enactment_chance > 0.5 }`,
+         `open_panel = politics|laws` (confirmed real tab id via
+         `gui/politics_panel.gui`'s own `SelectTab('laws')`). **The 0.5
+         threshold is UNCONFIRMED**, same open question as before scoping
+         started — a reasonable "better than even odds" guess, not
+         verified against how vanilla's own UI colors the number as
+         "likely to pass"; first thing to tune if the alert fires too
+         early or too late. loc in
+         [smart_notifications_l_english.yml](localization/english/smart_notifications_l_english.yml),
+         static/generic text (no dynamic law-name reference) for the same
+         lower-risk reason the amendment-repeal alert made that call.
+      Also added
+      [common/on_actions/07_smart_notifications_law_commitment.txt](common/on_actions/07_smart_notifications_law_commitment.txt)
+      for the `on_law_enactment_started` reset hook described above.
+      **Needs in-game confirmation across the whole chain** — checkbox
+      visibility/toggle, the alert actually lighting up, and whether 0.5
+      is the right threshold — expect this to need the most follow-up
+      rounds of anything shipped this session, consistent with the "budget
+      the most iterations for this one" sizing call.
 - [x] **"You can now repeal an amendment" notification — built and
       shipped 2026-09-06.** Per the user, this one should surface on the
       top ribbon — used `type = important_action` (not plain `alert`) for

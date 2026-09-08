@@ -1,0 +1,58 @@
+﻿# Smart Notifications mod: "notify me when this law looks likely to pass"
+# opt-in checkbox (see TODO.md's sized backlog, item 4, and
+# common/alert_types/01_smart_notifications_alerts.txt's
+# smart_notifications_law_commitment_alert). GUI anchor:
+# gui/politics_panel_change_law.gui's "currently enacting" section.
+#
+# Root = country, not law_type. `enactment_chance` (the trigger the alert
+# actually reads) is itself a country-scope value describing "the chance of
+# the enactment currently in progress" (script_docs triggers.log), not a
+# per-law-type value -- there is no persistent "this specific law type is on
+# my wishlist" concept to hook into here, only "I want a heads-up about
+# whatever I'm enacting right now." So this flags the CURRENT enactment
+# attempt on the country, exactly matching what the alert can actually
+# check, rather than inventing a law_type-scoped variable that the alert
+# couldn't read anyway. Real, accepted tradeoff: checking the box, then
+# cancelling and starting a DIFFERENT enactment before the first one
+# resolves, would carry the flag over onto the new one too -- mitigated by
+# clearing the flag from `on_law_enactment_started`
+# (common/on_actions/00_smart_notifications_on_actions.txt) every time a
+# fresh enactment begins, so a stale watch never survives into an
+# enactment the player never actually checked the box for.
+#
+# Split into toggle/check pairs for the same reason as
+# common/scripted_guis/watchlist_sgui.txt: `is_valid` also gates whether
+# `.Execute()` is allowed to run at all, so it can't double as the toggle's
+# own "am I currently set" query.
+smart_notifications_law_notify_toggle_sgui = {
+	scope = country
+
+	# No is_valid -- toggling is always a valid action regardless of
+	# current state, matching watchlist_toggle_sgui's own reasoning.
+	effect = {
+		if = {
+			limit = {
+				has_variable = smart_notifications_watching_enactment
+			}
+			remove_variable = smart_notifications_watching_enactment
+		}
+		else = {
+			set_variable = smart_notifications_watching_enactment
+		}
+	}
+
+	# Per CLAUDE.md: scripted GUIs must never be available to the AI.
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+smart_notifications_law_notify_check_sgui = {
+	scope = country
+
+	is_valid = {
+		has_variable = smart_notifications_watching_enactment
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
