@@ -16,6 +16,17 @@ commit that ships a new feature (however small — "added a new
 notification" counts), so `0.20` → `0.21` → `0.22`. Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.30] — 2026-09-07
+
+### Fixed
+
+- Select All / Deselect All on the Watchlist's **Neighbors** and
+  **Rivals** tabs did nothing at all — they were the only bulk actions
+  that needed to know which country you are, and the way they asked for
+  that didn't work. They now use a reliable reference to your country.
+  (The Great Powers and Watched tabs were unaffected, which is why only
+  those two tabs misbehaved.)
+
 ## [0.29] — 2026-09-07
 
 ### Added

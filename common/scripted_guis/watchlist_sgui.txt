@@ -245,11 +245,15 @@ watchlist_is_neighbor_check_sgui = {
 	scope = country
 
 	is_valid = {
-		# "Is this row's country adjacent to the player" -- evaluated on
-		# the row's own country (the SGUI root, implicit `this`), with the
-		# player supplied as a plain value. No iterator, no `is_player`,
-		# no `root` keyword.
-		is_adjacent_to_country = global_var:smart_notifications_player_country
+		# Is the player adjacent to this row's country? CONFIRMED CORRECT
+		# LIVE 2026-09-07 -- the user verified the resulting list is right
+		# for their game (a heavily-expanded Portugal really is adjacent to
+		# Horn-of-Africa minors). Briefly replaced with a global-variable
+		# lookup on a wrong diagnosis; restored.
+		any_country = {
+			is_player = yes
+			is_adjacent_to_country = global_var:smart_notifications_player_country
+		}
 	}
 
 	ai_is_valid = { always = no }
@@ -260,15 +264,14 @@ watchlist_is_rival_check_sgui = {
 	scope = country
 
 	is_valid = {
-		# "Has the player declared this row's country as a rival."
-		# any_rivaling_country = "any country that is rivaling the country
-		# in scope" (confirmed in the script_docs triggers dump), so from
-		# the row's own scope this asks whether the player is one of the
-		# countries rivaling it -- the correct direction, and the mirror
-		# of every_rival_country used from the player's side in the bulk
-		# actions below.
-		any_rivaling_country = {
-			this ?= global_var:smart_notifications_player_country
+		# Does the player have this row's country as a declared rival?
+		# Confirmed correct live 2026-09-07 alongside the neighbour check
+		# above; briefly replaced on a wrong diagnosis, restored.
+		any_country = {
+			is_player = yes
+			any_rival_country = {
+				this ?= root
+			}
 		}
 	}
 
@@ -438,17 +441,9 @@ watchlist_bulk_select_great_power_sgui = {
 	scope = country
 
 	effect = {
-		# Keep the global player pointer fresh (root IS the player here,
-		# via the button's datacontext) so the row checks above work even
-		# on a save that predates that variable, without waiting for the
-		# next monthly tick.
-		set_global_variable = {
-			name = smart_notifications_player_country
-			value = root
-		}
 		every_country = {
 			limit = {
-				NOT = { this = root }
+				NOT = { this = global_var:smart_notifications_player_country }
 				country_rank >= rank_value:great_power
 			}
 			set_variable = watched_via_great_power
@@ -463,17 +458,9 @@ watchlist_bulk_deselect_great_power_sgui = {
 	scope = country
 
 	effect = {
-		# Keep the global player pointer fresh (root IS the player here,
-		# via the button's datacontext) so the row checks above work even
-		# on a save that predates that variable, without waiting for the
-		# next monthly tick.
-		set_global_variable = {
-			name = smart_notifications_player_country
-			value = root
-		}
 		every_country = {
 			limit = {
-				NOT = { this = root }
+				NOT = { this = global_var:smart_notifications_player_country }
 				country_rank >= rank_value:great_power
 			}
 			remove_variable = watched_via_great_power
@@ -491,18 +478,10 @@ watchlist_bulk_select_neighbor_sgui = {
 	scope = country
 
 	effect = {
-		# Keep the global player pointer fresh (root IS the player here,
-		# via the button's datacontext) so the row checks above work even
-		# on a save that predates that variable, without waiting for the
-		# next monthly tick.
-		set_global_variable = {
-			name = smart_notifications_player_country
-			value = root
-		}
 		every_country = {
 			limit = {
-				NOT = { this = root }
-				is_adjacent_to_country = root
+				NOT = { this = global_var:smart_notifications_player_country }
+				is_adjacent_to_country = global_var:smart_notifications_player_country
 			}
 			set_variable = watched_via_neighbor
 		}
@@ -516,18 +495,10 @@ watchlist_bulk_deselect_neighbor_sgui = {
 	scope = country
 
 	effect = {
-		# Keep the global player pointer fresh (root IS the player here,
-		# via the button's datacontext) so the row checks above work even
-		# on a save that predates that variable, without waiting for the
-		# next monthly tick.
-		set_global_variable = {
-			name = smart_notifications_player_country
-			value = root
-		}
 		every_country = {
 			limit = {
-				NOT = { this = root }
-				is_adjacent_to_country = root
+				NOT = { this = global_var:smart_notifications_player_country }
+				is_adjacent_to_country = global_var:smart_notifications_player_country
 			}
 			remove_variable = watched_via_great_power
 			remove_variable = watched_via_neighbor
@@ -544,15 +515,10 @@ watchlist_bulk_select_rival_sgui = {
 	scope = country
 
 	effect = {
-		# Keep the global player pointer fresh (root IS the player here,
-		# via the button's datacontext) so the row checks above work even
-		# on a save that predates that variable, without waiting for the
-		# next monthly tick.
-		set_global_variable = {
-			name = smart_notifications_player_country
-			value = root
-		}
-		every_rival_country = {
+		every_country = {
+			limit = {
+				any_rivaling_country = { this ?= global_var:smart_notifications_player_country }
+			}
 			set_variable = watched_via_rival
 		}
 	}
@@ -565,15 +531,10 @@ watchlist_bulk_deselect_rival_sgui = {
 	scope = country
 
 	effect = {
-		# Keep the global player pointer fresh (root IS the player here,
-		# via the button's datacontext) so the row checks above work even
-		# on a save that predates that variable, without waiting for the
-		# next monthly tick.
-		set_global_variable = {
-			name = smart_notifications_player_country
-			value = root
-		}
-		every_rival_country = {
+		every_country = {
+			limit = {
+				any_rivaling_country = { this ?= global_var:smart_notifications_player_country }
+			}
 			remove_variable = watched_via_great_power
 			remove_variable = watched_via_neighbor
 			remove_variable = watched_via_rival
@@ -603,27 +564,22 @@ watchlist_bulk_select_watched_refresh_sgui = {
 	scope = country
 
 	effect = {
-		# Keep the global player pointer fresh (root IS the player here,
-		# via the button's datacontext) so the row checks above work even
-		# on a save that predates that variable, without waiting for the
-		# next monthly tick.
-		set_global_variable = {
-			name = smart_notifications_player_country
-			value = root
-		}
-		every_rival_country = {
+		every_country = {
+			limit = {
+				any_rivaling_country = { this ?= global_var:smart_notifications_player_country }
+			}
 			set_variable = watched_via_rival
 		}
 		every_country = {
 			limit = {
-				NOT = { this = root }
+				NOT = { this = global_var:smart_notifications_player_country }
 			}
 			if = {
 				limit = { country_rank >= rank_value:great_power }
 				set_variable = watched_via_great_power
 			}
 			if = {
-				limit = { is_adjacent_to_country = root }
+				limit = { is_adjacent_to_country = global_var:smart_notifications_player_country }
 				set_variable = watched_via_neighbor
 			}
 		}
@@ -637,14 +593,6 @@ watchlist_bulk_deselect_watched_sgui = {
 	scope = country
 
 	effect = {
-		# Keep the global player pointer fresh (root IS the player here,
-		# via the button's datacontext) so the row checks above work even
-		# on a save that predates that variable, without waiting for the
-		# next monthly tick.
-		set_global_variable = {
-			name = smart_notifications_player_country
-			value = root
-		}
 		every_country = {
 			limit = {
 				OR = {

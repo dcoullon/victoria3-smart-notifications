@@ -471,32 +471,14 @@ four are" so the list is never empty on first open.
       (`watchlist_is_great_power_check_sgui`, `country_rank >=
       rank_value:great_power`), browses anyone currently a Great Power
       regardless of watched status, exactly per the original spec.
-- [~] **Neighbors / Rivals live checks — REWRITTEN 2026-09-07 (second
-      attempt), not yet confirmed in-game.** Attempt 1 used
-      `any_country = { is_player = yes <trigger using root> }` inside the
-      row's `is_valid`; verified against real vanilla examples first, but
-      every one of those examples is effect/on_action context, and the
-      idiom did not behave the same inside a scripted_gui `is_valid`.
-      Confirmed live: the Neighbors tab listed obvious non-neighbours
-      (Horn-of-Africa minors in a Portugal game) — a strict superset of
-      the truth — which also explains BOTH bulk-action complaints
-      ("Select All doesn't select everything", "Deselect All leaves rows
-      checked"): the bulk actions were correct all along, the list they
-      were judged against was not. Rewritten to route around the
-      uncertainty entirely: a global variable
-      (`smart_notifications_player_country`) holds the player's country,
-      so each row check is one flat trigger on the row's own scope —
-      `is_adjacent_to_country = global_var:...` for Neighbors,
-      `any_rivaling_country = { this ?= global_var:... }` for Rivals — no
-      iterator, no `is_player`, no `root`. Both halves have direct vanilla
-      precedent. Set at game start + refreshed monthly (self-heals on
-      older saves, follows a tag switch) + refreshed by every bulk button
-      (so a click fixes the display immediately). Full writeup and the
-      three lessons in
-      [docs/engine-notes.md § A trigger idiom that works in script can still misbehave inside a scripted_gui](docs/engine-notes.md).
-      **Note: the Rivals tab was probably also showing wrong content
-      (countries anyone rivals, not ones the player rivals) — it looked
-      fine only because that set is small and plausible.**
+- [x] **Neighbors / Rivals live checks — CONFIRMED CORRECT LIVE
+      2026-09-07.** `any_country = { is_player = yes <trigger using
+      root> }` in the row's `is_valid` works fine; the user verified the
+      resulting lists are right for their game (a heavily-expanded
+      Portugal genuinely is adjacent to Horn-of-Africa minors, which had
+      been misread as the list being over-inclusive). Briefly rewritten
+      to a global-variable lookup on that wrong diagnosis and then
+      restored — the actual bug was in the bulk actions, see below.
 - [~] **Bulk-select/deselect buttons — BUILT 2026-09-07, UX SIMPLIFIED
       2026-09-07 per the user, not yet re-confirmed in-game.** One
       Select All / Deselect All pair per tab (Watched/Great Powers/
@@ -664,6 +646,16 @@ list for this phase with that in mind before writing the on_action.
       starting is still more notable than an ordinary play). This also
       lands the long-open Phase 1 "Dominion & Subject War Mute" item —
       see that checkbox above.
+- [ ] **Visually distinguish elevated (watched) notifications — parked
+      2026-09-07 per the user until the watchlist selector and the base
+      filtering changes are confirmed working.** Per-message presentation
+      levers confirmed available in `common/messages/`: `color`
+      (`good`/`neutral`/`bad` — `bad` renders red, the closest thing to
+      the user's "border it in red" idea), `texture` (a distinct icon),
+      and `on_created_soundeffect` (a distinct sound). Cheap to add to the
+      `_watched` message variants once the rest is stable; deliberately
+      not built yet to avoid tuning presentation on top of behaviour that
+      is still being fixed.
 - [ ] **Country renaming caveat (from user's WIP doc, 2026-09-05):** a
       watched-country flag stored as a scope variable on the country should
       survive a revolution/government change that renames/reforms the

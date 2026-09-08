@@ -1,4 +1,4 @@
-# Engine notes
+﻿# Engine notes
 
 Detailed reference for facts about the Victoria 3 engine confirmed during
 development — the "why" and "how we know" behind the terse rules in
@@ -359,65 +359,78 @@ specific GUI mechanism looks unconfirmed/unsafe, look for a way to route
 around the need for it (a trigger-side lookup, or a `datacontext`
 rebind) before concluding the feature is blocked.
 
-## A trigger idiom that works in script can still misbehave inside a scripted_gui — use a global variable for "the player"
+## `datacontext` + `Country.MakeScope` does NOT give you the player as a scripted_gui root
 
-Found 2026-09-07, the third GUI-semantics bug in this feature and the
-most instructive one. The Watchlist's Neighbors/Rivals row checks used
-`any_country = { is_player = yes <trigger comparing to root> }` to
-identify the player from inside a scripted_gui's `is_valid`. That idiom
-is genuinely real and genuinely works — vanilla uses it
-(`common/scripted_buttons/00_balkan_wars_buttons.txt`,
-`events/ethiopia.txt`, `events/krakow_events.txt`) and this mod's own
-game-start hook depends on it. It was verified against real vanilla
-examples before shipping, exactly as this file's rules require. **It
-still didn't work here**, because every one of those examples is in
-effect/on_action context, and none is inside a scripted_gui's `is_valid`.
+Found 2026-09-07. The Watchlist's bulk Select All / Deselect All buttons
+need their effect to run with the player's country as `root`. The button
+container was bound with
+`datacontext = "[GetMetaPlayer.GetPlayedOrObservedCountry]"` and the
+onclick used `GuiScope.SetRoot(Country.MakeScope)` — reasoning by
+analogy with the per-row checkboxes, which use exactly that shape
+(`datacontext = "[InterestingCountryItem.GetCountry]"` +
+`SetRoot(Country.MakeScope)`) and demonstrably work.
 
-Symptom: the Neighbors tab listed obvious non-neighbours (Horn-of-Africa
-minors in a Portugal game) — a strict superset of the real answer — while
-the bulk Select All, which has the player as `root` directly and never
-calls `is_player`, flagged exactly the plausible ones. The two derived
-symptoms both followed from that one cause and both looked like separate
-bugs: "Select All doesn't select everything" and "Deselect All leaves
-rows checked" were really "the list is showing rows the bulk actions
-correctly don't match."
+**It does not work for the player accessor.** The row version works
+because the datacontext comes from a list item; the
+`GetMetaPlayer.GetPlayedOrObservedCountry` version yields a root that is
+not usable as the player. The failure is silent — no error, the effect
+just doesn't match what it should.
 
-Root cause was never conclusively isolated between the two candidates
-(`is_player` not filtering, vs. `root` not surviving the nested iterator
-in this context; the evidence fits the former, since the Rivals tab
-stayed populated rather than going empty). **The fix was to stop needing
-either.** A global variable holds the player's country, so each row check
-is one flat trigger on the row's own scope — no iterator, no `is_player`,
-no `root`:
+**The diagnostic that isolated it, and the reason it took three attempts:**
+the symptom was "Select All doesn't select everything" on the Neighbors
+tab only, with the other tabs "working fine". Sorting the bulk actions by
+whether they actually depend on `root` explains the whole pattern exactly:
+
+| Bulk action | Uses root how? | Worked? |
+|---|---|---|
+| Great Powers select/deselect | only `NOT = { this = root }` | yes |
+| Watched deselect (clear all) | not at all | yes |
+| Neighbors select/deselect | `is_adjacent_to_country = root` | **no** |
+| Rivals select | `every_rival_country` (iterates rivals *of root*) | **no** |
+
+Every action that genuinely needs root = player failed; every action that
+doesn't need it worked. "Which tab behaves differently" was the clue that
+mattered, and it pointed at the shared mechanism, not at the tab.
+
+**Fix:** store the player's country in a global variable from real script
+context (game start + monthly pulse, where `is_player` provably works),
+and have the bulk effects reference that instead of `root`:
 
 ```
 set_global_variable = { name = smart_notifications_player_country value = this }   # effect context
-is_adjacent_to_country = global_var:smart_notifications_player_country            # trigger, any context
+is_adjacent_to_country = global_var:smart_notifications_player_country            # anywhere
 ```
 
-Both halves have direct vanilla precedent: storing a country scope in a
-global variable (`set_global_variable = { name = circassia_recognizer
-value = ROOT }`, `common/decisions/01_russia_decisions.txt`) and
-comparing one in a trigger (`global_var:chinese_central_government ?=
-THIS`, `common/diplomatic_plays/00_diplomatic_plays.txt`). The variable
-is set at game start and refreshed on the monthly pulse (so it self-heals
-on older saves and follows a tag switch), and every bulk button refreshes
-it too so a click fixes the display immediately.
+Both halves have vanilla precedent: storing a country scope in a global
+variable (`set_global_variable = { name = circassia_recognizer value =
+ROOT }`, `common/decisions/01_russia_decisions.txt`) and comparing one in
+a trigger (`global_var:chinese_central_government ?= THIS`,
+`common/diplomatic_plays/00_diplomatic_plays.txt`). `every_rival_country`
+had to be inverted to a world scan (`every_country = { limit = {
+any_rivaling_country = { this ?= global_var:... } } }`) since it iterates
+relative to the current scope rather than taking a target.
 
-**Lessons, both worth carrying:**
-1. "Verified against a real vanilla example" is necessary but not
-   sufficient — check the example is in *the same evaluation context*.
-   Effect/on_action context and scripted_gui `is_valid` context are not
-   interchangeable, and this is now the third bug from assuming they are
-   (after `is_valid` doubling as an execute gate, and `container` not
-   stacking simultaneously-visible children).
-2. When a construct's behaviour in a context can't be pinned down, prefer
-   restructuring so the construct isn't needed at all over picking
-   whichever explanation seems likeliest. A flat trigger against a stored
-   value has no scope-nesting semantics left to get wrong.
-3. Symptoms reported against a *list* may be bugs in the list, not in the
-   actions being judged against it. Both bulk actions here were correct
-   the whole time.
+**What is NOT true, recorded because it was written down as fact here for
+one commit:** an earlier version of this note claimed
+`any_country = { is_player = yes ... }` misbehaves inside a scripted_gui
+`is_valid`. It does not — that idiom is used by the Neighbors/Rivals row
+checks and the user confirmed those lists are correct in-game. The wrong
+conclusion came from assuming a surprising-looking list (a heavily
+expanded Portugal being adjacent to Horn-of-Africa minors) was wrong
+without checking the actual game state, and then "fixing" the half that
+was working.
+
+**Lessons:**
+1. When one surface misbehaves and others don't, diff them by *mechanism*
+   rather than by feature — the table above took minutes and was decisive
+   after two wrong guesses.
+2. Before concluding data is wrong, confirm against the actual game state.
+   A list that looks implausible may just reflect a campaign that has
+   changed a lot.
+3. `root` inside a scripted_gui is only as trustworthy as whatever the GUI
+   passed into `SetRoot`. It is reliable from a list row (the item supplies
+   the object); it is not reliable from the player accessor. Prefer a
+   stored global for "the player".
 
 ## No generic substring-search filter available for a custom country list
 
