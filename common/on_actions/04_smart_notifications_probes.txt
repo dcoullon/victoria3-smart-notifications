@@ -1,0 +1,185 @@
+﻿# TEMPORARY diagnostic probes -- DELETE once the third-party notification
+# filtering is scoped (Phase 4, see TODO.md). Adds no player-visible
+# behaviour: every block below only writes debug_log lines.
+#
+# Purpose: the third-party ("something happened between two other
+# countries") notifications are the main remaining filtering target, but
+# several of them are rooted on object types we have no confirmed way to
+# reach the involved countries from -- `# Root = Diplomatic Action` and
+# `# Root = Diplomatic Pact` per vanilla's own comments in
+# common/on_actions/00_code_on_actions.txt. The script_docs event_targets
+# dump documents no scope links out of a diplomatic_action at all, so the
+# only way to learn what is actually bound is to observe a real one.
+#
+# We already have a confirmed error from guessing here (`is_player trigger
+# [ Wrong scope for trigger: diplomatic_action, expected country ]`), so
+# every probe below is written defensively:
+#   - `scope:x ?= { ... }` -- the `?=` guard means a scope that does not
+#     exist is skipped rather than erroring (confirmed vanilla pattern,
+#     e.g. `scope:target ?= { ... }` in vanilla's own on_war_end).
+#   - the name is read as `[THIS.GetNameNoFormatting]` from INSIDE that
+#     scope, so we never apply a country accessor to a non-country root.
+#   - no `is_player` anywhere near a non-country root.
+#
+# After a playtest: grep debug.log for SNW_PROBE to see which on_actions
+# fired, which scope names exist on each, and which countries they name.
+
+# Root = Diplomatic Action (unknown how to reach the countries)
+on_diplomatic_action_third_party = {
+	on_actions = { smart_notifications_probe_da_third_party }
+}
+
+smart_notifications_probe_da_third_party = {
+	effect = {
+		debug_log = "SNW_PROBE|da_third_party|fired"
+		scope:actor ?= { debug_log = "SNW_PROBE|da_third_party|scope:actor=[THIS.GetNameNoFormatting]" }
+		scope:target ?= { debug_log = "SNW_PROBE|da_third_party|scope:target=[THIS.GetNameNoFormatting]" }
+		scope:recipient ?= { debug_log = "SNW_PROBE|da_third_party|scope:recipient=[THIS.GetNameNoFormatting]" }
+		scope:initiator ?= { debug_log = "SNW_PROBE|da_third_party|scope:initiator=[THIS.GetNameNoFormatting]" }
+		scope:first_country ?= { debug_log = "SNW_PROBE|da_third_party|scope:first_country=[THIS.GetNameNoFormatting]" }
+		scope:second_country ?= { debug_log = "SNW_PROBE|da_third_party|scope:second_country=[THIS.GetNameNoFormatting]" }
+	}
+}
+
+# Root = Diplomatic Action (unknown how to reach the countries)
+on_diplomatic_action_third_party_accepted = {
+	on_actions = { smart_notifications_probe_da_third_party_accepted }
+}
+
+smart_notifications_probe_da_third_party_accepted = {
+	effect = {
+		debug_log = "SNW_PROBE|da_third_party_accepted|fired"
+		scope:actor ?= { debug_log = "SNW_PROBE|da_third_party_accepted|scope:actor=[THIS.GetNameNoFormatting]" }
+		scope:target ?= { debug_log = "SNW_PROBE|da_third_party_accepted|scope:target=[THIS.GetNameNoFormatting]" }
+		scope:recipient ?= { debug_log = "SNW_PROBE|da_third_party_accepted|scope:recipient=[THIS.GetNameNoFormatting]" }
+		scope:initiator ?= { debug_log = "SNW_PROBE|da_third_party_accepted|scope:initiator=[THIS.GetNameNoFormatting]" }
+		scope:first_country ?= { debug_log = "SNW_PROBE|da_third_party_accepted|scope:first_country=[THIS.GetNameNoFormatting]" }
+		scope:second_country ?= { debug_log = "SNW_PROBE|da_third_party_accepted|scope:second_country=[THIS.GetNameNoFormatting]" }
+	}
+}
+
+# Root = Diplomatic Action (unknown how to reach the countries)
+on_diplomatic_action_third_party_declined = {
+	on_actions = { smart_notifications_probe_da_third_party_declined }
+}
+
+smart_notifications_probe_da_third_party_declined = {
+	effect = {
+		debug_log = "SNW_PROBE|da_third_party_declined|fired"
+		scope:actor ?= { debug_log = "SNW_PROBE|da_third_party_declined|scope:actor=[THIS.GetNameNoFormatting]" }
+		scope:target ?= { debug_log = "SNW_PROBE|da_third_party_declined|scope:target=[THIS.GetNameNoFormatting]" }
+		scope:recipient ?= { debug_log = "SNW_PROBE|da_third_party_declined|scope:recipient=[THIS.GetNameNoFormatting]" }
+		scope:initiator ?= { debug_log = "SNW_PROBE|da_third_party_declined|scope:initiator=[THIS.GetNameNoFormatting]" }
+		scope:first_country ?= { debug_log = "SNW_PROBE|da_third_party_declined|scope:first_country=[THIS.GetNameNoFormatting]" }
+		scope:second_country ?= { debug_log = "SNW_PROBE|da_third_party_declined|scope:second_country=[THIS.GetNameNoFormatting]" }
+	}
+}
+
+# Root = Diplomatic Action (unknown how to reach the countries)
+on_diplomatic_action_third_party_break = {
+	on_actions = { smart_notifications_probe_da_third_party_break }
+}
+
+smart_notifications_probe_da_third_party_break = {
+	effect = {
+		debug_log = "SNW_PROBE|da_third_party_break|fired"
+		scope:actor ?= { debug_log = "SNW_PROBE|da_third_party_break|scope:actor=[THIS.GetNameNoFormatting]" }
+		scope:target ?= { debug_log = "SNW_PROBE|da_third_party_break|scope:target=[THIS.GetNameNoFormatting]" }
+		scope:recipient ?= { debug_log = "SNW_PROBE|da_third_party_break|scope:recipient=[THIS.GetNameNoFormatting]" }
+		scope:initiator ?= { debug_log = "SNW_PROBE|da_third_party_break|scope:initiator=[THIS.GetNameNoFormatting]" }
+		scope:first_country ?= { debug_log = "SNW_PROBE|da_third_party_break|scope:first_country=[THIS.GetNameNoFormatting]" }
+		scope:second_country ?= { debug_log = "SNW_PROBE|da_third_party_break|scope:second_country=[THIS.GetNameNoFormatting]" }
+	}
+}
+
+# Root = Diplomatic Pact (same unknown)
+on_diplomatic_pact_third_party_auto_break = {
+	on_actions = { smart_notifications_probe_dp_third_party_auto_break }
+}
+
+smart_notifications_probe_dp_third_party_auto_break = {
+	effect = {
+		debug_log = "SNW_PROBE|dp_third_party_auto_break|fired"
+		scope:actor ?= { debug_log = "SNW_PROBE|dp_third_party_auto_break|scope:actor=[THIS.GetNameNoFormatting]" }
+		scope:target ?= { debug_log = "SNW_PROBE|dp_third_party_auto_break|scope:target=[THIS.GetNameNoFormatting]" }
+		scope:recipient ?= { debug_log = "SNW_PROBE|dp_third_party_auto_break|scope:recipient=[THIS.GetNameNoFormatting]" }
+		scope:initiator ?= { debug_log = "SNW_PROBE|dp_third_party_auto_break|scope:initiator=[THIS.GetNameNoFormatting]" }
+		scope:first_country ?= { debug_log = "SNW_PROBE|dp_third_party_auto_break|scope:first_country=[THIS.GetNameNoFormatting]" }
+		scope:second_country ?= { debug_log = "SNW_PROBE|dp_third_party_auto_break|scope:second_country=[THIS.GetNameNoFormatting]" }
+	}
+}
+
+# Root = Diplomatic Play -- filterable today, probed for sample content
+on_diplo_play_start_third_party = {
+	on_actions = { smart_notifications_probe_play_start_third_party }
+}
+
+smart_notifications_probe_play_start_third_party = {
+	effect = {
+		debug_log = "SNW_PROBE|play_start_third_party|fired"
+		scope:actor ?= { debug_log = "SNW_PROBE|play_start_third_party|scope:actor=[THIS.GetNameNoFormatting]" }
+		scope:target ?= { debug_log = "SNW_PROBE|play_start_third_party|scope:target=[THIS.GetNameNoFormatting]" }
+		scope:recipient ?= { debug_log = "SNW_PROBE|play_start_third_party|scope:recipient=[THIS.GetNameNoFormatting]" }
+		scope:initiator ?= { debug_log = "SNW_PROBE|play_start_third_party|scope:initiator=[THIS.GetNameNoFormatting]" }
+		scope:first_country ?= { debug_log = "SNW_PROBE|play_start_third_party|scope:first_country=[THIS.GetNameNoFormatting]" }
+		scope:second_country ?= { debug_log = "SNW_PROBE|play_start_third_party|scope:second_country=[THIS.GetNameNoFormatting]" }
+		# Root is a Diplomatic Play here, so the participant roster IS
+		# reachable (any_scope_play_involved, already used in 03_...).
+		every_scope_play_involved = { debug_log = "SNW_PROBE|play_start_third_party|involved=[THIS.GetNameNoFormatting]" }
+	}
+}
+
+# Root = Diplomatic Play -- filterable today
+on_diplo_play_subject_released = {
+	on_actions = { smart_notifications_probe_play_subject_released }
+}
+
+smart_notifications_probe_play_subject_released = {
+	effect = {
+		debug_log = "SNW_PROBE|play_subject_released|fired"
+		scope:actor ?= { debug_log = "SNW_PROBE|play_subject_released|scope:actor=[THIS.GetNameNoFormatting]" }
+		scope:target ?= { debug_log = "SNW_PROBE|play_subject_released|scope:target=[THIS.GetNameNoFormatting]" }
+		scope:recipient ?= { debug_log = "SNW_PROBE|play_subject_released|scope:recipient=[THIS.GetNameNoFormatting]" }
+		scope:initiator ?= { debug_log = "SNW_PROBE|play_subject_released|scope:initiator=[THIS.GetNameNoFormatting]" }
+		scope:first_country ?= { debug_log = "SNW_PROBE|play_subject_released|scope:first_country=[THIS.GetNameNoFormatting]" }
+		scope:second_country ?= { debug_log = "SNW_PROBE|play_subject_released|scope:second_country=[THIS.GetNameNoFormatting]" }
+		# Root is a Diplomatic Play here, so the participant roster IS
+		# reachable (any_scope_play_involved, already used in 03_...).
+		every_scope_play_involved = { debug_log = "SNW_PROBE|play_subject_released|involved=[THIS.GetNameNoFormatting]" }
+	}
+}
+
+# Root = Country (the non-participant being told). Need the war's OTHER side.
+on_peace_agreement_signed_non_participant = {
+	on_actions = { smart_notifications_probe_peace_non_participant }
+}
+
+smart_notifications_probe_peace_non_participant = {
+	effect = {
+		debug_log = "SNW_PROBE|peace_non_participant|fired"
+		scope:actor ?= { debug_log = "SNW_PROBE|peace_non_participant|scope:actor=[THIS.GetNameNoFormatting]" }
+		scope:target ?= { debug_log = "SNW_PROBE|peace_non_participant|scope:target=[THIS.GetNameNoFormatting]" }
+		scope:recipient ?= { debug_log = "SNW_PROBE|peace_non_participant|scope:recipient=[THIS.GetNameNoFormatting]" }
+		scope:initiator ?= { debug_log = "SNW_PROBE|peace_non_participant|scope:initiator=[THIS.GetNameNoFormatting]" }
+		scope:first_country ?= { debug_log = "SNW_PROBE|peace_non_participant|scope:first_country=[THIS.GetNameNoFormatting]" }
+		scope:second_country ?= { debug_log = "SNW_PROBE|peace_non_participant|scope:second_country=[THIS.GetNameNoFormatting]" }
+	}
+}
+
+# Root = the applicable country; scope:technology is a technology, not probed as a country
+on_spreading_technology = {
+	on_actions = { smart_notifications_probe_spreading_technology }
+}
+
+smart_notifications_probe_spreading_technology = {
+	effect = {
+		debug_log = "SNW_PROBE|spreading_technology|fired"
+		scope:actor ?= { debug_log = "SNW_PROBE|spreading_technology|scope:actor=[THIS.GetNameNoFormatting]" }
+		scope:target ?= { debug_log = "SNW_PROBE|spreading_technology|scope:target=[THIS.GetNameNoFormatting]" }
+		scope:recipient ?= { debug_log = "SNW_PROBE|spreading_technology|scope:recipient=[THIS.GetNameNoFormatting]" }
+		scope:initiator ?= { debug_log = "SNW_PROBE|spreading_technology|scope:initiator=[THIS.GetNameNoFormatting]" }
+		scope:first_country ?= { debug_log = "SNW_PROBE|spreading_technology|scope:first_country=[THIS.GetNameNoFormatting]" }
+		scope:second_country ?= { debug_log = "SNW_PROBE|spreading_technology|scope:second_country=[THIS.GetNameNoFormatting]" }
+	}
+}
+

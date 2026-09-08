@@ -16,6 +16,15 @@ commit that ships a new feature (however small — "added a new
 notification" counts), so `0.20` → `0.21` → `0.22`. Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.31] — 2026-09-07
+
+### Added
+
+- Diagnostic logging (`SNW_PROBE` lines in `debug.log`) for the
+  third-party notifications whose internals aren't documented, so the
+  filtering for them can be built on observed data rather than guesswork.
+  No player-visible change.
+
 ## [0.30] — 2026-09-07
 
 ### Fixed

@@ -646,6 +646,48 @@ list for this phase with that in mind before writing the on_action.
       starting is still more notable than an ordinary play). This also
       lands the long-open Phase 1 "Dominion & Subject War Mute" item —
       see that checkbox above.
+- [~] **Third-party notification filtering — inventory done 2026-09-07,
+      probes shipped, filtering not built yet.** Cross-referenced every
+      `post_notification` in vanilla's `00_code_on_actions.txt` (99 have a
+      moddable hook; the rest are native engine code and can never be
+      filtered) against this mod's own message file. Findings:
+      - **Most feed-level notifications are about the PLAYER**
+        (`our_supply_ships_raided`, `heir_born_notification`,
+        `journal_entry_activated`, `obligation_owed_to_us_expired`...).
+        These must never be watchlist-filtered — the player is the
+        subject by definition. Filtering them would be a bug.
+      - **The genuinely third-party set is ~18 keys**, split by how hard
+        they are to filter, which comes down entirely to the on_action's
+        root scope:
+        - *Root = Diplomatic Play — filterable today* (participant roster
+          reachable via `any_scope_play_involved`, already proven in
+          `03_smart_notifications_relational_notifications.txt`):
+          `diplo_play_start_third_party_notification`,
+          `diplo_play_war_start_third_party_notification`,
+          `diplo_play_subject_released_notification`.
+        - *Root = Country — probably filterable*, but the root is the
+          country being TOLD, so the relational question needs the other
+          side, which isn't obviously reachable:
+          `peace_agreement_signed_non_participant`,
+          `start`/`stop_supporting_unification`,
+          `unification_candidate_added`/`_removed`,
+          `spreading_technology_notification`.
+        - *Root = Diplomatic Action / Diplomatic Pact — BLOCKED*: the 6
+          `diplomatic_proposal_third_party_*` keys and
+          `diplomatic_pact_third_party_auto_break_notification`. The
+          `script_docs` event_targets dump documents **no scope links out
+          of a diplomatic_action at all**, and we already have a
+          confirmed runtime error from guessing here (`is_player trigger
+          [ Wrong scope for trigger: diplomatic_action, expected
+          country ]`).
+        - *Root = Culture*: `national_awakening_started` (scope:region,
+          scope:culture) — no country bound directly.
+      - **Probes shipped** to resolve the blocked ones empirically:
+        [04_smart_notifications_probes.txt](common/on_actions/04_smart_notifications_probes.txt)
+        logs `SNW_PROBE|` lines naming every scope that actually exists on
+        each of these on_actions, guarded with `?=` so a missing scope is
+        skipped rather than erroring. Delete once the scope names are
+        known and the filtering is built.
 - [ ] **Visually distinguish elevated (watched) notifications — parked
       2026-09-07 per the user until the watchlist selector and the base
       filtering changes are confirmed working.** Per-message presentation
