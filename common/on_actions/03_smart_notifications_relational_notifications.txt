@@ -167,11 +167,11 @@ smart_notifications_diplo_play_start = {
 					}
 				}
 				post_notification = smart_notifications_diplo_play_start_watched
-				debug_log = "SNW_FILTER|start|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
+				debug_log = "SNW_FILTER|start|posted_key=smart_notifications_diplo_play_start_watched|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
 			}
 			else = {
 				post_notification = smart_notifications_diplo_play_start_quiet
-				debug_log = "SNW_FILTER|start|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
+				debug_log = "SNW_FILTER|start|posted_key=smart_notifications_diplo_play_start_quiet|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
 			}
 		}
 		else = {
@@ -228,11 +228,11 @@ smart_notifications_diplo_play_join_side = {
 					}
 				}
 				post_notification = smart_notifications_diplo_play_join_side_watched
-				debug_log = "SNW_FILTER|join_side|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|ELEVATED"
+				debug_log = "SNW_FILTER|join_side|posted_key=smart_notifications_diplo_play_join_side_watched|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|ELEVATED"
 			}
 			else = {
 				post_notification = smart_notifications_diplo_play_join_side_quiet
-				debug_log = "SNW_FILTER|join_side|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|QUIET"
+				debug_log = "SNW_FILTER|join_side|posted_key=smart_notifications_diplo_play_join_side_quiet|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|QUIET"
 			}
 		}
 		else = {
@@ -284,11 +284,11 @@ smart_notifications_diplo_play_war_start = {
 					}
 				}
 				post_notification = smart_notifications_diplo_play_war_start_watched
-				debug_log = "SNW_FILTER|war_start|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
+				debug_log = "SNW_FILTER|war_start|posted_key=smart_notifications_diplo_play_war_start_watched|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
 			}
 			else = {
 				post_notification = smart_notifications_diplo_play_war_start_quiet
-				debug_log = "SNW_FILTER|war_start|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
+				debug_log = "SNW_FILTER|war_start|posted_key=smart_notifications_diplo_play_war_start_quiet|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
 			}
 		}
 		else = {
@@ -338,11 +338,11 @@ smart_notifications_diplo_play_subject_released = {
 					}
 				}
 				post_notification = smart_notifications_diplo_play_subject_released_watched
-				debug_log = "SNW_FILTER|subject_released|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
+				debug_log = "SNW_FILTER|subject_released|posted_key=smart_notifications_diplo_play_subject_released_watched|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
 			}
 			else = {
 				post_notification = smart_notifications_diplo_play_subject_released_quiet
-				debug_log = "SNW_FILTER|subject_released|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
+				debug_log = "SNW_FILTER|subject_released|posted_key=smart_notifications_diplo_play_subject_released_quiet|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
 			}
 		}
 		else = {

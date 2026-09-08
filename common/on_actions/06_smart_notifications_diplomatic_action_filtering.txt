@@ -54,11 +54,11 @@ smart_notifications_diplomatic_action = {
 				}
 			}
 			post_notification = smart_notifications_diplomatic_action_watched
-			debug_log = "SNW_FILTER|diplomatic_action|actor=[SCOPE.sC('actor').GetCountry.GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetCountry.GetNameNoFormatting]|ELEVATED"
+			debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_watched|actor=[SCOPE.sC('actor').GetCountry.GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetCountry.GetNameNoFormatting]|ELEVATED"
 		}
 		else = {
 			post_notification = smart_notifications_diplomatic_action_quiet
-			debug_log = "SNW_FILTER|diplomatic_action|actor=[SCOPE.sC('actor').GetCountry.GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetCountry.GetNameNoFormatting]|QUIET"
+			debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_quiet|actor=[SCOPE.sC('actor').GetCountry.GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetCountry.GetNameNoFormatting]|QUIET"
 		}
 
 		# TEMPORARY instrumentation (2026-09-08), same shape as the

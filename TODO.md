@@ -761,23 +761,38 @@ list for this phase with that in mind before writing the on_action.
       currently unidentified. Asked the user to note both popups' exact
       title text next time it happens, since nothing in our logs can
       currently distinguish this from a UI-only phenomenon.
-      **Second report, same day, likely NOT a bug:** the user saw what
-      looked like a toast for "Ottoman Empire sides with Great Qing" (a
-      play with no watchlist connection) and flagged it as unexpected.
-      The log is unambiguous: `SNW_FILTER|join_side|actor=Ottoman
+      **Second report, same day.** The user saw what looked like a toast
+      for "Ottoman Empire sides with Great Qing" (a play with no
+      watchlist connection) and flagged it as unexpected. The log is
+      unambiguous: `SNW_FILTER|join_side|actor=Ottoman
       Empire|target=Great Qing|recipient=Russia|QUIET`, and neither
       country showed watched — the filtering decision was correct, and
       the message key it posted (`smart_notifications_diplo_play_join_side_quiet`)
       is confirmed `notification_type = feed` in
       [00_messages.txt](common/messages/00_messages.txt), not toast. Also
       confirmed the dedup guard held here: dozens of repeat on_action
-      invocations, only ONE decision line. Open question, not a
-      filtering bug: does Vic3 show a brief toast-shaped card for feed-tier
-      notifications too when they first post (before settling into the
-      ambient feed list), which would fully explain what the user saw
-      without anything being wrong? Unconfirmed — nothing currently
-      distinguishes "a real toast" from "a feed notification's initial
-      appearance" in our own understanding of the UI.
+      invocations, only ONE decision line.
+      **My first theory ("Vic3 shows a brief toast-shaped card for any
+      feed notification too") was directly rejected by the user
+      2026-09-08** — they're confident this really rendered like a toast,
+      not a feed entry. Since script has no visibility into how a
+      notification actually renders on screen, and this group's name has
+      never changed since creation (confirmed via `git log -p` across
+      every commit — ruling out a stale override surviving under an old
+      name), the leading remaining explanation is a **manual/accidental
+      Message Settings override** on this specific row — the user has
+      been actively poking around that exact screen all session, and a
+      player override persists independently of what the file says until
+      reset. Fastest check, no reload needed: open Message Settings and
+      look at "Diplomatic Play Join Side, Ambient (Smart Notifications)"
+      directly. If it already reads Feed, this explanation is wrong too
+      and the mystery is still open (script confirms it posted the right
+      key at the right tier — nothing else queryable from our side).
+      Added a belt-and-suspenders `posted_key=<literal key name>` field
+      to every `SNW_FILTER` decision line across all 4 diplo-play events
+      and the new diplomatic_action filter, so which exact key posted is
+      never in doubt from the log, even though it can't resolve a
+      rendering-vs-override question on its own.
 - [~] **Third-party notification filtering — the 3 Diplomatic-Play-rooted
       keys BUILT 2026-09-07, two real bugs found and fixed the same day via
       the user's first live playtest, `diplo_play_subject_released` still
@@ -885,7 +900,13 @@ list for this phase with that in mind before writing the on_action.
       separate this mod's rows from vanilla's in the Notification Types
       list, not just relabel them — a cleaner list, and no need to repeat
       "(Smart Notifications)" on every single row if they're already
-      visibly grouped. **Needs GUI research before promising an
+      visibly grouped. **Confirmed by the user, same day: our rows already
+      sit at the bottom of the default (unsorted) list** — no active work
+      needed to achieve grouping itself, deprioritized. Still worth a
+      look at some point (low priority) whether the trailing "(Smart
+      Notifications)" tag can be dropped now that the grouping already
+      does the job, or shortened per the labeling pass above. **Needs GUI
+      research before promising an
       approach, not yet done:** the list is populated from a native
       datamodel (`MessageSettingsWindow.GetNotificationSettingsItems` per
       [gui/message_settings.gui](gui/message_settings.gui)), with an
