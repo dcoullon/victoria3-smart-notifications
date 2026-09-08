@@ -160,25 +160,45 @@ smart_notifications_law_commitment_alert = {
 	#   excludes the already-active law in its group and anything
 	#   currently blocked, so this alert self-cleans once a flagged law
 	#   passes or becomes unavailable, with no separate reset needed.
-	# - enactment_chance_for_law = { target = THIS.type value > 0.5 } --
-	#   "the enactment success chance in scope country for GIVEN law"
-	#   (country scope, needs a law_type target) -- unlike plain
-	#   `enactment_chance`, this works whether or not the country is
-	#   actively enacting that law yet, which is exactly the "tell me when
-	#   it's worth starting" case this feature is for. `THIS.type` is the
-	#   confirmed real law -> law_type link (event_targets.log: "Scope
-	#   from an object to its type"). UNCONFIRMED threshold, same open
-	#   question as before: 0.5 is a reasonable "better support than
-	#   pushback" guess, not checked against how vanilla's own UI colors
-	#   this number -- first thing to tune if the alert fires too early or
-	#   too late in practice.
+	# - enactment_chance_for_law = { target = <law_type> value > 0.5 } --
+	#   "the enactment success chance in scope COUNTRY for GIVEN law"
+	#   (triggers.log: "Supported Scopes: country" -- unlike
+	#   `can_be_enacted`/`smart_notifications_law_matches_wanted_flag`
+	#   above, both `law`-scoped) -- unlike plain `enactment_chance`, this
+	#   works whether or not the country is actively enacting that law
+	#   yet, which is exactly the "tell me when it's worth starting" case
+	#   this feature is for.
+	#
+	#   CAUGHT BEFORE SHIPPING 2026-09-08 (not live-tested, found by
+	#   re-auditing this exact feature for the same "which scope is this
+	#   actually running in" mistake that hit both the sgui and the
+	#   scripted_trigger already): a bare `enactment_chance_for_law` line
+	#   directly inside `any_law` would run with the CURRENT scope set to
+	#   the iterated LAW, not country, since that's what `any_law`
+	#   rebinds unqualified triggers to -- the exact same class of error
+	#   already confirmed twice via error.log for this feature. Fixed by
+	#   `save_scope_as`-ing the law's own type (mirroring the confirmed
+	#   real pattern already used in
+	#   common/on_actions/02_smart_notifications_truce_tracker.txt to
+	#   carry a reference across a `root = { ... }` scope switch) and
+	#   running the actual check from `root` (=country, confirmed correct
+	#   at this alert's top level per `script_context = player_country`).
+	#   UNCONFIRMED threshold, same open question as before: 0.5 is a
+	#   reasonable "better support than pushback" guess, not checked
+	#   against how vanilla's own UI colors this number -- first thing to
+	#   tune if the alert fires too early or too late in practice.
 	valid = {
 		any_law = {
 			smart_notifications_law_matches_wanted_flag = yes
 			can_be_enacted = yes
-			enactment_chance_for_law = {
-				target = THIS.type
-				value > 0.5
+			THIS.type = {
+				save_scope_as = smart_notifications_law_commitment_candidate
+			}
+			root = {
+				enactment_chance_for_law = {
+					target = scope:smart_notifications_law_commitment_candidate
+					value > 0.5
+				}
 			}
 		}
 	}

@@ -1,0 +1,61 @@
+﻿# Smart Notifications mod: TEMPORARY diagnostic for the law commitment
+# alert (see TODO.md and
+# common/alert_types/01_smart_notifications_alerts.txt's
+# smart_notifications_law_commitment_alert). Added 2026-09-08 specifically
+# so the alert's own logic (freshly rewritten to fix a scope bug never
+# actually live-tested) can be confirmed from `debug.log` alone, without
+# the user needing another round of clicking through the UI and waiting
+# to see if an alert visually appears.
+#
+# `on_monthly_pulse_country` -- same real, already-confirmed-working hook
+# the truce tracker uses (common/on_actions/02_smart_notifications_truce_tracker.txt).
+# `is_player`-gated so this only ever logs for the player's own country.
+#
+# For every currently-flagged law (regardless of whether the alert's full
+# condition is met), logs which of the two remaining gates
+# (`can_be_enacted`, the enactment-chance threshold) it currently passes
+# or fails -- so if the alert never visibly appears, this line says
+# exactly why, without needing new instrumentation added after the fact.
+#
+# DELETE once the law commitment alert is confirmed working live.
+on_monthly_pulse_country = {
+	on_actions = {
+		smart_notifications_law_commitment_probe
+	}
+}
+
+smart_notifications_law_commitment_probe = {
+	effect = {
+		if = {
+			limit = { is_player = yes }
+			any_law = {
+				limit = { smart_notifications_law_matches_wanted_flag = yes }
+				debug_log = "SNW_LAW_ALERT|probe|considering|law=[THIS.GetNameNoFormatting]"
+				if = {
+					limit = { can_be_enacted = yes }
+					debug_log = "SNW_LAW_ALERT|probe|can_be_enacted=yes|law=[THIS.GetNameNoFormatting]"
+					THIS.type = {
+						save_scope_as = smart_notifications_law_commitment_probe_candidate
+					}
+					root = {
+						if = {
+							limit = {
+								enactment_chance_for_law = {
+									target = scope:smart_notifications_law_commitment_probe_candidate
+									value > 0.5
+								}
+							}
+							debug_log = "SNW_LAW_ALERT|probe|chance_over_threshold=yes|WOULD_ALERT"
+						}
+						else = {
+							debug_log = "SNW_LAW_ALERT|probe|chance_over_threshold=no"
+						}
+					}
+				}
+				else = {
+					debug_log = "SNW_LAW_ALERT|probe|can_be_enacted=no|law=[THIS.GetNameNoFormatting]"
+				}
+			}
+		}
+	}
+}

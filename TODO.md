@@ -1667,6 +1667,56 @@ the same Python generator used for the first build (not hand-patched),
 so the fix is consistent across all 126 branches rather than a
 one-off edit. **Not yet re-confirmed live.**
 
+## Pre-emptive audit before the next test — 2026-09-08, same day
+
+Per the user's ask (repeated test-fix-test cycles were "getting
+painful") — rather than ship the `THIS.owner` fix and wait for another
+round-trip, re-audited the rest of this feature by hand for the exact
+same "which scope is this actually evaluated in" mistake that had
+already hit twice, and improved logging so one test run should now be
+conclusive either way.
+
+- **Third scope bug found and fixed BEFORE testing, not after.**
+  `smart_notifications_law_commitment_alert`'s `valid` called
+  `enactment_chance_for_law` as a bare trigger directly inside `any_law`
+  — but that trigger's own docs say `Supported Scopes: country`, while
+  `any_law` rebinds the current scope to the iterated LAW. Same class of
+  mistake as the two already-confirmed bugs, just not live-tested yet.
+  Fixed using the exact pattern already proven in
+  [common/on_actions/02_smart_notifications_truce_tracker.txt](common/on_actions/02_smart_notifications_truce_tracker.txt)
+  (`save_scope_as` to carry a reference across a `root = { ... }` switch)
+  rather than guessing a new mechanism: `THIS.type = { save_scope_as =
+  ... }` while still law-scoped, then `root = { enactment_chance_for_law
+  = { target = scope:... value > 0.5 } }` from country scope.
+- **Toggle SGUI's debug tap fixed and extended.** The original tap
+  (`[THIS.GetCountry.GetNameNoFormatting]`) had silently errored
+  ("Data error in loc string") every single time since it was first
+  added, for reasons never isolated — dropped `.GetCountry` entirely
+  (kept only the already-safe `THIS.GetNameNoFormatting`) and added a
+  SECOND tap reading back through the same shared
+  `smart_notifications_law_matches_wanted_flag` trigger the checkbox and
+  alert both use, reporting the FINAL state (`FLAGGED`/`UNFLAGGED`) right
+  after the toggle runs — so one click's `debug.log` output alone now
+  confirms whether the write actually stuck, not just that the effect
+  ran.
+- **New temporary diagnostic for the alert side specifically**, since
+  that path has never been live-tested at all (only the checkbox has):
+  [common/on_actions/08_smart_notifications_law_commitment_probe.txt](common/on_actions/08_smart_notifications_law_commitment_probe.txt),
+  an `on_monthly_pulse_country` tap (same real hook the truce tracker
+  uses) that logs, for every currently-flagged law, which of the
+  remaining two gates (`can_be_enacted`, the 0.5 threshold) it passes or
+  fails — `SNW_LAW_ALERT|probe|...` in `debug.log`. This means if the
+  alert never visibly appears next test, the log says exactly why
+  (not flagged reaching this law at all / can't currently be enacted /
+  under the threshold) without needing yet another round of added
+  instrumentation after the fact. **Delete once the alert is confirmed
+  working live** (noted in the file's own header too).
+- Re-audited `common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt`
+  and the alert's other conditions (`can_be_enacted`,
+  `smart_notifications_law_matches_wanted_flag`) for the same mistake —
+  both are documented `law`-scope triggers and correctly stay evaluated
+  with `THIS` = law throughout; no further issues found by this pass.
+
 ## New notifications/alerts backlog — sized and sequenced 2026-09-08
 
 All four items below are **P1 per the user**. This is the recommended
