@@ -36,6 +36,15 @@
 # common/scripted_guis/watchlist_sgui.txt: `is_valid` also gates whether
 # `.Execute()` is allowed to run at all, so it can't double as the toggle's
 # own "am I currently set" query.
+#
+# TEMPORARY instrumentation (2026-09-08): the SNW_LAW_NOTIFY debug_log below
+# exists specifically to test the Law.MakeScope risk above. If the checkbox
+# click produces no visible change AND no SNW_LAW_NOTIFY line in debug.log,
+# the effect never ran at all -- Law.MakeScope (or the GetScriptedGui/.Execute
+# call built on it) failed silently. If the line DOES appear but the checkbox
+# still doesn't visibly toggle, the write succeeded and the bug is instead in
+# the `checked =` read-back (still Law.MakeScope, same call) or in the
+# checkbox widget itself. Delete once confirmed working.
 smart_notifications_law_notify_toggle_sgui = {
 	scope = law
 
@@ -47,9 +56,11 @@ smart_notifications_law_notify_toggle_sgui = {
 				has_variable = smart_notifications_wanted_law
 			}
 			remove_variable = smart_notifications_wanted_law
+			debug_log = "SNW_LAW_NOTIFY|toggle|law=[THIS.GetNameNoFormatting]|country=[THIS.GetCountry.GetNameNoFormatting]|UNFLAGGED"
 		}
 		else = {
 			set_variable = smart_notifications_wanted_law
+			debug_log = "SNW_LAW_NOTIFY|toggle|law=[THIS.GetNameNoFormatting]|country=[THIS.GetCountry.GetNameNoFormatting]|FLAGGED"
 		}
 	}
 
