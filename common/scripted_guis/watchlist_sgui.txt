@@ -458,6 +458,7 @@ watchlist_bulk_select_great_power_sgui = {
 	scope = country
 
 	effect = {
+		debug_log = "SNW_BULK|select_gp|effect_ran|root=[THIS.GetNameNoFormatting]"
 		every_country = {
 			limit = {
 				NOT = { this = global_var:smart_notifications_player_country }
@@ -495,6 +496,7 @@ watchlist_bulk_select_neighbor_sgui = {
 	scope = country
 
 	effect = {
+		debug_log = "SNW_BULK|select_neighbor|effect_ran|root=[THIS.GetNameNoFormatting]"
 		every_country = {
 			limit = {
 				NOT = { this = global_var:smart_notifications_player_country }
@@ -512,6 +514,7 @@ watchlist_bulk_deselect_neighbor_sgui = {
 	scope = country
 
 	effect = {
+		debug_log = "SNW_BULK|deselect_neighbor|effect_ran|root=[THIS.GetNameNoFormatting]"
 		every_country = {
 			limit = {
 				NOT = { this = global_var:smart_notifications_player_country }
@@ -626,6 +629,44 @@ watchlist_bulk_deselect_watched_sgui = {
 		}
 	}
 
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+# ############################################################
+# TEMPORARY root-expression probes (2026-09-07) -- DELETE once the bulk
+# buttons are confirmed working.
+#
+# Why these exist: the Neighbors "Select All" has never changed the list,
+# across many versions and clicks (confirmed by comparing two of the
+# user's screenshots 14 in-game months apart -- the checked set is
+# byte-identical). The effect body has been rewritten three times with no
+# effect, which points at the INVOCATION rather than the body: a
+# scripted_gui declared `scope = country` needs a valid country root, and
+# if `GuiScope.SetRoot(...)` doesn't produce one the engine refuses to run
+# the effect at all, silently.
+#
+# Each probe below only writes one debug_log line. They are wired to three
+# buttons that differ ONLY in how they name the player, so a single click
+# of each says definitively which form yields a usable country root.
+# Whichever one logs is the form the real bulk buttons should use.
+watchlist_probe_root_a_sgui = {
+	scope = country
+	effect = { debug_log = "SNW_ROOT|A_datacontext_Country|OK|root=[THIS.GetNameNoFormatting]" }
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+watchlist_probe_root_b_sgui = {
+	scope = country
+	effect = { debug_log = "SNW_ROOT|B_GetPlayer|OK|root=[THIS.GetNameNoFormatting]" }
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+watchlist_probe_root_c_sgui = {
+	scope = country
+	effect = { debug_log = "SNW_ROOT|C_GetMetaPlayer_direct|OK|root=[THIS.GetNameNoFormatting]" }
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }

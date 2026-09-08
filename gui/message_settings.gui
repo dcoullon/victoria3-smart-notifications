@@ -668,6 +668,47 @@ types message_settings {
 					}
 				}
 
+				# ############################################################
+				# TEMPORARY diagnostic row (2026-09-07) -- DELETE once the bulk
+				# buttons work. Three buttons differing ONLY in how they name
+				# the player for GuiScope.SetRoot. Each calls a log-only
+				# scripted GUI (watchlist_probe_root_*_sgui). Click each once,
+				# then grep debug.log for SNW_ROOT: whichever logs is the root
+				# form that actually yields a usable country scope, and the
+				# real bulk buttons get rewired to that form. Nothing here
+				# changes any watchlist state.
+				flowcontainer = {
+					parentanchor = hcenter
+					spacing = 6
+					margin_bottom = 5
+					visible = "[GetVariableSystem.HasValue('message_settings_watchlist', 'true')]"
+
+					widget = {
+						size = { 140 28 }
+						datacontext = "[GetMetaPlayer.GetPlayedOrObservedCountry]"
+						button = {
+							size = { 100% 100% }
+							using = default_button
+							text = "SMART_NOTIFICATIONS_WATCHLIST_PROBE_A"
+							onclick = "[GetScriptedGui('watchlist_probe_root_a_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
+						}
+					}
+
+					button = {
+						size = { 140 28 }
+						using = default_button
+						text = "SMART_NOTIFICATIONS_WATCHLIST_PROBE_B"
+						onclick = "[GetScriptedGui('watchlist_probe_root_b_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					}
+
+					button = {
+						size = { 140 28 }
+						using = default_button
+						text = "SMART_NOTIFICATIONS_WATCHLIST_PROBE_C"
+						onclick = "[GetScriptedGui('watchlist_probe_root_c_sgui').Execute(GuiScope.SetRoot(GetMetaPlayer.GetPlayedOrObservedCountry.MakeScope).End)]"
+					}
+				}
+
 				# Smart Notifications mod: Country Watchlist tab header row.
 				flowcontainer = {
 					parentanchor = hcenter
@@ -1391,65 +1432,9 @@ types message_settings {
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 360 -1 }
+                maximumsize = { 590 -1 }
                 margin_left = 10
                 elide = right
-            }
-
-            # Provenance tags (added 2026-09-07, see the SGUI comment in
-            # watchlist_sgui.txt) -- shows WHY this country is watched, so
-            # a category's Deselect All leaving it checked (because it's
-            # also watched a different way) is visibly explained instead
-            # of looking like a bug. Up to 4 tags, each independently
-            # visible; tooltip carries the full category name.
-            widget = {
-                size = { 230 44 }
-                datacontext = "[InterestingCountryItem.GetCountry]"
-
-                hbox = {
-                	parentanchor = vcenter
-                	spacing = 4
-
-                	textbox = {
-                		visible = "[GetScriptedGui('watchlist_is_flagged_great_power_check_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
-                		text = "SMART_NOTIFICATIONS_WATCHLIST_TAG_GREAT_POWER"
-                		tooltip = "SMART_NOTIFICATIONS_WATCHLIST_SECTION_GREAT_POWERS"
-                		autoresize = yes
-                		align = nobaseline
-                		fontsize_min = 12
-                		alpha = 0.75
-                	}
-
-                	textbox = {
-                		visible = "[GetScriptedGui('watchlist_is_flagged_neighbor_check_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
-                		text = "SMART_NOTIFICATIONS_WATCHLIST_TAG_NEIGHBOR"
-                		tooltip = "SMART_NOTIFICATIONS_WATCHLIST_SECTION_NEIGHBORS"
-                		autoresize = yes
-                		align = nobaseline
-                		fontsize_min = 12
-                		alpha = 0.75
-                	}
-
-                	textbox = {
-                		visible = "[GetScriptedGui('watchlist_is_flagged_rival_check_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
-                		text = "SMART_NOTIFICATIONS_WATCHLIST_TAG_RIVAL"
-                		tooltip = "SMART_NOTIFICATIONS_WATCHLIST_SECTION_RIVALS"
-                		autoresize = yes
-                		align = nobaseline
-                		fontsize_min = 12
-                		alpha = 0.75
-                	}
-
-                	textbox = {
-                		visible = "[GetScriptedGui('watchlist_is_flagged_manual_check_sgui').IsValid(GuiScope.SetRoot(Country.MakeScope).End)]"
-                		text = "SMART_NOTIFICATIONS_WATCHLIST_TAG_MANUAL"
-                		tooltip = "SMART_NOTIFICATIONS_WATCHLIST_SECTION_MANUAL"
-                		autoresize = yes
-                		align = nobaseline
-                		fontsize_min = 12
-                		alpha = 0.75
-                	}
-                }
             }
 
             widget = {

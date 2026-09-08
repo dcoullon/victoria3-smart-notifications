@@ -16,6 +16,17 @@ commit that ships a new feature (however small — "added a new
 notification" counts), so `0.20` → `0.21` → `0.22`. Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.33] — 2026-09-07
+
+### Removed
+
+- The GP/NB/RV/MA source tags on the Watched list.
+
+### Added
+
+- Temporary diagnostic buttons and logging on the Watchlist tab, to
+  determine why Select All has never worked. To be removed once fixed.
+
 ## [0.32] — 2026-09-07
 
 ### Fixed

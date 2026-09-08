@@ -112,6 +112,11 @@
  SMART_NOTIFICATIONS_WATCHLIST_SELECT_ALL:0 "Select All"
  SMART_NOTIFICATIONS_WATCHLIST_DESELECT_ALL:0 "Deselect All"
 
+ # TEMPORARY root-expression probe buttons -- delete with the diagnostic row.
+ SMART_NOTIFICATIONS_WATCHLIST_PROBE_A:0 "Probe A"
+ SMART_NOTIFICATIONS_WATCHLIST_PROBE_B:0 "Probe B"
+ SMART_NOTIFICATIONS_WATCHLIST_PROBE_C:0 "Probe C"
+
  # Watched-tab provenance tags (added 2026-09-07) -- short abbreviations,
  # full category name shown on hover via the tag's own tooltip (reuses
  # the section nav labels above).
