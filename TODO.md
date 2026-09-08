@@ -752,15 +752,28 @@ list for this phase with that in mind before writing the on_action.
       still believed correct (the mechanism is standard, confirmed-real
       vanilla usage) but wants a session where it visibly fires before
       fully closing this out.
-      **New, still-open report (2026-09-08, unconfirmed):** the user
-      thinks a war starting that involves the player produces two popups
-      in a row. `SNW_FILTER|war_start` logs show our own code posting
-      exactly once for the one Portugal-involved war seen so far, and no
-      second vanilla on_action exists for "war starts" per
-      `00_code_on_actions.txt` — so if real, the second popup's source is
-      currently unidentified. Asked the user to note both popups' exact
-      title text next time it happens, since nothing in our logs can
-      currently distinguish this from a UI-only phenomenon.
+      **CONFIRMED by the user 2026-09-08, fix shipped same day, not yet
+      re-tested.** A war starting that involves the player reliably
+      produces the exact same full-screen popup twice in a row. Checked
+      across every rotated debug log for the confirmed matching event
+      (`actor=Ovambo|target=Portugal|ELEVATED`, `debug.1.log`): still only
+      ONE `SNW_FILTER` decision line, no `DUPLICATE_SUPPRESSED` nearby —
+      our own script genuinely only calls `post_notification` once, ruled
+      out as the source. Also confirmed vanilla's original
+      `diplo_play_war_start_notification` really is muted (`none`), and
+      no other message key anywhere shares `popup_name = war_started`
+      besides that muted key and our own `smart_notifications_diplo_play_war_start_watched`.
+      **Found and fixed:** the muted vanilla key was the ONLY muted key
+      in the entire file still carrying leftover `popup_name`/
+      `on_created_soundeffect` properties (confirmed via a full scan) —
+      every other muted key cleanly has just `notification_type`/`color`.
+      Stripped both from it. Leading hypothesis: `popup_name` gets
+      processed at some layer independent of `notification_type`'s
+      toast/feed/popup gating, so the muted key's own reference was still
+      triggering a phantom popup render alongside our replacement's.
+      **Needs the user to see another war start involving them to
+      confirm this actually fixed it** — a restart is required first
+      (script changes need a fresh session).
       **Second report, same day.** The user saw what looked like a toast
       for "Ottoman Empire sides with Great Qing" (a play with no
       watchlist connection) and flagged it as unexpected. The log is
@@ -878,51 +891,38 @@ list for this phase with that in mind before writing the on_action.
         each of these on_actions, guarded with `?=` so a missing scope is
         skipped rather than erroring. Delete once the scope names are
         known and the filtering is built.
-- [ ] **Shorten/clarify Message Settings row labels for the Phase 4
-      watched/quiet pairs — flagged 2026-09-07 per the user's screenshot,
-      parked until the notifications themselves are confirmed working.**
-      In the Notification Types tab, our group labels (e.g. "Diplomatic
-      Play Started, Watched Country Inv…") truncate hard in the list's
-      fixed-width column and read as near-duplicates of each other and of
-      vanilla's own rows at a glance — the "(Smart Notifications)" suffix
-      (necessary per the tagging convention in CLAUDE.md) makes the
-      truncation worse since it's the part that gets cut off first. Needs a
-      naming pass across all the
-      `smart_notifications_diplo_play_*_watched/_quiet_group` and
-      `smart_notifications_diplo_play_subject_released_*_group` labels in
-      [smart_notifications_l_english.yml](localization/english/smart_notifications_l_english.yml)
-      — shorter, front-loaded with the distinguishing word (e.g. lead with
-      "Watched"/"Ambient" rather than burying it at the end) so the
-      truncated form is still legible without hovering. Do this only
-      after the underlying filtering is confirmed correct in-game — no
-      point polishing labels for behavior that might still change.
-      **Extended 2026-09-08 per the user:** also visually/positionally
-      separate this mod's rows from vanilla's in the Notification Types
-      list, not just relabel them — a cleaner list, and no need to repeat
-      "(Smart Notifications)" on every single row if they're already
-      visibly grouped. **Confirmed by the user, same day: our rows already
-      sit at the bottom of the default (unsorted) list** — no active work
-      needed to achieve grouping itself, deprioritized. Still worth a
-      look at some point (low priority) whether the trailing "(Smart
-      Notifications)" tag can be dropped now that the grouping already
-      does the job, or shortened per the labeling pass above. **Needs GUI
-      research before promising an
-      approach, not yet done:** the list is populated from a native
-      datamodel (`MessageSettingsWindow.GetNotificationSettingsItems` per
+- [x] **Shorten Message Settings row labels + re-tag mod-created
+      notifications — SHIPPED 2026-09-08.** Flagged 2026-09-07 per the
+      user's screenshot: our group labels (e.g. "Diplomatic Play Started,
+      Watched Country Inv…") truncated hard in the list's fixed-width
+      column, and the old trailing `" (Smart Notifications)"` suffix
+      (per CLAUDE.md's tagging convention) made it worse — it was exactly
+      the part that got cut off. **Extended 2026-09-08 per the user:**
+      wanted a way to tell "this is the mod" at a glance without such
+      long names. **Fix:** the tagging convention changed from a trailing
+      `" (Smart Notifications)"` suffix to a short leading `"(SN) "`
+      prefix on every mod-created group/alert label (13 labels in
+      [smart_notifications_l_english.yml](localization/english/smart_notifications_l_english.yml)) —
+      visible even when truncated, and 5 characters instead of 22.
+      CLAUDE.md and engine-notes.md updated to document the revised
+      convention for future additions.
+      **Grouping itself: user first said our rows already sit at the
+      bottom of the default list (no active work needed); corrected the
+      same day** after checking whether "Law Imposed"/"Colonial Claim
+      Granted" were ours (confirmed via grep: no, 100% vanilla, untouched)
+      — those sit after our rows, so we're grouped together but not
+      strictly last. Not pursuing further — the short prefix already
+      solves the actual problem (telling rows apart at a glance) without
+      needing exact positioning.
+      **GUI-level section divider — investigated, not pursued:** the
+      list is populated from a native datamodel
+      (`MessageSettingsWindow.GetNotificationSettingsItems` per
       [gui/message_settings.gui](gui/message_settings.gui)), with an
       existing "sort by Notification Type" column the player can already
-      click — but the DEFAULT (unsorted) order is unconfirmed: could be
-      alphabetical, native registration order, or something else
-      entirely, and we don't know if defining our messages in a
-      particular position within our own
-      [00_messages.txt](common/messages/00_messages.txt) (a full-file
-      override, so in principle we control the whole list's definition
-      order) actually influences it. One low-risk idea once that's
-      confirmed: front-load a short, consistent tag on every mod-created
-      label (rather than the current trailing suffix) so clicking the
-      existing "sort by Notification Type" column at least clusters them
-      alphabetically, without any GUI file changes. Don't attempt a
-      bigger GUI-level fix (e.g. an actual section divider) without
+      click — but the DEFAULT (unsorted) order was never confirmed (could
+      be alphabetical, native registration order, file definition order,
+      or something else), and a real section-divider would need actual
+      GUI work. Don't attempt without
       first confirming what's realistic — this list's sort/grouping
       behavior hasn't been investigated at all yet.
 - [ ] **Visually distinguish elevated (watched) notifications — parked
