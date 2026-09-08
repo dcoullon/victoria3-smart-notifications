@@ -1762,6 +1762,52 @@ actually fires; the second flagged law (stall > success, per the user)
 remains a good negative-control test once its odds eventually cross
 50%.
 
+## Deeper verification pass — 2026-09-08, before asking for a sixth test
+
+Per the user, directly: too many rounds had shipped on plausible-but-
+unverified patterns, each one only confirmed wrong by another manual
+playtest. Real gap, not a hard limit — there's no way to execute this
+game's scripts directly, but `triggers.log`/`effects.log`/real vanilla
+examples ARE checkable before shipping, and the two bugs in the previous
+round (effect-in-a-trigger, `any_law` vs `every_law`) were exactly the
+kind of thing that check would have caught. Before asking for another
+test, went back and did that check properly instead of moving on once
+something looked plausible:
+
+- **Found a genuine, repeated (3x) vanilla precedent for the exact `prev`
+  construction the previous fix relied on**, in the LAWS domain
+  specifically:
+  `common/laws/00_governance_principles.txt` uses `prev.owner = {
+  activate_law = prev.type }` three separate times — enter a law's
+  owner, then reference `prev` inside that block to mean the law just
+  left. Structurally identical to
+  `THIS.owner = { enactment_chance_for_law = { target = prev.type ... } }`.
+  This is materially stronger confirmation than the single achievement-file
+  example cited when the fix first shipped — a repeated, in-domain vanilla
+  idiom rather than one example from an unrelated system.
+- **Removed the toggle SGUI's debug taps entirely** now that the toggle
+  itself is confirmed working live — both lines errored
+  ("Data error in loc string") on every single click for reasons never
+  isolated, and leaving them in place going forward would only add
+  guaranteed noise to future `debug.log` checks for no remaining
+  diagnostic value. Cleaner logs for whatever gets debugged next.
+- Re-confirmed every other piece of the chain (the shared scripted
+  trigger, `can_be_enacted`, `smart_notifications_law_matches_wanted_flag`)
+  against triggers.log's "Supported Scopes" for each, since the toggle's
+  own success already empirically proves `THIS.type`/`THIS.owner` resolve
+  correctly for real. The one part that had NOT been touched by that
+  empirical proof was `enactment_chance_for_law` specifically (a
+  country-scope trigger reached via a different path than the toggle
+  uses) — now the piece with the strongest independent confirmation of
+  anything in this feature.
+
+**Confidence level, stated plainly**: high, based on a real matching
+vanilla idiom rather than a first-principles guess, but not a
+certainty — there is no way to execute-test this without the game
+itself. If this specific line is still wrong, that reflects a genuine
+limit on what's checkable without running the game, not a repeat of the
+same shortcut.
+
 ## New notifications/alerts backlog — sized and sequenced 2026-09-08
 
 All four items below are **P1 per the user**. This is the recommended

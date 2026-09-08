@@ -46,21 +46,14 @@ smart_notifications_law_notify_toggle_sgui = {
 	# No is_valid -- toggling is always a valid action regardless of
 	# current state, matching watchlist_toggle_sgui's own reasoning.
 	#
-	# Debug taps deliberately avoid `.GetCountry` this time -- the FIRST
-	# version of this tap used `[THIS.GetCountry.GetNameNoFormatting]` and
-	# its own line always failed ("Data error in loc string"), for reasons
-	# never fully isolated (possibly `.GetCountry` not being a registered
-	# debug_log dynamic-text function for `law` scope specifically, despite
-	# working fine in GUI context and from other scope types' debug_log
-	# calls elsewhere in this mod). `THIS.GetNameNoFormatting` alone is
-	# safe (confirmed indirectly: the engine's OWN native error messages
-	# during testing rendered law names this same way without issue). The
-	# second tap below reports the FINAL state after the toggle runs, via
-	# the same shared trigger the checkbox's own `checked=` and the alert
-	# both read -- so a single test tells us definitively whether the
-	# write succeeded, without needing to interpret 126 branches by hand.
+	# Debug taps REMOVED 2026-09-08 once the toggle itself was confirmed
+	# working live -- both of the taps that were here
+	# (`[THIS.GetNameNoFormatting]` from `law` scope) errored ("Data error
+	# in loc string") on every single click, for reasons never fully
+	# isolated, and now that this mechanism is proven, that guaranteed
+	# noise just makes future `debug.log` checks (for whatever ships next)
+	# harder to read for no remaining diagnostic benefit.
 	effect = {
-		debug_log = "SNW_LAW_NOTIFY|toggle_start|law=[THIS.GetNameNoFormatting]"
 
 		if = {
 			limit = { THIS.type = law_type:law_affirmative_action }
@@ -1573,17 +1566,6 @@ smart_notifications_law_notify_toggle_sgui = {
 					set_variable = smart_notifications_wanted_law_worker_protections
 				}
 			}
-		}
-
-		# Final-state confirmation -- reads back through the SAME shared
-		# trigger the checkbox's own `checked=` and the alert both use, so
-		# this line alone confirms whether the write above actually stuck.
-		if = {
-			limit = { smart_notifications_law_matches_wanted_flag = yes }
-			debug_log = "SNW_LAW_NOTIFY|toggle_result|law=[THIS.GetNameNoFormatting]|now=FLAGGED"
-		}
-		else = {
-			debug_log = "SNW_LAW_NOTIFY|toggle_result|law=[THIS.GetNameNoFormatting]|now=UNFLAGGED"
 		}
 	}
 
