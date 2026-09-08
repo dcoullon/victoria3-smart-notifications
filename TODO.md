@@ -647,6 +647,57 @@ list for this phase with that in mind before writing the on_action.
       starting is still more notable than an ordinary play). This also
       lands the long-open Phase 1 "Dominion & Subject War Mute" item —
       see that checkbox above.
+      **CRITICAL BUG found 2026-09-08 via the user's second real
+      playtest, likely the single biggest source of remaining spam,
+      diagnostic shipped, fix not yet built.** The user reported "super
+      painful" toasts for a Two Sicilies internal revolution and a Rwanda
+      internal revolution — countries with zero connection to the
+      player's watchlist (Great Britain, Spain, United Netherlands,
+      Portugal). The `SNW_FILTER|...|involved` log lines proved why: for
+      BOTH unrelated plays, Great Britain (and for one of them, Portugal)
+      showed up as `watched=yes` in the `every_scope_play_involved`
+      breakdown despite having nothing to do with either country's
+      internal politics. `any_scope_play_involved`/`every_scope_play_involved`
+      is documented as "Iterate through all involved in a: diplomatic
+      play" — but "involved" evidently means something much broader than
+      "on a committed side": the game's own `triggers.log` documents a
+      real distinction between `is_diplomatic_play_committed_participant`
+      and `is_diplomatic_play_undecided_participant`, strongly suggesting
+      "involved" includes eligible-but-uncommitted potential interveners
+      too (plausibly every Great Power, everywhere, for every play, since
+      Great Powers are near-universally eligible to intervene). If true,
+      this means watchlist elevation has been firing for **nearly every
+      diplomatic play in the world**, not just ones genuinely involving a
+      watched country — as long as the player has 2+ Great Powers
+      watched (very likely for most players), almost nothing ever gets
+      quieted. This would also fully explain the "random country starting
+      annex on a random country" complaint (same on_diplo_play_start
+      hook, same bug) — no separate root cause needed there. Does NOT
+      explain "random country improving relations" (a different,
+      already-tracked issue — see the `diplomatic_action_notification`
+      item below) or the "duplicate join-side notification" report (the
+      `SNW_FILTER|join_side` log for that exact session shows only ONE
+      decision line, i.e. our code posted exactly once — the "second,
+      undecorated" notification the user saw is more likely Vic3's own
+      normal toast-then-feed-row rendering for any toast, not a mod bug;
+      unconfirmed, needs the user to check whether this happens for
+      *every* toast, ours or vanilla's, before concluding either way).
+      **Diagnostic shipped, not yet fixed:** added two more targeted
+      checks inside all 3 events' existing `every_scope_play_involved`
+      loop — `is_diplomatic_play_committed_participant` (global, "is this
+      country committed to ANY play") and `is_diplomatic_play_participant_with
+      = scope:actor` (pairwise, "is this country a committed participant
+      in the SAME play as the actor" — the more promising one, since it's
+      actually scoped to this specific play rather than any play
+      anywhere). Per CLAUDE.md's never-guess rule, the actual filter logic
+      (swapping `any_scope_play_involved` for a narrower committed-only
+      check) is NOT being rewritten until a real session confirms which
+      of these two triggers correctly says "no" for Great Britain in a
+      Two-Sicilies-shaped case while still saying "yes" for genuine
+      participants (e.g. an actual war combatant). Next step: get one
+      more `SNW_FILTER|...|committed=`/`participant_with_actor=` log
+      sample, then rebuild the elevation check around whichever trigger
+      proves correct.
 - [~] **Third-party notification filtering — the 3 Diplomatic-Play-rooted
       keys BUILT 2026-09-07, two real bugs found and fixed the same day via
       the user's first live playtest, `diplo_play_subject_released` still

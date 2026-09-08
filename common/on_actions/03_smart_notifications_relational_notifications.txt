@@ -148,6 +148,36 @@ smart_notifications_diplo_play_start = {
 			else = {
 				debug_log = "SNW_FILTER|start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=no"
 			}
+
+			# NEW diagnostic (2026-09-08) -- a real session showed Great
+			# Britain/Portugal/Spain/Netherlands (this mod's watchlist) as
+			# "involved" in diplomatic plays with zero real connection to
+			# them (a Two Sicilies internal revolution, a Rwanda internal
+			# revolution) -- any_scope_play_involved appears to include
+			# every eligible/undecided potential intervener, not just
+			# actual committed sides, which would make watchlist elevation
+			# fire for nearly every play in the world once a few Great
+			# Powers are watched. Checking two more specific triggers
+			# found in the game's own triggers.log
+			# (is_diplomatic_play_committed_participant,
+			# is_diplomatic_play_participant_with) to see if either one
+			# correctly narrows this down to real participants before
+			# rewriting the filter -- do not trust this data until it's
+			# been seen fire for a case like the Two Sicilies one above.
+			if = {
+				limit = { is_diplomatic_play_committed_participant = yes }
+				debug_log = "SNW_FILTER|start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|committed=yes"
+			}
+			else = {
+				debug_log = "SNW_FILTER|start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|committed=no"
+			}
+			if = {
+				limit = { is_diplomatic_play_participant_with = scope:actor }
+				debug_log = "SNW_FILTER|start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|participant_with_actor=yes"
+			}
+			else = {
+				debug_log = "SNW_FILTER|start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|participant_with_actor=no"
+			}
 		}
 	}
 }
@@ -180,6 +210,23 @@ smart_notifications_diplo_play_join_side = {
 			else = {
 				debug_log = "SNW_FILTER|join_side|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=no"
 			}
+
+			# NEW diagnostic (2026-09-08) -- see smart_notifications_diplo_play_start's
+			# copy of this same block above for the full writeup.
+			if = {
+				limit = { is_diplomatic_play_committed_participant = yes }
+				debug_log = "SNW_FILTER|join_side|involved|country=[THIS.GetCountry.GetNameNoFormatting]|committed=yes"
+			}
+			else = {
+				debug_log = "SNW_FILTER|join_side|involved|country=[THIS.GetCountry.GetNameNoFormatting]|committed=no"
+			}
+			if = {
+				limit = { is_diplomatic_play_participant_with = scope:actor }
+				debug_log = "SNW_FILTER|join_side|involved|country=[THIS.GetCountry.GetNameNoFormatting]|participant_with_actor=yes"
+			}
+			else = {
+				debug_log = "SNW_FILTER|join_side|involved|country=[THIS.GetCountry.GetNameNoFormatting]|participant_with_actor=no"
+			}
 		}
 	}
 }
@@ -211,6 +258,23 @@ smart_notifications_diplo_play_war_start = {
 			}
 			else = {
 				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=no"
+			}
+
+			# NEW diagnostic (2026-09-08) -- see smart_notifications_diplo_play_start's
+			# copy of this same block above for the full writeup.
+			if = {
+				limit = { is_diplomatic_play_committed_participant = yes }
+				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|committed=yes"
+			}
+			else = {
+				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|committed=no"
+			}
+			if = {
+				limit = { is_diplomatic_play_participant_with = scope:actor }
+				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|participant_with_actor=yes"
+			}
+			else = {
+				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|participant_with_actor=no"
 			}
 		}
 	}
