@@ -924,6 +924,32 @@ Raw list from the doc, not yet checked against what's already muted in
 [00_messages.txt](common/messages/00_messages.txt) or against the
 uncountable/no-hook list in Dev Tooling above — triage before building:
 
+- [ ] **`diplomatic_action_notification` (generic) — new candidate found
+      2026-09-07 via the user's own playtest, probe shipped, not yet
+      built.** Confirmed still fully vanilla (`toast`, untouched by this
+      mod) and fires from `on_diplomatic_action` for EVERY diplomatic
+      action any country takes toward the player — Increase/Decrease
+      Relations, autonomy requests, etc, all sharing one generic group
+      (`common/messages/00_messages.txt:275`). Real example the user hit:
+      a decentralized rebel faction ("East Indies Abolitionist Revolt")
+      using Increase Relations popped a toast despite being nobody the
+      player has any reason to care about. Same root-scope family
+      (Diplomatic Action) as the already-confirmed-blocked
+      `diplomatic_proposal_third_party_*` keys — a prior guess on that
+      exact root type produced a real runtime error (`is_player trigger
+      [ Wrong scope for trigger: diplomatic_action, expected country ]`),
+      so this needs the same defensive probe-first approach rather than
+      guessing again. Probe shipped:
+      [04_smart_notifications_probes.txt](common/on_actions/04_smart_notifications_probes.txt)'s
+      `smart_notifications_probe_da` block, guarded with `?=` the same way
+      as the existing third-party probes. Once a real diplomatic action
+      fires and the log shows which scope actually names the initiator,
+      build watchlist filtering the same way as the Diplomatic-Play family
+      (elevate if initiator is watched or the action targets us in a way
+      we care about, demote otherwise) — but note this group is broader
+      than just "Increase Relations" (shared by several action types), so
+      check whether all of them deserve the same treatment before
+      blanket-filtering the whole group.
 - [ ] **Tech spreading notification** — user suspects vanilla may already
       have a per-notification setting for this; check Message Settings
       before assuming it needs a mod change at all.

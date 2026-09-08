@@ -92,6 +92,34 @@ smart_notifications_probe_da_third_party_break = {
 	}
 }
 
+# Root = Diplomatic Action. NOT the same on_action as the probes above --
+# those are the *_third_party_* variants; this is the plain
+# on_diplomatic_action, which posts the generic diplomatic_action_notification
+# (shared by every diplomatic action type: Increase/Decrease Relations,
+# autonomy requests, etc, per common/on_actions/00_code_on_actions.txt).
+# Flagged 2026-09-07 by the user: confirmed still vanilla `toast` for
+# EVERY diplomatic action any country takes toward the player, entirely
+# untouched by this mod, and a real example (a decentralized rebel faction
+# using Increase Relations) showed up as a toast the player didn't care
+# about. Same root-scope family as the already-confirmed-blocked
+# `_third_party_` variants above, so probed the same defensive way rather
+# than guessing again.
+on_diplomatic_action = {
+	on_actions = { smart_notifications_probe_da }
+}
+
+smart_notifications_probe_da = {
+	effect = {
+		debug_log = "SNW_PROBE|da|fired"
+		scope:actor ?= { debug_log = "SNW_PROBE|da|scope:actor=[THIS.GetCountry.GetNameNoFormatting]" }
+		scope:target ?= { debug_log = "SNW_PROBE|da|scope:target=[THIS.GetCountry.GetNameNoFormatting]" }
+		scope:recipient ?= { debug_log = "SNW_PROBE|da|scope:recipient=[THIS.GetCountry.GetNameNoFormatting]" }
+		scope:initiator ?= { debug_log = "SNW_PROBE|da|scope:initiator=[THIS.GetCountry.GetNameNoFormatting]" }
+		scope:first_country ?= { debug_log = "SNW_PROBE|da|scope:first_country=[THIS.GetCountry.GetNameNoFormatting]" }
+		scope:second_country ?= { debug_log = "SNW_PROBE|da|scope:second_country=[THIS.GetCountry.GetNameNoFormatting]" }
+	}
+}
+
 # Root = Diplomatic Pact (same unknown)
 on_diplomatic_pact_third_party_auto_break = {
 	on_actions = { smart_notifications_probe_dp_third_party_auto_break }
