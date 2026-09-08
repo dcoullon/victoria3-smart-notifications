@@ -109,11 +109,11 @@ smart_notifications_diplo_play_start = {
 				any_scope_play_involved = { smart_notifications_is_watched = yes }
 			}
 			post_notification = smart_notifications_diplo_play_start_watched
-			debug_log = "SNW_FILTER|start|ELEVATED"
+			debug_log = "SNW_FILTER|start|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
 		}
 		else = {
 			post_notification = smart_notifications_diplo_play_start_quiet
-			debug_log = "SNW_FILTER|start|QUIET"
+			debug_log = "SNW_FILTER|start|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
 		}
 
 		# TEMPORARY instrumentation (2026-09-07) so a playtest can show
@@ -141,11 +141,11 @@ smart_notifications_diplo_play_join_side = {
 				any_scope_play_involved = { smart_notifications_is_watched = yes }
 			}
 			post_notification = smart_notifications_diplo_play_join_side_watched
-			debug_log = "SNW_FILTER|join_side|ELEVATED"
+			debug_log = "SNW_FILTER|join_side|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|ELEVATED"
 		}
 		else = {
 			post_notification = smart_notifications_diplo_play_join_side_quiet
-			debug_log = "SNW_FILTER|join_side|QUIET"
+			debug_log = "SNW_FILTER|join_side|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|QUIET"
 		}
 
 		# TEMPORARY instrumentation (2026-09-07) so a playtest can show
@@ -174,12 +174,14 @@ smart_notifications_diplo_play_war_start = {
 			}
 			post_notification = smart_notifications_diplo_play_war_start_watched
 			post_notification = smart_notifications_diplo_play_war_start_third_party_watched
-			debug_log = "SNW_FILTER|war_start|ELEVATED"
+			debug_log = "SNW_FILTER|war_start|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
+			debug_log = "SNW_FILTER|war_start_third_party|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
 		}
 		else = {
 			post_notification = smart_notifications_diplo_play_war_start_quiet
 			post_notification = smart_notifications_diplo_play_war_start_third_party_quiet
-			debug_log = "SNW_FILTER|war_start|QUIET"
+			debug_log = "SNW_FILTER|war_start|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
+			debug_log = "SNW_FILTER|war_start_third_party|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
 		}
 
 		# TEMPORARY instrumentation (2026-09-07) so a playtest can show
@@ -207,11 +209,26 @@ smart_notifications_diplo_play_start_third_party = {
 				any_scope_play_involved = { smart_notifications_is_watched = yes }
 			}
 			post_notification = smart_notifications_diplo_play_start_third_party_watched
-			debug_log = "SNW_FILTER|start_third_party|ELEVATED"
+			debug_log = "SNW_FILTER|start_third_party|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
 		}
 		else = {
 			post_notification = smart_notifications_diplo_play_start_third_party_quiet
-			debug_log = "SNW_FILTER|start_third_party|QUIET"
+			debug_log = "SNW_FILTER|start_third_party|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
+		}
+
+		# TEMPORARY instrumentation (2026-09-07), same shape as the
+		# original 3 events above -- one line per participant with its
+		# watched status, so a play that spans several countries shows
+		# exactly which one tripped the ELEVATED/QUIET decision. Delete
+		# once confirmed tuned correctly. Grep debug.log for SNW_FILTER.
+		every_scope_play_involved = {
+			if = {
+				limit = { smart_notifications_is_watched = yes }
+				debug_log = "SNW_FILTER|start_third_party|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=yes"
+			}
+			else = {
+				debug_log = "SNW_FILTER|start_third_party|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=no"
+			}
 		}
 	}
 }
@@ -224,11 +241,24 @@ smart_notifications_diplo_play_subject_released = {
 				any_scope_play_involved = { smart_notifications_is_watched = yes }
 			}
 			post_notification = smart_notifications_diplo_play_subject_released_watched
-			debug_log = "SNW_FILTER|subject_released|ELEVATED"
+			debug_log = "SNW_FILTER|subject_released|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
 		}
 		else = {
 			post_notification = smart_notifications_diplo_play_subject_released_quiet
-			debug_log = "SNW_FILTER|subject_released|QUIET"
+			debug_log = "SNW_FILTER|subject_released|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
+		}
+
+		# TEMPORARY instrumentation (2026-09-07), same shape as the
+		# original 3 events above. Delete once confirmed tuned correctly.
+		# Grep debug.log for SNW_FILTER.
+		every_scope_play_involved = {
+			if = {
+				limit = { smart_notifications_is_watched = yes }
+				debug_log = "SNW_FILTER|subject_released|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=yes"
+			}
+			else = {
+				debug_log = "SNW_FILTER|subject_released|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=no"
+			}
 		}
 	}
 }
