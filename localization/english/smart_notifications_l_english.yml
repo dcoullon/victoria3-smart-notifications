@@ -159,6 +159,18 @@
  alert_smart_notifications_agitator_invite_available_alert_desc:0 "We have an open agitator slot and at least one exiled agitator eligible to invite."
  smart_notifications_agitator_invite_available_alert_setting_name:0 "(SN) Agitator Invite Available"
 
+ # Taxation deficit alert (see common/alert_types/01_smart_notifications_alerts.txt
+ # and TODO.md's sized backlog). `SCOPE.GetRootScope.GetState.GetName` and the
+ # extra `_action` key (shown as the grouped important-action's row label,
+ # since this alert uses alert_group) both copied from vanilla's own
+ # `player_state`-scoped alerts (alert_insufficient_tax_capacity_alert/
+ # alert_low_market_access_alert, localization/english/alerts_l_english.yml)
+ # rather than guessing the dynamic-text chain ourselves.
+ alert_smart_notifications_taxation_deficit_alert_name:0 "(SN) [SCOPE.GetRootScope.GetState.GetName] has a Taxation Deficit"
+ alert_smart_notifications_taxation_deficit_alert_desc:0 "[SCOPE.GetRootScope.GetState.GetName] has insufficient Taxation Capacity for its population, reducing the efficiency of all forms of taxation there."
+ alert_smart_notifications_taxation_deficit_alert_action:0 "State Panel for [SCOPE.GetRootScope.GetState.GetName]"
+ smart_notifications_taxation_deficit_alert_setting_name:0 "(SN) Taxation Deficit"
+
  # Country Watchlist tab (see gui/message_settings.gui and TODO.md Phase 3).
  SMART_NOTIFICATIONS_WATCHLIST_TAB:0 "Watchlist"
  SMART_NOTIFICATIONS_WATCHLIST_COLUMN_COUNTRY:0 "Country"

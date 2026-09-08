@@ -79,3 +79,41 @@ smart_notifications_agitator_invite_available_alert = {
 	type = important_action
 	color = green
 }
+
+smart_notifications_taxation_deficit_alert = {
+	texture = "gfx/interface/icons/state_status_icons/state_tax_capacity.dds"
+	script_context = player_state
+
+	# Base version only, per TODO.md -- the "only alert if fixing it pays
+	# for itself" refinement is scoped separately, not attempted here.
+	#
+	# Trigger reused verbatim from vanilla's OWN commented-out, never-shipped
+	# `insufficient_tax_capacity_alert`
+	# (common/alert_types/00_alert_types.txt, filed under "Hidden by
+	# default") rather than guessing a condition ourselves -- Paradox
+	# already worked out the right trigger for exactly this alert and
+	# simply never turned it on. `tax_capacity`/`tax_capacity_usage` are
+	# both confirmed real state-scope triggers (script_docs
+	# triggers.log); a state whose usage exceeds its capacity has
+	# "Insufficient Taxation Capacity" per the game's own tooltip wording
+	# (STATE_TAX_CAPACITY_INSUFFICIENT_LONG,
+	# localization/english/interfaces_l_english.yml) -- this is the
+	# "taxation deficit" the user described. `is_incorporated = yes`
+	# (also confirmed real, state scope) excludes unincorporated states,
+	# matching vanilla's own version.
+	valid = {
+		tax_capacity < tax_capacity_usage
+		is_incorporated = yes
+	}
+
+	# alert_group, not just type = important_action alone -- per the
+	# alert_types header comment, an important_action with no alert_group
+	# never groups with others of the same type, and this alert can fire
+	# once per state, so multiple simultaneous deficits would otherwise
+	# render as separate important-action entries instead of one stacked
+	# group (matching vanilla's own choice to group this alert by state).
+	open_panel = states_panel
+	type = important_action
+	color = green
+	alert_group = smart_notifications_taxation_deficit_states
+}

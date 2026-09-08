@@ -1462,18 +1462,42 @@ grouping them here rather than writing three near-duplicate sections:
       confirmation**, same caveat as every other alert here: an open slot
       + an eligible exile actually appearing, and specifically a session
       spanning the ~5-year cooldown to check the assumption above.
-- [ ] **New alert: state in taxation deficit — requested 2026-09-08, not
-      scoped yet.** Per the user: alert when a state is losing money to a
-      taxation deficit (a specific "Xk/Wk lost" figure they referenced,
-      exact value/trigger not yet identified — needs checking against
-      real state economy triggers/script_values, don't guess the name).
-      **Nice-to-have, not required for v1:** only fire if fixing the
-      deficit would be net-positive after accounting for the added
-      bureaucrat + paper upkeep cost of doing so — this needs a
-      `script_value` comparing the deficit's cost against that upkeep,
-      real extra complexity worth scoping separately once the base
-      version is confirmed working. Same shape as the amendment-repeal
-      alert otherwise — new alert_type, no GUI work.
+- [~] **New alert: state in taxation deficit — BUILT 2026-09-08 (base
+      version), not yet confirmed in-game.** Real find while researching:
+      vanilla ALREADY has this exact alert worked out, just never
+      shipped — `insufficient_tax_capacity_alert` sits commented out under
+      "Hidden by default" in `common/alert_types/00_alert_types.txt`, with
+      the trigger `tax_capacity < tax_capacity_usage` +
+      `is_incorporated = yes` (both confirmed real, state-scope triggers
+      per `triggers.log`). "Taxation deficit" is the game's own "Insufficient
+      Taxation Capacity" concept — when a state's population outgrows its
+      Taxation Capacity, all taxation there loses efficiency (confirmed via
+      `concept_tax_capacity_desc`/`STATE_TAX_CAPACITY_INSUFFICIENT_LONG`,
+      `localization/english/concepts_l_english.yml` /
+      `interfaces_l_english.yml`) — not a distinct "Xk/Wk lost" trigger of
+      its own; the deficit shows up as reduced tax revenue efficiency, and
+      vanilla's own trigger is the accepted way to detect it. Reused that
+      trigger verbatim rather than inventing a new one, since Paradox had
+      already worked out the right condition and simply left it off.
+      Shipped:
+      [common/alert_types/01_smart_notifications_alerts.txt](common/alert_types/01_smart_notifications_alerts.txt)
+      (`smart_notifications_taxation_deficit_alert`, `script_context =
+      player_state`, `open_panel = states_panel`, `alert_group =
+      smart_notifications_taxation_deficit_states` since multiple states
+      can trigger it simultaneously and an `important_action` with no
+      `alert_group` never groups — matching vanilla's own
+      `low_market_access_alert`/the hidden tax-capacity alert's choice to
+      group by state), loc in
+      [smart_notifications_l_english.yml](localization/english/smart_notifications_l_english.yml)
+      using the exact `SCOPE.GetRootScope.GetState.GetName` dynamic-text
+      chain (plus the extra `_action` key used for grouped
+      important-actions) copied from vanilla's own `player_state`-scoped
+      alerts, not guessed. **Nice-to-have, deliberately not attempted
+      here:** the "only alert if fixing it pays for itself" refinement
+      (comparing the deficit's cost against added bureaucrat/paper
+      upkeep via a `script_value`) — scope separately once the base
+      version is confirmed working. **Needs in-game confirmation**, same
+      caveat as every other alert here.
 
 - [x] **Truce expiry notification — CONFIRMED DONE (marked complete by
       the user 2026-09-08).** The user confirmed (2026-09-06) they want this
