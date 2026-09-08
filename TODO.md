@@ -1636,6 +1636,37 @@ commitment alert before it was ever seen live. All fixed same day:
    now actually toggle, and does the alert fire for a flagged-but-not-yet-
    enacting law.
 
+## Fourth playtest round — 2026-09-08, same day
+
+**Law commitment checkbox still not working — SECOND real bug found and
+fixed, same root-cause family as the first.** The user reported the click
+still did nothing after the country-scope fix; checked `error.log`
+myself again (per the user's earlier ask) rather than asking them to.
+Found the EXACT same error as before —
+`has_variable trigger [ This scope doesn't support variables. Scope: Law
+Workers' Protections (1809) ]` — but now pointing at
+`common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt:153`
+instead of the sgui file. Root cause: that trigger used `ROOT` to reach
+the country, which is only correct in ONE of its two call sites. From
+`any_law` (the alert's `valid`), ROOT correctly stays the original
+country. But called DIRECTLY from
+`smart_notifications_law_notify_check_sgui` (`scope = law`), ROOT at that
+point IS the law — the SGUI's own root — not a country at all, so the
+`has_variable` check landed right back on `law` scope, exactly the thing
+the whole redesign was meant to avoid.
+**Fixed** by using `THIS.owner` instead of `ROOT` in both
+[common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt](common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt)
+and
+[common/scripted_guis/smart_notifications_law_notify_sgui.txt](common/scripted_guis/smart_notifications_law_notify_sgui.txt) —
+`owner` is confirmed real for `law` scope (event_targets.log: "Scope to
+the owner country of object", Input Scopes includes `law`), and unlike
+`ROOT`, `THIS` (the law being evaluated) is consistent across both
+calling shapes: bound to the iterated law inside `any_law`, and bound to
+the SGUI's own root when called directly. Regenerated both files from
+the same Python generator used for the first build (not hand-patched),
+so the fix is consistent across all 126 branches rather than a
+one-off edit. **Not yet re-confirmed live.**
+
 ## New notifications/alerts backlog — sized and sequenced 2026-09-08
 
 All four items below are **P1 per the user**. This is the recommended

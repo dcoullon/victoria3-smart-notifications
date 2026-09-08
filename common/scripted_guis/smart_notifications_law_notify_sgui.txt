@@ -16,7 +16,7 @@
 # lives, not how the checkbox reaches a specific law.
 #
 # New design: root stays `scope = law` (proven to dispatch correctly),
-# but the flag itself lives on the COUNTRY (`ROOT`, fully proven
+# but the flag itself lives on the COUNTRY (`THIS.owner`, fully proven
 # throughout this whole mod to support variables), using one static,
 # per-law-type variable name matched via `THIS.type = law_type:X`
 # comparisons -- effects can't build a variable NAME dynamically
@@ -29,6 +29,17 @@
 # matching branch here until this file is regenerated -- the checkbox
 # would silently do nothing for that one new law specifically, not error
 # or affect any existing law's entry.
+#
+# REVISED 2026-09-08, second real bug: the first version of this file
+# used `ROOT` to reach the country, which is wrong here -- this SGUI's
+# own `scope = law` means ROOT, at the point this effect starts, IS the
+# law, not a country (confirmed live: error.log repeated the exact same
+# "This scope doesn't support variables. Scope: Law ..." error the first
+# fix was meant to resolve, just pointing at a different file). Fixed by
+# using `THIS.owner` instead (confirmed real for law scope via
+# event_targets.log: "Scope to the owner country of object") -- see the
+# scripted_trigger file above for the fuller writeup, since it hit the
+# identical mistake the same way.
 smart_notifications_law_notify_toggle_sgui = {
 	scope = law
 
@@ -39,7 +50,7 @@ smart_notifications_law_notify_toggle_sgui = {
 
 		if = {
 			limit = { THIS.type = law_type:law_affirmative_action }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_affirmative_action }
 					remove_variable = smart_notifications_wanted_law_affirmative_action
@@ -51,7 +62,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_agrarianism }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_agrarianism }
 					remove_variable = smart_notifications_wanted_law_agrarianism
@@ -63,7 +74,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_anarchy }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_anarchy }
 					remove_variable = smart_notifications_wanted_law_anarchy
@@ -75,7 +86,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_anti_strike_laws }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_anti_strike_laws }
 					remove_variable = smart_notifications_wanted_law_anti_strike_laws
@@ -87,7 +98,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_appointed_bureaucrats }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_appointed_bureaucrats }
 					remove_variable = smart_notifications_wanted_law_appointed_bureaucrats
@@ -99,7 +110,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_autocracy }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_autocracy }
 					remove_variable = smart_notifications_wanted_law_autocracy
@@ -111,7 +122,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_bakufu }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_bakufu }
 					remove_variable = smart_notifications_wanted_law_bakufu
@@ -123,7 +134,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_canton_system }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_canton_system }
 					remove_variable = smart_notifications_wanted_law_canton_system
@@ -135,7 +146,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_censorship }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_censorship }
 					remove_variable = smart_notifications_wanted_law_censorship
@@ -147,7 +158,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_census_voting }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_census_voting }
 					remove_variable = smart_notifications_wanted_law_census_voting
@@ -159,7 +170,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_charitable_health_system }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_charitable_health_system }
 					remove_variable = smart_notifications_wanted_law_charitable_health_system
@@ -171,7 +182,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_chiefdom }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_chiefdom }
 					remove_variable = smart_notifications_wanted_law_chiefdom
@@ -183,7 +194,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_chiefs_distribute_aid }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_chiefs_distribute_aid }
 					remove_variable = smart_notifications_wanted_law_chiefs_distribute_aid
@@ -195,7 +206,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_child_labor_allowed }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_child_labor_allowed }
 					remove_variable = smart_notifications_wanted_law_child_labor_allowed
@@ -207,7 +218,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_closed_borders }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_closed_borders }
 					remove_variable = smart_notifications_wanted_law_closed_borders
@@ -219,7 +230,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_collectivized_agriculture }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_collectivized_agriculture }
 					remove_variable = smart_notifications_wanted_law_collectivized_agriculture
@@ -231,7 +242,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_colonial_administration }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_colonial_administration }
 					remove_variable = smart_notifications_wanted_law_colonial_administration
@@ -243,7 +254,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_colonial_exploitation }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_colonial_exploitation }
 					remove_variable = smart_notifications_wanted_law_colonial_exploitation
@@ -255,7 +266,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_colonial_resettlement }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_colonial_resettlement }
 					remove_variable = smart_notifications_wanted_law_colonial_resettlement
@@ -267,7 +278,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_colonial_slavery }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_colonial_slavery }
 					remove_variable = smart_notifications_wanted_law_colonial_slavery
@@ -279,7 +290,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_combination_acts }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_combination_acts }
 					remove_variable = smart_notifications_wanted_law_combination_acts
@@ -291,7 +302,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_command_economy }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_command_economy }
 					remove_variable = smart_notifications_wanted_law_command_economy
@@ -303,7 +314,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_commercialized_agriculture }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_commercialized_agriculture }
 					remove_variable = smart_notifications_wanted_law_commercialized_agriculture
@@ -315,7 +326,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_compulsory_primary_school }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_compulsory_primary_school }
 					remove_variable = smart_notifications_wanted_law_compulsory_primary_school
@@ -327,7 +338,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_consumption_based_taxation }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_consumption_based_taxation }
 					remove_variable = smart_notifications_wanted_law_consumption_based_taxation
@@ -339,7 +350,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_cooperative_ownership }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_cooperative_ownership }
 					remove_variable = smart_notifications_wanted_law_cooperative_ownership
@@ -351,7 +362,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_corporate_state }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_corporate_state }
 					remove_variable = smart_notifications_wanted_law_corporate_state
@@ -363,7 +374,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_corporatized_unions }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_corporatized_unions }
 					remove_variable = smart_notifications_wanted_law_corporatized_unions
@@ -375,7 +386,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_council_republic }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_council_republic }
 					remove_variable = smart_notifications_wanted_law_council_republic
@@ -387,7 +398,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_crownland_diets }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_crownland_diets }
 					remove_variable = smart_notifications_wanted_law_crownland_diets
@@ -399,7 +410,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_cultural_exclusion }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_cultural_exclusion }
 					remove_variable = smart_notifications_wanted_law_cultural_exclusion
@@ -411,7 +422,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_debt_slavery }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_debt_slavery }
 					remove_variable = smart_notifications_wanted_law_debt_slavery
@@ -423,7 +434,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_dedicated_police }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_dedicated_police }
 					remove_variable = smart_notifications_wanted_law_dedicated_police
@@ -435,7 +446,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_diplomatic_navy }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_diplomatic_navy }
 					remove_variable = smart_notifications_wanted_law_diplomatic_navy
@@ -447,7 +458,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_elder_council }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_elder_council }
 					remove_variable = smart_notifications_wanted_law_elder_council
@@ -459,7 +470,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_elected_bureaucrats }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_elected_bureaucrats }
 					remove_variable = smart_notifications_wanted_law_elected_bureaucrats
@@ -471,7 +482,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_ethnostate }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_ethnostate }
 					remove_variable = smart_notifications_wanted_law_ethnostate
@@ -483,7 +494,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_expanded_latifundias }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_expanded_latifundias }
 					remove_variable = smart_notifications_wanted_law_expanded_latifundias
@@ -495,7 +506,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_extraction_economy }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_extraction_economy }
 					remove_variable = smart_notifications_wanted_law_extraction_economy
@@ -507,7 +518,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_factory_councils }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_factory_councils }
 					remove_variable = smart_notifications_wanted_law_factory_councils
@@ -519,7 +530,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_free_trade }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_free_trade }
 					remove_variable = smart_notifications_wanted_law_free_trade
@@ -531,7 +542,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_freedom_of_conscience }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_freedom_of_conscience }
 					remove_variable = smart_notifications_wanted_law_freedom_of_conscience
@@ -543,7 +554,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_frontier_colonization }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_frontier_colonization }
 					remove_variable = smart_notifications_wanted_law_frontier_colonization
@@ -555,7 +566,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_graduated_taxation }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_graduated_taxation }
 					remove_variable = smart_notifications_wanted_law_graduated_taxation
@@ -567,7 +578,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_guaranteed_liberties }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_guaranteed_liberties }
 					remove_variable = smart_notifications_wanted_law_guaranteed_liberties
@@ -579,7 +590,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_hindu_caste_codified }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_hindu_caste_codified }
 					remove_variable = smart_notifications_wanted_law_hindu_caste_codified
@@ -591,7 +602,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_hindu_caste_enforced }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_hindu_caste_enforced }
 					remove_variable = smart_notifications_wanted_law_hindu_caste_enforced
@@ -603,7 +614,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_hindu_caste_not_enforced }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_hindu_caste_not_enforced }
 					remove_variable = smart_notifications_wanted_law_hindu_caste_not_enforced
@@ -615,7 +626,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_homesteading }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_homesteading }
 					remove_variable = smart_notifications_wanted_law_homesteading
@@ -627,7 +638,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_industry_banned }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_industry_banned }
 					remove_variable = smart_notifications_wanted_law_industry_banned
@@ -639,7 +650,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_intermediate_edo_system }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_intermediate_edo_system }
 					remove_variable = smart_notifications_wanted_law_intermediate_edo_system
@@ -651,7 +662,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_interventionism }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_interventionism }
 					remove_variable = smart_notifications_wanted_law_interventionism
@@ -663,7 +674,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_isolationism }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_isolationism }
 					remove_variable = smart_notifications_wanted_law_isolationism
@@ -675,7 +686,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_jeune_ecole }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_jeune_ecole }
 					remove_variable = smart_notifications_wanted_law_jeune_ecole
@@ -687,7 +698,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_laissez_faire }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_laissez_faire }
 					remove_variable = smart_notifications_wanted_law_laissez_faire
@@ -699,7 +710,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_land_based_taxation }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_land_based_taxation }
 					remove_variable = smart_notifications_wanted_law_land_based_taxation
@@ -711,7 +722,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_landed_voting }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_landed_voting }
 					remove_variable = smart_notifications_wanted_law_landed_voting
@@ -723,7 +734,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_latifundias }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_latifundias }
 					remove_variable = smart_notifications_wanted_law_latifundias
@@ -735,7 +746,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_lax_edo_system }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_lax_edo_system }
 					remove_variable = smart_notifications_wanted_law_lax_edo_system
@@ -747,7 +758,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_legacy_slavery }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_legacy_slavery }
 					remove_variable = smart_notifications_wanted_law_legacy_slavery
@@ -759,7 +770,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_local_police }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_local_police }
 					remove_variable = smart_notifications_wanted_law_local_police
@@ -771,7 +782,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_manorialism }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_manorialism }
 					remove_variable = smart_notifications_wanted_law_manorialism
@@ -783,7 +794,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_mass_conscription }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_mass_conscription }
 					remove_variable = smart_notifications_wanted_law_mass_conscription
@@ -795,7 +806,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_mercantilism }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_mercantilism }
 					remove_variable = smart_notifications_wanted_law_mercantilism
@@ -807,7 +818,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_migration_controls }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_migration_controls }
 					remove_variable = smart_notifications_wanted_law_migration_controls
@@ -819,7 +830,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_militarized_police }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_militarized_police }
 					remove_variable = smart_notifications_wanted_law_militarized_police
@@ -831,7 +842,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_millet_system }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_millet_system }
 					remove_variable = smart_notifications_wanted_law_millet_system
@@ -843,7 +854,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_monarchy }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_monarchy }
 					remove_variable = smart_notifications_wanted_law_monarchy
@@ -855,7 +866,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_multicultural }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_multicultural }
 					remove_variable = smart_notifications_wanted_law_multicultural
@@ -867,7 +878,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_national_guard }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_national_guard }
 					remove_variable = smart_notifications_wanted_law_national_guard
@@ -879,7 +890,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_national_militia }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_national_militia }
 					remove_variable = smart_notifications_wanted_law_national_militia
@@ -891,7 +902,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_national_supremacy }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_national_supremacy }
 					remove_variable = smart_notifications_wanted_law_national_supremacy
@@ -903,7 +914,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_neo_absolutism }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_neo_absolutism }
 					remove_variable = smart_notifications_wanted_law_neo_absolutism
@@ -915,7 +926,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_no_womens_rights }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_no_womens_rights }
 					remove_variable = smart_notifications_wanted_law_no_womens_rights
@@ -927,7 +938,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_no_workers_rights }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_no_workers_rights }
 					remove_variable = smart_notifications_wanted_law_no_workers_rights
@@ -939,7 +950,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_old_age_pension }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_old_age_pension }
 					remove_variable = smart_notifications_wanted_law_old_age_pension
@@ -951,7 +962,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_oligarchy }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_oligarchy }
 					remove_variable = smart_notifications_wanted_law_oligarchy
@@ -963,7 +974,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_organic_regulation }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_organic_regulation }
 					remove_variable = smart_notifications_wanted_law_organic_regulation
@@ -975,7 +986,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_outlawed_dissent }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_outlawed_dissent }
 					remove_variable = smart_notifications_wanted_law_outlawed_dissent
@@ -987,7 +998,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_parliamentary_republic }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_parliamentary_republic }
 					remove_variable = smart_notifications_wanted_law_parliamentary_republic
@@ -999,7 +1010,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_peasant_proprietorship }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_peasant_proprietorship }
 					remove_variable = smart_notifications_wanted_law_peasant_proprietorship
@@ -1011,7 +1022,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_people_of_the_book }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_people_of_the_book }
 					remove_variable = smart_notifications_wanted_law_people_of_the_book
@@ -1023,7 +1034,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_per_capita_based_taxation }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_per_capita_based_taxation }
 					remove_variable = smart_notifications_wanted_law_per_capita_based_taxation
@@ -1035,7 +1046,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_poor_laws }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_poor_laws }
 					remove_variable = smart_notifications_wanted_law_poor_laws
@@ -1047,7 +1058,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_presidential_republic }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_presidential_republic }
 					remove_variable = smart_notifications_wanted_law_presidential_republic
@@ -1059,7 +1070,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_private_health_insurance }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_private_health_insurance }
 					remove_variable = smart_notifications_wanted_law_private_health_insurance
@@ -1071,7 +1082,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_private_schools }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_private_schools }
 					remove_variable = smart_notifications_wanted_law_private_schools
@@ -1083,7 +1094,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_professional_army }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_professional_army }
 					remove_variable = smart_notifications_wanted_law_professional_army
@@ -1095,7 +1106,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_professional_navy }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_professional_navy }
 					remove_variable = smart_notifications_wanted_law_professional_navy
@@ -1107,7 +1118,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_proportional_taxation }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_proportional_taxation }
 					remove_variable = smart_notifications_wanted_law_proportional_taxation
@@ -1119,7 +1130,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_protected_speech }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_protected_speech }
 					remove_variable = smart_notifications_wanted_law_protected_speech
@@ -1131,7 +1142,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_protectionism }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_protectionism }
 					remove_variable = smart_notifications_wanted_law_protectionism
@@ -1143,7 +1154,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_public_health_insurance }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_public_health_insurance }
 					remove_variable = smart_notifications_wanted_law_public_health_insurance
@@ -1155,7 +1166,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_public_schools }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_public_schools }
 					remove_variable = smart_notifications_wanted_law_public_schools
@@ -1167,7 +1178,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_racial_segregation }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_racial_segregation }
 					remove_variable = smart_notifications_wanted_law_racial_segregation
@@ -1179,7 +1190,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_regulatory_bodies }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_regulatory_bodies }
 					remove_variable = smart_notifications_wanted_law_regulatory_bodies
@@ -1191,7 +1202,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_religious_schools }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_religious_schools }
 					remove_variable = smart_notifications_wanted_law_religious_schools
@@ -1203,7 +1214,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_restricted_child_labor }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_restricted_child_labor }
 					remove_variable = smart_notifications_wanted_law_restricted_child_labor
@@ -1215,7 +1226,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_right_of_assembly }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_right_of_assembly }
 					remove_variable = smart_notifications_wanted_law_right_of_assembly
@@ -1227,7 +1238,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_right_to_associate }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_right_to_associate }
 					remove_variable = smart_notifications_wanted_law_right_to_associate
@@ -1239,7 +1250,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_sakoku }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_sakoku }
 					remove_variable = smart_notifications_wanted_law_sakoku
@@ -1251,7 +1262,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_secret_police }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_secret_police }
 					remove_variable = smart_notifications_wanted_law_secret_police
@@ -1263,7 +1274,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_shinsengumi }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_shinsengumi }
 					remove_variable = smart_notifications_wanted_law_shinsengumi
@@ -1275,7 +1286,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_single_party_state }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_single_party_state }
 					remove_variable = smart_notifications_wanted_law_single_party_state
@@ -1287,7 +1298,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_slave_trade }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_slave_trade }
 					remove_variable = smart_notifications_wanted_law_slave_trade
@@ -1299,7 +1310,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_slavery_banned }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_slavery_banned }
 					remove_variable = smart_notifications_wanted_law_slavery_banned
@@ -1311,7 +1322,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_social_monarchy }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_social_monarchy }
 					remove_variable = smart_notifications_wanted_law_social_monarchy
@@ -1323,7 +1334,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_state_atheism }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_state_atheism }
 					remove_variable = smart_notifications_wanted_law_state_atheism
@@ -1335,7 +1346,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_state_religion }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_state_religion }
 					remove_variable = smart_notifications_wanted_law_state_religion
@@ -1347,7 +1358,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_strict_edo_system }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_strict_edo_system }
 					remove_variable = smart_notifications_wanted_law_strict_edo_system
@@ -1359,7 +1370,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_subjecthood }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_subjecthood }
 					remove_variable = smart_notifications_wanted_law_subjecthood
@@ -1371,7 +1382,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_technocracy }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_technocracy }
 					remove_variable = smart_notifications_wanted_law_technocracy
@@ -1383,7 +1394,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_tenant_farmers }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_tenant_farmers }
 					remove_variable = smart_notifications_wanted_law_tenant_farmers
@@ -1395,7 +1406,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_terakoya }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_terakoya }
 					remove_variable = smart_notifications_wanted_law_terakoya
@@ -1407,7 +1418,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_theocracy }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_theocracy }
 					remove_variable = smart_notifications_wanted_law_theocracy
@@ -1419,7 +1430,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_total_separation }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_total_separation }
 					remove_variable = smart_notifications_wanted_law_total_separation
@@ -1431,7 +1442,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_traditionalism }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_traditionalism }
 					remove_variable = smart_notifications_wanted_law_traditionalism
@@ -1443,7 +1454,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_universal_suffrage }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_universal_suffrage }
 					remove_variable = smart_notifications_wanted_law_universal_suffrage
@@ -1455,7 +1466,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_wage_subsidies }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_wage_subsidies }
 					remove_variable = smart_notifications_wanted_law_wage_subsidies
@@ -1467,7 +1478,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_warrior_caste }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_warrior_caste }
 					remove_variable = smart_notifications_wanted_law_warrior_caste
@@ -1479,7 +1490,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_wealth_voting }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_wealth_voting }
 					remove_variable = smart_notifications_wanted_law_wealth_voting
@@ -1491,7 +1502,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_women_in_the_fields }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_women_in_the_fields }
 					remove_variable = smart_notifications_wanted_law_women_in_the_fields
@@ -1503,7 +1514,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_women_in_the_workplace }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_women_in_the_workplace }
 					remove_variable = smart_notifications_wanted_law_women_in_the_workplace
@@ -1515,7 +1526,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_women_own_property }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_women_own_property }
 					remove_variable = smart_notifications_wanted_law_women_own_property
@@ -1527,7 +1538,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_womens_suffrage }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_womens_suffrage }
 					remove_variable = smart_notifications_wanted_law_womens_suffrage
@@ -1539,7 +1550,7 @@ smart_notifications_law_notify_toggle_sgui = {
 		}
 		else_if = {
 			limit = { THIS.type = law_type:law_worker_protections }
-			ROOT = {
+			THIS.owner = {
 				if = {
 					limit = { has_variable = smart_notifications_wanted_law_worker_protections }
 					remove_variable = smart_notifications_wanted_law_worker_protections
