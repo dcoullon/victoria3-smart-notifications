@@ -648,26 +648,50 @@ list for this phase with that in mind before writing the on_action.
       lands the long-open Phase 1 "Dominion & Subject War Mute" item —
       see that checkbox above.
 - [~] **Third-party notification filtering — the 3 Diplomatic-Play-rooted
-      keys BUILT 2026-09-07, not yet confirmed in-game.** Muted vanilla's
+      keys BUILT 2026-09-07, two real bugs found and fixed the same day via
+      the user's first live playtest, `diplo_play_subject_released` still
+      not yet confirmed.** Initial build muted vanilla's
       `diplo_play_start_third_party_notification`,
       `diplo_play_war_start_third_party_notification`, and
       `diplo_play_subject_released_notification` groups (all `none` in
-      `00_messages.txt`), replaced by watched/quiet pairs
-      (`smart_notifications_diplo_play_start_third_party_watched/_quiet`,
-      `_war_start_third_party_watched/_quiet`,
-      `_subject_released_watched/_quiet`) using the same
-      `any_scope_play_involved` check as the original 3 events, in
-      [03_smart_notifications_relational_notifications.txt](common/on_actions/03_smart_notifications_relational_notifications.txt).
-      Vanilla's own level for all three was `feed`, so watched keeps
-      `feed` and unwatched drops to `none` (one rung quieter, matching
-      convention). Two new on_action hooks
-      (`on_diplo_play_start_third_party`, `on_diplo_play_subject_released`);
-      the war-start third-party key piggybacks on the existing
-      `on_diplo_play_war_start` hook since vanilla posts both keys from
-      that one on_action. `SNW_FILTER` debug taps added, matching the
-      existing 3 events. **The remaining ~15 keys (Country-rooted and
-      Diplomatic-Action/Pact-rooted) are still blocked/unbuilt** — see the
-      inventory below, unchanged. Cross-referenced every
+      `00_messages.txt`), replacing each with its own separate watched/quiet
+      pair. **Both `start` and `war_start` broke on first real test:**
+      1. **Duplicate notifications** — `SNW_FILTER` log lines with matching
+         timestamps/actor/target proved the "primary" event
+         (`on_diplo_play_start`/inline in `on_diplo_play_war_start`) and the
+         new "third party" one both fired for the same play, to the same
+         viewer, with near-identical text. They aren't two different
+         audiences as assumed going in — `smart_notifications_is_watched`
+         already ORs in `is_player = yes`
+         ([00_smart_notifications_triggers.txt](common/scripted_triggers/00_smart_notifications_triggers.txt)),
+         so a single channel per event already covers "the player is
+         involved."
+      2. **Blank target text, `on_diplo_play_start` only** — the same log
+         showed `target=` resolving empty specifically for that one
+         on_action (every other diplo-play on_action resolved it fine).
+         Matches vanilla's own loc for `diplo_play_start_notification`,
+         which never names a target either ("...against us") — scope:target
+         genuinely isn't bound yet at the instant a play starts.
+      **Fix:** consolidated to one notification per event, always posted
+      from whichever on_action's scopes are confirmed reliable —
+      `on_diplo_play_start` is no longer hooked at all; the "play started"
+      notification now posts from `on_diplo_play_start_third_party` instead
+      (reusing the original `smart_notifications_diplo_play_start_watched/_quiet`
+      toast/feed keys, not a separate third-party pair). `on_diplo_play_war_start`
+      keeps its own hook but no longer also posts a third-party pair. The
+      now-redundant `smart_notifications_diplo_play_start_third_party_watched/_quiet`
+      and `_war_start_third_party_watched/_quiet` message keys/loc were
+      deleted; `diplo_play_start_third_party_notification`/
+      `diplo_play_war_start_third_party_notification` (vanilla) stay muted
+      permanently with no replacement of their own. Full writeup in
+      [03_smart_notifications_relational_notifications.txt](common/on_actions/03_smart_notifications_relational_notifications.txt)'s
+      header comment. `diplo_play_subject_released` has no primary-key
+      sibling (no duplication risk architecturally) and kept its own
+      watched/quiet pair unchanged — **still needs its own in-game
+      confirmation**, hasn't fired yet in any tested session. **The
+      remaining ~15 keys (Country-rooted and Diplomatic-Action/Pact-rooted)
+      are still blocked/unbuilt** — see the inventory below, unchanged.
+      Cross-referenced every
       `post_notification` in vanilla's `00_code_on_actions.txt` (99 have a
       moddable hook; the rest are native engine code and can never be
       filtered) against this mod's own message file. Findings:
@@ -712,16 +736,14 @@ list for this phase with that in mind before writing the on_action.
       watched/quiet pairs — flagged 2026-09-07 per the user's screenshot,
       parked until the notifications themselves are confirmed working.**
       In the Notification Types tab, our group labels (e.g. "Diplomatic
-      Play Started, Watched Country Inv…", "Diplomatic Play Start (Third
-      Party), Ambient (…") truncate hard in the list's fixed-width column
-      and read as near-duplicates of each other and of vanilla's own
-      "Diplomatic Play Start (Third Party)" row at a glance — the
-      "(Smart Notifications)" suffix (necessary per the tagging
-      convention in CLAUDE.md) makes the truncation worse since it's the
-      part that gets cut off first. Needs a naming pass across all the
+      Play Started, Watched Country Inv…") truncate hard in the list's
+      fixed-width column and read as near-duplicates of each other and of
+      vanilla's own rows at a glance — the "(Smart Notifications)" suffix
+      (necessary per the tagging convention in CLAUDE.md) makes the
+      truncation worse since it's the part that gets cut off first. Needs a
+      naming pass across all the
       `smart_notifications_diplo_play_*_watched/_quiet_group` and
-      `smart_notifications_diplo_play_*_third_party_watched/_quiet_group`
-      labels in
+      `smart_notifications_diplo_play_subject_released_*_group` labels in
       [smart_notifications_l_english.yml](localization/english/smart_notifications_l_english.yml)
       — shorter, front-loaded with the distinguishing word (e.g. lead with
       "Watched"/"Ambient" rather than burying it at the end) so the

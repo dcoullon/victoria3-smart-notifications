@@ -14,38 +14,66 @@
 #
 # Extended 2026-09-07 with the 3 genuinely third-party keys identified in
 # TODO.md's "Third-party notification filtering" inventory that also root
-# on Diplomatic Play: diplo_play_start_third_party_notification (own
-# on_action, on_diplo_play_start_third_party),
-# diplo_play_subject_released_notification (own on_action,
-# on_diplo_play_subject_released), and
-# diplo_play_war_start_third_party_notification (posted from the SAME
-# on_diplo_play_war_start on_action as the war-start pair above, so it's
-# handled inside smart_notifications_diplo_play_war_start's own effect
-# rather than a separate hook). The remaining ~15 third-party keys stay
-# blocked/unbuilt per that inventory -- Country-rooted ones need the
-# other side of the relationship, Diplomatic-Action/Pact-rooted ones have
-# no documented scope link out at all.
+# on Diplomatic Play: diplo_play_start_third_party_notification,
+# diplo_play_subject_released_notification, and
+# diplo_play_war_start_third_party_notification. The remaining ~15
+# third-party keys stay blocked/unbuilt per that inventory -- Country-rooted
+# ones need the other side of the relationship, Diplomatic-Action/Pact-rooted
+# ones have no documented scope link out at all.
+#
+# CORRECTED 2026-09-07, same day, after the user's first real playtest
+# turned up two real bugs in the initial third-party wiring:
+# 1. **Duplicate notifications.** on_diplo_play_start/on_diplo_play_start_third_party
+#    (and, inline, the two war_start keys) turned out NOT to be two
+#    different channels reaching two different audiences as assumed --
+#    confirmed via matching timestamps/actor/target in a real SNW_FILTER
+#    log: both fired for the exact same play, to the same (single-player)
+#    viewer, producing two near-identical entries for one event. Since
+#    `smart_notifications_is_watched` already ORs in `is_player = yes`
+#    (00_smart_notifications_triggers.txt), the third-party channel alone
+#    already captures "the player is involved" -- nothing is lost by
+#    posting from only one of the two on_actions per event.
+# 2. **Blank target text on `on_diplo_play_start` specifically.** The same
+#    log showed `target=` resolving empty ONLY for this one on_action --
+#    every other diplo-play on_action (war_start, join_side,
+#    start_third_party, subject_released) resolved it fine. This lines up
+#    with vanilla's OWN loc for `diplo_play_start_notification` (the
+#    primary, non-third-party key) never referencing scope:target at all
+#    ("...against us", no named target) -- strong evidence scope:target
+#    genuinely isn't bound yet at the exact moment a play starts (its
+#    target may not be settled until slightly later), while it reliably is
+#    by the time on_diplo_play_start_third_party/on_diplo_play_war_start
+#    fire.
+# Fix: consolidated to ONE notification per event, always posted from
+# whichever on_action's scopes are confirmed reliable. `on_diplo_play_start`
+# is no longer hooked at all -- the "did a play start" notification now
+# posts from on_diplo_play_start_third_party instead (reusing the
+# ORIGINAL smart_notifications_diplo_play_start_watched/_quiet keys and
+# their toast/feed tiers, not the separate third-party-flavored keys,
+# which are deleted as redundant). `on_diplo_play_war_start` keeps its own
+# hook (its scope:target already resolved correctly) but no longer also
+# posts the separate third-party pair. diplo_play_start_third_party_notification
+# and diplo_play_war_start_third_party_notification (the vanilla keys)
+# stay muted (`none`, 00_messages.txt) with no mod replacement of their
+# own -- their event is now fully covered by the consolidated channel
+# above.
 #
 # Per the modding rules in the game's own common/on_actions/_on_actions.md
 # (and CLAUDE.md): never redefine a vanilla on_action's effect directly,
 # append our own on_action name to its `on_actions = {}` list instead.
-# Root = Diplomatic Play for all three (confirmed via vanilla's own
-# comments in common/on_actions/00_code_on_actions.txt), so scope:actor/
-# scope:target/scope:recipient are already bound the same way they are
-# for vanilla's own diplo_play_start_notification/join_side/war_start --
-# confirmed via their own localization (interfaces_l_english.yml) using
-# exactly those scope names.
+# Root = Diplomatic Play for all of these (confirmed via vanilla's own
+# comments in common/on_actions/00_code_on_actions.txt).
 #
 # Per CLAUDE.md's override-hierarchy note: post_notification can't switch
 # notification_type per call, so "toast for watched, feed for everyone
 # else" on what's conceptually one event needs two separate keys/groups,
 # chosen here by script. Confirmed with the user (2026-09-07): this
-# REPLACES the existing vanilla notification for these 3 groups (muted to
+# REPLACES the existing vanilla notification for these groups (muted to
 # `none` in common/messages/00_messages.txt) rather than adding an extra
 # alert alongside it, so a watched play produces exactly one notification,
 # not two.
 
-on_diplo_play_start = {
+on_diplo_play_start_third_party = {
 	on_actions = {
 		smart_notifications_diplo_play_start
 	}
@@ -60,22 +88,6 @@ on_diplo_play_join_side = {
 on_diplo_play_war_start = {
 	on_actions = {
 		smart_notifications_diplo_play_war_start
-	}
-}
-
-# Third-party notification filtering (see TODO.md's "Third-party
-# notification filtering" item). Both of these are confirmed Root =
-# Diplomatic Play (common/on_actions/00_code_on_actions.txt), so the same
-# any_scope_play_involved check applies unchanged. on_diplo_play_war_start
-# above already covers the third-party war-start key too -- vanilla posts
-# both diplo_play_war_start_notification and
-# diplo_play_war_start_third_party_notification from that one on_action,
-# so smart_notifications_diplo_play_war_start's effect (below) handles
-# both pairs itself rather than adding a second on_action hook here.
-
-on_diplo_play_start_third_party = {
-	on_actions = {
-		smart_notifications_diplo_play_start_third_party
 	}
 }
 
@@ -101,7 +113,14 @@ on_diplo_play_subject_released = {
 # a diplomatic play involving the player directly is obviously always
 # worth a prominent notification, watchlist or not.
 
-# Root = Diplomatic Play
+# Root = Diplomatic Play. Hooked from on_diplo_play_start_third_party, NOT
+# on_diplo_play_start -- see the header comment's "CORRECTED 2026-09-07"
+# note: scope:target isn't reliably bound yet at the on_diplo_play_start
+# moment (confirmed via a blank target= in a real playtest log), but is by
+# the time this on_action fires. Posts the original watched/quiet keys
+# (toast/feed), not third-party-flavored ones -- this is the sole
+# notification for "a diplomatic play started" now, covering both what
+# used to be two separate (and duplicating) channels.
 smart_notifications_diplo_play_start = {
 	effect = {
 		if = {
@@ -173,15 +192,11 @@ smart_notifications_diplo_play_war_start = {
 				any_scope_play_involved = { smart_notifications_is_watched = yes }
 			}
 			post_notification = smart_notifications_diplo_play_war_start_watched
-			post_notification = smart_notifications_diplo_play_war_start_third_party_watched
 			debug_log = "SNW_FILTER|war_start|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
-			debug_log = "SNW_FILTER|war_start_third_party|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
 		}
 		else = {
 			post_notification = smart_notifications_diplo_play_war_start_quiet
-			post_notification = smart_notifications_diplo_play_war_start_third_party_quiet
 			debug_log = "SNW_FILTER|war_start|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
-			debug_log = "SNW_FILTER|war_start_third_party|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
 		}
 
 		# TEMPORARY instrumentation (2026-09-07) so a playtest can show
@@ -196,38 +211,6 @@ smart_notifications_diplo_play_war_start = {
 			}
 			else = {
 				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=no"
-			}
-		}
-	}
-}
-
-# Root = Diplomatic Play
-smart_notifications_diplo_play_start_third_party = {
-	effect = {
-		if = {
-			limit = {
-				any_scope_play_involved = { smart_notifications_is_watched = yes }
-			}
-			post_notification = smart_notifications_diplo_play_start_third_party_watched
-			debug_log = "SNW_FILTER|start_third_party|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
-		}
-		else = {
-			post_notification = smart_notifications_diplo_play_start_third_party_quiet
-			debug_log = "SNW_FILTER|start_third_party|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
-		}
-
-		# TEMPORARY instrumentation (2026-09-07), same shape as the
-		# original 3 events above -- one line per participant with its
-		# watched status, so a play that spans several countries shows
-		# exactly which one tripped the ELEVATED/QUIET decision. Delete
-		# once confirmed tuned correctly. Grep debug.log for SNW_FILTER.
-		every_scope_play_involved = {
-			if = {
-				limit = { smart_notifications_is_watched = yes }
-				debug_log = "SNW_FILTER|start_third_party|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=yes"
-			}
-			else = {
-				debug_log = "SNW_FILTER|start_third_party|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=no"
 			}
 		}
 	}

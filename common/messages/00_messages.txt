@@ -1247,11 +1247,16 @@ diplo_play_start_third_party_notification = {
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
-	# Muted 2026-09-07 (Phase 4, see TODO.md): replaced by
-	# smart_notifications_diplo_play_start_third_party_watched/_quiet,
-	# posted instead of this key by
-	# common/on_actions/03_smart_notifications_relational_notifications.txt
-	# based on whether a watched country (or the player) is involved.
+	# Muted 2026-09-07 (Phase 4, see TODO.md). Originally replaced by a
+	# dedicated smart_notifications_diplo_play_start_third_party_watched/_quiet
+	# pair, but a real playtest the same day showed that pair co-firing
+	# alongside smart_notifications_diplo_play_start_watched/_quiet for the
+	# same play (same viewer, same actor/target, near-identical text) --
+	# both channels reach the same audience, they aren't two different
+	# audiences as assumed. CORRECTED: this key stays muted permanently
+	# with no replacement of its own; on_diplo_play_start_third_party is
+	# instead the (only, and more reliable -- see that file's header
+	# comment) hook used to post smart_notifications_diplo_play_start_watched/_quiet.
 	notification_type = none
 	color = neutral
 }
@@ -1263,8 +1268,10 @@ diplo_play_war_start_third_party_notification = {
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
 	# Muted 2026-09-07 (Phase 4, see TODO.md) -- see
-	# diplo_play_start_third_party_notification's comment above; replaced
-	# by smart_notifications_diplo_play_war_start_third_party_watched/_quiet.
+	# diplo_play_start_third_party_notification's comment above, same
+	# correction: stays muted permanently, no dedicated third-party
+	# replacement. smart_notifications_diplo_play_war_start_watched/_quiet
+	# (posted from on_diplo_play_war_start) already covers this event.
 	notification_type = none
 	color = neutral
 }
@@ -2192,52 +2199,16 @@ smart_notifications_diplo_play_war_start_quiet = {
 }
 
 # Third-party notification filtering (see TODO.md's "Third-party
-# notification filtering" item). Same watched/quiet replacement
-# architecture as the three events above, for the 3 keys confirmed
-# filterable today: their root is also Diplomatic Play, so
-# any_scope_play_involved works unchanged. Vanilla's own level for all
-# three is feed, so watched keeps feed and unwatched drops one rung to
-# none, per the "unwatched = one rung quieter" convention.
-
-smart_notifications_diplo_play_start_third_party_watched = {
-	type = diplomatic_play
-	group = "smart_notifications_diplo_play_start_third_party_watched_group"
-
-	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
-
-	notification_type = feed
-	color = neutral
-}
-
-smart_notifications_diplo_play_start_third_party_quiet = {
-	type = diplomatic_play
-	group = "smart_notifications_diplo_play_start_third_party_quiet_group"
-
-	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
-
-	notification_type = none
-	color = neutral
-}
-
-smart_notifications_diplo_play_war_start_third_party_watched = {
-	type = diplomatic_play
-	group = "smart_notifications_diplo_play_war_start_third_party_watched_group"
-
-	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
-
-	notification_type = feed
-	color = neutral
-}
-
-smart_notifications_diplo_play_war_start_third_party_quiet = {
-	type = diplomatic_play
-	group = "smart_notifications_diplo_play_war_start_third_party_quiet_group"
-
-	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
-
-	notification_type = none
-	color = neutral
-}
+# notification filtering" item). REMOVED 2026-09-07 (same day, real
+# playtest): smart_notifications_diplo_play_start_third_party_watched/_quiet
+# and smart_notifications_diplo_play_war_start_third_party_watched/_quiet
+# used to live here as a separate watched/quiet pair, but turned out to be
+# pure duplicates of smart_notifications_diplo_play_start_watched/_quiet
+# and smart_notifications_diplo_play_war_start_watched/_quiet respectively
+# -- both fired for the same play, to the same viewer, at the same time.
+# See 03_smart_notifications_relational_notifications.txt's header comment
+# for the full story. Only diplo_play_subject_released (below) genuinely
+# has no primary-key sibling, so it keeps its own watched/quiet pair.
 
 smart_notifications_diplo_play_subject_released_watched = {
 	type = diplomatic_play
