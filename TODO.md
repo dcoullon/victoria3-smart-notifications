@@ -974,6 +974,31 @@ Raw list from the doc, not yet checked against what's already muted in
 [00_messages.txt](common/messages/00_messages.txt) or against the
 uncountable/no-hook list in Dev Tooling above — triage before building:
 
+- [ ] **`country_revolution`/`country_secession` — confirmed 2026-09-07 to
+      fire for OTHER countries' revolutions, not just the player's, no fix
+      built yet.** Both are in the truly-no-moddable-hook bucket (native
+      C++ code only, confirmed by an exhaustive grep across the entire
+      game directory — no script anywhere, on_action or event, ever posts
+      either key) — so genuine watchlist-conditional filtering is
+      impossible; there's no hook to attach any logic to, period. Vanilla's
+      own text ("Revolution is upon us!") reads as self-only, but the user
+      directly observed it firing repeatedly for countries that weren't
+      theirs (e.g. Perak) — the wording is misleading, not the behavior;
+      the message's `type = civil_war` (not `country`) is also consistent
+      with a broadcastable CivilWar object rather than a "your country
+      only" one. **User explicitly does NOT want a blunt universal
+      demotion** (unlike conscription/attitude in Phase 1) since this is
+      genuinely important information for watched countries — losing it
+      there isn't an acceptable tradeoff. **Proposed approach for a future
+      session:** mute the vanilla key entirely (same mechanism as every
+      other muted key, no hook needed for a static full-file override) and
+      build a fully mod-owned replacement using the same architecture as
+      the truce-expiry watcher
+      ([02_smart_notifications_truce_tracker.txt](common/on_actions/02_smart_notifications_truce_tracker.txt)):
+      a monthly pulse that checks specifically watched countries for
+      "just entered civil war" (needs its own trigger-availability check
+      first — don't assume, verify what's queryable) and posts our own
+      toast only for those. Not started.
 - [ ] **`diplomatic_action_notification` (generic) — new candidate found
       2026-09-07 via the user's own playtest, probe shipped, not yet
       built.** Confirmed still fully vanilla (`toast`, untouched by this
