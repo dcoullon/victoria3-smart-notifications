@@ -16,6 +16,18 @@ commit that ships a new feature (however small — "added a new
 notification" counts), so `0.20` → `0.21` → `0.22`. Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.27] — 2026-09-07
+
+### Changed
+
+- Watchlist tab: Deselect All now clears every country shown in that tab,
+  full stop — it previously only removed that specific reason a country
+  was watched, which could leave a country checked (correctly, but
+  confusingly) if it was also watched a different way.
+- The Watched tab now has its own Select All (refreshes the whole
+  watchlist against your current Great Powers/neighbors/rivals) and
+  Deselect All (clears the entire watchlist) buttons.
+
 ## [0.26] — 2026-09-07
 
 ### Fixed

@@ -381,48 +381,44 @@ watchlist_is_flagged_rival_check_sgui = {
 	ai_chance = { base = 0 }
 }
 
-# --- Category bulk select/deselect (added 2026-09-07) ---
+# --- Category bulk select/deselect (added 2026-09-07, SIMPLIFIED
+# 2026-09-07) ---
 # TODO.md flagged this as blocked on "no confirmed way to reference the
 # player as a GuiScope root from a plain button click (not tied to any
-# row)". Resolved the same way as the live Neighbors/Rivals checks above,
-# but via a DIFFERENT confirmed technique that fits an effect block
-# better: bind the button's own container to
+# row)". Resolved via binding the button's own container to
 # `datacontext = "[GetMetaPlayer.GetPlayedOrObservedCountry]"` in
 # gui/message_settings.gui (confirmed-real accessor -- used identically
 # in vanilla's market_panel.gui, right_click_menu.gui, ingame_hud.gui to
 # set a widget's Country context to the player without any row/list
 # involved), so `Country.MakeScope` inside that container IS the player.
-# `root` in every effect below is therefore already the player -- exactly
-# mirroring the proven pattern in
-# common/on_actions/00_smart_notifications_on_actions.txt's game-start
-# bulk-select (same `every_rival_country` / `is_adjacent_to_country = root`
-# / `country_rank >= rank_value:great_power` shapes, just re-triggerable
-# on demand instead of once at campaign start).
+# `root` in every effect below is therefore already the player.
 #
-# Deselect only removes THAT category's own flag, never the others --
-# per the multi-flag data model (TODO.md), a country also watched via a
-# different provenance correctly stays on the effective watchlist.
-# Temporary SNW_WATCHLIST| debug_log taps below (2026-09-07) -- the
-# user reported Select All not covering every matching country and
-# Deselect All appearing to only affect manually-checked ones. Rather
-# than guess at a second fix on top of the toggle-sgui gap above, these
-# confirm (via debug.log) whether root actually resolves to the player
-# when the button's Execute() fires, and how many countries actually get
-# flagged per click. Delete once confirmed either way -- same pattern as
-# the truce tracker's temporary taps
-# (common/on_actions/02_smart_notifications_truce_tracker.txt).
+# UX SIMPLIFIED per the user 2026-09-07: originally Deselect All only
+# cleared that category's own flag (preserving a country watched for a
+# different reason too) -- correct per the multi-flag data model, but
+# the user found it confusing in practice (a country staying checked
+# after "Deselect All" looks like a bug even when it isn't). Per their
+# explicit direction: "if I click select all or deselect all in a tab,
+# all the countries in that tab get selected/deselected" -- full stop,
+# no partial-flag subtlety. So Deselect All below now clears ALL FOUR
+# flags (full unwatch) for every country currently matching that tab's
+# own live filter (the exact same criteria that makes a row visible in
+# that tab), not just the category's own flag. Select All is unchanged
+# (it only ever set one flag, which already made the row checked). The
+# Watched-tab provenance tags added alongside this (see the SGUI comment
+# above) stay -- still useful for understanding a Watched-tab row that's
+# checked for more than one reason, just no longer needed to explain a
+# category's own Deselect All button.
 watchlist_bulk_select_great_power_sgui = {
 	scope = country
 
 	effect = {
-		debug_log = "SNW_WATCHLIST|bulk_select_gp_start|root=[ROOT.GetNameNoFormatting]"
 		every_country = {
 			limit = {
 				NOT = { this = root }
 				country_rank >= rank_value:great_power
 			}
 			set_variable = watched_via_great_power
-			debug_log = "SNW_WATCHLIST|bulk_select_gp_flagged|country=[THIS.GetNameNoFormatting]"
 		}
 	}
 
@@ -435,8 +431,14 @@ watchlist_bulk_deselect_great_power_sgui = {
 
 	effect = {
 		every_country = {
-			limit = { has_variable = watched_via_great_power }
+			limit = {
+				NOT = { this = root }
+				country_rank >= rank_value:great_power
+			}
 			remove_variable = watched_via_great_power
+			remove_variable = watched_via_neighbor
+			remove_variable = watched_via_rival
+			remove_variable = watched_manually
 		}
 	}
 
@@ -448,14 +450,12 @@ watchlist_bulk_select_neighbor_sgui = {
 	scope = country
 
 	effect = {
-		debug_log = "SNW_WATCHLIST|bulk_select_neighbor_start|root=[ROOT.GetNameNoFormatting]"
 		every_country = {
 			limit = {
 				NOT = { this = root }
 				is_adjacent_to_country = root
 			}
 			set_variable = watched_via_neighbor
-			debug_log = "SNW_WATCHLIST|bulk_select_neighbor_flagged|country=[THIS.GetNameNoFormatting]"
 		}
 	}
 
@@ -468,8 +468,14 @@ watchlist_bulk_deselect_neighbor_sgui = {
 
 	effect = {
 		every_country = {
-			limit = { has_variable = watched_via_neighbor }
+			limit = {
+				NOT = { this = root }
+				is_adjacent_to_country = root
+			}
+			remove_variable = watched_via_great_power
 			remove_variable = watched_via_neighbor
+			remove_variable = watched_via_rival
+			remove_variable = watched_manually
 		}
 	}
 
@@ -481,10 +487,8 @@ watchlist_bulk_select_rival_sgui = {
 	scope = country
 
 	effect = {
-		debug_log = "SNW_WATCHLIST|bulk_select_rival_start|root=[ROOT.GetNameNoFormatting]"
 		every_rival_country = {
 			set_variable = watched_via_rival
-			debug_log = "SNW_WATCHLIST|bulk_select_rival_flagged|country=[THIS.GetNameNoFormatting]"
 		}
 	}
 
@@ -496,9 +500,75 @@ watchlist_bulk_deselect_rival_sgui = {
 	scope = country
 
 	effect = {
-		every_country = {
-			limit = { has_variable = watched_via_rival }
+		every_rival_country = {
+			remove_variable = watched_via_great_power
+			remove_variable = watched_via_neighbor
 			remove_variable = watched_via_rival
+			remove_variable = watched_manually
+		}
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+# --- Watched-tab bulk actions (added 2026-09-07, per the user's request
+# for a Select All/Deselect All pair on every tab including Watched) ---
+# Select All here means "refresh the watchlist": re-run all three
+# category bulk-selects together, exactly what
+# common/on_actions/00_smart_notifications_on_actions.txt already does
+# once at campaign start -- picks up newly-qualifying Great Powers/
+# neighbors/rivals since the last refresh, matches the "static list,
+# re-click to refresh" design (TODO.md). Doesn't touch watched_manually
+# (manual adds aren't something to "discover" in bulk).
+# Deselect All here means "clear the entire watchlist" -- every country
+# currently watched for any reason, all four flags. Unlike the 3
+# category variants above, this one needs no live-filter `limit`
+# condition at all: has_variable already IS the definition of "currently
+# on the Watched tab."
+watchlist_bulk_select_watched_refresh_sgui = {
+	scope = country
+
+	effect = {
+		every_rival_country = {
+			set_variable = watched_via_rival
+		}
+		every_country = {
+			limit = {
+				NOT = { this = root }
+			}
+			if = {
+				limit = { country_rank >= rank_value:great_power }
+				set_variable = watched_via_great_power
+			}
+			if = {
+				limit = { is_adjacent_to_country = root }
+				set_variable = watched_via_neighbor
+			}
+		}
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+watchlist_bulk_deselect_watched_sgui = {
+	scope = country
+
+	effect = {
+		every_country = {
+			limit = {
+				OR = {
+					has_variable = watched_via_great_power
+					has_variable = watched_via_neighbor
+					has_variable = watched_via_rival
+					has_variable = watched_manually
+				}
+			}
+			remove_variable = watched_via_great_power
+			remove_variable = watched_via_neighbor
+			remove_variable = watched_via_rival
+			remove_variable = watched_manually
 		}
 	}
 

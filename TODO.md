@@ -486,68 +486,59 @@ four are" so the list is never empty on first open.
       test showed both sections populating correctly (previously empty
       for the boring reason above: the flag-based version depended on a
       game-start hook that had never run for that save).
-- [~] **Bulk-select/deselect buttons — BUILT 2026-09-07, confirmed live
-      but with 2 real bugs found and fixed same day (see below).** One
-      Select All / Deselect All pair per category (Great Powers/
-      Neighbors/Rivals), shown under the sub-nav row only for the active
-      category. Resolved via a *different* confirmed technique than the
-      live-check fix above: binding the button's container to
+- [~] **Bulk-select/deselect buttons — BUILT 2026-09-07, UX SIMPLIFIED
+      2026-09-07 per the user, not yet re-confirmed in-game.** One
+      Select All / Deselect All pair per tab (Watched/Great Powers/
+      Neighbors/Rivals — Manually Added excluded, no live "who
+      qualifies" set to act on), shown under the sub-nav row for the
+      active tab. Resolved via binding the button's container to
       `datacontext = "[GetMetaPlayer.GetPlayedOrObservedCountry]"` (a
       real vanilla accessor, used identically in `market_panel.gui`/
-      `right_click_menu.gui`/`ingame_hud.gui`) makes `Country.MakeScope`
-      inside it resolve to the player, so the bulk SGUIs
+      `right_click_menu.gui`/`ingame_hud.gui`) so `Country.MakeScope`
+      inside it resolves to the player, letting the bulk SGUIs
       (`watchlist_bulk_select_*_sgui`/`watchlist_bulk_deselect_*_sgui`,
       `common/scripted_guis/watchlist_sgui.txt`) run with root = player
-      directly — same `every_country`/`every_rival_country` shapes
-      already proven in the game-start on_action. Deselect clears only
-      that category's own flag, per the multi-flag data model.
+      directly.
       **Bug #1, fixed:** the individual per-row checkbox
       (`watchlist_toggle_sgui`) was shared across all five row types and
       always set `watched_manually` on a fresh watch regardless of which
       section it was clicked from — contradicting the spec ("sets only
       the one flag appropriate to where you checked it") and making a
       category's Deselect All silently skip any row the player had
-      hand-checked from that same category, since it was tagged manual
-      underneath, not with that category's flag. Split into
+      hand-checked from that same category. Split into
       `watchlist_toggle_great_power_sgui`/`_neighbor_sgui`/`_rival_sgui`,
       one per section, each setting only its own flag on the fresh-watch
-      branch; the removal branch (uncheck clears all four) is unchanged
-      and still shared conceptually across all five row types.
-      **Bug #2, diagnosed via temporary `SNW_WATCHLIST|` debug taps in
-      the three bulk-select SGUIs (still in place as of this commit —
-      delete once confirmed, same as the truce tracker's taps) — root
-      cause not yet fully confirmed live, this is the leading hypothesis
-      pending the next test:** the reported "Select All doesn't select
-      everything" is suspected to be Bug #1 above wearing a different
-      face — countries the player had already hand-checked earlier
-      (recorded as `watched_manually`) would already show as checked
-      regardless of whether Select All's own `every_country` pass
-      actually reached them, masking whether the bulk effect itself
-      was working. **Needs a fresh, clean test** (ideally on countries
-      never individually clicked before) to confirm Select All now
-      covers the full matching set post-Bug-#1-fix.
-      **Re-tested by the user 2026-09-07 (post-Bug-#1-fix): Deselect All
-      on Neighbors left Spain and the USA checked.** Very likely correct,
-      by-design multi-flag behavior, not a new bug — both are plausible
-      Great Powers in a typical game (auto-watched at campaign start via
-      `watched_via_great_power`), and Deselect All on Neighbors only ever
-      clears `watched_via_neighbor` (see the data model above: the whole
-      point of 4 separate flags is that deselecting one category can't
-      silently drop a country kept for a different reason). Added
-      **Watched-tab provenance tags** (see below) specifically so this is
-      visible instead of looking like a bug — **not independently
-      confirmed the multi-flag explanation is actually what happened for
-      Spain/USA specifically; needs a look at their tags on the Watched
-      tab (or the debug.log taps) to be sure**, rather than the general
-      design principle alone.
+      branch.
+      **UX simplified, replacing the original per-flag Deselect All
+      design entirely:** the original design only cleared a category's
+      own flag on Deselect All, correctly preserving a country watched
+      for a different reason too (per the multi-flag data model) — but
+      the user found this confusing live (Deselect All on Neighbors left
+      Spain and the USA checked, since both are also Great Powers) and
+      gave explicit direction instead: "if I click select all or
+      deselect all in a tab, all the countries in that tab get
+      selected/deselected" — full stop. Every Deselect All now clears
+      **all four flags** for every country matching that tab's own live
+      filter (Select All is unchanged, since setting one flag already
+      makes the row checked). Watched's own pair is new: Select All
+      re-runs all 3 category bulk-selects together ("refresh the
+      watchlist", matching the existing "static list, re-click to
+      refresh" design), Deselect All clears the entire watchlist
+      outright (`watchlist_bulk_select_watched_refresh_sgui`/
+      `_deselect_watched_sgui`). The temporary `SNW_WATCHLIST|` debug
+      taps from the earlier diagnosis were removed along with the code
+      they were diagnosing.
 - [x] **Watched-tab provenance tags — BUILT 2026-09-07, not yet seen
       in-game.** Per the original v1 spec ("small tags showing which
       category(ies) currently apply, e.g. 'Prussia — Great Power,
       Neighbor'") — this part was never actually built in the original
-      2026-09-06 pass. Added directly in response to the Deselect-All
-      confusion above: up to 4 small abbreviation tags (GP/NB/RV/MA,
-      full name on hover) next to each Watched-tab row, driven by 3 new
-      flag-only checks (`watchlist_is_flagged_great_power_check_sgui`/
+      2026-09-06 pass. Added originally to explain the per-flag
+      Deselect All behavior above before that was simplified away; kept
+      regardless since a Watched-tab row checked for more than one
+      reason is still useful to see at a glance. Up to 4 small
+      abbreviation tags (GP/NB/RV/MA, full name on hover) next to each
+      Watched-tab row, driven by 3 new flag-only checks
+      (`watchlist_is_flagged_great_power_check_sgui`/
       `_neighbor_check_sgui`/`_rival_check_sgui`, `watchlist_sgui.txt` --
       distinct from the live adjacency/rivalry checks used for section
       filtering, since the tag should reflect what's actually recorded,
