@@ -708,6 +708,26 @@ list for this phase with that in mind before writing the on_action.
         each of these on_actions, guarded with `?=` so a missing scope is
         skipped rather than erroring. Delete once the scope names are
         known and the filtering is built.
+- [ ] **Shorten/clarify Message Settings row labels for the Phase 4
+      watched/quiet pairs — flagged 2026-09-07 per the user's screenshot,
+      parked until the notifications themselves are confirmed working.**
+      In the Notification Types tab, our group labels (e.g. "Diplomatic
+      Play Started, Watched Country Inv…", "Diplomatic Play Start (Third
+      Party), Ambient (…") truncate hard in the list's fixed-width column
+      and read as near-duplicates of each other and of vanilla's own
+      "Diplomatic Play Start (Third Party)" row at a glance — the
+      "(Smart Notifications)" suffix (necessary per the tagging
+      convention in CLAUDE.md) makes the truncation worse since it's the
+      part that gets cut off first. Needs a naming pass across all the
+      `smart_notifications_diplo_play_*_watched/_quiet_group` and
+      `smart_notifications_diplo_play_*_third_party_watched/_quiet_group`
+      labels in
+      [smart_notifications_l_english.yml](localization/english/smart_notifications_l_english.yml)
+      — shorter, front-loaded with the distinguishing word (e.g. lead with
+      "Watched"/"Ambient" rather than burying it at the end) so the
+      truncated form is still legible without hovering. Do this only
+      after the underlying filtering is confirmed correct in-game — no
+      point polishing labels for behavior that might still change.
 - [ ] **Visually distinguish elevated (watched) notifications — parked
       2026-09-07 per the user until the watchlist selector and the base
       filtering changes are confirmed working.** Per-message presentation
