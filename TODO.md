@@ -1454,6 +1454,112 @@ commitment alert before it was ever seen live. All fixed same day:
    MakeScope failed" apart from "click worked but the read-back is wrong"
    — check `debug.log` for it on the next test.
 
+## Second playtest round — 2026-09-08, same day
+
+1. **Taxation deficit still not aggregating — REAL second bug found and
+   fixed.** The `ag_*` loc added in the first round wasn't the whole
+   story: every `alert_group` value must ALSO be registered in
+   `common/alert_groups/` (confirmed real — vanilla's own
+   `00_alert_groups.txt` lists every one of its own alert_types' group
+   names as an empty `{}` entry). Ours was referenced from the alert_type
+   but never declared there, so the engine silently never grouped it
+   at all — the `ag_*` loc was necessary but not sufficient. Fixed:
+   [common/alert_groups/01_smart_notifications_alert_groups.txt](common/alert_groups/01_smart_notifications_alert_groups.txt).
+   **Not yet re-confirmed live**, but this is now believed to be the
+   actual, complete fix (both pieces the grouping mechanism needs are in
+   place). Also worth re-checking whether this incidentally fixes the
+   font-size inconsistency reported the same round, per the earlier
+   hypothesis that the missing-group fallback rendering was the cause.
+2. **Alert list not scrollable by mouse wheel for the first 20-30s after
+   opening — reported, not diagnosed.** Checked whether any of our
+   alerts' `valid` triggers could plausibly be expensive enough to cause
+   a UI hitch: none are — agitator's `any_character_in_exile_pool` is a
+   small global list, taxation deficit's checks are cheap per-state
+   comparisons, law commitment's `any_law` only runs the expensive
+   `enactment_chance_for_law` calc for laws that already pass a cheap
+   `has_variable` filter first. No obvious mechanism found tying this to
+   our mod specifically — most likely a general engine/UI thing (session
+   startup settling) rather than something we caused, but not ruled out.
+   **Needs a repro and/or `error.log`/`game.log` lines** before this can
+   be investigated further.
+3. **No cross-alert-type "Smart Notifications Mod" category exists in the
+   engine, checked and confirmed.** `alert_group` only aggregates
+   multiple INSTANCES of the SAME alert_type (e.g. many states each
+   triggering the taxation deficit alert) — it does not merge DIFFERENT
+   alert_types (ours or vanilla's) under one shared parent label; "Low
+   Standard of Living" and "Expensive Government Goods" are two separate
+   groups in vanilla, not one. No `category` field or equivalent exists
+   anywhere in `common/alert_types/00_alert_types.txt` or
+   `common/alert_groups/`. Building this would mean modifying
+   `gui/important_actions_list.gui` itself (the file that actually
+   renders the list) — a bigger, GUI-level undertaking in the same risk
+   class as Phase 3's dropped country-panel star icon. **Not started** —
+   worth doing only if the user still wants it once told the real cost.
+4. **Law commitment checkbox: confirmed NOT WORKING live, and the design
+   itself is now in real doubt.** The user tested both a law with
+   success > stall and one with stall > success — clicking did nothing
+   either way. Investigated further and found a second, independent
+   negative signal beyond the already-flagged missing `Law.MakeScope`
+   precedent: an exhaustive grep of every `scope = ` line across EVERY
+   vanilla `common/scripted_guis/*.txt` file shows only
+   `country`/`state`/`character`/`political_movement` ever used — `law`
+   has zero precedent as a scripted_gui scope anywhere in the base game.
+   Combined with zero examples of `Law.MakeScope` (or any
+   `<type>.MakeScope` outside those same four types) anywhere in
+   `gui/`, the working theory has flipped from "unconfirmed but
+   plausible" (how it was shipped) to "likely genuinely unsupported by
+   the engine" — scripted GUIs may simply be restricted to those four
+   scope kinds, with no way to root one at an arbitrary law. **This is a
+   real design problem, not just an unconfirmed detail**, since the
+   feature's whole point (flag a SPECIFIC law, not just "whatever I'm
+   enacting") depends on identifying that specific law from a scripted
+   GUI call, and there's no confirmed way to do that yet. Investigated
+   and rejected two alternate approaches before stopping to reassess:
+   - Passing the law's identity through `GuiScope.AddScope` instead of
+     `SetRoot` — checked every vanilla `AddScope(...)` call in `gui/`;
+     all of them pass `MakeScopeBool`/`MakeScopeValue` (a plain bool or
+     number), never a scope reference to another object. No evidence
+     this can carry "which law" at all.
+   - One scripted_gui PER LAW TYPE (country-scoped, so definitely
+     supported), picked dynamically via
+     `GetScriptedGui(Concatenate('...', Law.GetLawType.GetName))` — the
+     `Concatenate` half is confirmed real and used for exactly this kind
+     of dynamic-key purpose elsewhere in this exact vanilla file
+     (`GetVariableSystem.Toggle(Concatenate(Amendment.GetName,
+     '_amendment_effects'))`, `gui/politics_panel_types.gui`), but that
+     one is a pure client-side UI toggle, NOT the same variable system
+     script triggers can read — so it doesn't solve the actual problem
+     of a SCRIPT-visible flag either way. Separately, this path would
+     also need ~126 near-identical generated scripted_gui blocks (one
+     per real `common/laws/*.txt` law_type) since a script effect can't
+     build a variable NAME dynamically — a maintenance and DLC-mismatch
+     burden judged not worth it without confirming the dynamic
+     `GetScriptedGui` key lookup even works first.
+   Removed the second checkbox copy (the per-row one added the same
+   session) per the user's own placement feedback below regardless of
+   this open question, since it was mispositioned anyway. Left the
+   detail-panel checkbox and its `SNW_LAW_NOTIFY` debug tap in place as
+   a live diagnostic — **next step is checking `debug.log` for that tap**
+   to confirm whether `Law.MakeScope` fails outright (no log line) or
+   something else is wrong (log line present, still doesn't toggle),
+   before deciding between: (a) descoping back to the original
+   "notify about current enactment" design (fully confirmed to work,
+   country-scoped, no per-law identification needed, but doesn't cover
+   flagging a law before starting to enact it), or (b) investing in the
+   bigger per-law-type generator approach above, accepting its own
+   unconfirmed piece and DLC-maintenance cost.
+5. **Checkbox positioning fixed per feedback**: the per-row copy sat at
+   the far LEFT of each law row (a leftover misreading of where
+   `spacing_between_button_and_approval_info` actually sits in
+   `gui/politics_panel_types.gui` — it's BEFORE the law button, not
+   between it and the approval-info icon on the right as its name
+   suggested) — user found it "out of position." Removed; the
+   detail-panel copy (right-side, for whichever law is currently chosen)
+   is now the only one, matching what the user asked for.
+6. **Label text tightened**: "Notify Me" → "Alert Me When I Can Pass
+   This", tooltip similarly reworded to name the actual condition
+   (support vs. pushback) rather than a vague "chance becomes good."
+
 ## New notifications/alerts backlog — sized and sequenced 2026-09-08
 
 All four items below are **P1 per the user**. This is the recommended

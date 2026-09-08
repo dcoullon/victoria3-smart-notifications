@@ -1,0 +1,17 @@
+﻿# Smart Notifications mod: registers our own alert_group(s) so the engine
+# actually knows they exist.
+#
+# ROOT CAUSE found 2026-09-08 via the user's screenshot showing 2
+# simultaneous taxation deficits NOT collapsing into one grouped entry
+# despite `alert_group = smart_notifications_taxation_deficit_states`
+# already being set on the alert_type, and its `ag_..._name/_desc/_tooltip`
+# loc already being added: every `alert_group` value used ANYWHERE must
+# also be declared in this folder (confirmed real, vanilla's own
+# common/alert_groups/00_alert_groups.txt lists every one of its own
+# alert_types' group names, e.g. `low_sol_in_state = {}`,
+# `insufficient_tax_capacity_states = {}`) -- an alert_group referenced
+# from an alert_type but never declared here appears to be silently
+# ignored, falling back to ungrouped display. This file is additive
+# across common/alert_groups/ (same convention as common/alert_types/),
+# so it only needs OUR entry, not a copy of vanilla's file.
+smart_notifications_taxation_deficit_states = {}

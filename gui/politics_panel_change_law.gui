@@ -316,52 +316,20 @@ types politics_panel_change_law {
 									blockoverride "lawgroup" {}
 									blockoverride "currently_active_law" {}
 
-									# Smart Notifications mod: per-law "notify me"
-									# checkbox, ADDED 2026-09-08 per the user's explicit
-									# ask ("the alert setup button next to each law
-									# option") after the first placement (the detail
-									# panel only, further below in this file) turned out
-									# not to be visible enough -- confirmed by the
-									# user's own screenshot of this exact list with no
-									# checkbox anywhere on it.
-									#
-									# "spacing_between_button_and_approval_info" is a
-									# real, already-empty `block` slot vanilla itself
-									# declares inside `enactable_generic_law2`
-									# (gui/politics_panel_types.gui) specifically
-									# between the law button and the approval-info icon
-									# on each row -- confirmed by reading that type's
-									# full definition rather than guessing a slot
-									# existed. Overriding it here needs no changes to
-									# politics_panel_types.gui at all (a much larger,
-									# 5900+ line file used by more law-list variants
-									# than just this screen), and the same override
-									# applies to all three of the type's row states
-									# (not selected / selected / currently active)
-									# since they all declare the same block name.
-									#
-									# Same `Law.MakeScope` risk as the detail-panel
-									# checkbox below -- see
-									# common/scripted_guis/smart_notifications_law_notify_sgui.txt
-									# for the full unconfirmed-precedent writeup. Kept
-									# deliberately icon-only (tooltip carries the
-									# meaning) since these rows are tight on horizontal
-									# space, unlike the roomier detail panel.
-									blockoverride "spacing_between_button_and_approval_info" {
-										hbox = {
-											layoutpolicy_vertical = expanding
-											margin_right = 5
-
-											checkbutton = {
-												using = check_button
-												size = { 20 20 }
-												parentanchor = vcenter
-												onclick = "[GetScriptedGui('smart_notifications_law_notify_toggle_sgui').Execute(GuiScope.SetRoot(Law.MakeScope).End)]"
-												checked = "[GetScriptedGui('smart_notifications_law_notify_check_sgui').IsValid(GuiScope.SetRoot(Law.MakeScope).End)]"
-												tooltip = "SMART_NOTIFICATIONS_LAW_NOTIFY_TOOLTIP"
-											}
-										}
-									}
+									# Smart Notifications mod: per-row checkbox REMOVED
+									# 2026-09-08, per the user -- it landed in
+									# `spacing_between_button_and_approval_info`, which
+									# turns out to sit at the FAR LEFT of the row
+									# (before the law icon/button), not next to the
+									# approval-info icon on the right as its name
+									# suggested and as intended. The user found it
+									# "out of position" and asked for the toggle to
+									# live only on the right-side detail panel for
+									# whichever law is currently chosen -- see that
+									# panel further below in this file. Also pending: a
+									# design question on whether per-law flagging is
+									# achievable at all -- see that panel's own header
+									# comment for the current state of the investigation.
 								}
 							}
 						}
@@ -581,15 +549,7 @@ types politics_panel_change_law {
 						expand = {}
 					}
 
-					# Smart Notifications mod: "notify me about THIS law" opt-in,
-					# SECOND COPY -- the per-row checkbox further up in this file
-					# (the "list of laws" vbox's `enactable_generic_law2`
-					# blockoverride) is the primary, more discoverable one added
-					# 2026-09-08 per the user's explicit ask. This detail-panel
-					# copy is kept too since it's harmless (same underlying
-					# `law` scope flag, so both always agree) and gives a
-					# labeled "Notify Me" text once a law is actually open,
-					# not just an icon.
+					# Smart Notifications mod: "notify me about THIS law" opt-in
 					# (see TODO.md and
 					# common/alert_types/01_smart_notifications_alerts.txt's
 					# smart_notifications_law_commitment_alert). REVISED
@@ -602,17 +562,32 @@ types politics_panel_change_law {
 					# enacting is exactly the case this feature is for -- not
 					# gated to `Law.IsBeingEnacted` like the vanilla
 					# "Setbacks" row above it (whose own condition it
-					# otherwise copies: same hbox/margin/spacing shape).
+					# otherwise copies: same hbox/margin/spacing shape). A
+					# second copy on each row of the law list itself was tried
+					# and REMOVED same day -- see the "list of laws" vbox
+					# further up in this file for why.
 					#
-					# Root = `law` (Law.MakeScope), not country -- see
-					# common/scripted_guis/smart_notifications_law_notify_sgui.txt
-					# for the full reasoning and the one real unconfirmed risk
-					# here: no vanilla file anywhere calls `Law.MakeScope`
-					# specifically, so this extrapolates from the same
-					# `<Type>.MakeScope` pattern already proven for
-					# Character/State/Country/PoliticalMovement rather than
-					# copying a confirmed example -- first thing to check
-					# in-game if this checkbox doesn't render or toggle.
+					# CONFIRMED NOT WORKING 2026-09-08 via the user's live test:
+					# clicking does nothing, for laws on either side of the
+					# 50% threshold. This is now the leading, most likely
+					# explanation for why: `scope = law` (in
+					# common/scripted_guis/smart_notifications_law_notify_sgui.txt)
+					# has ZERO precedent anywhere in the base game -- an
+					# exhaustive grep of every `scope = ` line across every
+					# vanilla scripted_gui shows only country/state/character/
+					# political_movement ever used, never law. Combined with
+					# zero examples of `Law.MakeScope` (also checked
+					# exhaustively) or ANY `<type>.MakeScope` for a
+					# database/instance type outside those same four, the
+					# working theory has flipped from "unconfirmed but
+					# plausible" to "likely unsupported by the engine" --
+					# scripted GUIs may simply be restricted to those four
+					# scope kinds. Not yet fully proven either way; the
+					# SNW_LAW_NOTIFY debug_log tap in the scripted_gui file
+					# still stands as the fastest way to tell "the call never
+					# ran" (Law.MakeScope failed) apart from "it ran but wrote
+					# somewhere the check-side can't see." See TODO.md for the
+					# path-forward options this now needs before rebuilding.
 					hbox = {
 						layoutpolicy_horizontal = preferred
 						spacing = 4

@@ -225,8 +225,10 @@
  # gui/politics_panel_change_law.gui) -- not settings-adjacent, so no (SN)
  # tag per CLAUDE.md's tagging rule (that's for Message-Settings-visible
  # labels only, not in-panel UI text).
- SMART_NOTIFICATIONS_LAW_NOTIFY_LABEL:0 "Notify Me"
- SMART_NOTIFICATIONS_LAW_NOTIFY_TOOLTIP:0 "Get a notification when this law's chance of passing becomes good."
+ # Wording tightened 2026-09-08 per the user ("Notify Me" alone was too
+ # vague about what it does).
+ SMART_NOTIFICATIONS_LAW_NOTIFY_LABEL:0 "Alert Me When I Can Pass This"
+ SMART_NOTIFICATIONS_LAW_NOTIFY_TOOLTIP:0 "Get a notification when this law has more support than pushback and is worth enacting."
 
  # Country Watchlist tab (see gui/message_settings.gui and TODO.md Phase 3).
  SMART_NOTIFICATIONS_WATCHLIST_TAB:0 "Watchlist"
