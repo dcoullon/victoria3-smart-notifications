@@ -163,7 +163,17 @@ localization, not something this mod touches; nothing actionable here
 short of a bug report to Paradox. Noted in case it recurs and looks like
 something we caused.
 
-## Phase 3 — Country Watchlist Selection UI (target: v0.3.0)
+## Phase 3 — Country Watchlist Selection UI — CLOSED, confirmed working 2026-09-07
+
+**BASELINE.** The country selector was confirmed working end-to-end in-game
+by the user on 2026-09-07 and is the clean baseline for all later work: five
+views (Watched / Great Powers / Neighbors grouped by continent / Rivals /
+All Countries), per-row checkboxes, and Select All / Deselect All per tab
+(Watched has Deselect All only). Decentralized countries are excluded
+throughout. The mechanisms that make it work are pinned in
+`tools/validate_syntax.py`'s KNOWN_GOOD list — if a later change trips one of
+those, restore the invariant rather than "fixing" it, and re-read
+`docs/engine-notes.md` first.
 
 **Spec refined 2026-09-06 with the user — read this before implementing,
 it fully replaces the original one-line stub.**

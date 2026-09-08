@@ -65,13 +65,17 @@ def validate_file(file_path: Path):
 # perfectly valid script that silently did the wrong thing. Each entry is
 # (file, required substring, why it matters).
 #
-# The Watchlist row checks in particular have now been broken twice by
-# rewriting `root` (the ROW's country, supplied by the GUI) into the global
-# player pointer, which turns "is the player adjacent to this row's country"
-# into "is the player adjacent to the player" -- always false, empties the
-# tab. The bulk actions are the opposite case: they genuinely need the global
-# pointer, because `root` is NOT reliably the player there. Both directions
-# are asserted so neither can be "fixed" into the other again.
+# The Watchlist is the cautionary tale these exist for. Its row checks were
+# broken twice by rewriting `root` (the ROW's country, supplied by the GUI)
+# into a player reference, turning "is the player adjacent to this row's
+# country" into "is the player adjacent to the player" -- always false, which
+# empties the tab. The bulk actions are the opposite case: `root` is NOT a
+# usable country there, so they must find the player via is_player +
+# save_scope_as. Same-looking expression, opposite correct answers, one file.
+# Both directions are asserted so neither can be "fixed" into the other again.
+#
+# Baseline: the country selector was confirmed working end-to-end in-game on
+# 2026-09-07. Everything below is part of that confirmed state.
 KNOWN_GOOD = [
     ("common/scripted_guis/watchlist_sgui.txt",
      "is_adjacent_to_country = root",
@@ -95,6 +99,11 @@ KNOWN_GOOD = [
      "save_scope_as. `root` is NOT a usable country in a button-triggered "
      "scripted GUI (proven by the 2026-09-07 root probes: the effect runs, "
      "but the root cannot be resolved as a country)"),
+    ("common/scripted_triggers/00_smart_notifications_triggers.txt",
+     "NOT = { is_country_type = decentralized }",
+     "A decentralized country must never count as watched at RUNTIME either "
+     "-- a stale flag on one cannot be cleared by any bulk action, because "
+     "every_country does not reach decentralized countries"),
     ("common/scripted_guis/watchlist_sgui.txt",
      "NOT = { is_country_type = decentralized }",
      "Decentralized countries must stay excluded from the Watchlist. They "
