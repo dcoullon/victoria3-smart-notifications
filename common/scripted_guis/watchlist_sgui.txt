@@ -671,79 +671,25 @@ watchlist_bulk_deselect_rival_sgui = {
 	ai_chance = { base = 0 }
 }
 
-# --- Watched-tab bulk actions ---
-# Select All = "refresh the watchlist": re-run all three category
-# selections at once, the same thing the game-start hook does.
-# Deselect All = clear the entire watchlist.
+# --- Watched-tab bulk action ---
+# Deselect All = clear the entire watchlist. There is deliberately no
+# Select All here: dropped 2026-09-07 per the user, because "select all"
+# on a view defined as "everything already selected" has no sensible
+# meaning -- in practice it just watched most of the world.
 
-watchlist_bulk_select_watched_refresh_sgui = {
-	scope = country
-
-	effect = {
-		# Establish the player WITHOUT relying on `root`. Confirmed by the
-		# 2026-09-07 root probes: all three SetRoot forms do execute the
-		# effect, but `[THIS.GetCountry...]` never resolved, i.e. the root
-		# handed to a button-triggered scripted GUI is not a usable
-		# country. This mirrors the pattern that provably works in
-		# common/on_actions/00_smart_notifications_on_actions.txt's
-		# game-start hook instead: find the player by trigger, save it,
-		# then compare against the saved scope.
-		every_country = {
-			limit = { is_player = yes }
-			save_scope_as = snw_bulk_player
-		}
-
-		scope:snw_bulk_player = {
-			every_rival_country = {
-				set_variable = watched_via_rival
-			}
-		}
-		every_country = {
-			limit = {
-				NOT = { this = scope:snw_bulk_player }
-				NOT = { is_country_type = decentralized }
-			}
-			if = {
-				limit = { country_rank >= rank_value:great_power }
-				set_variable = watched_via_great_power
-			}
-			if = {
-				limit = { is_adjacent_to_country = scope:snw_bulk_player }
-				set_variable = watched_via_neighbor
-			}
-		}
-	}
-
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
 
 watchlist_bulk_deselect_watched_sgui = {
 	scope = country
 
 	effect = {
-		# Establish the player WITHOUT relying on `root`. Confirmed by the
-		# 2026-09-07 root probes: all three SetRoot forms do execute the
-		# effect, but `[THIS.GetCountry...]` never resolved, i.e. the root
-		# handed to a button-triggered scripted GUI is not a usable
-		# country. This mirrors the pattern that provably works in
-		# common/on_actions/00_smart_notifications_on_actions.txt's
-		# game-start hook instead: find the player by trigger, save it,
-		# then compare against the saved scope.
+		# Clear the entire watchlist. Deliberately NO `limit` and no
+		# player lookup: "remove every flag from every country" needs
+		# neither, and removing a variable a country doesn't have is a
+		# harmless no-op. The previous version filtered on
+		# `OR = { has_variable ... }` and did nothing in-game (confirmed by
+		# the user 2026-09-07) while the sibling Select All on the same tab
+		# worked, so that limit was the only thing the two didn't share.
 		every_country = {
-			limit = { is_player = yes }
-			save_scope_as = snw_bulk_player
-		}
-
-		every_country = {
-			limit = {
-				OR = {
-					has_variable = watched_via_great_power
-					has_variable = watched_via_neighbor
-					has_variable = watched_via_rival
-					has_variable = watched_manually
-				}
-			}
 			remove_variable = watched_via_great_power
 			remove_variable = watched_via_neighbor
 			remove_variable = watched_via_rival

@@ -34,6 +34,13 @@ mod hasn't reached a 1.0 concept of "breaking changes" yet.
   watching one isn't meaningful, and they were the source of Select All
   appearing to skip entries.
 
+### Changed
+
+- The "Add a Country" view is now called **All Countries**.
+- The Watched tab has only a Deselect All button; its Select All was
+  removed (on a list defined as "everything already watched" it had no
+  sensible meaning, and in practice just watched most of the world).
+
 ## [0.31] — 2026-09-07
 
 ### Added

@@ -566,11 +566,11 @@ types message_settings {
 				# with root = player. Manually Added gets no bulk row: it
 				# has no live "who qualifies" set to bulk-act on. Watched
 				# DOES get its own pair (added 2026-09-07, per the user) --
-				# Select All refreshes the whole watchlist (re-runs all 3
-				# category bulk-selects), Deselect All clears every
-				# currently watched country outright -- see
-				# watchlist_bulk_select_watched_refresh_sgui/
-				# _deselect_watched_sgui in watchlist_sgui.txt.
+				# The Watched tab has ONLY a Deselect All (clears the whole
+				# watchlist). Its Select All was dropped 2026-09-07 per the
+				# user: "select all" on a view defined as "everything
+				# already selected" has no sensible meaning, and in
+				# practice just watched most of the world.
 				#
 				# UX SIMPLIFIED 2026-09-07 per the user: every Deselect All
 				# below now clears ALL FOUR flags (full unwatch) for every
@@ -586,13 +586,6 @@ types message_settings {
 					margin_bottom = 5
 					datacontext = "[GetMetaPlayer.GetPlayedOrObservedCountry]"
 					visible = "[And(GetVariableSystem.HasValue('message_settings_watchlist', 'true'), Not(Or(GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'great_powers'), Or(GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'neighbors'), Or(GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'rivals'), GetVariableSystem.HasValue('smart_notifications_watchlist_section', 'manual'))))))]"
-
-					button = {
-						size = { 200 32 }
-						using = default_button
-						text = "SMART_NOTIFICATIONS_WATCHLIST_SELECT_ALL"
-						onclick = "[GetScriptedGui('watchlist_bulk_select_watched_refresh_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
-					}
 
 					button = {
 						size = { 200 32 }
