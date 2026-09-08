@@ -65,6 +65,26 @@ Confirmed the hard way: an early debug tool used `[Root.GetName]` /
 playtest, before anyone checked `error.log`. Always verify a bracket
 expression against a real vanilla example before trusting it.
 
+**`SCOPE.sC('name')` does NOT need `.GetCountry` chained onto it — it's
+already cast.** Confirmed the hard way a second time, 2026-09-08: writing
+`06_smart_notifications_diplomatic_action_filtering.txt`, a probe had
+confirmed `[THIS.GetCountry.GetNameNoFormatting]` worked from *inside* a
+re-scoped `scope:actor ?= { ... }` block (see the probes file). That
+result got pattern-matched into a different, un-re-scoped context —
+`[SCOPE.sC('actor').GetCountry.GetNameNoFormatting]` — on the assumption
+that "add `.GetCountry`" was the general fix, the same shape as the
+`THIS` cast below. It isn't: `SCOPE.sC(...)` is *already* Country-cast
+(see the line above), so chaining `.GetCountry` onto it is the wrong
+accessor for that return type, and it errored the same "Data error in
+loc string" way — silently, again, for a whole build cycle, found only
+because the user reported a *different*, user-visible bug (broken
+notification text) that prompted checking `error.log` at all. `THIS`
+needs the cast because it's a generic wrapper; `SCOPE.sC(...)` doesn't,
+because the cast is already baked into that function. Two different
+things that happen to look similar in the debug_log source — don't
+transplant a working chain from one without checking which kind of
+scope reference it started from.
+
 ## `every_country` does not appear to reach decentralized countries
 
 Confirmed empirically 2026-09-07, and it invalidates the docs: the
