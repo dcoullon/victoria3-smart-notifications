@@ -315,6 +315,53 @@ types politics_panel_change_law {
 								enactable_generic_law2 = {
 									blockoverride "lawgroup" {}
 									blockoverride "currently_active_law" {}
+
+									# Smart Notifications mod: per-law "notify me"
+									# checkbox, ADDED 2026-09-08 per the user's explicit
+									# ask ("the alert setup button next to each law
+									# option") after the first placement (the detail
+									# panel only, further below in this file) turned out
+									# not to be visible enough -- confirmed by the
+									# user's own screenshot of this exact list with no
+									# checkbox anywhere on it.
+									#
+									# "spacing_between_button_and_approval_info" is a
+									# real, already-empty `block` slot vanilla itself
+									# declares inside `enactable_generic_law2`
+									# (gui/politics_panel_types.gui) specifically
+									# between the law button and the approval-info icon
+									# on each row -- confirmed by reading that type's
+									# full definition rather than guessing a slot
+									# existed. Overriding it here needs no changes to
+									# politics_panel_types.gui at all (a much larger,
+									# 5900+ line file used by more law-list variants
+									# than just this screen), and the same override
+									# applies to all three of the type's row states
+									# (not selected / selected / currently active)
+									# since they all declare the same block name.
+									#
+									# Same `Law.MakeScope` risk as the detail-panel
+									# checkbox below -- see
+									# common/scripted_guis/smart_notifications_law_notify_sgui.txt
+									# for the full unconfirmed-precedent writeup. Kept
+									# deliberately icon-only (tooltip carries the
+									# meaning) since these rows are tight on horizontal
+									# space, unlike the roomier detail panel.
+									blockoverride "spacing_between_button_and_approval_info" {
+										hbox = {
+											layoutpolicy_vertical = expanding
+											margin_right = 5
+
+											checkbutton = {
+												using = check_button
+												size = { 20 20 }
+												parentanchor = vcenter
+												onclick = "[GetScriptedGui('smart_notifications_law_notify_toggle_sgui').Execute(GuiScope.SetRoot(Law.MakeScope).End)]"
+												checked = "[GetScriptedGui('smart_notifications_law_notify_check_sgui').IsValid(GuiScope.SetRoot(Law.MakeScope).End)]"
+												tooltip = "SMART_NOTIFICATIONS_LAW_NOTIFY_TOOLTIP"
+											}
+										}
+									}
 								}
 							}
 						}
@@ -534,7 +581,15 @@ types politics_panel_change_law {
 						expand = {}
 					}
 
-					# Smart Notifications mod: "notify me about THIS law" opt-in
+					# Smart Notifications mod: "notify me about THIS law" opt-in,
+					# SECOND COPY -- the per-row checkbox further up in this file
+					# (the "list of laws" vbox's `enactable_generic_law2`
+					# blockoverride) is the primary, more discoverable one added
+					# 2026-09-08 per the user's explicit ask. This detail-panel
+					# copy is kept too since it's harmless (same underlying
+					# `law` scope flag, so both always agree) and gives a
+					# labeled "Notify Me" text once a law is actually open,
+					# not just an icon.
 					# (see TODO.md and
 					# common/alert_types/01_smart_notifications_alerts.txt's
 					# smart_notifications_law_commitment_alert). REVISED

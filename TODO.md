@@ -1380,6 +1380,80 @@ so it doesn't re-fire every month afterward.
       government-type change, etc.) would reuse the same monthly-pulse +
       repeat-guard shape. Worth a dedicated phase if more of these show up.
 
+## First real playtest of the new alerts — 2026-09-08, fixes applied
+
+The user's first live test of the agitator and taxation deficit alerts
+surfaced real bugs, plus a design-clarification round on the law
+commitment alert before it was ever seen live. All fixed same day:
+
+1. **Every alert was missing its `_hint` loc key.** Confirmed live via
+   screenshot: the alert tooltip showed the raw key name
+   (`alert_smart_notifications_taxation_deficit_alert_hint`) as literal
+   text instead of hiding the line — vanilla's own alert tooltip template
+   always tries to render a hint. Fixed for all four alerts (amendment,
+   agitator, taxation deficit, law commitment); `_desc` turns out to be
+   genuinely optional (vanilla's own `low_market_access_alert` skips it),
+   but `_hint` isn't.
+2. **Country-scoped alerts were also missing `_action`** (the "Click to
+   open..." link's own text) — confirmed live via the agitator alert's
+   screenshot showing the raw key there too. The taxation deficit alert
+   already had one (copied from vanilla's state-scoped alerts), but that
+   same convention needed applying to amendment/agitator/law-commitment
+   too. Fixed for all four.
+3. **Taxation deficit alert never aggregated across multiple states** (the
+   "many states in deficit, like a big colonial empire" case the user
+   asked about) despite having `alert_group` set. Root cause: an
+   `alert_group` on the alert_type only turns grouping ON in the engine —
+   the actual collapsed header ("X states...", with a count) needs its
+   OWN separate `ag_<group>_name`/`_desc`/`_tooltip` loc keys, confirmed
+   via vanilla's own `ag_low_sol_in_state_name`/
+   `ag_expensive_government_goods_name` (same loc file). Missing these,
+   the game apparently falls back to listing every instance as a flat
+   individual row — which is also the leading explanation for the user's
+   separately-reported **font-size inconsistency** between our alerts
+   (that fallback path likely isn't styled for standalone display). Added
+   the missing `ag_smart_notifications_taxation_deficit_states_*` keys;
+   this is now the answer to "is aggregation possible" — yes, this exact
+   mechanism, already used, just missing its loc half. **Not yet
+   re-confirmed live** whether this also fixed the font-size symptom —
+   worth another look once the user has 2+ states in deficit again.
+4. **Alert-list "jump to top, an entry seems to vanish" glitch** — reported
+   once, not yet reproduced or diagnosed. Nothing found yet linking this
+   to our alerts specifically (could be vanilla, could be ours) — needs a
+   repro and/or `error.log`/`game.log` lines from the user before this can
+   be investigated further.
+5. **No cross-alert-type category ("Smart Notifications Mod" folder)
+   exists in the engine.** Checked: `alert_group` only aggregates multiple
+   INSTANCES of the SAME alert_type (e.g. many states each triggering the
+   taxation deficit alert) — it does not merge DIFFERENT alert_types
+   (ours or vanilla's) under one shared parent label the way "Low Standard
+   of Living" and "Expensive Government Goods" are still two separate
+   groups, not one. No `category` field or equivalent found anywhere in
+   `common/alert_types/00_alert_types.txt`. Building this would mean
+   modifying `gui/important_actions_list.gui` itself (the file that
+   actually renders the alert list) — a bigger, GUI-level undertaking in
+   the same risk class as Phase 3's dropped country-panel star icon.
+   **Not started** — worth doing only if the user still wants it once told
+   the real cost; the "(SN) " prefix already gives at-a-glance
+   recognizability without this.
+6. **Law commitment: the checkbox was never visible at all.** The user
+   correctly identified this only lived in the (usually-empty,
+   nothing-selected-yet) detail panel; per their explicit ask, added a
+   SECOND copy directly on each row of the law list itself
+   (`gui/politics_panel_change_law.gui`, via a real, already-existing
+   empty `block "spacing_between_button_and_approval_info"` slot vanilla
+   declares inside `enactable_generic_law2` for exactly this kind of
+   per-row addition — found by reading that type's full definition rather
+   than guessing, and confirmed it needs no changes to its own much
+   larger host file, `gui/politics_panel_types.gui`). Both copies read/
+   write the same underlying `law`-scope flag, so they always agree.
+   **Still carries the same unconfirmed `Law.MakeScope` risk as before** —
+   now used in two places instead of one, so if it's wrong, expect neither
+   checkbox to work. Added a temporary `SNW_LAW_NOTIFY` debug_log tap to
+   the toggle SGUI specifically to tell "click did nothing because
+   MakeScope failed" apart from "click worked but the read-back is wrong"
+   — check `debug.log` for it on the next test.
+
 ## New notifications/alerts backlog — sized and sequenced 2026-09-08
 
 All four items below are **P1 per the user**. This is the recommended

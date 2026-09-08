@@ -147,29 +147,65 @@
  # notification-tagging convention, since both are settings-adjacent labels
  # rather than the sentence-shaped tooltip desc. Also corrected from
  # square brackets to parentheses -- see the truce entry above for why.
+ # CORRECTED 2026-09-08 per the user's screenshots: every alert below was
+ # missing its `_hint` loc key (vanilla's own alert tooltip template always
+ # tries to render one, and shows the RAW key name instead of hiding it
+ # when missing -- confirmed live for both the taxation deficit and
+ # agitator alerts). Country-scoped alerts were also missing `_action`
+ # (the "Click to open..." line's own text; the taxation deficit alert
+ # already had one since it's state-scoped, but that convention needed
+ # applying everywhere, not just there). Confirmed against vanilla's own
+ # `alert_low_market_access_alert`/`alert_insufficient_tax_capacity_alert`
+ # (localization/english/alerts_l_english.yml), both of which define
+ # `_name`/`_hint`/`_action` (and `_desc` is genuinely optional -- vanilla's
+ # low_market_access one skips it).
  alert_smart_notifications_amendment_repealable_alert_name:0 "(SN) Amendment Repeal Available"
  alert_smart_notifications_amendment_repealable_alert_desc:0 "At least one amendment on one of our active laws can now be repealed without contesting a new enactment vote."
+ alert_smart_notifications_amendment_repealable_alert_hint:0 "Open the Politics screen's Laws tab, find the active law with the repealable amendment, and repeal it without needing to win a full re-enactment vote."
+ alert_smart_notifications_amendment_repealable_alert_action:0 "Open Politics"
  smart_notifications_amendment_repealable_alert_setting_name:0 "(SN) Amendment Repeal Available"
 
  # Agitator invite alert (see common/alert_types/01_smart_notifications_alerts.txt
- # and TODO.md's sized backlog). Same two-key shape as the amendment alert
- # above -- ribbon tooltip name/desc plus the separate _setting_name Message
- # Settings row label.
+ # and TODO.md's sized backlog). Same key shape as the amendment alert
+ # above -- ribbon tooltip name/desc/hint/action plus the separate
+ # _setting_name Message Settings row label.
  alert_smart_notifications_agitator_invite_available_alert_name:0 "(SN) Agitator Invite Available"
  alert_smart_notifications_agitator_invite_available_alert_desc:0 "We have an open agitator slot and at least one exiled agitator eligible to invite."
+ alert_smart_notifications_agitator_invite_available_alert_hint:0 "Open the exile pool from the Politics screen and use Invite Exile to bring an eligible agitator into an open slot."
+ alert_smart_notifications_agitator_invite_available_alert_action:0 "Open Politics"
  smart_notifications_agitator_invite_available_alert_setting_name:0 "(SN) Agitator Invite Available"
 
  # Taxation deficit alert (see common/alert_types/01_smart_notifications_alerts.txt
- # and TODO.md's sized backlog). `SCOPE.GetRootScope.GetState.GetName` and the
- # extra `_action` key (shown as the grouped important-action's row label,
- # since this alert uses alert_group) both copied from vanilla's own
+ # and TODO.md's sized backlog). `SCOPE.GetRootScope.GetState.GetName` and
+ # the `_action`/`_hint` keys all copied from vanilla's own
  # `player_state`-scoped alerts (alert_insufficient_tax_capacity_alert/
  # alert_low_market_access_alert, localization/english/alerts_l_english.yml)
  # rather than guessing the dynamic-text chain ourselves.
  alert_smart_notifications_taxation_deficit_alert_name:0 "(SN) [SCOPE.GetRootScope.GetState.GetName] has a Taxation Deficit"
  alert_smart_notifications_taxation_deficit_alert_desc:0 "[SCOPE.GetRootScope.GetState.GetName] has insufficient Taxation Capacity for its population, reducing the efficiency of all forms of taxation there."
+ alert_smart_notifications_taxation_deficit_alert_hint:0 "Build [GetBuildingType('building_government_administration').GetName] in [SCOPE.GetRootScope.GetState.GetName] to raise its [concept_tax_capacity], or look at your laws and technology to modernize your bureaucratic apparatus nationwide."
  alert_smart_notifications_taxation_deficit_alert_action:0 "State Panel for [SCOPE.GetRootScope.GetState.GetName]"
  smart_notifications_taxation_deficit_alert_setting_name:0 "(SN) Taxation Deficit"
+
+ # Alert GROUP loc for the taxation deficit alert -- SEPARATE from the
+ # alert's own _name/_desc/_hint above, and MISSING until 2026-09-08 (found
+ # via the user's screenshot: with 2+ states simultaneously in deficit, the
+ # alert list showed each as its own flat row instead of collapsing into
+ # one "X states" bucket the way vanilla's own grouped important_actions do
+ # -- e.g. "Low Standard of Living (6)"). Root cause: an `alert_group` on
+ # the alert_type only enables grouping in the ENGINE; the collapsed
+ # header/tooltip text itself needs its own separate `ag_<group>_name`/
+ # `_desc`/`_tooltip` keys (confirmed via vanilla's own
+ # `ag_low_sol_in_state_name`/`ag_expensive_government_goods_name`, same
+ # alerts_l_english.yml) -- without them, the game apparently can't render
+ # the grouped header and falls back to listing every instance
+ # individually, which is also the leading explanation for the user's
+ # separately-reported font-size inconsistency (that fallback path likely
+ # isn't meant for standalone display). `$ALERT_GROUP_TOOLTIP_FOOTER$` is
+ # vanilla's own shared macro, reused rather than redefined.
+ ag_smart_notifications_taxation_deficit_states_name:0 "(SN) States with a Taxation Deficit"
+ ag_smart_notifications_taxation_deficit_states_desc:0 "We have states whose Taxation Capacity is insufficient for their population, reducing the efficiency of all forms of taxation there."
+ ag_smart_notifications_taxation_deficit_states_tooltip:0 "#header $ag_smart_notifications_taxation_deficit_states_name$#!\n$TOOLTIP_DELIMITER$\n$ag_smart_notifications_taxation_deficit_states_desc$\n\n$ALERT_GROUP_TOOLTIP_FOOTER$"
 
  # Law commitment alert (see common/alert_types/01_smart_notifications_alerts.txt,
  # common/scripted_guis/smart_notifications_law_notify_sgui.txt, and
@@ -181,6 +217,8 @@
  # specific law you flagged," not "whatever you're currently enacting."
  alert_smart_notifications_law_commitment_alert_name:0 "(SN) Law Ready to Enact"
  alert_smart_notifications_law_commitment_alert_desc:0 "A law you flagged now has more support than pushback and is worth enacting."
+ alert_smart_notifications_law_commitment_alert_hint:0 "Open the Politics screen's Laws tab and start enacting the flagged law while the odds are in your favor."
+ alert_smart_notifications_law_commitment_alert_action:0 "Open Politics"
  smart_notifications_law_commitment_alert_setting_name:0 "(SN) Law Ready to Enact"
 
  # "Notify me" checkbox on the law detail panel itself (see
