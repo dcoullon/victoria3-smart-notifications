@@ -675,13 +675,29 @@ list for this phase with that in mind before writing the on_action.
       hook, same bug) — no separate root cause needed there. Does NOT
       explain "random country improving relations" (a different,
       already-tracked issue — see the `diplomatic_action_notification`
-      item below) or the "duplicate join-side notification" report (the
-      `SNW_FILTER|join_side` log for that exact session shows only ONE
-      decision line, i.e. our code posted exactly once — the "second,
-      undecorated" notification the user saw is more likely Vic3's own
-      normal toast-then-feed-row rendering for any toast, not a mod bug;
-      unconfirmed, needs the user to check whether this happens for
-      *every* toast, ours or vanilla's, before concluding either way).
+      item below).
+      **CORRECTED same day** — the "duplicate join-side notification"
+      report was NOT the harmless toast-then-feed-row rendering first
+      guessed at (that guess was based on an incomplete grep of only part
+      of the log). The user pushed back, correctly: re-checking the FULL
+      log showed `on_diplo_play_join_side` fired **13 times, identically**
+      (same actor=Cambodia/target=Nepal/recipient, same second) for one
+      real event — a genuine repeat-invocation bug, not a rendering
+      artifact. **Fixed same day, all 4 events (not just join_side, since
+      the same on_action-repeats-itself pattern likely affects all of
+      them):** a same-play dedup guard using a confirmed-real vanilla
+      pattern (`set_variable = { name = X value = yes days = N }`, the
+      exact mechanic behind e.g. `ai_expedition_cooldown` in
+      `common/decisions/*_expedition_decision.txt`) — a `days = 1` flag
+      set on root (the diplomatic play, which persists across the repeat
+      invocations) suppresses every firing after the first one each day.
+      Known, accepted tradeoff: two genuinely different real events for
+      the same diplomatic play on the same calendar day would also
+      collapse into one notification — far preferable to 13x spam. Not
+      yet confirmed in-game (needs a restart + a fresh join-side/start/
+      war-start/subject-released event to verify the guard actually
+      suppresses the repeats without swallowing the real notification
+      too).
       **Diagnostic shipped, not yet fixed:** added two more targeted
       checks inside all 3 events' existing `every_scope_play_involved`
       loop — `is_diplomatic_play_committed_participant` (global, "is this
@@ -694,7 +710,11 @@ list for this phase with that in mind before writing the on_action.
       check) is NOT being rewritten until a real session confirms which
       of these two triggers correctly says "no" for Great Britain in a
       Two-Sicilies-shaped case while still saying "yes" for genuine
-      participants (e.g. an actual war combatant). Next step: get one
+      participants (e.g. an actual war combatant). **User's own read,
+      2026-09-08:** "involved" is broad by design — it likely just means
+      a country *can* participate in the play (probably gated by having
+      sufficiently high interest in the region/parties), not that it has.
+      Consistent with the Great Power pattern observed. Next step: get one
       more `SNW_FILTER|...|committed=`/`participant_with_actor=` log
       sample, then rebuild the elevation check around whichever trigger
       proves correct.

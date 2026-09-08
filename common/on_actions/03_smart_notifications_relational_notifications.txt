@@ -123,16 +123,36 @@ on_diplo_play_subject_released = {
 # used to be two separate (and duplicating) channels.
 smart_notifications_diplo_play_start = {
 	effect = {
+		# DEDUP GUARD (2026-09-08) -- a real session showed this exact
+		# on_action firing 13 TIMES in the same second for one real
+		# "Cambodia sides with Nepal"-shaped event (see join_side below,
+		# same fix applied to all 4 events in this file since the on_action
+		# invocation, not our own script, is what's repeating). Root
+		# (the diplomatic play) persists across all those repeat calls, so
+		# a short-lived flag on root -- confirmed-real vanilla pattern,
+		# `set_variable = { name = X value = yes days = N }`, e.g.
+		# ai_expedition_cooldown in common/decisions/*_expedition_decision.txt
+		# -- collapses the burst into a single notification. Known
+		# tradeoff, accepted: two genuinely different actors starting a
+		# NEW play against the same target on the same day would also be
+		# collapsed to one notification; far better than 13x spam.
 		if = {
-			limit = {
-				any_scope_play_involved = { smart_notifications_is_watched = yes }
+			limit = { NOT = { has_variable = smart_notifications_start_notified_recently } }
+			set_variable = { name = smart_notifications_start_notified_recently value = yes days = 1 }
+			if = {
+				limit = {
+					any_scope_play_involved = { smart_notifications_is_watched = yes }
+				}
+				post_notification = smart_notifications_diplo_play_start_watched
+				debug_log = "SNW_FILTER|start|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
 			}
-			post_notification = smart_notifications_diplo_play_start_watched
-			debug_log = "SNW_FILTER|start|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
+			else = {
+				post_notification = smart_notifications_diplo_play_start_quiet
+				debug_log = "SNW_FILTER|start|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
+			}
 		}
 		else = {
-			post_notification = smart_notifications_diplo_play_start_quiet
-			debug_log = "SNW_FILTER|start|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
+			debug_log = "SNW_FILTER|start|DUPLICATE_SUPPRESSED"
 		}
 
 		# TEMPORARY instrumentation (2026-09-07) so a playtest can show
@@ -185,16 +205,29 @@ smart_notifications_diplo_play_start = {
 # Root = Diplomatic Play
 smart_notifications_diplo_play_join_side = {
 	effect = {
+		# DEDUP GUARD (2026-09-08) -- confirmed via a real session:
+		# on_diplo_play_join_side fired 13 TIMES in the same second for
+		# one real "Cambodia sides with Nepal" event (identical
+		# actor/target/recipient every time). See
+		# smart_notifications_diplo_play_start's copy of this guard above
+		# for the full writeup and the vanilla precedent it's based on.
 		if = {
-			limit = {
-				any_scope_play_involved = { smart_notifications_is_watched = yes }
+			limit = { NOT = { has_variable = smart_notifications_join_side_notified_recently } }
+			set_variable = { name = smart_notifications_join_side_notified_recently value = yes days = 1 }
+			if = {
+				limit = {
+					any_scope_play_involved = { smart_notifications_is_watched = yes }
+				}
+				post_notification = smart_notifications_diplo_play_join_side_watched
+				debug_log = "SNW_FILTER|join_side|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|ELEVATED"
 			}
-			post_notification = smart_notifications_diplo_play_join_side_watched
-			debug_log = "SNW_FILTER|join_side|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|ELEVATED"
+			else = {
+				post_notification = smart_notifications_diplo_play_join_side_quiet
+				debug_log = "SNW_FILTER|join_side|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|QUIET"
+			}
 		}
 		else = {
-			post_notification = smart_notifications_diplo_play_join_side_quiet
-			debug_log = "SNW_FILTER|join_side|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|QUIET"
+			debug_log = "SNW_FILTER|join_side|DUPLICATE_SUPPRESSED"
 		}
 
 		# TEMPORARY instrumentation (2026-09-07) so a playtest can show
@@ -234,16 +267,27 @@ smart_notifications_diplo_play_join_side = {
 # Root = Diplomatic Play
 smart_notifications_diplo_play_war_start = {
 	effect = {
+		# DEDUP GUARD (2026-09-08) -- see smart_notifications_diplo_play_start's
+		# copy of this guard above for the full writeup (confirmed 13x
+		# repeat firing for one join_side event; applied defensively to
+		# all 4 events in this file, not just the one directly observed).
 		if = {
-			limit = {
-				any_scope_play_involved = { smart_notifications_is_watched = yes }
+			limit = { NOT = { has_variable = smart_notifications_war_start_notified_recently } }
+			set_variable = { name = smart_notifications_war_start_notified_recently value = yes days = 1 }
+			if = {
+				limit = {
+					any_scope_play_involved = { smart_notifications_is_watched = yes }
+				}
+				post_notification = smart_notifications_diplo_play_war_start_watched
+				debug_log = "SNW_FILTER|war_start|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
 			}
-			post_notification = smart_notifications_diplo_play_war_start_watched
-			debug_log = "SNW_FILTER|war_start|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
+			else = {
+				post_notification = smart_notifications_diplo_play_war_start_quiet
+				debug_log = "SNW_FILTER|war_start|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
+			}
 		}
 		else = {
-			post_notification = smart_notifications_diplo_play_war_start_quiet
-			debug_log = "SNW_FILTER|war_start|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
+			debug_log = "SNW_FILTER|war_start|DUPLICATE_SUPPRESSED"
 		}
 
 		# TEMPORARY instrumentation (2026-09-07) so a playtest can show
@@ -283,16 +327,25 @@ smart_notifications_diplo_play_war_start = {
 # Root = Diplomatic Play
 smart_notifications_diplo_play_subject_released = {
 	effect = {
+		# DEDUP GUARD (2026-09-08) -- see smart_notifications_diplo_play_start's
+		# copy of this guard above for the full writeup.
 		if = {
-			limit = {
-				any_scope_play_involved = { smart_notifications_is_watched = yes }
+			limit = { NOT = { has_variable = smart_notifications_subject_released_notified_recently } }
+			set_variable = { name = smart_notifications_subject_released_notified_recently value = yes days = 1 }
+			if = {
+				limit = {
+					any_scope_play_involved = { smart_notifications_is_watched = yes }
+				}
+				post_notification = smart_notifications_diplo_play_subject_released_watched
+				debug_log = "SNW_FILTER|subject_released|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
 			}
-			post_notification = smart_notifications_diplo_play_subject_released_watched
-			debug_log = "SNW_FILTER|subject_released|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
+			else = {
+				post_notification = smart_notifications_diplo_play_subject_released_quiet
+				debug_log = "SNW_FILTER|subject_released|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
+			}
 		}
 		else = {
-			post_notification = smart_notifications_diplo_play_subject_released_quiet
-			debug_log = "SNW_FILTER|subject_released|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
+			debug_log = "SNW_FILTER|subject_released|DUPLICATE_SUPPRESSED"
 		}
 
 		# TEMPORARY instrumentation (2026-09-07), same shape as the
