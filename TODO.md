@@ -820,6 +820,56 @@ own separate mod. No version target until that's decided.
 
 ## Dev tooling (delete before publish)
 
+- [x] **Toast/popup spam audit — built 2026-09-07, results pending.** Per
+      the user, live playtesting kept surfacing toasts about countries
+      they have no reason to care about (a Perak revolution, a
+      decentralized rebel faction using Increase Relations, ...), and
+      asked for a systematic log of everything currently rendering as
+      toast/popup so it's possible to see, from real data, which ones are
+      worth downgrading for unwatched countries — rather than reacting to
+      individual screenshots one at a time.
+      Built via a one-off script (not by reading vanilla's ~45k-line
+      message/on_action files by hand, per CLAUDE.md's Token Budget rule):
+      cross-referenced every one of the 95 message keys currently set to
+      `notification_type = toast`/`popup` in
+      [00_messages.txt](common/messages/00_messages.txt) against every
+      vanilla on_action that posts it. Findings:
+      - **45 keys are posted from a real, hookable on_action.** ~17 were
+        already covered by
+        [01_smart_notifications_logger.txt](common/on_actions/01_smart_notifications_logger.txt)'s
+        existing `SNW_LOG` taps (not duplicated). The other 28 on_actions
+        are newly hooked in
+        [05_smart_notifications_toast_popup_audit.txt](common/on_actions/05_smart_notifications_toast_popup_audit.txt),
+        each writing a plain `SNW_TOAST_AUDIT|<key>` line — deliberately
+        no `is_player`/country-name scoping attempted anywhere (root scope
+        types vary too much across 28 on_actions — Character, Country,
+        Treaty, Formation... — to safely guess a shared accessor, per
+        CLAUDE.md's "never guess" rule). Vanilla's own gating conditions
+        are mirrored where they exist (`on_acquired_technology`,
+        `on_new_ruler`, `on_country_default`'s two loops) so counts aren't
+        inflated relative to what the player actually saw.
+      - **44 keys have NO moddable hook at all** — fired from native
+        engine code directly, same category as the already-documented
+        uncountable keys below. Notably every `power_bloc_*` and
+        `law_notification_*` key, `election_results`,
+        `country_revolution`, `country_secession`,
+        `invasion_started_against_us`, `resource_discovered`. Can't be
+        counted or filtered by script; manual observation only.
+      **To read results after a session:**
+      ```bash
+      grep "SNW_TOAST_AUDIT\|SNW_LOG" "Documents/Paradox Interactive/Victoria 3/logs/debug.log" \
+        | sed -E 's/.*(SNW_TOAST_AUDIT|SNW_LOG)\|//' | sort | uniq -c | sort -rn
+      ```
+      Note `SNW_LOG`'s existing hooks predate this audit and were curated
+      for Phase 1's original review, not this one — some of what it counts
+      (the diplo-play events) has since been replaced by this mod's own
+      watched/quiet keys and no longer renders as a toast the way it did
+      when that logger was built, so treat those specific counts as "how
+      often the underlying event happens", not "how often the player saw
+      a toast".
+      **Delete this file once the user has reviewed a real session's
+      counts and decided which keys are worth watchlist-gating next** —
+      same lifecycle as the other temporary probes/taps in this section.
 - [x] **Scoped notification-frequency logger** —
       [01_smart_notifications_logger.txt](common/on_actions/01_smart_notifications_logger.txt)
       hooks 24 vanilla on_actions to write a distinctive `SNW_LOG|<key>` line

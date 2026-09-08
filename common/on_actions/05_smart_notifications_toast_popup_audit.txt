@@ -1,0 +1,322 @@
+﻿# TEMPORARY diagnostic audit -- DELETE once the user has reviewed a real
+# session's SNW_TOAST_AUDIT counts and decided which of these are worth
+# downgrading for unwatched countries (see TODO.md's "Toast/popup spam
+# audit" item). Adds no player-visible behaviour: every block below only
+# writes a debug_log line, mirroring the frequency-logger pattern already
+# used in 01_smart_notifications_logger.txt.
+#
+# Purpose (2026-09-07, per the user): a real playtest is turning up
+# repeated examples of toast notifications about countries the player has
+# no reason to care about (Perak revolution, a decentralized rebel faction
+# improving relations, etc.) -- but there's no single engine hook that
+# fires for "every notification about to show as a toast/popup", so this
+# was built by cross-referencing every message key CURRENTLY set to
+# `notification_type = toast` or `popup` in 00_messages.txt against every
+# vanilla on_action that posts it (found via a one-off script, not by
+# reading the ~45k-line vanilla files by hand -- see CLAUDE.md's Token
+# Budget rule).
+#
+# Coverage, out of 89 toast/popup keys (excluding this mod's own, already
+# covered by SNW_FILTER):
+#   - 45 keys are posted from a real on_action. Of those, ~17 were already
+#     covered by 01_smart_notifications_logger.txt's existing SNW_LOG taps
+#     (kept as-is, not duplicated here) -- the 28 on_actions below are the
+#     genuinely new ones.
+#   - 44 keys have NO moddable hook at all (fired from native engine code
+#     directly -- same category already documented in TODO.md's Dev
+#     Tooling section for country_attitude_changed/country_conscription/
+#     invasion_*). Notably: all `power_bloc_*` notifications, all
+#     `law_notification_*` keys, `election_results`, `country_revolution`,
+#     `country_secession`, `invasion_started_against_us`,
+#     `resource_discovered`. These can't be counted or filtered by script
+#     at all -- manual observation is the only signal, same as the other
+#     uncountable keys.
+#
+# To read the results after a session: grep debug.log for SNW_TOAST_AUDIT
+# (this file) AND SNW_LOG (01_smart_notifications_logger.txt) together --
+# both tags cover pieces of the full toast/popup picture, but SNW_LOG's
+# existing hooks predate this audit and were curated for a different
+# purpose (Phase 1 review), so some of what it counts (e.g. the diplo-play
+# events) has since been replaced by this mod's own watched/quiet keys and
+# no longer actually renders as a toast the way it did when that logger
+# was built -- treat SNW_LOG counts for those specific keys as "how often
+# the underlying event happens", not "how often the player saw a toast".
+#
+# No `is_player`/country-name scoping attempted anywhere below, on purpose
+# -- root scope types vary too much across these 28 on_actions (Character,
+# Country, Treaty, Formation, ...) to safely guess a shared accessor
+# pattern, and CLAUDE.md's rule is to never guess script semantics. Plain,
+# scope-free debug_log lines get the frequency count the user actually
+# asked for without that risk. Where vanilla's own effect gates whether
+# post_notification fires at all (on_acquired_technology, on_new_ruler,
+# on_country_default's two loops), the same gate is mirrored here so the
+# count isn't inflated relative to what the player actually saw.
+
+on_acquired_technology = {
+	on_actions = { smart_notifications_audit_acquired_technology }
+}
+smart_notifications_audit_acquired_technology = {
+	effect = {
+		if = {
+			limit = { has_game_started = yes }
+			debug_log = "SNW_TOAST_AUDIT|acquired_technology_notification"
+		}
+	}
+}
+
+on_new_ruler = {
+	on_actions = { smart_notifications_audit_new_ruler }
+}
+smart_notifications_audit_new_ruler = {
+	effect = {
+		if = {
+			limit = { owner = { has_gov_regency = no } }
+			if = {
+				limit = {
+					owner = { NOT = { has_variable = hide_ruler_change_notification } }
+					is_adult = yes
+				}
+				debug_log = "SNW_TOAST_AUDIT|new_ruler"
+			}
+		}
+	}
+}
+
+on_character_became_adult = {
+	on_actions = { smart_notifications_audit_character_became_adult }
+}
+smart_notifications_audit_character_became_adult = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|character_became_adult"
+	}
+}
+
+on_country_default = {
+	on_actions = { smart_notifications_audit_country_default }
+}
+smart_notifications_audit_country_default = {
+	effect = {
+		every_cobelligerent_in_war = {
+			debug_log = "SNW_TOAST_AUDIT|cobelligerent_in_default_notification"
+		}
+		every_enemy_in_war = {
+			debug_log = "SNW_TOAST_AUDIT|enemy_in_default_notification"
+		}
+	}
+}
+
+on_diplomatic_action = {
+	on_actions = { smart_notifications_audit_diplomatic_action }
+}
+smart_notifications_audit_diplomatic_action = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|diplomatic_action_notification"
+	}
+}
+
+on_diplomatic_proposal_accepted = {
+	on_actions = { smart_notifications_audit_diplomatic_proposal_accepted }
+}
+smart_notifications_audit_diplomatic_proposal_accepted = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|diplomatic_proposal_accepted"
+	}
+}
+
+on_diplomatic_proposal_declined = {
+	on_actions = { smart_notifications_audit_diplomatic_proposal_declined }
+}
+smart_notifications_audit_diplomatic_proposal_declined = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|diplomatic_proposal_declined"
+	}
+}
+
+on_diplomatic_action_overlord_decrease_autonomy = {
+	on_actions = { smart_notifications_audit_da_overlord_decrease_autonomy }
+}
+smart_notifications_audit_da_overlord_decrease_autonomy = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|diplomatic_action_overlord_decrease_autonomy_notification"
+	}
+}
+
+on_diplomatic_action_overlord_increase_autonomy = {
+	on_actions = { smart_notifications_audit_da_overlord_increase_autonomy }
+}
+smart_notifications_audit_da_overlord_increase_autonomy = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|diplomatic_action_overlord_increase_autonomy_notification"
+	}
+}
+
+on_diplomatic_action_subject_increase_own_autonomy = {
+	on_actions = { smart_notifications_audit_da_subject_increase_own_autonomy }
+}
+smart_notifications_audit_da_subject_increase_own_autonomy = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|diplomatic_action_subject_increase_own_autonomy_notification"
+	}
+}
+
+on_treaty_proposal_declined = {
+	on_actions = { smart_notifications_audit_treaty_proposal_declined }
+}
+smart_notifications_audit_treaty_proposal_declined = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|treaty_proposal_declined"
+	}
+}
+
+on_treaty_entered_into_force = {
+	on_actions = { smart_notifications_audit_treaty_entered_into_force }
+}
+smart_notifications_audit_treaty_entered_into_force = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|treaty_entered_into_force"
+	}
+}
+
+on_country_withdrawn_from_treaty = {
+	on_actions = { smart_notifications_audit_country_withdrawn_from_treaty }
+}
+smart_notifications_audit_country_withdrawn_from_treaty = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|country_withdrawn_from_treaty"
+	}
+}
+
+on_country_broke_treaty = {
+	on_actions = { smart_notifications_audit_country_broke_treaty }
+}
+smart_notifications_audit_country_broke_treaty = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|country_broke_treaty"
+	}
+}
+
+on_treaty_dissolved = {
+	on_actions = { smart_notifications_audit_treaty_dissolved }
+}
+smart_notifications_audit_treaty_dissolved = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|treaty_dissolved"
+	}
+}
+
+on_treaty_article_removed = {
+	on_actions = { smart_notifications_audit_treaty_article_removed }
+}
+smart_notifications_audit_treaty_article_removed = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|treaty_article_removed"
+	}
+}
+
+on_migration_target_created = {
+	on_actions = { smart_notifications_audit_migration_target_created }
+}
+smart_notifications_audit_migration_target_created = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|migration_target_created"
+	}
+}
+
+on_resource_depleted = {
+	on_actions = { smart_notifications_audit_resource_depleted }
+}
+smart_notifications_audit_resource_depleted = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|resource_depleted"
+	}
+}
+
+on_diplo_play_back_down = {
+	on_actions = { smart_notifications_audit_diplo_play_back_down }
+}
+smart_notifications_audit_diplo_play_back_down = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|diplo_play_back_down_notification"
+	}
+}
+
+on_law_enactment_fail = {
+	on_actions = { smart_notifications_audit_law_enactment_fail }
+}
+smart_notifications_audit_law_enactment_fail = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|enactment_failed"
+	}
+}
+
+on_investment_increased = {
+	on_actions = { smart_notifications_audit_investment_increased }
+}
+smart_notifications_audit_investment_increased = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|institution_investment_increased"
+	}
+}
+
+on_investment_decreased = {
+	on_actions = { smart_notifications_audit_investment_decreased }
+}
+smart_notifications_audit_investment_decreased = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|institution_investment_decreased"
+	}
+}
+
+on_rank_changed = {
+	on_actions = { smart_notifications_audit_rank_changed }
+}
+smart_notifications_audit_rank_changed = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|rank_changed_notification"
+	}
+}
+
+on_claim_added = {
+	on_actions = { smart_notifications_audit_claim_added }
+}
+smart_notifications_audit_claim_added = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|claim_added_notification"
+	}
+}
+
+on_journal_entry_completed = {
+	on_actions = { smart_notifications_audit_journal_entry_completed }
+}
+smart_notifications_audit_journal_entry_completed = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|journal_entry_completed"
+	}
+}
+
+on_native_uprising = {
+	on_actions = { smart_notifications_audit_native_uprising }
+}
+smart_notifications_audit_native_uprising = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|native_uprising_notification"
+	}
+}
+
+on_fleet_destroyed = {
+	on_actions = { smart_notifications_audit_fleet_destroyed }
+}
+smart_notifications_audit_fleet_destroyed = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|fleet_destroyed"
+	}
+}
+
+on_amendment_timeout = {
+	on_actions = { smart_notifications_audit_amendment_timeout }
+}
+smart_notifications_audit_amendment_timeout = {
+	effect = {
+		debug_log = "SNW_TOAST_AUDIT|amendment_timed_out"
+	}
+}
