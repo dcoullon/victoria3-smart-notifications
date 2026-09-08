@@ -1218,7 +1218,8 @@ uncountable/no-hook list in Dev Tooling above — triage before building:
       first — don't assume, verify what's queryable) and posts our own
       toast only for those. Not started.
 - [~] **`diplomatic_action_notification` (generic) — BUILT 2026-09-08,
-      not yet confirmed in-game, one real open risk.** Confirmed via a
+      loc bug found and fixed same day via the user's screenshot, still
+      not re-confirmed live.** Confirmed via a
       probe ([04_smart_notifications_probes.txt](common/on_actions/04_smart_notifications_probes.txt))
       that `scope:actor`/`scope:recipient` resolve to real country names
       on the plain `on_diplomatic_action` (unlike its still-blocked
@@ -1231,24 +1232,35 @@ uncountable/no-hook list in Dev Tooling above — triage before building:
       roster to iterate here, just the two direct parties) —
       `is_player = yes` baked into `smart_notifications_is_watched`
       already guarantees an action directed at the player always elevates.
-      **Real open risk, unconfirmed:** this one vanilla key covers MANY
-      different action types (Increase/Decrease Relations, autonomy
-      requests, ...), each with genuinely different wording, and no
-      `common/diplomatic_actions/*.txt` file wires that text in script
-      anywhere (confirmed via an exhaustive grep) — it must be resolved
-      natively, keyed off the action type bound to root. Our replacement
-      keys deliberately have NO `_name`/`_desc` loc of their own, betting
-      that keeping `type = diplomatic_action` (matching vanilla) is what
-      triggers the same native per-action-type text resolution regardless
-      of message key name. **First thing to check in-game:** does the new
-      toast/feed entry show real text ("X improved relations with Y"
-      etc.) or a blank/raw-key placeholder? If the latter, the hypothesis
-      was wrong and this needs per-action-type loc keys instead — a much
-      bigger effort. Group is broader than "Increase Relations" alone
-      (shared by several action types) — once text rendering is
-      confirmed, worth checking whether all of them deserve identical
-      treatment or whether some (e.g. autonomy requests, arguably always
-      worth seeing) should stay unconditional.
+      **The "no loc of our own, bet on native per-action-type text
+      resolution" hypothesis was CONFIRMED WRONG 2026-09-08** — the
+      user's screenshot showed the raw loc key name rendered on screen
+      instead of real text. That resolution turned out to be tied to
+      vanilla's specific key name, not the `type = diplomatic_action`
+      field generically. Also tried `[ROOT.GetName]` to recover which
+      specific action type fired dynamically — also confirmed wrong (a
+      real `error.log` "Data error in loc string" entry). No known way to
+      tell Increase Relations apart from Decrease Relations etc. from our
+      own script/loc. **Fixed** by giving both replacement keys real,
+      deliberately GENERIC name/desc/tooltip loc
+      ([smart_notifications_l_english.yml](localization/english/smart_notifications_l_english.yml))
+      — a real, accepted loss of vanilla's per-action-type wording detail
+      in exchange for rendering correctly for every action type instead
+      of a broken key for all of them. Also fixed a separate,
+      independently-discovered bug in the same pass: the ELEVATED/QUIET
+      `debug_log` lines were silently failing their own "Data error in
+      loc string" from `SCOPE.sC('actor').GetCountry.GetNameNoFormatting`
+      — chaining `.GetCountry` directly onto a `SCOPE.sC(...)` call isn't
+      the same as `THIS.GetCountry` inside an actual re-scoped
+      `scope:actor ?= { ... }` block; fixed by dropping `.GetCountry`,
+      matching the plain `SCOPE.sC('actor').GetNameNoFormatting` pattern
+      used everywhere else in this mod for the diplomatic_play root.
+      Deleted the now-resolved `[ROOT.GetName]` experimental diagnostic.
+      **Needs the user to see a real diplomatic action in-game to confirm
+      the generic text now actually renders.** Once confirmed, worth
+      checking whether all action types sharing this group deserve
+      identical treatment or whether some (e.g. autonomy requests,
+      arguably always worth seeing) should stay unconditional.
 - [ ] **Tech spreading notification** — user suspects vanilla may already
       have a per-notification setting for this; check Message Settings
       before assuming it needs a mod change at all.

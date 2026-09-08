@@ -108,11 +108,30 @@
  notification_smart_notifications_diplo_play_subject_released_quiet_desc:0 "Due to the failure of [SCOPE.sC('actor').GetNameNoFormatting] to protect their subject [SCOPE.sC('target').GetNameNoFormatting] their pact is now null and void."
 
  # Generic diplomatic action filtering (see TODO.md and
- # 06_smart_notifications_diplomatic_action_filtering.txt). Group labels
- # only -- deliberately no notification_..._name/_desc/_tooltip keys, see
- # 00_messages.txt's comment on these two message defs for why.
+ # 06_smart_notifications_diplomatic_action_filtering.txt).
+ #
+ # CORRECTED 2026-09-08: originally shipped with NO name/desc/tooltip loc
+ # at all, betting that `type = diplomatic_action` alone would trigger the
+ # same native per-action-type text resolution vanilla's own
+ # diplomatic_action_notification gets (Increase Relations, Decrease
+ # Relations, autonomy requests, ... each with their own wording). Wrong
+ # -- confirmed by the user's screenshot showing the raw loc key name on
+ # screen instead of real text. That resolution is tied to the specific
+ # vanilla key, not the `type` field. No dynamic way exists to recover
+ # which specific action type fired for our own text either (tried
+ # `[ROOT.GetName]`, confirmed a real error.log entry). So this is
+ # deliberately GENERIC text that renders correctly for every action type
+ # rather than vanilla's specific-but-broken-for-us wording -- a real,
+ # accepted loss of detail, not an oversight.
  smart_notifications_diplomatic_action_watched_group:0 "(SN) Diplomatic Action, Watched Country Involved"
+ notification_smart_notifications_diplomatic_action_watched_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplomatic_action_watched_desc$"
+ notification_smart_notifications_diplomatic_action_watched_name:0 "[SCOPE.sC('actor').GetNameNoFormatting] takes diplomatic action"
+ notification_smart_notifications_diplomatic_action_watched_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] has taken a diplomatic action involving [SCOPE.sC('recipient').GetNameNoFormatting]. Open the Diplomacy screen for details."
+
  smart_notifications_diplomatic_action_quiet_group:0 "(SN) Diplomatic Action, Ambient"
+ notification_smart_notifications_diplomatic_action_quiet_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_quiet_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplomatic_action_quiet_desc$"
+ notification_smart_notifications_diplomatic_action_quiet_name:0 "[SCOPE.sC('actor').GetNameNoFormatting] takes diplomatic action"
+ notification_smart_notifications_diplomatic_action_quiet_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] has taken a diplomatic action involving [SCOPE.sC('recipient').GetNameNoFormatting]. Open the Diplomacy screen for details."
 
  # Amendment-repealable alert (see 01_smart_notifications_alerts.txt).
  #

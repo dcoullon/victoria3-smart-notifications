@@ -19,15 +19,34 @@
 # different on_action -- the earlier blocked finding does not automatically
 # generalize to this one, and didn't.
 #
-# UNCONFIRMED, first thing to check in-game: whether our own replacement
-# keys (type = diplomatic_action, no name/desc loc of their own) correctly
-# inherit each action type's own specific wording the same way vanilla's
-# diplomatic_action_notification did -- see 00_messages.txt's comment on
-# smart_notifications_diplomatic_action_watched/_quiet for the reasoning.
-# If the toast/feed entry shows blank or a raw loc key instead of real
-# text ("X improved relations with Y" etc.), that hypothesis was wrong and
-# needs a different fix (likely per-action-type loc keys, a much bigger
-# effort).
+# CONFIRMED WRONG 2026-09-08 via the user's screenshot: our replacement
+# keys showed the RAW loc key name on screen
+# ("notification_smart_notifications_diplomatic_action_watched_name")
+# instead of real text -- the bet that `type = diplomatic_action` alone
+# would trigger the same native per-action-type text resolution vanilla's
+# own diplomatic_action_notification got was wrong. That resolution is
+# tied to the specific vanilla key name, not the `type` field generically.
+# Tried `[ROOT.GetName]` as a way to recover the specific action type
+# dynamically for our own text -- also confirmed wrong (a real, repeated
+# `error.log` "Data error in loc string" entry, same failure class as
+# every other wrong dynamic-text guess in this project). No known way to
+# tell Increase Relations apart from Decrease Relations etc. from our own
+# script/loc. Fixed by giving our replacement keys real, deliberately
+# GENERIC name/desc loc (see smart_notifications_l_english.yml) -- loses
+# the vanilla per-action-type wording, but renders correctly for every
+# action type instead of a broken key for all of them.
+#
+# SEPARATE bug, same screenshot investigation: the ELEVATED/QUIET
+# debug_log lines were ALSO silently failing (their own "Data error in
+# loc string" entries) from `SCOPE.sC('actor').GetCountry.GetNameNoFormatting`
+# -- chaining `.GetCountry` directly onto a `SCOPE.sC(...)` call is NOT
+# the same as `THIS.GetCountry` inside an actual re-scoped
+# `scope:actor ?= { ... }` block (which the probe confirmed safe, and the
+# per-role diagnostic below still uses). Fixed by dropping `.GetCountry`
+# from the two decision-line debug_logs, matching the exhaustively-proven
+# `SCOPE.sC('actor').GetNameNoFormatting` pattern (no `.GetCountry`) used
+# everywhere else in this mod for the diplomatic_play root -- evidently
+# also correct here, once written the same way.
 
 on_diplomatic_action = {
 	on_actions = {
@@ -54,11 +73,11 @@ smart_notifications_diplomatic_action = {
 				}
 			}
 			post_notification = smart_notifications_diplomatic_action_watched
-			debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_watched|actor=[SCOPE.sC('actor').GetCountry.GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetCountry.GetNameNoFormatting]|ELEVATED"
+			debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_watched|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|ELEVATED"
 		}
 		else = {
 			post_notification = smart_notifications_diplomatic_action_quiet
-			debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_quiet|actor=[SCOPE.sC('actor').GetCountry.GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetCountry.GetNameNoFormatting]|QUIET"
+			debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_quiet|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|QUIET"
 		}
 
 		# TEMPORARY instrumentation (2026-09-08), same shape as the
@@ -88,20 +107,5 @@ smart_notifications_diplomatic_action = {
 				debug_log = "SNW_FILTER|diplomatic_action|involved|country=[THIS.GetCountry.GetNameNoFormatting]|role=recipient|watched=no"
 			}
 		}
-
-		# EXPERIMENTAL diagnostic (2026-09-08) -- attempts to log which
-		# specific diplomatic action type fired (Increase Relations vs.
-		# Decrease Relations vs. an autonomy request, etc.), since the
-		# main open risk for this whole file is whether different action
-		# types render correctly and this can't be told apart from the
-		# ELEVATED/QUIET line alone. `[ROOT.GetName]` is UNCONFIRMED --
-		# may well produce a real error.log entry ("Could not find data
-		# system function...") the same way a wrong dynamic-text function
-		# has before in this mod (see engine-notes.md). That's an
-		# acceptable, informative outcome here (confirms the function name
-		# is wrong, doesn't crash anything) -- if it errors, delete this
-		# line and cross-reference SNW_FILTER timestamps against what the
-		# user actually saw on screen instead.
-		debug_log = "SNW_FILTER|diplomatic_action|action_type=[ROOT.GetName]"
 	}
 }
