@@ -761,6 +761,23 @@ list for this phase with that in mind before writing the on_action.
       currently unidentified. Asked the user to note both popups' exact
       title text next time it happens, since nothing in our logs can
       currently distinguish this from a UI-only phenomenon.
+      **Second report, same day, likely NOT a bug:** the user saw what
+      looked like a toast for "Ottoman Empire sides with Great Qing" (a
+      play with no watchlist connection) and flagged it as unexpected.
+      The log is unambiguous: `SNW_FILTER|join_side|actor=Ottoman
+      Empire|target=Great Qing|recipient=Russia|QUIET`, and neither
+      country showed watched — the filtering decision was correct, and
+      the message key it posted (`smart_notifications_diplo_play_join_side_quiet`)
+      is confirmed `notification_type = feed` in
+      [00_messages.txt](common/messages/00_messages.txt), not toast. Also
+      confirmed the dedup guard held here: dozens of repeat on_action
+      invocations, only ONE decision line. Open question, not a
+      filtering bug: does Vic3 show a brief toast-shaped card for feed-tier
+      notifications too when they first post (before settling into the
+      ambient feed list), which would fully explain what the user saw
+      without anything being wrong? Unconfirmed — nothing currently
+      distinguishes "a real toast" from "a feed notification's initial
+      appearance" in our own understanding of the UI.
 - [~] **Third-party notification filtering — the 3 Diplomatic-Play-rooted
       keys BUILT 2026-09-07, two real bugs found and fixed the same day via
       the user's first live playtest, `diplo_play_subject_released` still
@@ -864,6 +881,29 @@ list for this phase with that in mind before writing the on_action.
       truncated form is still legible without hovering. Do this only
       after the underlying filtering is confirmed correct in-game — no
       point polishing labels for behavior that might still change.
+      **Extended 2026-09-08 per the user:** also visually/positionally
+      separate this mod's rows from vanilla's in the Notification Types
+      list, not just relabel them — a cleaner list, and no need to repeat
+      "(Smart Notifications)" on every single row if they're already
+      visibly grouped. **Needs GUI research before promising an
+      approach, not yet done:** the list is populated from a native
+      datamodel (`MessageSettingsWindow.GetNotificationSettingsItems` per
+      [gui/message_settings.gui](gui/message_settings.gui)), with an
+      existing "sort by Notification Type" column the player can already
+      click — but the DEFAULT (unsorted) order is unconfirmed: could be
+      alphabetical, native registration order, or something else
+      entirely, and we don't know if defining our messages in a
+      particular position within our own
+      [00_messages.txt](common/messages/00_messages.txt) (a full-file
+      override, so in principle we control the whole list's definition
+      order) actually influences it. One low-risk idea once that's
+      confirmed: front-load a short, consistent tag on every mod-created
+      label (rather than the current trailing suffix) so clicking the
+      existing "sort by Notification Type" column at least clusters them
+      alphabetically, without any GUI file changes. Don't attempt a
+      bigger GUI-level fix (e.g. an actual section divider) without
+      first confirming what's realistic — this list's sort/grouping
+      behavior hasn't been investigated at all yet.
 - [ ] **Visually distinguish elevated (watched) notifications — parked
       2026-09-07 per the user until the watchlist selector and the base
       filtering changes are confirmed working.** Per-message presentation
