@@ -88,10 +88,10 @@ smart_notifications_diplo_play_start = {
 		every_scope_play_involved = {
 			if = {
 				limit = { smart_notifications_is_watched = yes }
-				debug_log = "SNW_FILTER|start|involved|country=[THIS.GetNameNoFormatting]|watched=yes"
+				debug_log = "SNW_FILTER|start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=yes"
 			}
 			else = {
-				debug_log = "SNW_FILTER|start|involved|country=[THIS.GetNameNoFormatting]|watched=no"
+				debug_log = "SNW_FILTER|start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=no"
 			}
 		}
 	}
@@ -120,10 +120,10 @@ smart_notifications_diplo_play_join_side = {
 		every_scope_play_involved = {
 			if = {
 				limit = { smart_notifications_is_watched = yes }
-				debug_log = "SNW_FILTER|join_side|involved|country=[THIS.GetNameNoFormatting]|watched=yes"
+				debug_log = "SNW_FILTER|join_side|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=yes"
 			}
 			else = {
-				debug_log = "SNW_FILTER|join_side|involved|country=[THIS.GetNameNoFormatting]|watched=no"
+				debug_log = "SNW_FILTER|join_side|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=no"
 			}
 		}
 	}
@@ -152,10 +152,10 @@ smart_notifications_diplo_play_war_start = {
 		every_scope_play_involved = {
 			if = {
 				limit = { smart_notifications_is_watched = yes }
-				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetNameNoFormatting]|watched=yes"
+				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=yes"
 			}
 			else = {
-				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetNameNoFormatting]|watched=no"
+				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=no"
 			}
 		}
 	}

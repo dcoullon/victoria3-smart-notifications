@@ -9,7 +9,8 @@ link it.
 ## 1. Git Authorship Rules
 
 - Never include "Co-Authored-By", AI mentions, or session URLs in git commit messages or PR descriptions.
-- Commit (and push to GitHub) every time a new feature ships — no batching multiple features into one commit. Bump `.metadata/metadata.json`'s `version` by `0.01` each time (`0.20` → `0.21`); the tenths digit is a major milestone. See CHANGELOG.md's own header for the full convention.
+- Commit (and push to GitHub) every time a new feature ships — no batching multiple features into one commit.
+- **Bump `.metadata/metadata.json`'s `version` by `0.01` ONLY for something genuinely new that is confirmed working** (`0.20` → `0.21`); the tenths digit is a major milestone. **Do NOT bump for bug fixes, iterations on a feature that isn't working yet, debug instrumentation, or doc-only changes** — those still get their own commit, just no version bump (revised 2026-09-07 per the user: repeated bumps for fix-attempts on the same unfinished feature make the version meaningless). See CHANGELOG.md's own header for the full convention.
 
 ## 2. Token Budget & Large File Protocol (CRITICAL)
 

@@ -11,28 +11,13 @@ only once they've actually shipped in a version.
 
 Versions follow `metadata.json`'s `version` field. **Versioning convention
 (adopted 2026-09-07):** `0.XY` — the tenths digit (`0.1`, `0.2`, `0.3`...)
-marks a major milestone; the hundredths digit increments by `0.01` on every
-commit that ships a new feature (however small — "added a new
-notification" counts), so `0.20` → `0.21` → `0.22`. Not full semver; this
+marks a major milestone; the hundredths digit increments by `0.01` when
+something genuinely new ships **and is confirmed working**. Bug fixes,
+repeated attempts at a feature that isn't working yet, debug
+instrumentation and doc-only changes get a commit but **no** version bump
+(revised 2026-09-07 — bumping on every fix-attempt for the same
+unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
-
-## [0.33] — 2026-09-07
-
-### Removed
-
-- The GP/NB/RV/MA source tags on the Watched list.
-
-### Added
-
-- Temporary diagnostic buttons and logging on the Watchlist tab, to
-  determine why Select All has never worked. To be removed once fixed.
-
-## [0.32] — 2026-09-07
-
-### Fixed
-
-- The Watchlist's Neighbors tab showed only the four continent headers
-  with no countries under them — a regression introduced in 0.30.
 
 ## [0.31] — 2026-09-07
 

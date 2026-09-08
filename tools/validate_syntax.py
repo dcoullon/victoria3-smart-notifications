@@ -80,14 +80,18 @@ KNOWN_GOOD = [
     ("common/scripted_guis/watchlist_sgui.txt",
      "this ?= root",
      "Watchlist Rivals ROW check must compare against root (the row's country)"),
-    ("common/scripted_guis/watchlist_sgui.txt",
-     "is_adjacent_to_country = global_var:smart_notifications_player_country",
-     "Watchlist Neighbors BULK actions must use the global player pointer -- "
-     "root is not reliably the player in a button-triggered scripted GUI"),
+    # NOTE: there is deliberately NO invariant pinning how the BULK actions
+    # find the player. Only confirmed-working behaviour belongs in this list,
+    # and the bulk buttons have never been confirmed working: three
+    # approaches have now been tried (root, a global variable, and now
+    # is_player + save_scope_as mirroring the game-start hook). Pinning an
+    # unconfirmed approach would just cement whichever guess was current.
+    # Add an entry here once a playtest confirms Select All actually works.
     ("common/on_actions/00_smart_notifications_on_actions.txt",
-     "set_global_variable = {",
-     "The global player pointer must still be set at campaign start, or the "
-     "Watchlist bulk actions silently do nothing on a fresh campaign"),
+     "limit = { is_player = yes }",
+     "The game-start hook must keep finding the player by trigger -- this is "
+     "the one player-identification pattern proven to work in this codebase, "
+     "and the bulk actions are now modelled on it"),
 ]
 
 

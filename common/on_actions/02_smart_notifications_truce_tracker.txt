@@ -40,7 +40,7 @@ smart_notifications_truce_tracker = {
 			# line per player-country monthly pulse, so we can confirm this
 			# on_action is even firing at all every month, independent of
 			# whether any specific country's truce state changed.
-			debug_log = "SNW_TRUCE|pulse_ran|player=[THIS.GetNameNoFormatting]"
+			debug_log = "SNW_TRUCE|pulse_ran|player=[THIS.GetCountry.GetNameNoFormatting]"
 			every_country = {
 				limit = {
 					NOT = { this = root }
@@ -64,7 +64,7 @@ smart_notifications_truce_tracker = {
 					# get a real confirmation trail after a truce expiry went
 					# unnoticed in-game. Delete once a full set/expire cycle is
 					# confirmed in debug.log. `this` = the iterated country here.
-					debug_log = "SNW_TRUCE|flag_set|partner=[THIS.GetNameNoFormatting]"
+					debug_log = "SNW_TRUCE|flag_set|partner=[THIS.GetCountry.GetNameNoFormatting]"
 				}
 				else_if = {
 					limit = {
@@ -72,7 +72,7 @@ smart_notifications_truce_tracker = {
 						has_variable = smart_notifications_had_truce_with_player
 					}
 					remove_variable = smart_notifications_had_truce_with_player
-					debug_log = "SNW_TRUCE|expired_detected|partner=[THIS.GetNameNoFormatting]"
+					debug_log = "SNW_TRUCE|expired_detected|partner=[THIS.GetCountry.GetNameNoFormatting]"
 					root = {
 						post_notification = smart_notifications_truce_expired
 						debug_log = "SNW_TRUCE|notification_posted|partner=[SCOPE.sC('smart_notifications_truce_partner').GetNameNoFormatting]"

@@ -425,43 +425,48 @@ watchlist_is_flagged_rival_check_sgui = {
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
-
-# --- Category bulk select/deselect (added 2026-09-07, SIMPLIFIED
-# 2026-09-07) ---
-# TODO.md flagged this as blocked on "no confirmed way to reference the
-# player as a GuiScope root from a plain button click (not tied to any
-# row)". Resolved via binding the button's own container to
-# `datacontext = "[GetMetaPlayer.GetPlayedOrObservedCountry]"` in
-# gui/message_settings.gui (confirmed-real accessor -- used identically
-# in vanilla's market_panel.gui, right_click_menu.gui, ingame_hud.gui to
-# set a widget's Country context to the player without any row/list
-# involved), so `Country.MakeScope` inside that container IS the player.
-# `root` in every effect below is therefore already the player.
+# --- Category bulk select/deselect -- REWRITTEN 2026-09-07 (third and
+# final approach, after the root probes came back) ---
 #
-# UX SIMPLIFIED per the user 2026-09-07: originally Deselect All only
-# cleared that category's own flag (preserving a country watched for a
-# different reason too) -- correct per the multi-flag data model, but
-# the user found it confusing in practice (a country staying checked
-# after "Deselect All" looks like a bug even when it isn't). Per their
-# explicit direction: "if I click select all or deselect all in a tab,
-# all the countries in that tab get selected/deselected" -- full stop,
-# no partial-flag subtlety. So Deselect All below now clears ALL FOUR
-# flags (full unwatch) for every country currently matching that tab's
-# own live filter (the exact same criteria that makes a row visible in
-# that tab), not just the category's own flag. Select All is unchanged
-# (it only ever set one flag, which already made the row checked). The
-# Watched-tab provenance tags added alongside this (see the SGUI comment
-# above) stay -- still useful for understanding a Watched-tab row that's
-# checked for more than one reason, just no longer needed to explain a
-# category's own Deselect All button.
+# History, so this isn't "fixed" back into a broken form again: the bulk
+# buttons never worked, across three rewrites of their effect BODY
+# (root -> global variable -> back). The probes settled why: a
+# button-triggered scripted GUI DOES run its effect, but the root it is
+# handed is not a usable country, so every `root`-dependent limit matched
+# nothing -- silently, with no error. The global-variable attempt failed
+# for a different reason (see below), which is why swapping between the
+# two never helped.
+#
+# Every bulk action below now finds the player the same way the game-start
+# on_action does -- `every_country = { limit = { is_player = yes }
+# save_scope_as = ... }` -- which is proven to work, and depends on
+# neither `root` nor a stored pointer.
+#
+# UX (per the user, 2026-09-07): "if I click select all or deselect all in
+# a tab, all the countries in that tab get selected/deselected", full
+# stop. So Deselect All clears ALL FOUR flags for everything matching the
+# tab's own filter, not just that category's flag.
+
 watchlist_bulk_select_great_power_sgui = {
 	scope = country
 
 	effect = {
-		debug_log = "SNW_BULK|select_gp|effect_ran|root=[THIS.GetNameNoFormatting]"
+		# Establish the player WITHOUT relying on `root`. Confirmed by the
+		# 2026-09-07 root probes: all three SetRoot forms do execute the
+		# effect, but `[THIS.GetCountry...]` never resolved, i.e. the root
+		# handed to a button-triggered scripted GUI is not a usable
+		# country. This mirrors the pattern that provably works in
+		# common/on_actions/00_smart_notifications_on_actions.txt's
+		# game-start hook instead: find the player by trigger, save it,
+		# then compare against the saved scope.
+		every_country = {
+			limit = { is_player = yes }
+			save_scope_as = snw_bulk_player
+		}
+
 		every_country = {
 			limit = {
-				NOT = { this = global_var:smart_notifications_player_country }
+				NOT = { this = scope:snw_bulk_player }
 				country_rank >= rank_value:great_power
 			}
 			set_variable = watched_via_great_power
@@ -476,9 +481,22 @@ watchlist_bulk_deselect_great_power_sgui = {
 	scope = country
 
 	effect = {
+		# Establish the player WITHOUT relying on `root`. Confirmed by the
+		# 2026-09-07 root probes: all three SetRoot forms do execute the
+		# effect, but `[THIS.GetCountry...]` never resolved, i.e. the root
+		# handed to a button-triggered scripted GUI is not a usable
+		# country. This mirrors the pattern that provably works in
+		# common/on_actions/00_smart_notifications_on_actions.txt's
+		# game-start hook instead: find the player by trigger, save it,
+		# then compare against the saved scope.
+		every_country = {
+			limit = { is_player = yes }
+			save_scope_as = snw_bulk_player
+		}
+
 		every_country = {
 			limit = {
-				NOT = { this = global_var:smart_notifications_player_country }
+				NOT = { this = scope:snw_bulk_player }
 				country_rank >= rank_value:great_power
 			}
 			remove_variable = watched_via_great_power
@@ -496,13 +514,26 @@ watchlist_bulk_select_neighbor_sgui = {
 	scope = country
 
 	effect = {
-		debug_log = "SNW_BULK|select_neighbor|effect_ran|root=[THIS.GetNameNoFormatting]"
+		# Establish the player WITHOUT relying on `root`. Confirmed by the
+		# 2026-09-07 root probes: all three SetRoot forms do execute the
+		# effect, but `[THIS.GetCountry...]` never resolved, i.e. the root
+		# handed to a button-triggered scripted GUI is not a usable
+		# country. This mirrors the pattern that provably works in
+		# common/on_actions/00_smart_notifications_on_actions.txt's
+		# game-start hook instead: find the player by trigger, save it,
+		# then compare against the saved scope.
+		every_country = {
+			limit = { is_player = yes }
+			save_scope_as = snw_bulk_player
+		}
+
 		every_country = {
 			limit = {
-				NOT = { this = global_var:smart_notifications_player_country }
-				is_adjacent_to_country = global_var:smart_notifications_player_country
+				NOT = { this = scope:snw_bulk_player }
+				is_adjacent_to_country = scope:snw_bulk_player
 			}
 			set_variable = watched_via_neighbor
+			debug_log = "SNW_BULK|neighbor|flagged=[THIS.GetCountry.GetNameNoFormatting]"
 		}
 	}
 
@@ -514,11 +545,23 @@ watchlist_bulk_deselect_neighbor_sgui = {
 	scope = country
 
 	effect = {
-		debug_log = "SNW_BULK|deselect_neighbor|effect_ran|root=[THIS.GetNameNoFormatting]"
+		# Establish the player WITHOUT relying on `root`. Confirmed by the
+		# 2026-09-07 root probes: all three SetRoot forms do execute the
+		# effect, but `[THIS.GetCountry...]` never resolved, i.e. the root
+		# handed to a button-triggered scripted GUI is not a usable
+		# country. This mirrors the pattern that provably works in
+		# common/on_actions/00_smart_notifications_on_actions.txt's
+		# game-start hook instead: find the player by trigger, save it,
+		# then compare against the saved scope.
+		every_country = {
+			limit = { is_player = yes }
+			save_scope_as = snw_bulk_player
+		}
+
 		every_country = {
 			limit = {
-				NOT = { this = global_var:smart_notifications_player_country }
-				is_adjacent_to_country = global_var:smart_notifications_player_country
+				NOT = { this = scope:snw_bulk_player }
+				is_adjacent_to_country = scope:snw_bulk_player
 			}
 			remove_variable = watched_via_great_power
 			remove_variable = watched_via_neighbor
@@ -535,11 +578,23 @@ watchlist_bulk_select_rival_sgui = {
 	scope = country
 
 	effect = {
+		# Establish the player WITHOUT relying on `root`. Confirmed by the
+		# 2026-09-07 root probes: all three SetRoot forms do execute the
+		# effect, but `[THIS.GetCountry...]` never resolved, i.e. the root
+		# handed to a button-triggered scripted GUI is not a usable
+		# country. This mirrors the pattern that provably works in
+		# common/on_actions/00_smart_notifications_on_actions.txt's
+		# game-start hook instead: find the player by trigger, save it,
+		# then compare against the saved scope.
 		every_country = {
-			limit = {
-				any_rivaling_country = { this ?= global_var:smart_notifications_player_country }
+			limit = { is_player = yes }
+			save_scope_as = snw_bulk_player
+		}
+
+		scope:snw_bulk_player = {
+			every_rival_country = {
+				set_variable = watched_via_rival
 			}
-			set_variable = watched_via_rival
 		}
 	}
 
@@ -551,14 +606,26 @@ watchlist_bulk_deselect_rival_sgui = {
 	scope = country
 
 	effect = {
+		# Establish the player WITHOUT relying on `root`. Confirmed by the
+		# 2026-09-07 root probes: all three SetRoot forms do execute the
+		# effect, but `[THIS.GetCountry...]` never resolved, i.e. the root
+		# handed to a button-triggered scripted GUI is not a usable
+		# country. This mirrors the pattern that provably works in
+		# common/on_actions/00_smart_notifications_on_actions.txt's
+		# game-start hook instead: find the player by trigger, save it,
+		# then compare against the saved scope.
 		every_country = {
-			limit = {
-				any_rivaling_country = { this ?= global_var:smart_notifications_player_country }
-			}
+			limit = { is_player = yes }
+			save_scope_as = snw_bulk_player
+		}
+
+		scope:snw_bulk_player = {
+			every_rival_country = {
 			remove_variable = watched_via_great_power
 			remove_variable = watched_via_neighbor
 			remove_variable = watched_via_rival
 			remove_variable = watched_manually
+			}
 		}
 	}
 
@@ -566,40 +633,43 @@ watchlist_bulk_deselect_rival_sgui = {
 	ai_chance = { base = 0 }
 }
 
-# --- Watched-tab bulk actions (added 2026-09-07, per the user's request
-# for a Select All/Deselect All pair on every tab including Watched) ---
-# Select All here means "refresh the watchlist": re-run all three
-# category bulk-selects together, exactly what
-# common/on_actions/00_smart_notifications_on_actions.txt already does
-# once at campaign start -- picks up newly-qualifying Great Powers/
-# neighbors/rivals since the last refresh, matches the "static list,
-# re-click to refresh" design (TODO.md). Doesn't touch watched_manually
-# (manual adds aren't something to "discover" in bulk).
-# Deselect All here means "clear the entire watchlist" -- every country
-# currently watched for any reason, all four flags. Unlike the 3
-# category variants above, this one needs no live-filter `limit`
-# condition at all: has_variable already IS the definition of "currently
-# on the Watched tab."
+# --- Watched-tab bulk actions ---
+# Select All = "refresh the watchlist": re-run all three category
+# selections at once, the same thing the game-start hook does.
+# Deselect All = clear the entire watchlist.
+
 watchlist_bulk_select_watched_refresh_sgui = {
 	scope = country
 
 	effect = {
+		# Establish the player WITHOUT relying on `root`. Confirmed by the
+		# 2026-09-07 root probes: all three SetRoot forms do execute the
+		# effect, but `[THIS.GetCountry...]` never resolved, i.e. the root
+		# handed to a button-triggered scripted GUI is not a usable
+		# country. This mirrors the pattern that provably works in
+		# common/on_actions/00_smart_notifications_on_actions.txt's
+		# game-start hook instead: find the player by trigger, save it,
+		# then compare against the saved scope.
 		every_country = {
-			limit = {
-				any_rivaling_country = { this ?= global_var:smart_notifications_player_country }
+			limit = { is_player = yes }
+			save_scope_as = snw_bulk_player
+		}
+
+		scope:snw_bulk_player = {
+			every_rival_country = {
+				set_variable = watched_via_rival
 			}
-			set_variable = watched_via_rival
 		}
 		every_country = {
 			limit = {
-				NOT = { this = global_var:smart_notifications_player_country }
+				NOT = { this = scope:snw_bulk_player }
 			}
 			if = {
 				limit = { country_rank >= rank_value:great_power }
 				set_variable = watched_via_great_power
 			}
 			if = {
-				limit = { is_adjacent_to_country = global_var:smart_notifications_player_country }
+				limit = { is_adjacent_to_country = scope:snw_bulk_player }
 				set_variable = watched_via_neighbor
 			}
 		}
@@ -613,6 +683,19 @@ watchlist_bulk_deselect_watched_sgui = {
 	scope = country
 
 	effect = {
+		# Establish the player WITHOUT relying on `root`. Confirmed by the
+		# 2026-09-07 root probes: all three SetRoot forms do execute the
+		# effect, but `[THIS.GetCountry...]` never resolved, i.e. the root
+		# handed to a button-triggered scripted GUI is not a usable
+		# country. This mirrors the pattern that provably works in
+		# common/on_actions/00_smart_notifications_on_actions.txt's
+		# game-start hook instead: find the player by trigger, save it,
+		# then compare against the saved scope.
+		every_country = {
+			limit = { is_player = yes }
+			save_scope_as = snw_bulk_player
+		}
+
 		every_country = {
 			limit = {
 				OR = {
@@ -652,21 +735,21 @@ watchlist_bulk_deselect_watched_sgui = {
 # Whichever one logs is the form the real bulk buttons should use.
 watchlist_probe_root_a_sgui = {
 	scope = country
-	effect = { debug_log = "SNW_ROOT|A_datacontext_Country|OK|root=[THIS.GetNameNoFormatting]" }
+	effect = { debug_log = "SNW_ROOT|A_datacontext_Country|OK|root=[THIS.GetCountry.GetNameNoFormatting]" }
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
 
 watchlist_probe_root_b_sgui = {
 	scope = country
-	effect = { debug_log = "SNW_ROOT|B_GetPlayer|OK|root=[THIS.GetNameNoFormatting]" }
+	effect = { debug_log = "SNW_ROOT|B_GetPlayer|OK|root=[THIS.GetCountry.GetNameNoFormatting]" }
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
 
 watchlist_probe_root_c_sgui = {
 	scope = country
-	effect = { debug_log = "SNW_ROOT|C_GetMetaPlayer_direct|OK|root=[THIS.GetNameNoFormatting]" }
+	effect = { debug_log = "SNW_ROOT|C_GetMetaPlayer_direct|OK|root=[THIS.GetCountry.GetNameNoFormatting]" }
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
