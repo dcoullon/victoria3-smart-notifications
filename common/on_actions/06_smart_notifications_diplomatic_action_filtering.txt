@@ -1,0 +1,92 @@
+﻿# Phase 4 -- Relational Notification Engine (see TODO.md). Extends the
+# Watchlist filtering built for Diplomatic Play events to the generic
+# `diplomatic_action_notification` -- the notification any diplomatic
+# action (Increase/Decrease Relations, autonomy requests, ...) posts to
+# its recipient. Confirmed real complaint from the user (2026-09-07): a
+# decentralized rebel faction using Increase Relations popped a toast for
+# a country nobody cares about.
+#
+# Root = Diplomatic Action (`on_diplomatic_action`, confirmed via vanilla's
+# own comment in common/on_actions/00_code_on_actions.txt). scope:actor and
+# scope:recipient are confirmed real and bound here -- unlike the sibling
+# `_third_party_` on_actions (on_diplomatic_action_third_party etc., see
+# 04_smart_notifications_probes.txt), which are still genuinely blocked:
+# a confirmed real error (`is_player trigger [ Wrong scope for trigger:
+# diplomatic_action, expected country ]`) already came from guessing at
+# THOSE, but a `04_smart_notifications_probes.txt` probe on this different,
+# plain on_action showed `scope:actor`/`scope:recipient` resolving to real
+# country names (e.g. "Siam" -> "Champasak") with no error. Same root type,
+# different on_action -- the earlier blocked finding does not automatically
+# generalize to this one, and didn't.
+#
+# UNCONFIRMED, first thing to check in-game: whether our own replacement
+# keys (type = diplomatic_action, no name/desc loc of their own) correctly
+# inherit each action type's own specific wording the same way vanilla's
+# diplomatic_action_notification did -- see 00_messages.txt's comment on
+# smart_notifications_diplomatic_action_watched/_quiet for the reasoning.
+# If the toast/feed entry shows blank or a raw loc key instead of real
+# text ("X improved relations with Y" etc.), that hypothesis was wrong and
+# needs a different fix (likely per-action-type loc keys, a much bigger
+# effort).
+
+on_diplomatic_action = {
+	on_actions = {
+		smart_notifications_diplomatic_action
+	}
+}
+
+# Root = Diplomatic Action. OR'd across actor and recipient (unlike the
+# diplo-play events' any_scope_play_involved, there's no roster to iterate
+# here -- just the two countries directly involved) so the notification
+# elevates if EITHER side is watched or is the player -- matches the
+# established "notifications about the player must never be filtered"
+# rule automatically, since is_player = yes is already baked into
+# smart_notifications_is_watched (00_smart_notifications_triggers.txt): a
+# diplomatic action directed at the player (scope:recipient = us) always
+# elevates regardless of watchlist.
+smart_notifications_diplomatic_action = {
+	effect = {
+		if = {
+			limit = {
+				OR = {
+					scope:actor ?= { smart_notifications_is_watched = yes }
+					scope:recipient ?= { smart_notifications_is_watched = yes }
+				}
+			}
+			post_notification = smart_notifications_diplomatic_action_watched
+			debug_log = "SNW_FILTER|diplomatic_action|actor=[SCOPE.sC('actor').GetCountry.GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetCountry.GetNameNoFormatting]|ELEVATED"
+		}
+		else = {
+			post_notification = smart_notifications_diplomatic_action_quiet
+			debug_log = "SNW_FILTER|diplomatic_action|actor=[SCOPE.sC('actor').GetCountry.GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetCountry.GetNameNoFormatting]|QUIET"
+		}
+
+		# TEMPORARY instrumentation (2026-09-08), same shape as the
+		# diplo-play events' per-participant taps -- explicit watched
+		# status for both sides alongside the decision above. `.GetCountry`
+		# here matches EXACTLY what 04_smart_notifications_probes.txt
+		# already confirmed working for scope:actor/scope:recipient on
+		# this specific on_action (real names logged, no error) -- not
+		# assumed from the diplomatic_play convention used elsewhere in
+		# this mod, which is a different root type. Delete once confirmed
+		# tuned correctly. Grep debug.log for SNW_FILTER.
+		scope:actor ?= {
+			if = {
+				limit = { smart_notifications_is_watched = yes }
+				debug_log = "SNW_FILTER|diplomatic_action|involved|country=[THIS.GetCountry.GetNameNoFormatting]|role=actor|watched=yes"
+			}
+			else = {
+				debug_log = "SNW_FILTER|diplomatic_action|involved|country=[THIS.GetCountry.GetNameNoFormatting]|role=actor|watched=no"
+			}
+		}
+		scope:recipient ?= {
+			if = {
+				limit = { smart_notifications_is_watched = yes }
+				debug_log = "SNW_FILTER|diplomatic_action|involved|country=[THIS.GetCountry.GetNameNoFormatting]|role=recipient|watched=yes"
+			}
+			else = {
+				debug_log = "SNW_FILTER|diplomatic_action|involved|country=[THIS.GetCountry.GetNameNoFormatting]|role=recipient|watched=no"
+			}
+		}
+	}
+}

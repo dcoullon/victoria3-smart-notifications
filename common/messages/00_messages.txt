@@ -284,7 +284,17 @@ diplomatic_action_notification = {
 
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
-	notification_type = toast
+	# Muted 2026-09-08 (Phase 4, see TODO.md): replaced by
+	# smart_notifications_diplomatic_action_watched/_quiet, posted instead
+	# of this key by
+	# common/on_actions/06_smart_notifications_diplomatic_action_filtering.txt
+	# based on whether a watched country (or the player) is the actor or
+	# recipient. This one key covers many different diplomatic action
+	# types (Increase/Decrease Relations, autonomy requests, ...) sharing
+	# one group -- see that file's header comment for the open question
+	# about whether our replacement keys correctly inherit each action
+	# type's own specific wording the same way this one did.
+	notification_type = none
 	color = neutral
 }
 
@@ -2227,5 +2237,37 @@ smart_notifications_diplo_play_subject_released_quiet = {
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
 	notification_type = none
+	color = neutral
+}
+
+# Generic diplomatic action filtering (see TODO.md and
+# 06_smart_notifications_diplomatic_action_filtering.txt). Deliberately no
+# `_name`/`_desc` loc keys here -- every other message in this mod defines
+# its own fixed text, but this one key covers many different diplomatic
+# action types (Increase/Decrease Relations, autonomy requests, ...), each
+# with genuinely different vanilla wording, and no diplomatic_actions/*.txt
+# file wires that text in script anywhere (confirmed via an exhaustive
+# grep) -- it's resolved natively, keyed off the action type bound to root,
+# independent of which message key posted it. Betting `type =
+# diplomatic_action` alone is what triggers that resolution, matching
+# vanilla's own diplomatic_action_notification exactly apart from the key
+# name -- UNCONFIRMED, first thing to check in-game.
+smart_notifications_diplomatic_action_watched = {
+	type = diplomatic_action
+	group = "smart_notifications_diplomatic_action_watched_group"
+
+	texture = "gfx/interface/icons/notification_icons/influence.dds"
+
+	notification_type = toast
+	color = neutral
+}
+
+smart_notifications_diplomatic_action_quiet = {
+	type = diplomatic_action
+	group = "smart_notifications_diplomatic_action_quiet_group"
+
+	texture = "gfx/interface/icons/notification_icons/influence.dds"
+
+	notification_type = feed
 	color = neutral
 }

@@ -1113,32 +1113,38 @@ uncountable/no-hook list in Dev Tooling above — triage before building:
       "just entered civil war" (needs its own trigger-availability check
       first — don't assume, verify what's queryable) and posts our own
       toast only for those. Not started.
-- [ ] **`diplomatic_action_notification` (generic) — new candidate found
-      2026-09-07 via the user's own playtest, probe shipped, not yet
-      built.** Confirmed still fully vanilla (`toast`, untouched by this
-      mod) and fires from `on_diplomatic_action` for EVERY diplomatic
-      action any country takes toward the player — Increase/Decrease
-      Relations, autonomy requests, etc, all sharing one generic group
-      (`common/messages/00_messages.txt:275`). Real example the user hit:
-      a decentralized rebel faction ("East Indies Abolitionist Revolt")
-      using Increase Relations popped a toast despite being nobody the
-      player has any reason to care about. Same root-scope family
-      (Diplomatic Action) as the already-confirmed-blocked
-      `diplomatic_proposal_third_party_*` keys — a prior guess on that
-      exact root type produced a real runtime error (`is_player trigger
-      [ Wrong scope for trigger: diplomatic_action, expected country ]`),
-      so this needs the same defensive probe-first approach rather than
-      guessing again. Probe shipped:
-      [04_smart_notifications_probes.txt](common/on_actions/04_smart_notifications_probes.txt)'s
-      `smart_notifications_probe_da` block, guarded with `?=` the same way
-      as the existing third-party probes. Once a real diplomatic action
-      fires and the log shows which scope actually names the initiator,
-      build watchlist filtering the same way as the Diplomatic-Play family
-      (elevate if initiator is watched or the action targets us in a way
-      we care about, demote otherwise) — but note this group is broader
-      than just "Increase Relations" (shared by several action types), so
-      check whether all of them deserve the same treatment before
-      blanket-filtering the whole group.
+- [~] **`diplomatic_action_notification` (generic) — BUILT 2026-09-08,
+      not yet confirmed in-game, one real open risk.** Confirmed via a
+      probe ([04_smart_notifications_probes.txt](common/on_actions/04_smart_notifications_probes.txt))
+      that `scope:actor`/`scope:recipient` resolve to real country names
+      on the plain `on_diplomatic_action` (unlike its still-blocked
+      `_third_party_` siblings, which is a different on_action despite
+      sharing a root type). Muted vanilla's `diplomatic_action_notification`
+      (`none`), replaced by `smart_notifications_diplomatic_action_watched`
+      (toast)/`_quiet` (feed) in
+      [06_smart_notifications_diplomatic_action_filtering.txt](common/on_actions/06_smart_notifications_diplomatic_action_filtering.txt),
+      elevating if EITHER the actor or recipient is watched (`OR`, no
+      roster to iterate here, just the two direct parties) —
+      `is_player = yes` baked into `smart_notifications_is_watched`
+      already guarantees an action directed at the player always elevates.
+      **Real open risk, unconfirmed:** this one vanilla key covers MANY
+      different action types (Increase/Decrease Relations, autonomy
+      requests, ...), each with genuinely different wording, and no
+      `common/diplomatic_actions/*.txt` file wires that text in script
+      anywhere (confirmed via an exhaustive grep) — it must be resolved
+      natively, keyed off the action type bound to root. Our replacement
+      keys deliberately have NO `_name`/`_desc` loc of their own, betting
+      that keeping `type = diplomatic_action` (matching vanilla) is what
+      triggers the same native per-action-type text resolution regardless
+      of message key name. **First thing to check in-game:** does the new
+      toast/feed entry show real text ("X improved relations with Y"
+      etc.) or a blank/raw-key placeholder? If the latter, the hypothesis
+      was wrong and this needs per-action-type loc keys instead — a much
+      bigger effort. Group is broader than "Increase Relations" alone
+      (shared by several action types) — once text rendering is
+      confirmed, worth checking whether all of them deserve identical
+      treatment or whether some (e.g. autonomy requests, arguably always
+      worth seeing) should stay unconditional.
 - [ ] **Tech spreading notification** — user suspects vanilla may already
       have a per-notification setting for this; check Message Settings
       before assuming it needs a mod change at all.

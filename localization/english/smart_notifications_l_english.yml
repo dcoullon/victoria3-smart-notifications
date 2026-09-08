@@ -97,6 +97,13 @@
  notification_smart_notifications_diplo_play_subject_released_quiet_name:0 "[SCOPE.sC('target').GetNameNoFormatting] breaks free"
  notification_smart_notifications_diplo_play_subject_released_quiet_desc:0 "Due to the failure of [SCOPE.sC('actor').GetNameNoFormatting] to protect their subject [SCOPE.sC('target').GetNameNoFormatting] their pact is now null and void."
 
+ # Generic diplomatic action filtering (see TODO.md and
+ # 06_smart_notifications_diplomatic_action_filtering.txt). Group labels
+ # only -- deliberately no notification_..._name/_desc/_tooltip keys, see
+ # 00_messages.txt's comment on these two message defs for why.
+ smart_notifications_diplomatic_action_watched_group:0 "Diplomatic Action, Watched Country Involved (Smart Notifications)"
+ smart_notifications_diplomatic_action_quiet_group:0 "Diplomatic Action, Ambient (Smart Notifications)"
+
  # Amendment-repealable alert (see 01_smart_notifications_alerts.txt).
  #
  # CORRECTED 2026-09-06: an alert has TWO separate name-shaped loc keys, not
