@@ -234,6 +234,13 @@ watchlist_is_great_power_check_sgui = {
 	scope = country
 
 	is_valid = {
+		# Decentralized countries are excluded from the whole Watchlist
+		# (user, 2026-09-07): you don't meaningfully interact with them, so
+		# watching one is meaningless -- and they were also the countries
+		# Select All appeared to "miss", because they are adjacent for
+		# display purposes but not picked up the same way by the bulk scan.
+		# Excluding them makes the list and the bulk actions agree.
+		NOT = { is_country_type = decentralized }
 		country_rank >= rank_value:great_power
 	}
 
@@ -262,6 +269,13 @@ watchlist_is_neighbor_check_sgui = {
 		# that clobbered the line it had just restored). Change nothing
 		# here without an in-game retest.
 		# ############################################################
+		# Decentralized countries are excluded from the whole Watchlist
+		# (user, 2026-09-07): you don't meaningfully interact with them, so
+		# watching one is meaningless -- and they were also the countries
+		# Select All appeared to "miss", because they are adjacent for
+		# display purposes but not picked up the same way by the bulk scan.
+		# Excluding them makes the list and the bulk actions agree.
+		NOT = { is_country_type = decentralized }
 		any_country = {
 			is_player = yes
 			is_adjacent_to_country = root
@@ -284,6 +298,13 @@ watchlist_is_rival_check_sgui = {
 		# phrasing happened not to match the blanket replace that broke
 		# the neighbour check).
 		# ############################################################
+		# Decentralized countries are excluded from the whole Watchlist
+		# (user, 2026-09-07): you don't meaningfully interact with them, so
+		# watching one is meaningless -- and they were also the countries
+		# Select All appeared to "miss", because they are adjacent for
+		# display purposes but not picked up the same way by the bulk scan.
+		# Excluding them makes the list and the bulk actions agree.
+		NOT = { is_country_type = decentralized }
 		any_country = {
 			is_player = yes
 			any_rival_country = {
@@ -364,6 +385,20 @@ watchlist_is_in_asia_sgui = {
 				is_in_geographic_region = geographic_region_asia
 			}
 		}
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+# Row filter for the "Add a Country" list, which is otherwise unfiltered
+# (every country in the world). Excludes decentralized countries for the
+# same reason as above.
+watchlist_is_watchable_check_sgui = {
+	scope = country
+
+	is_valid = {
+		NOT = { is_country_type = decentralized }
 	}
 
 	ai_is_valid = { always = no }
@@ -467,6 +502,7 @@ watchlist_bulk_select_great_power_sgui = {
 		every_country = {
 			limit = {
 				NOT = { this = scope:snw_bulk_player }
+				NOT = { is_country_type = decentralized }
 				country_rank >= rank_value:great_power
 			}
 			set_variable = watched_via_great_power
@@ -497,6 +533,7 @@ watchlist_bulk_deselect_great_power_sgui = {
 		every_country = {
 			limit = {
 				NOT = { this = scope:snw_bulk_player }
+				NOT = { is_country_type = decentralized }
 				country_rank >= rank_value:great_power
 			}
 			remove_variable = watched_via_great_power
@@ -530,6 +567,7 @@ watchlist_bulk_select_neighbor_sgui = {
 		every_country = {
 			limit = {
 				NOT = { this = scope:snw_bulk_player }
+				NOT = { is_country_type = decentralized }
 				is_adjacent_to_country = scope:snw_bulk_player
 			}
 			set_variable = watched_via_neighbor
@@ -561,6 +599,7 @@ watchlist_bulk_deselect_neighbor_sgui = {
 		every_country = {
 			limit = {
 				NOT = { this = scope:snw_bulk_player }
+				NOT = { is_country_type = decentralized }
 				is_adjacent_to_country = scope:snw_bulk_player
 			}
 			remove_variable = watched_via_great_power
@@ -663,6 +702,7 @@ watchlist_bulk_select_watched_refresh_sgui = {
 		every_country = {
 			limit = {
 				NOT = { this = scope:snw_bulk_player }
+				NOT = { is_country_type = decentralized }
 			}
 			if = {
 				limit = { country_rank >= rank_value:great_power }

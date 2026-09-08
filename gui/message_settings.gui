@@ -1725,11 +1725,13 @@ types message_settings {
         }
     }
 
-	# Manually Added -- deliberately no `visible` filter (see the
-	# flowcontainer comment above for why: this is the only sub-section
-	# that can add a brand new country with no search box yet).
+	# Manually Added -- shows every country so a brand-new one can be added
+	# (there is no search box), EXCEPT decentralized countries, which are
+	# excluded from the whole Watchlist (user, 2026-09-07): you don't
+	# meaningfully interact with them, so watching one is meaningless.
 	type smart_notifications_watchlist_manual_row = widget {
         size = { 660 44 }
+        visible = "[GetScriptedGui('watchlist_is_watchable_check_sgui').IsValid(GuiScope.SetRoot(InterestingCountryItem.GetCountry.MakeScope).End)]"
 
         background = {
             using = entry_bg_simple

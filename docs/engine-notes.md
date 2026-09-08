@@ -65,6 +65,31 @@ Confirmed the hard way: an early debug tool used `[Root.GetName]` /
 playtest, before anyone checked `error.log`. Always verify a bracket
 expression against a real vanilla example before trusting it.
 
+## `THIS` needs a cast: `[THIS.GetCountry.GetNameNoFormatting]`, never `[THIS.GetNameNoFormatting]`
+
+Confirmed 2026-09-07 from the user's own `debug.log`. Every `debug_log`
+line this mod had written since the truce tracker used
+`[THIS.GetNameNoFormatting]` and every one of them logged
+`Data error in loc string '...'` and rendered nothing — including in
+plain on_action country scope, where the scope is unambiguously a country.
+
+`THIS` in dynamic text is a generic scope wrapper, not a country. It has
+to be cast first. Vanilla is completely consistent about this: grepping
+`common/` for `[THIS.*GetNameNoFormatting]` returns 13 hits, **all** of
+the form `[THIS.GetCountry.GetNameNoFormatting]` (or
+`[THIS.GetCharacter.GetCountry...]`), and **zero** of the bare form.
+
+This is distinct from the earlier `.GetName` vs `.GetNameNoFormatting`
+finding, and compounds with it — the accessor name was right, the missing
+cast still broke it.
+
+**Why this one was expensive:** it made all instrumentation silently
+blind. Several diagnostic rounds on the Watchlist bulk buttons produced
+log lines that looked like they had fired but carried no data, so
+diagnosis fell back to inferring from screenshots, which produced three
+successive wrong root causes. **When a debug tap prints nothing useful,
+check the tap itself before theorising about the code it is measuring.**
+
 ## `debug_log`, not `log`
 
 The debug-logging effect is `debug_log = "..."` (with full bracket

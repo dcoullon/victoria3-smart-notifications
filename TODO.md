@@ -479,48 +479,33 @@ four are" so the list is never empty on first open.
       been misread as the list being over-inclusive). Briefly rewritten
       to a global-variable lookup on that wrong diagnosis and then
       restored — the actual bug was in the bulk actions, see below.
-- [~] **Bulk-select/deselect buttons — BUILT 2026-09-07, UX SIMPLIFIED
-      2026-09-07 per the user, not yet re-confirmed in-game.** One
-      Select All / Deselect All pair per tab (Watched/Great Powers/
-      Neighbors/Rivals — Manually Added excluded, no live "who
-      qualifies" set to act on), shown under the sub-nav row for the
-      active tab. Resolved via binding the button's container to
-      `datacontext = "[GetMetaPlayer.GetPlayedOrObservedCountry]"` (a
-      real vanilla accessor, used identically in `market_panel.gui`/
-      `right_click_menu.gui`/`ingame_hud.gui`) so `Country.MakeScope`
-      inside it resolves to the player, letting the bulk SGUIs
-      (`watchlist_bulk_select_*_sgui`/`watchlist_bulk_deselect_*_sgui`,
-      `common/scripted_guis/watchlist_sgui.txt`) run with root = player
-      directly.
-      **Bug #1, fixed:** the individual per-row checkbox
-      (`watchlist_toggle_sgui`) was shared across all five row types and
-      always set `watched_manually` on a fresh watch regardless of which
-      section it was clicked from — contradicting the spec ("sets only
-      the one flag appropriate to where you checked it") and making a
-      category's Deselect All silently skip any row the player had
-      hand-checked from that same category. Split into
-      `watchlist_toggle_great_power_sgui`/`_neighbor_sgui`/`_rival_sgui`,
-      one per section, each setting only its own flag on the fresh-watch
-      branch.
-      **UX simplified, replacing the original per-flag Deselect All
-      design entirely:** the original design only cleared a category's
-      own flag on Deselect All, correctly preserving a country watched
-      for a different reason too (per the multi-flag data model) — but
-      the user found this confusing live (Deselect All on Neighbors left
-      Spain and the USA checked, since both are also Great Powers) and
-      gave explicit direction instead: "if I click select all or
-      deselect all in a tab, all the countries in that tab get
-      selected/deselected" — full stop. Every Deselect All now clears
-      **all four flags** for every country matching that tab's own live
-      filter (Select All is unchanged, since setting one flag already
-      makes the row checked). Watched's own pair is new: Select All
-      re-runs all 3 category bulk-selects together ("refresh the
-      watchlist", matching the existing "static list, re-click to
-      refresh" design), Deselect All clears the entire watchlist
-      outright (`watchlist_bulk_select_watched_refresh_sgui`/
-      `_deselect_watched_sgui`). The temporary `SNW_WATCHLIST|` debug
-      taps from the earlier diagnosis were removed along with the code
-      they were diagnosing.
+- [~] **Bulk-select/deselect buttons — root cause found 2026-09-07 (by the
+      user), pending in-game confirmation.** Select All appeared to skip
+      countries on the Neighbors tab across many versions. It was not the
+      effect body (rewritten three times: root -> global variable ->
+      is_player+save_scope_as) and not the invocation: the root probes
+      confirmed all three SetRoot forms execute the effect. **The skipped
+      countries were all decentralized** (Ajuran, Anuak, Aulihan, Bemba)
+      — they show as adjacent for display purposes but aren't picked up
+      the same way by the bulk scan. Fix, per the user: decentralized
+      countries are excluded from the Watchlist entirely — watching one is
+      meaningless since you don't meaningfully interact with them — which
+      makes the displayed list and the bulk actions agree by construction.
+      `NOT = { is_country_type = decentralized }` added to the neighbour /
+      rival / Great Power row checks, a new
+      `watchlist_is_watchable_check_sgui` for the previously-unfiltered
+      "Add a Country" list, every bulk action limit, and the game-start
+      population.
+      **Also fixed along the way:** every `debug_log` in this mod used
+      `[THIS.GetNameNoFormatting]`, which is not valid — vanilla always
+      writes `[THIS.GetCountry.GetNameNoFormatting]` (13 occurrences, zero
+      of the bare form). All instrumentation had been silently rendering
+      as "Data error in loc string" instead of data, which is a large part
+      of why this took so many rounds: the diagnostics were blind and
+      diagnosis fell back to inferring from screenshots.
+      **Note:** an existing save may still carry `watched_via_*` flags on
+      decentralized countries from an earlier campaign-start population;
+      they'll show on the Watched tab until cleared with Deselect All.
 - [x] **Watched-tab provenance tags — BUILT 2026-09-07, not yet seen
       in-game.** Per the original v1 spec ("small tags showing which
       category(ies) currently apply, e.g. 'Prussia — Great Power,

@@ -53,6 +53,9 @@ smart_notifications_on_game_started = {
 			every_country = {
 				limit = {
 					NOT = { this = scope:smart_notifications_watchlist_player }
+					# Decentralized countries are excluded from the whole
+					# Watchlist -- see watchlist_sgui.txt.
+					NOT = { is_country_type = decentralized }
 				}
 				if = {
 					limit = { country_rank >= rank_value:great_power }
