@@ -2306,17 +2306,34 @@ smart_notifications_diplomatic_action_watched = {
 
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
-	# DEMOTED 2026-09-09 from `toast`: confirmed via debug.log (13 fires
-	# in one session -- e.g. Spain -> Philippines, Ottoman Empire ->
-	# Fezzan, Portugal -> Gaza, all a watched great power acting on an
-	# unwatched minor) that this fires often enough in practice to be
-	# genuine screen-interruption spam, per the user. The accurate,
-	# specific title text (see smart_notifications_l_english.yml) stays
-	# -- still useful to skim in the feed log -- but no longer pops a
-	# toast for a watched-but-not-player diplomatic action. The
-	# player-targeted case (smart_notifications_diplomatic_action_targeting_player)
-	# is unaffected and still toasts, since that one's about the player
-	# directly and isn't the spam being reported here.
+	# RESTORED to `toast` 2026-09-09 (evening). This was demoted to `feed`
+	# earlier the same day over a spam report (13 fires in one session --
+	# Spain -> Philippines, Ottoman Empire -> Fezzan, Portugal -> Gaza).
+	# Every one of those samples was a watched country ACTING on an
+	# unwatched minor, which under the user's rule -- a toast means an
+	# important action aimed at you or at a country you watch -- should
+	# never have toasted in the first place. The demotion treated the
+	# symptom by muting the whole watched path, including actions aimed AT
+	# a watched country, which the rule says are exactly what this mod
+	# exists to surface. The actual fix is the actor/recipient split now
+	# in 06_smart_notifications_diplomatic_action_filtering.txt; this key
+	# now only ever fires for a non-routine action aimed at a watched
+	# country, so it can be a toast again.
+	notification_type = toast
+	color = neutral
+}
+
+# ADDED 2026-09-09 (evening): the routine-action sibling of the key above
+# -- an unwatched country merely improving/damaging relations with a
+# country you watch. Same generic wording, feed instead of toast. Routed
+# here via the flag set by this mod's override of
+# common/diplomatic_actions/00_relations_actions.txt.
+smart_notifications_diplomatic_action_watched_routine = {
+	type = diplomatic_action
+	group = "smart_notifications_diplomatic_action_watched_routine_group"
+
+	texture = "gfx/interface/icons/notification_icons/influence.dds"
+
 	notification_type = feed
 	color = neutral
 }
@@ -2350,6 +2367,29 @@ smart_notifications_diplomatic_action_targeting_player = {
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
 	notification_type = toast
+	color = neutral
+}
+
+# ADDED 2026-09-09 (evening), replacing the version deleted earlier the
+# same day: a routine relations change aimed at YOU, from a country you
+# are not watching. Keeps vanilla's own full per-action text (it's
+# accurate here -- the player really is a party to this action), just in
+# the feed rather than as a toast. A WATCHED country doing the same thing
+# still toasts via the key above, per the user: you're tracking that
+# country specifically.
+#
+# The first attempt at this key was reverted because the routing behind
+# it could never fire (docs/engine-notes.md § The pact for a diplomatic
+# action does not exist yet). It only works now because the action type
+# is flagged from the action's own definition instead of being inferred
+# after the fact.
+smart_notifications_diplomatic_action_targeting_player_routine = {
+	type = diplomatic_action
+	group = "smart_notifications_diplomatic_action_targeting_player_routine_group"
+
+	texture = "gfx/interface/icons/notification_icons/influence.dds"
+
+	notification_type = feed
 	color = neutral
 }
 

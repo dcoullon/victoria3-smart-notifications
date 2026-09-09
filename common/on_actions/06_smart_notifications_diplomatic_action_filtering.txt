@@ -117,96 +117,103 @@ on_diplomatic_action = {
 # elevates regardless of watchlist.
 smart_notifications_diplomatic_action = {
 	effect = {
+		# REBUILT 2026-09-09 (evening) to the user's own stated rule, which
+		# is tighter than what this file had grown into:
+		#
+		#   A toast should mean "an important action, aimed at you or at a
+		#   country you're watching". Nothing else.
+		#
+		# Two axes, and the old code collapsed them into one. It OR'd actor
+		# and recipient together, so a watched great power ACTING on some
+		# unrelated minor was treated exactly like a watched country BEING
+		# acted on. Those are opposite cases under the rule above: the
+		# first isn't aimed at anyone you care about (no toast), the second
+		# is (toast). Splitting them is free -- both sides are plain
+		# country scopes right here. That split is also the honest fix for
+		# the v0.37 spam report: all 13 sampled cases were a watched actor
+		# hitting an unwatched minor, i.e. exactly the branch that should
+		# never have toasted, rather than a reason to mute the whole
+		# watched path as v0.37 did.
+		#
+		# The second axis is importance, and it needs the flag set by this
+		# mod's override of common/diplomatic_actions/00_relations_actions.txt
+		# -- read that file's header for why an override is the only way to
+		# know an action's type at this instant. Increase/Decrease Relations
+		# are the only "routine" actions for now.
+		#
+		# Resulting matrix (actor watched includes actor being the player;
+		# smart_notifications_is_watched has is_player = yes baked in):
+		#
+		#   recipient = player,  routine, actor unwatched -> feed
+		#   recipient = player,  otherwise               -> toast
+		#   recipient = watched, routine, actor unwatched -> feed
+		#   recipient = watched, otherwise               -> toast
+		#   recipient = neither                          -> feed (quiet),
+		#                                 even if the ACTOR is watched
+		#
+		# A watched actor overrides the routine demotion on purpose, per
+		# the user: you're tracking that country specifically, so even a
+		# relations nudge from it is worth the interruption.
 		if = {
-			# ADDED 2026-09-09: the player-as-recipient case gets its OWN
-			# message key now, not just elevated priority, so its desc can
-			# safely reuse vanilla's full per-action text (see
-			# common/messages/00_messages.txt's comment on
-			# smart_notifications_diplomatic_action_targeting_player). This
-			# must be checked FIRST since it's a strict subset of the
-			# `smart_notifications_is_watched` check below (is_player = yes
-			# is already part of that trigger) -- without checking this
-			# branch first, the watched-country toast would fire instead
-			# and this more-specific one never would.
 			limit = { scope:recipient ?= { is_player = yes } }
 
-			# RESOLVED 2026-09-09 (evening) -- this branch briefly carried a
-			# further carve-out: Increase/Decrease Relations targeting the
-			# player, from an UNWATCHED actor, was demoted from toast to a
-			# feed-tier key on the grounds that "a random minor improving
-			# relations with you" isn't worth an interruption. The
-			# mechanism was `has_diplomatic_pact = { who = scope:recipient
-			# type = increase_relations/damage_relations }` checked from
-			# scope:actor. It never once fired in 11 real firings, and the
-			# reason is now confirmed, not guessed: **the pact object for
-			# the action that just fired does not exist in gamestate yet at
-			# the instant `on_diplomatic_action` runs.**
-			#
-			# The proof is three countries appearing in two independent
-			# instruments at two different times (see the SNW_PACT_PROBE2 /
-			# SNW_PACT_SWEEP diagnostics, both since deleted; full write-up
-			# in docs/engine-notes.md § The pact for a diplomatic action
-			# does not exist yet). Nawanagar -> Great Qing, Improve
-			# Relations, Jan 17 1836: at the firing instant an
-			# `every_scope_diplomatic_pact` walk of Nawanagar's own pacts
-			# found two pacts, NEITHER of type increase_relations, and all
-			# four has_diplomatic_pact variants returned no. On the next
-			# monthly pulse the exact same query -- `has_diplomatic_pact =
-			# { who = ROOT type = increase_relations is_initiator = yes }`
-			# -- returned yes for Nawanagar. Same for Tibet
-			# (damage_relations) and Selangor (increase_relations). The
-			# query is correct; it is simply asked one moment too early,
-			# and there is no way to un-toast a notification after the
-			# fact.
-			#
-			# No replacement signal exists at this instant, and that is
-			# now established rather than assumed. The scope dump here
-			# reads `Root: Diplo action Improve Relations (165)`, so the
-			# root object plainly knows its own type -- but script cannot
-			# ask it: triggers.log and effects.log support ZERO triggers
-			# and ZERO effects on `diplomatic_action` scope, and
-			# event_targets.log has no target leading out of it or into a
-			# `diplomatic_pact`. `is_diplomatic_action_type` exists but is
-			# documented for `diplomatic_pact` scope only, and no pact is
-			# reachable here (that's the bug). The only scopes bound at
-			# this moment are `actor`, `recipient` and `notification_target`
-			# -- all countries, none carrying the action type.
-			#
-			# So: reverted to a plain toast for every action targeting the
-			# player, which is where this was before the attempt and is
-			# the safe direction to fail in (over-notifying about something
-			# aimed directly at you beats silently dropping it). If the
-			# "random minor" complaint needs addressing again, the signal
-			# to reach for is a property of the ACTOR -- rank, diplomatic
-			# relevance, country type -- all of which ARE available at this
-			# instant, rather than a property of the action, which is not.
-			post_notification = smart_notifications_diplomatic_action_targeting_player
-			debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_targeting_player|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|PLAYER_TARGETED"
+			if = {
+				limit = {
+					scope:recipient ?= { has_variable = snw_routine_relations_action }
+					scope:actor ?= { NOT = { smart_notifications_is_watched = yes } }
+				}
+				post_notification = smart_notifications_diplomatic_action_targeting_player_routine
+				debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_targeting_player_routine|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|PLAYER_TARGETED_ROUTINE"
+			}
+			else = {
+				post_notification = smart_notifications_diplomatic_action_targeting_player
+				debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_targeting_player|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|PLAYER_TARGETED"
+			}
 		}
 		else_if = {
-			limit = {
-				OR = {
-					scope:actor ?= { smart_notifications_is_watched = yes }
-					scope:recipient ?= { smart_notifications_is_watched = yes }
+			# Aimed AT a watched country (the player is not involved).
+			# Note this deliberately does NOT test scope:actor -- a watched
+			# country doing something to a stranger falls through to the
+			# quiet branch below.
+			limit = { scope:recipient ?= { smart_notifications_is_watched = yes } }
+
+			if = {
+				limit = {
+					scope:recipient ?= { has_variable = snw_routine_relations_action }
+					scope:actor ?= { NOT = { smart_notifications_is_watched = yes } }
 				}
+				post_notification = smart_notifications_diplomatic_action_watched_routine
+				debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_watched_routine|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|WATCHED_TARGETED_ROUTINE"
 			}
-			post_notification = smart_notifications_diplomatic_action_watched
-			debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_watched|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|ELEVATED"
+			else = {
+				post_notification = smart_notifications_diplomatic_action_watched
+				debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_watched|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|WATCHED_TARGETED"
+			}
 		}
 		else = {
 			post_notification = smart_notifications_diplomatic_action_quiet
 			debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_quiet|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|QUIET"
 		}
 
-		# TEMPORARY instrumentation (2026-09-08), same shape as the
-		# diplo-play events' per-participant taps -- explicit watched
-		# status for both sides alongside the decision above. `.GetCountry`
-		# here matches EXACTLY what 04_smart_notifications_probes.txt
-		# already confirmed working for scope:actor/scope:recipient on
-		# this specific on_action (real names logged, no error) -- not
-		# assumed from the diplomatic_play convention used elsewhere in
-		# this mod, which is a different root type. Delete once confirmed
-		# tuned correctly. Grep debug.log for SNW_FILTER.
+		# Consume the flag unconditionally, in every branch, so it can
+		# never survive into a later action against the same country. The
+		# `days = 2` expiry on the override's set_variable only covers the
+		# case where no notification arrives to do this.
+		scope:recipient ?= {
+			if = {
+				limit = { has_variable = snw_routine_relations_action }
+				debug_log = "SNW_ROUTINE_READ|flag_present|country=[THIS.GetCountry.GetNameNoFormatting]"
+				remove_variable = snw_routine_relations_action
+			}
+			else = {
+				debug_log = "SNW_ROUTINE_READ|flag_absent|country=[THIS.GetCountry.GetNameNoFormatting]"
+			}
+		}
+
+		# TEMPORARY instrumentation (2026-09-08) -- explicit watched status
+		# for both sides alongside the decision above. Delete once the
+		# routing is confirmed tuned correctly. Grep debug.log for
+		# SNW_FILTER.
 		scope:actor ?= {
 			if = {
 				limit = { smart_notifications_is_watched = yes }
