@@ -13,9 +13,19 @@
 #
 # For every currently-flagged law (regardless of whether the alert's full
 # condition is met), logs which of the two remaining gates
-# (`can_be_enacted`, the enactment-chance threshold) it currently passes
+# (`can_be_enacted`, the success-vs-stall check) it currently passes
 # or fails -- so if the alert never visibly appears, this line says
 # exactly why, without needing new instrumentation added after the fact.
+#
+# REVISED 2026-09-08 per the user: the alert's own condition changed from
+# a flat ">50% overall" threshold to "does the next checkpoint's Success
+# chance beat its Stall chance" (matching the law list's own displayed
+# breakdown) -- this probe's third check now mirrors that exact logic
+# rather than the old threshold, so its output stays meaningful against
+# whatever the alert itself currently does. See
+# common/alert_types/01_smart_notifications_alerts.txt's own header
+# comment for why this needs a 19-point threshold sweep instead of a
+# single comparison.
 #
 # DELETE once the law commitment alert is confirmed working live.
 #
@@ -44,22 +54,93 @@ smart_notifications_law_commitment_probe = {
 				if = {
 					limit = { can_be_enacted = yes }
 					debug_log = "SNW_LAW_ALERT|probe|can_be_enacted=yes|law=[THIS.GetNameNoFormatting]"
-					THIS.type = {
-						save_scope_as = smart_notifications_law_commitment_probe_candidate
-					}
-					root = {
-						if = {
-							limit = {
-								enactment_chance_for_law = {
-									target = scope:smart_notifications_law_commitment_probe_candidate
-									value > 0.5
+					if = {
+						limit = {
+							THIS.owner = {
+								OR = {
+									AND = {
+										enactment_chance_for_law = { target = prev.type  value > 0.05 }
+										NOT = { stall_chance_for_law = { target = prev.type  value > 0.05 } }
+									}
+									AND = {
+										enactment_chance_for_law = { target = prev.type  value > 0.1 }
+										NOT = { stall_chance_for_law = { target = prev.type  value > 0.1 } }
+									}
+									AND = {
+										enactment_chance_for_law = { target = prev.type  value > 0.15 }
+										NOT = { stall_chance_for_law = { target = prev.type  value > 0.15 } }
+									}
+									AND = {
+										enactment_chance_for_law = { target = prev.type  value > 0.2 }
+										NOT = { stall_chance_for_law = { target = prev.type  value > 0.2 } }
+									}
+									AND = {
+										enactment_chance_for_law = { target = prev.type  value > 0.25 }
+										NOT = { stall_chance_for_law = { target = prev.type  value > 0.25 } }
+									}
+									AND = {
+										enactment_chance_for_law = { target = prev.type  value > 0.3 }
+										NOT = { stall_chance_for_law = { target = prev.type  value > 0.3 } }
+									}
+									AND = {
+										enactment_chance_for_law = { target = prev.type  value > 0.35 }
+										NOT = { stall_chance_for_law = { target = prev.type  value > 0.35 } }
+									}
+									AND = {
+										enactment_chance_for_law = { target = prev.type  value > 0.4 }
+										NOT = { stall_chance_for_law = { target = prev.type  value > 0.4 } }
+									}
+									AND = {
+										enactment_chance_for_law = { target = prev.type  value > 0.45 }
+										NOT = { stall_chance_for_law = { target = prev.type  value > 0.45 } }
+									}
+									AND = {
+										enactment_chance_for_law = { target = prev.type  value > 0.5 }
+										NOT = { stall_chance_for_law = { target = prev.type  value > 0.5 } }
+									}
+									AND = {
+										enactment_chance_for_law = { target = prev.type  value > 0.55 }
+										NOT = { stall_chance_for_law = { target = prev.type  value > 0.55 } }
+									}
+									AND = {
+										enactment_chance_for_law = { target = prev.type  value > 0.6 }
+										NOT = { stall_chance_for_law = { target = prev.type  value > 0.6 } }
+									}
+									AND = {
+										enactment_chance_for_law = { target = prev.type  value > 0.65 }
+										NOT = { stall_chance_for_law = { target = prev.type  value > 0.65 } }
+									}
+									AND = {
+										enactment_chance_for_law = { target = prev.type  value > 0.7 }
+										NOT = { stall_chance_for_law = { target = prev.type  value > 0.7 } }
+									}
+									AND = {
+										enactment_chance_for_law = { target = prev.type  value > 0.75 }
+										NOT = { stall_chance_for_law = { target = prev.type  value > 0.75 } }
+									}
+									AND = {
+										enactment_chance_for_law = { target = prev.type  value > 0.8 }
+										NOT = { stall_chance_for_law = { target = prev.type  value > 0.8 } }
+									}
+									AND = {
+										enactment_chance_for_law = { target = prev.type  value > 0.85 }
+										NOT = { stall_chance_for_law = { target = prev.type  value > 0.85 } }
+									}
+									AND = {
+										enactment_chance_for_law = { target = prev.type  value > 0.9 }
+										NOT = { stall_chance_for_law = { target = prev.type  value > 0.9 } }
+									}
+									AND = {
+										enactment_chance_for_law = { target = prev.type  value > 0.95 }
+										NOT = { stall_chance_for_law = { target = prev.type  value > 0.95 } }
+									}
 								}
 							}
-							debug_log = "SNW_LAW_ALERT|probe|chance_over_threshold=yes|WOULD_ALERT"
 						}
-						else = {
-							debug_log = "SNW_LAW_ALERT|probe|chance_over_threshold=no"
-						}
+						debug_log = "SNW_LAW_ALERT|probe|success_over_stall=yes|WOULD_ALERT"
+					}
+					else = {
+						debug_log = "SNW_LAW_ALERT|probe|success_over_stall=no"
 					}
 				}
 				else = {

@@ -1872,6 +1872,35 @@ is monthly — that's what needed the wait, not the alert. If the
 underlying condition is ever true, the real alert would show up within a
 second or two, not a month.
 
+## Alert condition redefined — 2026-09-08, per the user
+
+**Decision made**: "ready to activate" now means the next checkpoint's
+Success chance beats its Stall chance — the same comparison the law list
+itself displays — not an absolute ">50% overall" threshold. This
+directly replaces the flat `enactment_chance_for_law > 0.5` check.
+
+No single trigger does this comparison directly, and there's no
+confirmed way to pull either chance out as a raw number for script math —
+`enactment_chance_for_law`/`stall_chance_for_law` (both confirmed real,
+triggers.log) only support "> literal" comparisons, not comparing to
+each other. Worked around this with a threshold-sweep: "success > stall"
+is true if and only if some value V exists with success > V and
+stall <= V, so testing this across a dense grid (19 steps, every 0.05
+from 0.05 to 0.95) approximates the exact comparison to within the
+grid's own spacing. The only remaining inaccuracy is the rare case where
+both values land in the same 5-point band (e.g. 44% vs 41%), which this
+can't distinguish — accepted as a reasonable precision/complexity
+tradeoff for a heads-up alert, since every individual comparison is the
+same already-confirmed `_for_law` trigger shape repeated at 19 points,
+not a new mechanism.
+
+Updated both
+[common/alert_types/01_smart_notifications_alerts.txt](common/alert_types/01_smart_notifications_alerts.txt)
+(the real condition) and
+[common/on_actions/08_smart_notifications_law_commitment_probe.txt](common/on_actions/08_smart_notifications_law_commitment_probe.txt)
+(the temporary diagnostic, now mirroring the exact same check so its
+output stays meaningful) to match. **Not yet re-confirmed live.**
+
 ## New notifications/alerts backlog — sized and sequenced 2026-09-08
 
 All four items below are **P1 per the user**. This is the recommended
