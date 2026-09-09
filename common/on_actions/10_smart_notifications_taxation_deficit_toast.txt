@@ -1,0 +1,96 @@
+﻿# Smart Notifications mod: one-time toast per state that enters a
+# taxation deficit, independent of the persistent
+# smart_notifications_taxation_deficit_alert's dismiss state (see
+# common/alert_types/01_smart_notifications_alerts.txt).
+#
+# ADDED 2026-09-09 per the user, after confirming the exact same
+# dismiss-hides-new-instances gap the law commitment toast was built for
+# also applies here: the alert is grouped/aggregated
+# (alert_group = smart_notifications_taxation_deficit_states) and its
+# dismissal is edge-triggered on the alert's OWN valid (any_scope_state
+# in deficit) going false->true -- if State A's deficit already showed
+# and got dismissed, and a DIFFERENT state B later develops a deficit
+# while A's is still ongoing, "some state has a deficit" never flips
+# false->true again, so the alert never resurfaces for the new state B.
+#
+# UNLIKE the law toast, this does NOT need a per-type static dispatch --
+# there is no small, fixed, enumerable set of "state types" the way there
+# are exactly 138 law types (see
+# common/on_actions/09_smart_notifications_law_ready_toast.txt's own
+# header for why THAT one needs 138 branches). States are tracked
+# individually via a country-scope VARIABLE LIST holding event-target
+# references to the actual state objects (add_to_variable_list /
+# is_target_in_variable_list / remove_list_variable -- all confirmed real
+# via script_docs effects.log/triggers.log), so one shared message
+# definition suffices, exactly like vanilla's own `type = state` messages
+# (e.g. colony_created) do -- confirmed via
+# localization/english/interfaces_l_english.yml's own
+# `[SCOPE.GetRootScope.GetState.GetName]` usage in exactly that message's
+# loc, the SAME cast chain our own taxation_deficit_alert's loc already
+# uses successfully (confirmed working live this session).
+#
+# `prev` (confirmed real global scope link, usable in effect context too
+# -- see vanilla's own `prev.owner = { activate_law = prev.type }` in
+# common/laws/00_governance_principles.txt) is what lets this re-enter
+# the specific state's own scope (to call post_notification with the
+# state, not the country, as root -- required for `type = state` to
+# resolve correctly) after having stepped into THIS.owner to reach the
+# country-scope variable list.
+on_monthly_pulse_country = {
+	on_actions = {
+		smart_notifications_taxation_deficit_toast_check
+	}
+}
+
+smart_notifications_taxation_deficit_toast_check = {
+	effect = {
+		if = {
+			limit = { is_player = yes }
+			every_scope_state = {
+				if = {
+					limit = {
+						is_incorporated = yes
+						tax_capacity < tax_capacity_usage
+					}
+					THIS.owner = {
+						if = {
+							limit = {
+								NOT = {
+									is_target_in_variable_list = {
+										name = smart_notifications_notified_deficit_states
+										target = prev
+									}
+								}
+							}
+							add_to_variable_list = {
+								name = smart_notifications_notified_deficit_states
+								target = prev
+							}
+							prev = {
+								post_notification = smart_notifications_taxation_deficit_toast
+							}
+							debug_log = "SNW_TAX_TOAST|fired"
+						}
+					}
+				}
+				else = {
+					THIS.owner = {
+						if = {
+							limit = {
+								is_target_in_variable_list = {
+									name = smart_notifications_notified_deficit_states
+									target = prev
+								}
+							}
+							remove_list_variable = {
+								name = smart_notifications_notified_deficit_states
+								target = prev
+							}
+							debug_log = "SNW_TAX_TOAST|reset"
+						}
+					}
+				}
+			}
+		}
+	}
+}

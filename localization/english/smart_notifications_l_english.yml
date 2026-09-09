@@ -859,3 +859,13 @@
  SMART_NOTIFICATIONS_WATCHLIST_TAG_NEIGHBOR:0 "#bold NB#!"
  SMART_NOTIFICATIONS_WATCHLIST_TAG_RIVAL:0 "#bold RV#!"
  SMART_NOTIFICATIONS_WATCHLIST_TAG_MANUAL:0 "#bold MA#!"
+
+ # One-time toast for taxation deficit, one shared message (not per-type)
+ # since state identity is tracked via a variable list, not a static
+ # dispatch -- see common/on_actions/10_smart_notifications_taxation_deficit_toast.txt.
+ smart_notifications_taxation_deficit_toast_group:0 "(SN) Taxation Deficit"
+ notification_smart_notifications_taxation_deficit_toast_tooltip:0 "#header $notification_smart_notifications_taxation_deficit_toast_name$#!
+$TOOLTIP_DELIMITER$
+$notification_smart_notifications_taxation_deficit_toast_desc$"
+ notification_smart_notifications_taxation_deficit_toast_name:0 "[SCOPE.GetRootScope.GetState.GetName] has a Taxation Deficit"
+ notification_smart_notifications_taxation_deficit_toast_desc:0 "[SCOPE.GetRootScope.GetState.GetName] has insufficient Taxation Capacity for its population, reducing the efficiency of all forms of taxation there."

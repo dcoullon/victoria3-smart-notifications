@@ -2685,3 +2685,38 @@ enough plays to call it fully confirmed. Keep an eye on
 (`python tools/scan_logs.py`) across future sessions before removing
 that temporary instrumentation. Don't close this out from a single
 success.
+
+
+## Taxation deficit toast added (2026-09-09), per the user
+
+User confirmed the same edge-triggered-dismissal gap the law toast was
+built for also applies to taxation deficit: it's grouped/aggregated
+(alert_group), so if State A's deficit already showed+dismissed and a
+DIFFERENT state B later develops one while A's is still ongoing, "some
+state has a deficit" never flips false->true again and the alert never
+resurfaces for B. Asked whether to add a matching toast; user said yes.
+
+Structurally different from the law toast, and simpler: states aren't a
+small fixed enumerable set the way exactly 138 law types are, so a
+static per-type dispatch (the law toast's approach) doesn't scale here.
+Instead: one shared message (`type = state`, matching vanilla's own
+`type = state` messages like colony_created), naming the state via
+`[SCOPE.GetRootScope.GetState.GetName]` -- the EXACT cast chain our own
+taxation_deficit_alert's loc already uses and has been confirmed working
+live all session, so no new dynamic-text risk. Individual state tracking
+uses a country-scope variable list of event-target references
+(`add_to_variable_list`/`is_target_in_variable_list`/`remove_list_variable`,
+all confirmed real via effects.log/triggers.log) instead of a
+per-type "notified" variable.
+
+New file: common/on_actions/10_smart_notifications_taxation_deficit_toast.txt.
+Uses `prev = { post_notification = ... }` to re-scope back to the
+specific state (after stepping into `THIS.owner` to reach the country's
+variable list) so `type = state` resolves correctly at the point
+`post_notification` is called -- this exact bare-`prev`-as-block-header
+usage is inferred from vanilla's own confirmed `prev.owner = { activate_law
+= prev.type }` pattern (common/laws/00_governance_principles.txt), not
+independently tested before now. `validate_syntax.py` passes. Added
+matching `SNW_TAX_TOAST|fired`/`|reset` debug_log taps (same pattern as
+the law toast) so this can be confirmed or debugged from logs rather
+than guessed at. NOT YET LIVE TESTED -- next thing to verify.

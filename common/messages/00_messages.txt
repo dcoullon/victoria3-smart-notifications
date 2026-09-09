@@ -3692,3 +3692,24 @@ smart_notifications_law_ready_toast_law_worker_protections = {
 	color = good
 }
 
+
+# Smart Notifications mod: one-time toast per state entering a taxation
+# deficit, independent of the persistent
+# smart_notifications_taxation_deficit_alert's dismiss state -- see
+# common/on_actions/10_smart_notifications_taxation_deficit_toast.txt for
+# the full writeup. Unlike the law-ready toast, this is ONE shared
+# message (not 138 per-type ones): the specific state is tracked via a
+# variable list of event-target references, not a static per-type
+# dispatch, so `type = state` + a dynamic `[SCOPE.GetRootScope.GetState.GetName]`
+# reference in the loc (same cast chain the alert's own loc already uses,
+# confirmed working live) is enough -- matches vanilla's own `type = state`
+# messages (e.g. colony_created) exactly.
+smart_notifications_taxation_deficit_toast = {
+	type = state
+	group = "smart_notifications_taxation_deficit_toast_group"
+
+	texture = "gfx/interface/icons/state_status_icons/state_tax_capacity.dds"
+
+	notification_type = toast
+	color = bad
+}
