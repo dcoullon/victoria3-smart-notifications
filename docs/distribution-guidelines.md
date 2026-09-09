@@ -89,3 +89,21 @@ a gap enough people are actively searching for.
       as seen above, the page just shows boilerplate. Keep our own git
       history (this repo) as the record of what we shipped and why, so we're
       not solely dependent on the Workshop page surviving.
+
+## Confirmed 2026-09-08: `common/messages/00_messages.txt` is a full-file override, not additive
+
+Checked directly (diffed our copy against vanilla's own file) before
+writing the Workshop compatibility text: our file is a **complete copy**
+of vanilla's `00_messages.txt` (202 top-level message definitions, same
+count as vanilla) with our own notification-tuning changes applied
+in-place throughout — not a small additive file the way
+`common/alert_types/` works. This is by design (Phase 1's whole premise),
+but it has a real compatibility consequence worth remembering at every
+future release: **any other mod that also fully replaces this same file
+will silently conflict** — last-loaded wins for the entire file, with no
+merge of the two mods' changes. Document this in the Workshop page's
+Compatibility section every time it's updated, and re-check this file
+against vanilla's latest copy after any Victoria 3 patch that touches
+notification defaults (a patch could add new messages we'd otherwise be
+silently missing, since our copy doesn't inherit vanilla's own updates
+automatically).

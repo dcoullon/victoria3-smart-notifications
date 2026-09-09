@@ -1,0 +1,116 @@
+[h1]Smart Notifications[/h1]
+
+Stop missing the moments that matter, and stop getting interrupted by the
+ones that don't. Smart Notifications retunes Victoria 3's default alerts
+and toasts, adds a relational watchlist so faraway diplomacy only
+interrupts you when a country you actually care about is involved, and
+adds a handful of new alerts vanilla is missing entirely — including one
+that tells you, by name, exactly which law is finally worth enacting.
+
+[hr][/hr]
+
+[h1]Key Features[/h1]
+
+[list]
+[b]Smarter notification defaults[/b] — a pass over vanilla's own
+notification settings, demoting passive/low-value events (like transient
+domestic political noise) from toast-tier to feed-tier, and quieting
+repetitive dominion/subject diplomatic spam, without touching anything
+you'd actually want a popup for.
+
+[b]Relational country watchlist[/b] — flag the countries you actually
+care about (rivals, allies, potential targets). Diplomatic plays, wars
+starting, and countries joining a side now only interrupt you when a
+watchlisted country (or you) is a genuine participant — not every play
+happening anywhere in the world.
+
+[b]Agitator Invite Available alert[/b] — fires when you have an open
+agitator slot and an exiled character eligible to fill it, so the Invite
+Exile opportunity doesn't quietly expire unnoticed.
+
+[b]States with a Taxation Deficit alert[/b] — flags incorporated states
+where tax collection can't keep up with spending, grouped into one
+stacked entry when it's happening in more than one state.
+
+[b]Law Ready to Enact alert[/b] — the flagship feature. Tick an opt-in
+checkbox on any law's detail panel to mark it as one you're working
+toward. Once that specific law's next checkpoint has better odds of
+succeeding than stalling, an alert lights up naming the exact law and its
+law group — no more guessing which of the laws you wanted is actually
+worth spending Political Power on right now.
+[/list]
+
+[hr][/hr]
+
+[h1]Compatibility[/h1]
+
+[list]
+[b]Save games:[/b] safe to add to an existing campaign at any time — it's
+script/UI only, adds no new game mechanics. Removing it mid-campaign is
+also expected to be safe (the mod's own tracked flags simply become
+inert and are ignored, the way Jomini-engine mods generally handle
+removed script content) but hasn't been stress-tested across many saves
+yet — if you try it during the beta, please report back what you see.
+
+[b]Achievements:[/b] unaffected. Steam achievements are disabled by
+debug mode, not by having mods enabled — this mod doesn't touch that.
+
+[b]Ironman:[/b] not applicable — Victoria 3 doesn't have an Ironman mode.
+
+[b]Known conflicts:[/b] this mod fully replaces vanilla's
+[i]common/messages/00_messages.txt[/i] (the file controlling default
+notification presentation) to apply its notification-tuning pass. Any
+other mod that [i]also[/i] fully replaces that same file will conflict —
+whichever one loads later in your playset will silently win for every
+setting in that file, not merge with the other. If you use another
+notification-tuning or "QoL notification" mod, check for this specific
+overlap. No other conflicts are known as of this beta.
+[/list]
+
+[hr][/hr]
+
+[h1]Load Order Guidelines[/h1]
+
+Load this mod after any general gameplay/content mods. If you use another
+mod that changes default notification settings, load whichever one you
+want to "win" for shared settings [b]last[/b] — see the Compatibility
+note above on why they can't both apply their changes to the same file at
+once. Otherwise, position doesn't matter — everything else this mod adds
+(alerts, scripted triggers, the law-panel checkbox) is additive and
+doesn't depend on load order relative to other mods.
+
+[hr][/hr]
+
+[h1]Changelog[/h1]
+
+[b]0.34 — initial private beta[/b]
+[list]
+[*] Agitator Invite Available alert
+[*] States with a Taxation Deficit alert
+[*] Law Ready to Enact alert, with an opt-in per-law checkbox and
+    specific law name/group text in its tooltip
+[*] (SN) tagging on all mod-added Message Settings rows and in-panel UI
+    labels, so they're identifiable at a glance
+[/list]
+
+Full history of every change, including the notification-defaults pass
+and the relational watchlist this beta builds on, is tracked in the
+repository's own CHANGELOG.
+
+[hr][/hr]
+
+[h1]Issue Reporting & Source[/h1]
+
+This is a closed beta — thank you for testing. If you hit a bug or an
+alert that doesn't behave as described above, please report it with:
+
+[list]
+[*] What you expected vs. what happened
+[*] Your Victoria 3 version and any other mods enabled
+[*] If possible, your [i]debug.log[/i] and [i]error.log[/i] from
+    [i]Documents\Paradox Interactive\Victoria 3\logs\[/i] — this mod
+    keeps detailed logging specifically so issues can be diagnosed from
+    these files without needing a repro session
+[/list]
+
+Source and issue tracker: [url=https://github.com/dcoullon/victoria3-smart-notifications]github.com/dcoullon/victoria3-smart-notifications[/url]

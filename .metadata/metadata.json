@@ -1,9 +1,9 @@
 ﻿{
   "name": "Smart Notifications",
   "id": "smart_notifications",
-  "version": "0.33",
+  "version": "0.34",
   "supported_game_version": "1.13.*",
-  "short_description": "Smart notification defaults, dominion spam mute, and relational country watchlist.",
+  "short_description": "Smarter notification defaults, a relational country watchlist, and new alerts for agitators, taxation deficits, and law readiness.",
   "tags": ["User Interface", "Utilities", "Fixes"],
   "relationships": [],
   "game_custom_data": {

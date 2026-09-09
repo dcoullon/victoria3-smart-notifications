@@ -5,3 +5,8 @@
 # not part of the Victoria 3 mod, never intended for this repo.
 tools/dmv_checker/
 __pycache__/
+
+# OS cache/metadata files -- never intentional content.
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -19,6 +19,31 @@ instrumentation and doc-only changes get a commit but **no** version bump
 unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.34] — 2026-09-08
+
+### Added
+
+- **Agitator Invite Available alert** — flags when you have an empty
+  agitator slot and at least one exiled character eligible to agitate
+  for you, so the Invite Exile opportunity doesn't go unnoticed.
+- **States with a Taxation Deficit alert** — flags any incorporated state
+  where tax collection can't keep up with government spending, grouped
+  into a single stacked entry when it's happening in more than one state
+  at once.
+- **Law Ready to Enact alert** — an opt-in, per-law "notify me" checkbox
+  on each law's detail panel in the Politics screen. Flag any laws you're
+  working toward, and this alert lights up once that specific law's next
+  checkpoint has better odds of succeeding than stalling — telling you by
+  name which law and which law group, so you know exactly what to go
+  enact. Confirmed working end-to-end in a live session, including the
+  specific-law-name and law-group text in the alert's own tooltip.
+
+### Fixed
+
+- Player Message Settings and law-panel labels this mod adds now
+  consistently carry an `(SN)` tag so they're identifiable at a glance
+  against vanilla rows.
+
 ## [0.33] — 2026-09-08
 
 ### Added
