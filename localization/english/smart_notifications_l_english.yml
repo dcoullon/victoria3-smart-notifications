@@ -252,6 +252,16 @@
  smart_notifications_law_commitment_list_entry:0 "• [THIS.GetNameNoFormatting] ([THIS.GetGroup.GetName])\n"
  smart_notifications_law_commitment_list_empty:0 "(nothing currently -- this shouldn't normally show, since the alert itself hides when this list is empty)"
 
+ # One-time toast, independent of the persistent alert's dismiss state --
+ # see common/on_actions/09_smart_notifications_law_ready_toast.txt.
+ # Deliberately generic (no dynamic law name) to avoid re-risking the same
+ # law-scope dynamic-text uncertainty as the alert's own list -- the
+ # already-fixed alert is where the specific name/group actually shows.
+ smart_notifications_law_ready_toast_group:0 "(SN) Law Ready to Enact"
+ notification_smart_notifications_law_ready_toast_tooltip:0 "#header $notification_smart_notifications_law_ready_toast_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_law_ready_toast_desc$"
+ notification_smart_notifications_law_ready_toast_name:0 "A Flagged Law Is Ready"
+ notification_smart_notifications_law_ready_toast_desc:0 "A law you flagged now has more support than pushback. Check the Politics screen's Laws tab."
+
  # "Notify me" checkbox on the law detail panel itself (see
  # gui/politics_panel_change_law.gui). REVISED 2026-09-08 per the user,
  # who wants the (SN) tag here too -- extends CLAUDE.md's tagging rule

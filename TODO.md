@@ -2039,15 +2039,28 @@ WHICH law changes underneath it. Since there's no `player_law`
 script_context (confirmed earlier this session), there's no way to give
 each law its own independently-dismissible alert instance.
 
-**Not fixed yet** — this needs a design call before spending more
-implementation effort: accept the current behavior, or add a
-SEPARATE one-time toast/message (fired via an edge-detecting on_action,
-similar to the truce tracker) so a newly-ready law always gets a fresh
-notification regardless of whether the persistent alert is currently
-dismissed. The latter would roughly double the size of the already-large
-generated law-tracking files (needs its own per-law-type "was ready last
-check" variable set) — worth confirming that's wanted before building it
-blind.
+**Confirmed via the user's own Gemini research** (independently converging
+with the `MarkAsHidden`/`UnhideAllImportantActions` finding above, minus
+that answer's specific "Morgenröte" case study, which reads as fabricated
+— its citations are generic Steam/wiki pages, not the actual mod source
+it describes with suspiciously precise line numbers and error text):
+dismissal is edge-triggered on the alert's `valid`, not per-item, and the
+standard fix pattern is a decoupled one-time toast independent of the
+persistent alert.
+
+**Built**: [common/on_actions/09_smart_notifications_law_ready_toast.txt](common/on_actions/09_smart_notifications_law_ready_toast.txt),
+a monthly edge-detector (same real hook as the truce tracker) — for each
+law, fires `smart_notifications_law_ready_toast`
+([common/messages/00_messages.txt](common/messages/00_messages.txt)) once
+when it transitions from not-ready to ready (a per-law-type "already
+notified" variable, cleared again once the law stops being ready, so it
+can fire again on a future readiness edge), independent of whether the
+persistent alert is currently dismissed. Deliberately generic toast text
+(no dynamic law name) to avoid re-risking the same law-scope dynamic-text
+uncertainty the alert's own list already carries — the alert itself
+(already fixed) is where the specific name/group shows. **Not yet
+confirmed live** — needs a fresh law to hit its readiness edge after this
+ships (or wait for the next monthly pulse if one is already there).
 
 ## Process fix: mistake patterns now caught mechanically, not by memory
 

@@ -1,0 +1,2251 @@
+﻿# Smart Notifications mod: one-time toast when a law becomes ready,
+# INDEPENDENT of the persistent alert's dismiss state (see
+# common/alert_types/01_smart_notifications_alerts.txt's
+# smart_notifications_law_commitment_alert and TODO.md).
+#
+# ADDED 2026-09-08 per the user: confirmed (Alert.MarkAsHidden /
+# TopFrontend.UnhideAllImportantActions in gui/important_actions_list.gui,
+# no dismiss-cooldown define anywhere) that important_action dismissal is
+# tied to the alert's own valid trigger going false then true again, not
+# to its displayed content -- so once dismissed, a DIFFERENT law becoming
+# ready afterward will not bring the persistent alert back on its own,
+# since "some wanted law is ready" can stay continuously true while
+# WHICH law changes underneath it. This toast fires independently on each
+# law's own false-to-true readiness edge, so the player always gets a
+# fresh notification for a newly-ready law regardless of the persistent
+# alert's dismiss state.
+#
+# Edge-detected via a per-law-type "already notified" variable, using the
+# same static-dispatch pattern as
+# common/scripted_guis/smart_notifications_law_notify_sgui.txt (effects
+# cannot build a variable name dynamically). Reuses the shared
+# smart_notifications_law_matches_wanted_flag / can_be_enacted /
+# smart_notifications_law_ready_to_enact checks
+# (common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt)
+# rather than re-deriving readiness here.
+on_monthly_pulse_country = {
+	on_actions = {
+		smart_notifications_law_ready_toast_check
+	}
+}
+
+smart_notifications_law_ready_toast_check = {
+	effect = {
+		if = {
+			limit = { is_player = yes }
+			every_law = {
+				if = {
+					limit = {
+						THIS.type = law_type:law_affirmative_action
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_affirmative_action } }
+							set_variable = smart_notifications_notified_ready_law_affirmative_action
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_agrarianism
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_agrarianism } }
+							set_variable = smart_notifications_notified_ready_law_agrarianism
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_anarchy
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_anarchy } }
+							set_variable = smart_notifications_notified_ready_law_anarchy
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_anti_strike_laws
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_anti_strike_laws } }
+							set_variable = smart_notifications_notified_ready_law_anti_strike_laws
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_appointed_bureaucrats
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_appointed_bureaucrats } }
+							set_variable = smart_notifications_notified_ready_law_appointed_bureaucrats
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_autocracy
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_autocracy } }
+							set_variable = smart_notifications_notified_ready_law_autocracy
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_bakufu
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_bakufu } }
+							set_variable = smart_notifications_notified_ready_law_bakufu
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_canton_system
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_canton_system } }
+							set_variable = smart_notifications_notified_ready_law_canton_system
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_censorship
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_censorship } }
+							set_variable = smart_notifications_notified_ready_law_censorship
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_census_voting
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_census_voting } }
+							set_variable = smart_notifications_notified_ready_law_census_voting
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_charitable_health_system
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_charitable_health_system } }
+							set_variable = smart_notifications_notified_ready_law_charitable_health_system
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_chiefdom
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_chiefdom } }
+							set_variable = smart_notifications_notified_ready_law_chiefdom
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_chiefs_distribute_aid
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_chiefs_distribute_aid } }
+							set_variable = smart_notifications_notified_ready_law_chiefs_distribute_aid
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_child_labor_allowed
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_child_labor_allowed } }
+							set_variable = smart_notifications_notified_ready_law_child_labor_allowed
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_closed_borders
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_closed_borders } }
+							set_variable = smart_notifications_notified_ready_law_closed_borders
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_collectivized_agriculture
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_collectivized_agriculture } }
+							set_variable = smart_notifications_notified_ready_law_collectivized_agriculture
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_colonial_administration
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_colonial_administration } }
+							set_variable = smart_notifications_notified_ready_law_colonial_administration
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_colonial_exploitation
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_colonial_exploitation } }
+							set_variable = smart_notifications_notified_ready_law_colonial_exploitation
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_colonial_resettlement
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_colonial_resettlement } }
+							set_variable = smart_notifications_notified_ready_law_colonial_resettlement
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_colonial_slavery
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_colonial_slavery } }
+							set_variable = smart_notifications_notified_ready_law_colonial_slavery
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_combination_acts
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_combination_acts } }
+							set_variable = smart_notifications_notified_ready_law_combination_acts
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_command_economy
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_command_economy } }
+							set_variable = smart_notifications_notified_ready_law_command_economy
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_commercialized_agriculture
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_commercialized_agriculture } }
+							set_variable = smart_notifications_notified_ready_law_commercialized_agriculture
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_compulsory_primary_school
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_compulsory_primary_school } }
+							set_variable = smart_notifications_notified_ready_law_compulsory_primary_school
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_consumption_based_taxation
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_consumption_based_taxation } }
+							set_variable = smart_notifications_notified_ready_law_consumption_based_taxation
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_cooperative_ownership
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_cooperative_ownership } }
+							set_variable = smart_notifications_notified_ready_law_cooperative_ownership
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_corporate_state
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_corporate_state } }
+							set_variable = smart_notifications_notified_ready_law_corporate_state
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_corporatized_unions
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_corporatized_unions } }
+							set_variable = smart_notifications_notified_ready_law_corporatized_unions
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_council_republic
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_council_republic } }
+							set_variable = smart_notifications_notified_ready_law_council_republic
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_crownland_diets
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_crownland_diets } }
+							set_variable = smart_notifications_notified_ready_law_crownland_diets
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_cultural_exclusion
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_cultural_exclusion } }
+							set_variable = smart_notifications_notified_ready_law_cultural_exclusion
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_debt_slavery
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_debt_slavery } }
+							set_variable = smart_notifications_notified_ready_law_debt_slavery
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_dedicated_police
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_dedicated_police } }
+							set_variable = smart_notifications_notified_ready_law_dedicated_police
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_diplomatic_navy
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_diplomatic_navy } }
+							set_variable = smart_notifications_notified_ready_law_diplomatic_navy
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_elder_council
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_elder_council } }
+							set_variable = smart_notifications_notified_ready_law_elder_council
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_elected_bureaucrats
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_elected_bureaucrats } }
+							set_variable = smart_notifications_notified_ready_law_elected_bureaucrats
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_ethnostate
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_ethnostate } }
+							set_variable = smart_notifications_notified_ready_law_ethnostate
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_expanded_latifundias
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_expanded_latifundias } }
+							set_variable = smart_notifications_notified_ready_law_expanded_latifundias
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_extraction_economy
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_extraction_economy } }
+							set_variable = smart_notifications_notified_ready_law_extraction_economy
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_factory_councils
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_factory_councils } }
+							set_variable = smart_notifications_notified_ready_law_factory_councils
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_free_trade
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_free_trade } }
+							set_variable = smart_notifications_notified_ready_law_free_trade
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_freedom_of_conscience
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_freedom_of_conscience } }
+							set_variable = smart_notifications_notified_ready_law_freedom_of_conscience
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_frontier_colonization
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_frontier_colonization } }
+							set_variable = smart_notifications_notified_ready_law_frontier_colonization
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_graduated_taxation
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_graduated_taxation } }
+							set_variable = smart_notifications_notified_ready_law_graduated_taxation
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_guaranteed_liberties
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_guaranteed_liberties } }
+							set_variable = smart_notifications_notified_ready_law_guaranteed_liberties
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_guild_system
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_guild_system } }
+							set_variable = smart_notifications_notified_ready_law_guild_system
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_hereditary_bureaucrats
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_hereditary_bureaucrats } }
+							set_variable = smart_notifications_notified_ready_law_hereditary_bureaucrats
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_hindu_caste_codified
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_hindu_caste_codified } }
+							set_variable = smart_notifications_notified_ready_law_hindu_caste_codified
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_hindu_caste_enforced
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_hindu_caste_enforced } }
+							set_variable = smart_notifications_notified_ready_law_hindu_caste_enforced
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_hindu_caste_not_enforced
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_hindu_caste_not_enforced } }
+							set_variable = smart_notifications_notified_ready_law_hindu_caste_not_enforced
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_homesteading
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_homesteading } }
+							set_variable = smart_notifications_notified_ready_law_homesteading
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_industry_banned
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_industry_banned } }
+							set_variable = smart_notifications_notified_ready_law_industry_banned
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_intermediate_edo_system
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_intermediate_edo_system } }
+							set_variable = smart_notifications_notified_ready_law_intermediate_edo_system
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_interventionism
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_interventionism } }
+							set_variable = smart_notifications_notified_ready_law_interventionism
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_isolationism
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_isolationism } }
+							set_variable = smart_notifications_notified_ready_law_isolationism
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_jeune_ecole
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_jeune_ecole } }
+							set_variable = smart_notifications_notified_ready_law_jeune_ecole
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_laissez_faire
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_laissez_faire } }
+							set_variable = smart_notifications_notified_ready_law_laissez_faire
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_land_based_taxation
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_land_based_taxation } }
+							set_variable = smart_notifications_notified_ready_law_land_based_taxation
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_landed_voting
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_landed_voting } }
+							set_variable = smart_notifications_notified_ready_law_landed_voting
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_latifundias
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_latifundias } }
+							set_variable = smart_notifications_notified_ready_law_latifundias
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_lax_edo_system
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_lax_edo_system } }
+							set_variable = smart_notifications_notified_ready_law_lax_edo_system
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_legacy_slavery
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_legacy_slavery } }
+							set_variable = smart_notifications_notified_ready_law_legacy_slavery
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_local_police
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_local_police } }
+							set_variable = smart_notifications_notified_ready_law_local_police
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_manorialism
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_manorialism } }
+							set_variable = smart_notifications_notified_ready_law_manorialism
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_mass_conscription
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_mass_conscription } }
+							set_variable = smart_notifications_notified_ready_law_mass_conscription
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_mercantilism
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_mercantilism } }
+							set_variable = smart_notifications_notified_ready_law_mercantilism
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_merchant_navy
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_merchant_navy } }
+							set_variable = smart_notifications_notified_ready_law_merchant_navy
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_migration_controls
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_migration_controls } }
+							set_variable = smart_notifications_notified_ready_law_migration_controls
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_militarized_police
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_militarized_police } }
+							set_variable = smart_notifications_notified_ready_law_militarized_police
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_millet_system
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_millet_system } }
+							set_variable = smart_notifications_notified_ready_law_millet_system
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_monarchy
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_monarchy } }
+							set_variable = smart_notifications_notified_ready_law_monarchy
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_multicultural
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_multicultural } }
+							set_variable = smart_notifications_notified_ready_law_multicultural
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_national_guard
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_national_guard } }
+							set_variable = smart_notifications_notified_ready_law_national_guard
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_national_militia
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_national_militia } }
+							set_variable = smart_notifications_notified_ready_law_national_militia
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_national_supremacy
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_national_supremacy } }
+							set_variable = smart_notifications_notified_ready_law_national_supremacy
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_neo_absolutism
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_neo_absolutism } }
+							set_variable = smart_notifications_notified_ready_law_neo_absolutism
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_no_colonial_affairs
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_no_colonial_affairs } }
+							set_variable = smart_notifications_notified_ready_law_no_colonial_affairs
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_no_health_system
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_no_health_system } }
+							set_variable = smart_notifications_notified_ready_law_no_health_system
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_no_home_affairs
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_no_home_affairs } }
+							set_variable = smart_notifications_notified_ready_law_no_home_affairs
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_no_migration_controls
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_no_migration_controls } }
+							set_variable = smart_notifications_notified_ready_law_no_migration_controls
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_no_police
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_no_police } }
+							set_variable = smart_notifications_notified_ready_law_no_police
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_no_schools
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_no_schools } }
+							set_variable = smart_notifications_notified_ready_law_no_schools
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_no_social_security
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_no_social_security } }
+							set_variable = smart_notifications_notified_ready_law_no_social_security
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_no_womens_rights
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_no_womens_rights } }
+							set_variable = smart_notifications_notified_ready_law_no_womens_rights
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_no_workers_rights
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_no_workers_rights } }
+							set_variable = smart_notifications_notified_ready_law_no_workers_rights
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_old_age_pension
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_old_age_pension } }
+							set_variable = smart_notifications_notified_ready_law_old_age_pension
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_oligarchy
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_oligarchy } }
+							set_variable = smart_notifications_notified_ready_law_oligarchy
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_organic_regulation
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_organic_regulation } }
+							set_variable = smart_notifications_notified_ready_law_organic_regulation
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_outlawed_dissent
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_outlawed_dissent } }
+							set_variable = smart_notifications_notified_ready_law_outlawed_dissent
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_parliamentary_republic
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_parliamentary_republic } }
+							set_variable = smart_notifications_notified_ready_law_parliamentary_republic
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_peasant_levies
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_peasant_levies } }
+							set_variable = smart_notifications_notified_ready_law_peasant_levies
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_peasant_proprietorship
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_peasant_proprietorship } }
+							set_variable = smart_notifications_notified_ready_law_peasant_proprietorship
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_people_of_the_book
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_people_of_the_book } }
+							set_variable = smart_notifications_notified_ready_law_people_of_the_book
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_per_capita_based_taxation
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_per_capita_based_taxation } }
+							set_variable = smart_notifications_notified_ready_law_per_capita_based_taxation
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_poor_laws
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_poor_laws } }
+							set_variable = smart_notifications_notified_ready_law_poor_laws
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_presidential_republic
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_presidential_republic } }
+							set_variable = smart_notifications_notified_ready_law_presidential_republic
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_private_health_insurance
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_private_health_insurance } }
+							set_variable = smart_notifications_notified_ready_law_private_health_insurance
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_private_schools
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_private_schools } }
+							set_variable = smart_notifications_notified_ready_law_private_schools
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_professional_army
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_professional_army } }
+							set_variable = smart_notifications_notified_ready_law_professional_army
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_professional_navy
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_professional_navy } }
+							set_variable = smart_notifications_notified_ready_law_professional_navy
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_proportional_taxation
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_proportional_taxation } }
+							set_variable = smart_notifications_notified_ready_law_proportional_taxation
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_protected_speech
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_protected_speech } }
+							set_variable = smart_notifications_notified_ready_law_protected_speech
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_protectionism
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_protectionism } }
+							set_variable = smart_notifications_notified_ready_law_protectionism
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_public_health_insurance
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_public_health_insurance } }
+							set_variable = smart_notifications_notified_ready_law_public_health_insurance
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_public_schools
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_public_schools } }
+							set_variable = smart_notifications_notified_ready_law_public_schools
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_racial_segregation
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_racial_segregation } }
+							set_variable = smart_notifications_notified_ready_law_racial_segregation
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_regulatory_bodies
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_regulatory_bodies } }
+							set_variable = smart_notifications_notified_ready_law_regulatory_bodies
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_religious_schools
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_religious_schools } }
+							set_variable = smart_notifications_notified_ready_law_religious_schools
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_restricted_child_labor
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_restricted_child_labor } }
+							set_variable = smart_notifications_notified_ready_law_restricted_child_labor
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_right_of_assembly
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_right_of_assembly } }
+							set_variable = smart_notifications_notified_ready_law_right_of_assembly
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_right_to_associate
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_right_to_associate } }
+							set_variable = smart_notifications_notified_ready_law_right_to_associate
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_sakoku
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_sakoku } }
+							set_variable = smart_notifications_notified_ready_law_sakoku
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_secret_police
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_secret_police } }
+							set_variable = smart_notifications_notified_ready_law_secret_police
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_serfdom
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_serfdom } }
+							set_variable = smart_notifications_notified_ready_law_serfdom
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_shinsengumi
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_shinsengumi } }
+							set_variable = smart_notifications_notified_ready_law_shinsengumi
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_single_party_state
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_single_party_state } }
+							set_variable = smart_notifications_notified_ready_law_single_party_state
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_slave_trade
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_slave_trade } }
+							set_variable = smart_notifications_notified_ready_law_slave_trade
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_slavery_banned
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_slavery_banned } }
+							set_variable = smart_notifications_notified_ready_law_slavery_banned
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_social_monarchy
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_social_monarchy } }
+							set_variable = smart_notifications_notified_ready_law_social_monarchy
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_state_atheism
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_state_atheism } }
+							set_variable = smart_notifications_notified_ready_law_state_atheism
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_state_religion
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_state_religion } }
+							set_variable = smart_notifications_notified_ready_law_state_religion
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_strict_edo_system
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_strict_edo_system } }
+							set_variable = smart_notifications_notified_ready_law_strict_edo_system
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_subjecthood
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_subjecthood } }
+							set_variable = smart_notifications_notified_ready_law_subjecthood
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_technocracy
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_technocracy } }
+							set_variable = smart_notifications_notified_ready_law_technocracy
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_tenant_farmers
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_tenant_farmers } }
+							set_variable = smart_notifications_notified_ready_law_tenant_farmers
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_terakoya
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_terakoya } }
+							set_variable = smart_notifications_notified_ready_law_terakoya
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_theocracy
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_theocracy } }
+							set_variable = smart_notifications_notified_ready_law_theocracy
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_total_separation
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_total_separation } }
+							set_variable = smart_notifications_notified_ready_law_total_separation
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_traditionalism
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_traditionalism } }
+							set_variable = smart_notifications_notified_ready_law_traditionalism
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_universal_suffrage
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_universal_suffrage } }
+							set_variable = smart_notifications_notified_ready_law_universal_suffrage
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_wage_subsidies
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_wage_subsidies } }
+							set_variable = smart_notifications_notified_ready_law_wage_subsidies
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_warrior_caste
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_warrior_caste } }
+							set_variable = smart_notifications_notified_ready_law_warrior_caste
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_wealth_voting
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_wealth_voting } }
+							set_variable = smart_notifications_notified_ready_law_wealth_voting
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_women_in_the_fields
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_women_in_the_fields } }
+							set_variable = smart_notifications_notified_ready_law_women_in_the_fields
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_women_in_the_workplace
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_women_in_the_workplace } }
+							set_variable = smart_notifications_notified_ready_law_women_in_the_workplace
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_women_own_property
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_women_own_property } }
+							set_variable = smart_notifications_notified_ready_law_women_own_property
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_womens_suffrage
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_womens_suffrage } }
+							set_variable = smart_notifications_notified_ready_law_womens_suffrage
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = {
+						THIS.type = law_type:law_worker_protections
+						smart_notifications_law_matches_wanted_flag = yes
+						can_be_enacted = yes
+						smart_notifications_law_ready_to_enact = yes
+					}
+					THIS.owner = {
+						if = {
+							limit = { NOT = { has_variable = smart_notifications_notified_ready_law_worker_protections } }
+							set_variable = smart_notifications_notified_ready_law_worker_protections
+							post_notification = smart_notifications_law_ready_toast
+						}
+					}
+				}
+				else_if = {
+					limit = { smart_notifications_law_matches_wanted_flag = yes }
+					if = { limit = { THIS.type = law_type:law_affirmative_action } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_affirmative_action } }
+					if = { limit = { THIS.type = law_type:law_agrarianism } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_agrarianism } }
+					if = { limit = { THIS.type = law_type:law_anarchy } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_anarchy } }
+					if = { limit = { THIS.type = law_type:law_anti_strike_laws } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_anti_strike_laws } }
+					if = { limit = { THIS.type = law_type:law_appointed_bureaucrats } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_appointed_bureaucrats } }
+					if = { limit = { THIS.type = law_type:law_autocracy } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_autocracy } }
+					if = { limit = { THIS.type = law_type:law_bakufu } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_bakufu } }
+					if = { limit = { THIS.type = law_type:law_canton_system } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_canton_system } }
+					if = { limit = { THIS.type = law_type:law_censorship } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_censorship } }
+					if = { limit = { THIS.type = law_type:law_census_voting } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_census_voting } }
+					if = { limit = { THIS.type = law_type:law_charitable_health_system } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_charitable_health_system } }
+					if = { limit = { THIS.type = law_type:law_chiefdom } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_chiefdom } }
+					if = { limit = { THIS.type = law_type:law_chiefs_distribute_aid } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_chiefs_distribute_aid } }
+					if = { limit = { THIS.type = law_type:law_child_labor_allowed } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_child_labor_allowed } }
+					if = { limit = { THIS.type = law_type:law_closed_borders } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_closed_borders } }
+					if = { limit = { THIS.type = law_type:law_collectivized_agriculture } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_collectivized_agriculture } }
+					if = { limit = { THIS.type = law_type:law_colonial_administration } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_colonial_administration } }
+					if = { limit = { THIS.type = law_type:law_colonial_exploitation } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_colonial_exploitation } }
+					if = { limit = { THIS.type = law_type:law_colonial_resettlement } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_colonial_resettlement } }
+					if = { limit = { THIS.type = law_type:law_colonial_slavery } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_colonial_slavery } }
+					if = { limit = { THIS.type = law_type:law_combination_acts } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_combination_acts } }
+					if = { limit = { THIS.type = law_type:law_command_economy } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_command_economy } }
+					if = { limit = { THIS.type = law_type:law_commercialized_agriculture } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_commercialized_agriculture } }
+					if = { limit = { THIS.type = law_type:law_compulsory_primary_school } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_compulsory_primary_school } }
+					if = { limit = { THIS.type = law_type:law_consumption_based_taxation } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_consumption_based_taxation } }
+					if = { limit = { THIS.type = law_type:law_cooperative_ownership } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_cooperative_ownership } }
+					if = { limit = { THIS.type = law_type:law_corporate_state } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_corporate_state } }
+					if = { limit = { THIS.type = law_type:law_corporatized_unions } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_corporatized_unions } }
+					if = { limit = { THIS.type = law_type:law_council_republic } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_council_republic } }
+					if = { limit = { THIS.type = law_type:law_crownland_diets } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_crownland_diets } }
+					if = { limit = { THIS.type = law_type:law_cultural_exclusion } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_cultural_exclusion } }
+					if = { limit = { THIS.type = law_type:law_debt_slavery } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_debt_slavery } }
+					if = { limit = { THIS.type = law_type:law_dedicated_police } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_dedicated_police } }
+					if = { limit = { THIS.type = law_type:law_diplomatic_navy } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_diplomatic_navy } }
+					if = { limit = { THIS.type = law_type:law_elder_council } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_elder_council } }
+					if = { limit = { THIS.type = law_type:law_elected_bureaucrats } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_elected_bureaucrats } }
+					if = { limit = { THIS.type = law_type:law_ethnostate } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_ethnostate } }
+					if = { limit = { THIS.type = law_type:law_expanded_latifundias } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_expanded_latifundias } }
+					if = { limit = { THIS.type = law_type:law_extraction_economy } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_extraction_economy } }
+					if = { limit = { THIS.type = law_type:law_factory_councils } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_factory_councils } }
+					if = { limit = { THIS.type = law_type:law_free_trade } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_free_trade } }
+					if = { limit = { THIS.type = law_type:law_freedom_of_conscience } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_freedom_of_conscience } }
+					if = { limit = { THIS.type = law_type:law_frontier_colonization } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_frontier_colonization } }
+					if = { limit = { THIS.type = law_type:law_graduated_taxation } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_graduated_taxation } }
+					if = { limit = { THIS.type = law_type:law_guaranteed_liberties } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_guaranteed_liberties } }
+					if = { limit = { THIS.type = law_type:law_guild_system } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_guild_system } }
+					if = { limit = { THIS.type = law_type:law_hereditary_bureaucrats } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_hereditary_bureaucrats } }
+					if = { limit = { THIS.type = law_type:law_hindu_caste_codified } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_hindu_caste_codified } }
+					if = { limit = { THIS.type = law_type:law_hindu_caste_enforced } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_hindu_caste_enforced } }
+					if = { limit = { THIS.type = law_type:law_hindu_caste_not_enforced } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_hindu_caste_not_enforced } }
+					if = { limit = { THIS.type = law_type:law_homesteading } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_homesteading } }
+					if = { limit = { THIS.type = law_type:law_industry_banned } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_industry_banned } }
+					if = { limit = { THIS.type = law_type:law_intermediate_edo_system } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_intermediate_edo_system } }
+					if = { limit = { THIS.type = law_type:law_interventionism } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_interventionism } }
+					if = { limit = { THIS.type = law_type:law_isolationism } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_isolationism } }
+					if = { limit = { THIS.type = law_type:law_jeune_ecole } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_jeune_ecole } }
+					if = { limit = { THIS.type = law_type:law_laissez_faire } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_laissez_faire } }
+					if = { limit = { THIS.type = law_type:law_land_based_taxation } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_land_based_taxation } }
+					if = { limit = { THIS.type = law_type:law_landed_voting } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_landed_voting } }
+					if = { limit = { THIS.type = law_type:law_latifundias } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_latifundias } }
+					if = { limit = { THIS.type = law_type:law_lax_edo_system } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_lax_edo_system } }
+					if = { limit = { THIS.type = law_type:law_legacy_slavery } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_legacy_slavery } }
+					if = { limit = { THIS.type = law_type:law_local_police } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_local_police } }
+					if = { limit = { THIS.type = law_type:law_manorialism } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_manorialism } }
+					if = { limit = { THIS.type = law_type:law_mass_conscription } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_mass_conscription } }
+					if = { limit = { THIS.type = law_type:law_mercantilism } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_mercantilism } }
+					if = { limit = { THIS.type = law_type:law_merchant_navy } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_merchant_navy } }
+					if = { limit = { THIS.type = law_type:law_migration_controls } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_migration_controls } }
+					if = { limit = { THIS.type = law_type:law_militarized_police } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_militarized_police } }
+					if = { limit = { THIS.type = law_type:law_millet_system } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_millet_system } }
+					if = { limit = { THIS.type = law_type:law_monarchy } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_monarchy } }
+					if = { limit = { THIS.type = law_type:law_multicultural } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_multicultural } }
+					if = { limit = { THIS.type = law_type:law_national_guard } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_national_guard } }
+					if = { limit = { THIS.type = law_type:law_national_militia } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_national_militia } }
+					if = { limit = { THIS.type = law_type:law_national_supremacy } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_national_supremacy } }
+					if = { limit = { THIS.type = law_type:law_neo_absolutism } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_neo_absolutism } }
+					if = { limit = { THIS.type = law_type:law_no_colonial_affairs } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_no_colonial_affairs } }
+					if = { limit = { THIS.type = law_type:law_no_health_system } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_no_health_system } }
+					if = { limit = { THIS.type = law_type:law_no_home_affairs } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_no_home_affairs } }
+					if = { limit = { THIS.type = law_type:law_no_migration_controls } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_no_migration_controls } }
+					if = { limit = { THIS.type = law_type:law_no_police } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_no_police } }
+					if = { limit = { THIS.type = law_type:law_no_schools } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_no_schools } }
+					if = { limit = { THIS.type = law_type:law_no_social_security } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_no_social_security } }
+					if = { limit = { THIS.type = law_type:law_no_womens_rights } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_no_womens_rights } }
+					if = { limit = { THIS.type = law_type:law_no_workers_rights } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_no_workers_rights } }
+					if = { limit = { THIS.type = law_type:law_old_age_pension } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_old_age_pension } }
+					if = { limit = { THIS.type = law_type:law_oligarchy } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_oligarchy } }
+					if = { limit = { THIS.type = law_type:law_organic_regulation } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_organic_regulation } }
+					if = { limit = { THIS.type = law_type:law_outlawed_dissent } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_outlawed_dissent } }
+					if = { limit = { THIS.type = law_type:law_parliamentary_republic } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_parliamentary_republic } }
+					if = { limit = { THIS.type = law_type:law_peasant_levies } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_peasant_levies } }
+					if = { limit = { THIS.type = law_type:law_peasant_proprietorship } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_peasant_proprietorship } }
+					if = { limit = { THIS.type = law_type:law_people_of_the_book } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_people_of_the_book } }
+					if = { limit = { THIS.type = law_type:law_per_capita_based_taxation } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_per_capita_based_taxation } }
+					if = { limit = { THIS.type = law_type:law_poor_laws } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_poor_laws } }
+					if = { limit = { THIS.type = law_type:law_presidential_republic } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_presidential_republic } }
+					if = { limit = { THIS.type = law_type:law_private_health_insurance } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_private_health_insurance } }
+					if = { limit = { THIS.type = law_type:law_private_schools } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_private_schools } }
+					if = { limit = { THIS.type = law_type:law_professional_army } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_professional_army } }
+					if = { limit = { THIS.type = law_type:law_professional_navy } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_professional_navy } }
+					if = { limit = { THIS.type = law_type:law_proportional_taxation } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_proportional_taxation } }
+					if = { limit = { THIS.type = law_type:law_protected_speech } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_protected_speech } }
+					if = { limit = { THIS.type = law_type:law_protectionism } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_protectionism } }
+					if = { limit = { THIS.type = law_type:law_public_health_insurance } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_public_health_insurance } }
+					if = { limit = { THIS.type = law_type:law_public_schools } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_public_schools } }
+					if = { limit = { THIS.type = law_type:law_racial_segregation } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_racial_segregation } }
+					if = { limit = { THIS.type = law_type:law_regulatory_bodies } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_regulatory_bodies } }
+					if = { limit = { THIS.type = law_type:law_religious_schools } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_religious_schools } }
+					if = { limit = { THIS.type = law_type:law_restricted_child_labor } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_restricted_child_labor } }
+					if = { limit = { THIS.type = law_type:law_right_of_assembly } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_right_of_assembly } }
+					if = { limit = { THIS.type = law_type:law_right_to_associate } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_right_to_associate } }
+					if = { limit = { THIS.type = law_type:law_sakoku } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_sakoku } }
+					if = { limit = { THIS.type = law_type:law_secret_police } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_secret_police } }
+					if = { limit = { THIS.type = law_type:law_serfdom } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_serfdom } }
+					if = { limit = { THIS.type = law_type:law_shinsengumi } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_shinsengumi } }
+					if = { limit = { THIS.type = law_type:law_single_party_state } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_single_party_state } }
+					if = { limit = { THIS.type = law_type:law_slave_trade } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_slave_trade } }
+					if = { limit = { THIS.type = law_type:law_slavery_banned } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_slavery_banned } }
+					if = { limit = { THIS.type = law_type:law_social_monarchy } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_social_monarchy } }
+					if = { limit = { THIS.type = law_type:law_state_atheism } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_state_atheism } }
+					if = { limit = { THIS.type = law_type:law_state_religion } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_state_religion } }
+					if = { limit = { THIS.type = law_type:law_strict_edo_system } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_strict_edo_system } }
+					if = { limit = { THIS.type = law_type:law_subjecthood } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_subjecthood } }
+					if = { limit = { THIS.type = law_type:law_technocracy } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_technocracy } }
+					if = { limit = { THIS.type = law_type:law_tenant_farmers } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_tenant_farmers } }
+					if = { limit = { THIS.type = law_type:law_terakoya } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_terakoya } }
+					if = { limit = { THIS.type = law_type:law_theocracy } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_theocracy } }
+					if = { limit = { THIS.type = law_type:law_total_separation } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_total_separation } }
+					if = { limit = { THIS.type = law_type:law_traditionalism } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_traditionalism } }
+					if = { limit = { THIS.type = law_type:law_universal_suffrage } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_universal_suffrage } }
+					if = { limit = { THIS.type = law_type:law_wage_subsidies } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_wage_subsidies } }
+					if = { limit = { THIS.type = law_type:law_warrior_caste } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_warrior_caste } }
+					if = { limit = { THIS.type = law_type:law_wealth_voting } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_wealth_voting } }
+					if = { limit = { THIS.type = law_type:law_women_in_the_fields } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_women_in_the_fields } }
+					if = { limit = { THIS.type = law_type:law_women_in_the_workplace } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_women_in_the_workplace } }
+					if = { limit = { THIS.type = law_type:law_women_own_property } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_women_own_property } }
+					if = { limit = { THIS.type = law_type:law_womens_suffrage } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_womens_suffrage } }
+					if = { limit = { THIS.type = law_type:law_worker_protections } THIS.owner = { remove_variable = smart_notifications_notified_ready_law_worker_protections } }
+				}
+			}
+		}
+	}
+}

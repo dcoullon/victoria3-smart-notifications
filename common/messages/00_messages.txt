@@ -2290,3 +2290,19 @@ smart_notifications_diplomatic_action_quiet = {
 	notification_type = feed
 	color = neutral
 }
+
+# Smart Notifications mod: one-time toast when a law becomes ready, fired
+# independently of the persistent law_commitment alert's dismiss state --
+# see common/on_actions/09_smart_notifications_law_ready_toast.txt and
+# TODO.md for why (confirmed: important_action dismissal is edge-triggered
+# on the alert's own `valid`, not per-item, so a DIFFERENT law becoming
+# ready after dismissal would otherwise never re-surface).
+smart_notifications_law_ready_toast = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
