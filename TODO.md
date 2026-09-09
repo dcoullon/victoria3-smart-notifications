@@ -3371,3 +3371,37 @@ implemented -- investigation only, for later:
 Both should probably default to `toast` given the user's stated bar
 here (losing an ally is significant; a watched country's alliance
 status changing is exactly the kind of thing the Watchlist exists for).
+
+
+## BUG: routine-relations demotion never actually fires (2026-09-09)
+
+User: "i got toasted for relationship improvement by siam who isn't on
+my watch list." Checked debug.log across two rotated sessions --
+confirmed real: Siam -> Great Qing (player), `role=actor|watched=no`
+(genuinely not watched, matching the user's report), yet the decision
+still posted `smart_notifications_diplomatic_action_targeting_player`
+(the full toast), not `..._targeting_player_routine`. The
+`has_diplomatic_pact = { who = scope:recipient type = increase_relations
+is_initiator = yes }` check added earlier today has never once matched
+in two real sessions -- the routine-demotion feature has never actually
+worked despite passing validate_syntax.py cleanly both times.
+
+Two live hypotheses, unconfirmed:
+1. Timing -- the diplomatic_pact object may not be registered in
+   gamestate yet at the exact instant `on_diplomatic_action` fires (same
+   class of "not bound yet" issue found earlier this session with
+   diplo-play's `scope:target`).
+2. `is_initiator = yes` semantics -- the trigger doc's phrasing ("checks
+   to see if scope country is the original initiator/target of the
+   pact") is ambiguous about which value means what; vanilla's own only
+   confirmed usage (common/diplomatic_actions/00_relations_actions.txt)
+   never uses this parameter at all, just a bare `has_diplomatic_pact =
+   { who = X type = Y }`.
+
+Added TEMPORARY diagnostic instrumentation in
+06_smart_notifications_diplomatic_action_filtering.txt (SNW_PACT_PROBE
+debug_log lines) -- breaks out increase_relations/damage_relations, each
+WITH and WITHOUT is_initiator, into 4 independent results per firing, so
+the next test conclusively shows which variant (if any) actually
+matches, instead of guessing again. NOT YET LIVE-TESTED (the diagnostic
+itself, or a fix).

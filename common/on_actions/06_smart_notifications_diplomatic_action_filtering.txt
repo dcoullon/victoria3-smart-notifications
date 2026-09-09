@@ -180,6 +180,48 @@ smart_notifications_diplomatic_action = {
 				post_notification = smart_notifications_diplomatic_action_targeting_player
 				debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_targeting_player|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|PLAYER_TARGETED"
 			}
+
+			# TEMPORARY diagnostic (2026-09-09) -- the routine-relations
+			# demotion above never actually fired in two real sessions
+			# (confirmed: Siam -> Great Qing, watched=no, still went to
+			# PLAYER_TARGETED not PLAYER_TARGETED_ROUTINE), despite the
+			# user reporting exactly a "relations improvement" action.
+			# Breaks out each half of the has_diplomatic_pact check
+			# individually -- WITH and WITHOUT is_initiator -- to find out
+			# whether it's a timing issue (pact not yet registered at this
+			# exact on_action pulse) or a wrong is_initiator assumption.
+			# Delete once the real cause is found and fixed. Grep debug.log
+			# for SNW_PACT_PROBE.
+			scope:actor ?= {
+				if = {
+					limit = { has_diplomatic_pact = { who = scope:recipient type = increase_relations is_initiator = yes } }
+					debug_log = "SNW_PACT_PROBE|increase_relations|is_initiator=yes|result=yes"
+				}
+				else = {
+					debug_log = "SNW_PACT_PROBE|increase_relations|is_initiator=yes|result=no"
+				}
+				if = {
+					limit = { has_diplomatic_pact = { who = scope:recipient type = increase_relations } }
+					debug_log = "SNW_PACT_PROBE|increase_relations|no_is_initiator|result=yes"
+				}
+				else = {
+					debug_log = "SNW_PACT_PROBE|increase_relations|no_is_initiator|result=no"
+				}
+				if = {
+					limit = { has_diplomatic_pact = { who = scope:recipient type = damage_relations is_initiator = yes } }
+					debug_log = "SNW_PACT_PROBE|damage_relations|is_initiator=yes|result=yes"
+				}
+				else = {
+					debug_log = "SNW_PACT_PROBE|damage_relations|is_initiator=yes|result=no"
+				}
+				if = {
+					limit = { has_diplomatic_pact = { who = scope:recipient type = damage_relations } }
+					debug_log = "SNW_PACT_PROBE|damage_relations|no_is_initiator|result=yes"
+				}
+				else = {
+					debug_log = "SNW_PACT_PROBE|damage_relations|no_is_initiator|result=no"
+				}
+			}
 		}
 		else_if = {
 			limit = {
