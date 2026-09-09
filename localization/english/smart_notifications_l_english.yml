@@ -157,6 +157,17 @@
  notification_smart_notifications_diplomatic_action_quiet_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
  notification_smart_notifications_diplomatic_action_quiet_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] has taken a diplomatic action involving [SCOPE.sC('recipient').GetNameNoFormatting]. Open the Diplomacy screen for details."
 
+ # ADDED 2026-09-09: player-as-recipient case, split out from
+ # _watched above so its desc can safely reuse vanilla's own full
+ # per-action text (see 06_smart_notifications_diplomatic_action_filtering.txt
+ # and 00_messages.txt for why this one case is safe where the
+ # generic _watched/_quiet cases are not -- vanilla's desc assumes the
+ # player is a party to the action, which is true here specifically).
+ smart_notifications_diplomatic_action_targeting_player_group:0 "(SN) Diplomatic Action, Targeting You"
+ notification_smart_notifications_diplomatic_action_targeting_player_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_targeting_player_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplomatic_action_targeting_player_desc$"
+ notification_smart_notifications_diplomatic_action_targeting_player_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
+ notification_smart_notifications_diplomatic_action_targeting_player_desc:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationDesc]"
+
  # Amendment-repealable alert (see 01_smart_notifications_alerts.txt).
  #
  # CORRECTED 2026-09-06: an alert has TWO separate name-shaped loc keys, not

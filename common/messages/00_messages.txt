@@ -2277,11 +2277,23 @@ smart_notifications_diplo_play_subject_released_quiet = {
 # own, betting `type = diplomatic_action` alone would trigger that same
 # native resolution for our replacement keys too. Confirmed wrong via the
 # user's screenshot -- showed the raw loc key name on screen instead of
-# real text. Now has real, deliberately generic `_name`/`_desc` loc (see
-# smart_notifications_l_english.yml) instead -- can't distinguish which
-# specific action type fired (tried `[ROOT.GetName]`, also confirmed
-# wrong, a real error.log entry), so this trades vanilla's specific
-# wording for something that at least renders correctly for every type.
+# real text. Shipped deliberately generic `_name`/`_desc` loc as a
+# fallback.
+#
+# CORRECTED AGAIN 2026-09-09: the generic fallback turned out to be an
+# unnecessary loss of detail -- see smart_notifications_l_english.yml's
+# own comment for the confirmed real function
+# ([SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName])
+# that recovers the real per-action title (e.g. "Kokand improving
+# Relations") for both of the keys below. The DESC still can't safely
+# reuse vanilla's own -- every `_action_notification_desc` in
+# diplomacy_l_english.yml is written assuming the player IS a party to
+# the action ("our mutual relations", "we", GetPlayer) -- wrong if a
+# genuinely third-party watched country's action is what fired this.
+# That's exactly what these two keys are for (the player-IS-the-
+# recipient case now gets its own key below,
+# smart_notifications_diplomatic_action_targeting_player, which CAN
+# safely reuse vanilla's full desc).
 smart_notifications_diplomatic_action_watched = {
 	type = diplomatic_action
 	group = "smart_notifications_diplomatic_action_watched_group"
@@ -2299,6 +2311,28 @@ smart_notifications_diplomatic_action_quiet = {
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
 	notification_type = feed
+	color = neutral
+}
+
+# ADDED 2026-09-09 per the user ("why do we have to have this super
+# unspecific message"): a diplomatic action where the player is the
+# DIRECT recipient is the single most important case this mod handles,
+# and it's the one case where vanilla's own full, specific `_desc` text
+# (relation values, attitude, obligations, everything) is actually
+# accurate to reuse verbatim -- it was written for exactly this
+# situation. Split out from smart_notifications_diplomatic_action_watched
+# (which still covers the genuinely-third-party-watched case, where
+# vanilla's player-centric wording would be wrong) so this one case can
+# get the full detail without risking wrong text elsewhere. See
+# 06_smart_notifications_diplomatic_action_filtering.txt for the
+# dispatch logic.
+smart_notifications_diplomatic_action_targeting_player = {
+	type = diplomatic_action
+	group = "smart_notifications_diplomatic_action_targeting_player_group"
+
+	texture = "gfx/interface/icons/notification_icons/influence.dds"
+
+	notification_type = toast
 	color = neutral
 }
 

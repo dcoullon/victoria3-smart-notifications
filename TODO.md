@@ -3189,3 +3189,44 @@ Updated both `smart_notifications_diplomatic_action_watched` and
 comment/history preserved and extended in the loc file itself so the
 two earlier (now-superseded) investigations aren't lost. NOT YET
 LIVE-TESTED.
+
+
+## Diplomatic action toast: player-targeted case gets its own message with vanilla's full desc (2026-09-09)
+
+User pushed further, correctly: "it still feels like a weirdly
+unspecific message" -- the title fix above wasn't enough, since the
+desc ("X has taken a diplomatic action involving Y. Open the Diplomacy
+screen for details.") stayed generic and now reads as redundant next to
+a specific title.
+
+Checked every `_action_notification_desc` in vanilla's
+diplomacy_l_english.yml (not just the relations ones checked earlier):
+essentially all of them are written assuming the player is a direct
+party to the action ("our mutual relations", "we", "us", GetPlayer
+throughout). That's not a generic-engine-text problem to work around --
+it's specifically ACCURATE for the one case where the player really is
+the recipient, and would be WRONG for a genuinely third-party watched
+country's action (says "our relations" about two countries that aren't
+the player at all).
+
+So: split the player-is-recipient case into its own dedicated message,
+`smart_notifications_diplomatic_action_targeting_player`
+(common/messages/00_messages.txt), whose desc uses
+`[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationDesc]`
+directly -- full vanilla detail (relation values, attitude, obligations,
+whatever that action type's real desc contains), since this is exactly
+the situation that text was written for. The genuinely-third-party-
+watched case still goes through the existing
+`smart_notifications_diplomatic_action_watched` with the safe generic
+desc, since reusing vanilla's text there would misrepresent an action
+the player isn't part of.
+
+common/on_actions/06_smart_notifications_diplomatic_action_filtering.txt
+now checks `scope:recipient ?= { is_player = yes }` FIRST (a strict
+subset of the watched-check, so it has to come first or it'd never be
+reached) and posts the new key; falls through to the existing
+watched/quiet branches otherwise. This effectively reintroduces a
+player-recipient special case (removed entirely just one fix ago) --
+but this time as its own accurate message, not a suppression, so it
+can't reintroduce the earlier silent-notification regression. NOT YET
+LIVE-TESTED.

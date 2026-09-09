@@ -77,11 +77,28 @@
 # suppression branch and that now-effective mute combined into total
 # silence for the exact case that matters most (someone's diplomatic
 # action targeting the player directly). Removed the player-recipient
-# special case entirely: it's also redundant, not just wrong --
+# suppression branch entirely: it's also redundant, not just wrong --
 # `smart_notifications_is_watched` already includes `is_player = yes`
 # (00_smart_notifications_triggers.txt), so the normal watched-check
 # below already elevates this case on its own, with no special-casing
-# needed. NOT YET LIVE-TESTED after this correction.
+# needed to just GET a toast.
+#
+# REFINED AGAIN 2026-09-09, same day: user pushed back that the toast's
+# own text was "weirdly unspecific" ("X has taken a diplomatic action
+# involving Y") even after the title fix above. Re-added a player-
+# recipient special case, but as its OWN dedicated message key this
+# time (`smart_notifications_diplomatic_action_targeting_player`, see
+# common/messages/00_messages.txt) rather than suppression -- the
+# player-is-recipient case is the one situation where vanilla's own
+# full `_desc` text is actually accurate to reuse (it's written assuming
+# the player is a party to the action), so this key's desc uses
+# `GetActionNotificationDesc` directly instead of our own generic
+# fallback. Must be checked BEFORE the watched-check below since it's a
+# strict subset of it. The genuinely-third-party-watched case still
+# goes through `smart_notifications_diplomatic_action_watched` with the
+# safe generic desc, since vanilla's desc text would misrepresent that
+# case (assumes the player is involved when they're not). NOT YET
+# LIVE-TESTED.
 
 on_diplomatic_action = {
 	on_actions = {
@@ -101,6 +118,21 @@ on_diplomatic_action = {
 smart_notifications_diplomatic_action = {
 	effect = {
 		if = {
+			# ADDED 2026-09-09: the player-as-recipient case gets its OWN
+			# message key now, not just elevated priority, so its desc can
+			# safely reuse vanilla's full per-action text (see
+			# common/messages/00_messages.txt's comment on
+			# smart_notifications_diplomatic_action_targeting_player). This
+			# must be checked FIRST since it's a strict subset of the
+			# `smart_notifications_is_watched` check below (is_player = yes
+			# is already part of that trigger) -- without checking this
+			# branch first, the watched-country toast would fire instead
+			# and this more-specific one never would.
+			limit = { scope:recipient ?= { is_player = yes } }
+			post_notification = smart_notifications_diplomatic_action_targeting_player
+			debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_targeting_player|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|PLAYER_TARGETED"
+		}
+		else_if = {
 			limit = {
 				OR = {
 					scope:actor ?= { smart_notifications_is_watched = yes }
