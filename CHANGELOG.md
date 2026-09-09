@@ -32,6 +32,20 @@ mod hasn't reached a 1.0 concept of "breaking changes" yet.
   while the alert is already showing/dismissed for an earlier one no
   longer goes unnoticed.
 
+### Fixed (2026-09-09, same version — see versioning convention above)
+
+- A diplomatic action directed at you could show two notifications for
+  the same event (our own, plus vanilla's own specific one). Ours is now
+  suppressed in that case, since vanilla's is better anyway.
+- Empires with many states entering a taxation deficit at once (e.g.
+  newly incorporated territory) could produce a wall of one-time toasts,
+  one per state. Now capped at 3 concurrent — the persistent alert is
+  unaffected and still reflects every affected state.
+- The first-load toast now points directly to the Watchlist tab and is
+  shorter.
+- Added a one-time toast prompting Watchlist setup if it's ever found
+  empty (mainly relevant to saves from before this mod was added).
+
 ## [0.34] — 2026-09-08
 
 ### Added
