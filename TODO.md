@@ -3147,3 +3147,45 @@ found two unrelated, real, confirmed bugs:
 
 Both fixed and passing validate_syntax.py; neither yet re-confirmed
 live.
+
+
+## Diplomatic action toast now shows the real per-action wording, not generic text (2026-09-09)
+
+User, after confirming the silent-notification regression fix worked:
+"why do we have to have this super generic notification instead of just
+telling me directly what they did?" Right question -- the earlier
+"deliberately generic, accepted loss of detail" decision (2026-09-08)
+was based on an incomplete investigation, not a real engine limitation.
+
+Found the actual mechanism: vanilla's own
+`notification_diplomatic_action_notification_name` resolves via
+`[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]` --
+a function on the diplomatic action object itself, not something tied
+to that specific vanilla message key. Our own replacement messages
+(`smart_notifications_diplomatic_action_watched`/`_quiet`) share the
+same `type = diplomatic_action` root scope (same on_diplomatic_action
+pulse that already proven-binds `SCOPE.sC('actor')`/`SCOPE.sC('recipient')`),
+so the same call works for us. This is the real, confirmed-real function
+`[ROOT.GetName]` was a wrong guess at reaching back on 2026-09-08.
+
+Used only for the `_name`/title, not `_desc`: every
+`_action_notification_desc` in vanilla's diplomacy_l_english.yml
+hardcodes `GetPlayer` ("our mutual relations"), which is only accurate
+when the player is the actual recipient -- wrong for a genuinely
+third-party watched country's action. Kept our own desc text generic
+for that reason. Checked every `_name` field for the common action
+types (relations, rivalry, embargo, alliance, ...) -- none reference
+GetPlayer, so they're safe for both the player-recipient and
+third-party-watched cases. A handful of less common ones still do
+(`guarantee_independence_action_notification_name`,
+`bankroll_action_notification_name`, `raise_payments_*`,
+`decrease_payments_*`) -- accepted as a narrow, known wording
+inaccuracy (says "our"/"us" for a third-party case that isn't actually
+about the player) rather than building per-action-type text overrides
+for this small a gap.
+
+Updated both `smart_notifications_diplomatic_action_watched` and
+`_quiet`'s `_name` loc in smart_notifications_l_english.yml. Full
+comment/history preserved and extended in the loc file itself so the
+two earlier (now-superseded) investigations aren't lost. NOT YET
+LIVE-TESTED.

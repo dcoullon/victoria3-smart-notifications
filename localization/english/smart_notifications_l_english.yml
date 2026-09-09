@@ -116,21 +116,45 @@
  # diplomatic_action_notification gets (Increase Relations, Decrease
  # Relations, autonomy requests, ... each with their own wording). Wrong
  # -- confirmed by the user's screenshot showing the raw loc key name on
- # screen instead of real text. That resolution is tied to the specific
- # vanilla key, not the `type` field. No dynamic way exists to recover
- # which specific action type fired for our own text either (tried
- # `[ROOT.GetName]`, confirmed a real error.log entry). So this is
- # deliberately GENERIC text that renders correctly for every action type
- # rather than vanilla's specific-but-broken-for-us wording -- a real,
- # accepted loss of detail, not an oversight.
+ # screen instead of real text. Tried `[ROOT.GetName]` next, also wrong
+ # (a real error.log entry, `root` isn't a valid dynamic-text keyword --
+ # see CLAUDE.md). Shipped fully generic text as a fallback.
+ #
+ # CORRECTED AGAIN 2026-09-09: the fully-generic fallback above was an
+ # unnecessary loss of detail, not a real limitation. Vanilla's own
+ # `notification_diplomatic_action_notification_name` resolves via
+ # `[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]`
+ # -- a scope-bound function on the diplomatic action object itself, not
+ # something tied to the specific vanilla message key the way the earlier
+ # investigation assumed. Our own messages here share the exact same
+ # `type = diplomatic_action` root scope (same on_diplomatic_action pulse
+ # already proven to bind `SCOPE.sC('actor')`/`SCOPE.sC('recipient')`
+ # correctly), so the same call works for us too -- confirmed via
+ # localization/english/interfaces_l_english.yml:7575 and
+ # diplomacy_l_english.yml's own per-action `_name` keys (e.g.
+ # `increase_relations_action_notification_name`), which is the mechanism
+ # `[ROOT.GetName]` was a wrong guess at reaching. Used only for the
+ # `_name`/title, not `_desc`: checked every `_action_notification_desc`
+ # in diplomacy_l_english.yml and they hardcode `GetPlayer` ("our mutual
+ # relations"), correct only when the player is the actual recipient --
+ # wrong if a genuinely third-party watched country's action is what
+ # triggered this (player not involved at all). Our own desc text stays
+ # generic-but-accurate for that reason. The `_name` fields don't have
+ # this problem for the common action types (relations, rivalry, embargo,
+ # alliance, ...) -- checked, none of those specific `_name` keys
+ # reference GetPlayer. A few less common ones still do (e.g.
+ # `guarantee_independence_action_notification_name` says "guaranteeing
+ # OUR independence") -- accepted as a known minor wording inaccuracy
+ # for the narrow case of a third-party watched country hit by one of
+ # those specific action types, not worth blocking this fix over.
  smart_notifications_diplomatic_action_watched_group:0 "(SN) Diplomatic Action, Watched Country Involved"
  notification_smart_notifications_diplomatic_action_watched_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplomatic_action_watched_desc$"
- notification_smart_notifications_diplomatic_action_watched_name:0 "[SCOPE.sC('actor').GetNameNoFormatting] takes diplomatic action"
+ notification_smart_notifications_diplomatic_action_watched_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
  notification_smart_notifications_diplomatic_action_watched_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] has taken a diplomatic action involving [SCOPE.sC('recipient').GetNameNoFormatting]. Open the Diplomacy screen for details."
 
  smart_notifications_diplomatic_action_quiet_group:0 "(SN) Diplomatic Action, Ambient"
  notification_smart_notifications_diplomatic_action_quiet_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_quiet_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplomatic_action_quiet_desc$"
- notification_smart_notifications_diplomatic_action_quiet_name:0 "[SCOPE.sC('actor').GetNameNoFormatting] takes diplomatic action"
+ notification_smart_notifications_diplomatic_action_quiet_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
  notification_smart_notifications_diplomatic_action_quiet_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] has taken a diplomatic action involving [SCOPE.sC('recipient').GetNameNoFormatting]. Open the Diplomacy screen for details."
 
  # Amendment-repealable alert (see 01_smart_notifications_alerts.txt).
