@@ -3007,3 +3007,35 @@ was removed. Simulated it wasn't like the earlier over-firing bug
 because -- (a) no reset branch, entries can never be removed, so
 variable_list_size only ever grows -- (b) the outer gate directly
 enforces the lifetime cap on that monotonic count. NOT YET LIVE-TESTED.
+
+
+## Taxation toast: corrected to per-round semantics per the user's precise spec (2026-09-09)
+
+User corrected my read of the problem: it was never about recovery/
+flicker, and not about a lifetime cap either. The real model: each
+monthly pulse is its own "round" of newly-crossing states (e.g. China's
+initial ~20-state burst is ONE round). Within a round, toast up to 3, but
+mark ALL of that round's newly-crossing states as handled immediately --
+not just the 3 shown -- so the other 17 don't trickle out one by one
+over following months. A state only becomes eligible again if it
+independently recovers and re-enters deficit later, starting a fresh
+round with its own 3-toast budget.
+
+My previous "lifetime cap" redesign (this same day) was based on a wrong
+diagnosis (assumed the issue was the recover/reopen mechanism itself);
+this correction restores that mechanism (needed for the "recovers and
+re-enters" requirement) but fixes the actual gap: overflow candidates
+beyond the first 3 were never being marked at all in earlier versions,
+leaving them eligible to surface in later pulses -- exactly the
+"cycling through the batch over time" behavior reported.
+
+Implementation: THREE passes per pulse now, not one -- (A) the proven
+ordered_scope_state select+toast+mark for the first 3, (B) a new,
+uncapped every_scope_state that silently marks any remaining newly-
+crossing states with no toast, (C) the restored recover/re-enter reset.
+Confirmed (B) is not vulnerable to the earlier mid-loop-mutation-
+invisibility bug -- that bug was specifically about an aggregate COUNT
+check not seeing prior same-loop mutations; (B) only does a per-state
+membership check, no counting/aggregation involved, and it runs as a
+separate, already-sequenced effect after (A) fully completes, not
+nested inside it. NOT YET LIVE-TESTED.
