@@ -3,7 +3,7 @@
   "id": "smart_notifications",
   "version": "0.35",
   "supported_game_version": "1.13.*",
-  "short_description": "Smarter notification defaults, a relational country watchlist, and new alerts for agitators, taxation deficits, and law readiness.",
+  "short_description": "Less notification noise, a watchlist for the countries you actually care about, and new alerts — including one that names the exact law worth enacting.",
   "tags": ["User Interface", "Utilities", "Fixes"],
   "relationships": [],
   "game_custom_data": {
