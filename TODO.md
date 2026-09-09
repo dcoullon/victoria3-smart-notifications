@@ -2787,3 +2787,51 @@ the previous tag via an on_action hook, if one exists for tag changes).
 Test: watchlist a country likely to reform (e.g. Ottoman Empire) in a
 real session, let it reform, and check via the Watchlist UI (or a
 temporary debug_log tap) whether it's still flagged afterward.
+
+
+## Diplomatic action duplicate fixed; Watchlist empty-prompt added (2026-09-09)
+
+User pushed back on the earlier "not a bug" answer, correctly: two
+notifications for one event is still bad UX even if technically from two
+separate systems, and our own generic text was weak. Fixed properly
+instead of re-explaining:
+
+Checked every `*_action_notification_desc` key in vanilla's
+diplomacy_l_english.yml -- confirmed ALL of them (increase_relations,
+damage_relations, expel_diplomats, rivalry, embargo, ...) are written
+from the RECIPIENT's own perspective (GetPlayer/"us"/"we") and are NOT
+common/messages/ entries at all (checked both vanilla's and our own
+copy -- zero matches), fired by a separate, hardcoded, unfilterable
+mechanism that only exists when the action targets the PLAYER
+specifically. Our own generic elevated notification duplicated this
+exactly in that one case, with strictly worse (non-specific) wording.
+Fixed common/on_actions/06_smart_notifications_diplomatic_action_filtering.txt
+to suppress our own notification entirely when `scope:recipient` is the
+player, letting vanilla's specific popup stand alone. Left unchanged for
+the case that's genuinely uncovered: a watched third party's action
+where the player is NOT the recipient (no native popup exists there for
+an observer).
+
+Also built the Watchlist empty-prompt the user asked for
+(common/on_actions/11_smart_notifications_watchlist_empty_prompt.txt):
+checked first whether there's any "on save load" on_action to hook
+directly -- confirmed there genuinely isn't one anywhere in this engine
+(on_game_started/on_game_started_after_lobby both explicitly fire "for
+the first time for each campaign" only, per vanilla's own comment; no
+on_savegame_loaded-shaped on_action exists in any on_actions file).
+Worked around this the same way the law/tax toasts already do: check
+monthly instead, reaching the same practical outcome (seen shortly after
+opening any save, new or old) without a hook that doesn't exist. Fires
+once when the Watchlist has no non-player country with any real
+watch-provenance flag, clears if it's no longer empty (same edge-
+detection pattern as every other toast in this mod). Also updated the
+existing smart_notifications_mod_loaded toast to name the Watchlist tab
+explicitly.
+
+Caught and fixed my own mistake while writing the loc text: initially
+wrote "Interesting Countries" as the tab name (a real vanilla label, but
+for vanilla's own separate, hidden, unused third tab) -- checked
+gui/message_settings.gui directly and confirmed our actual tab is a
+genuinely new fourth one labeled "Watchlist"
+(SMART_NOTIFICATIONS_WATCHLIST_TAB). Fixed both loc entries before
+shipping either.

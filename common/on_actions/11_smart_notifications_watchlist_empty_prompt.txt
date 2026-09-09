@@ -1,0 +1,73 @@
+﻿# Smart Notifications mod: one-time toast prompting the player to set up
+# their Watchlist, for the case where it's genuinely empty. Added
+# 2026-09-09 per the user.
+#
+# WHY THIS IS NEEDED: a fresh campaign is never actually empty --
+# common/on_actions/00_smart_notifications_on_actions.txt already auto-
+# populates the Watchlist with every great power and neighbor at game
+# start. But there's no moddable "on save load" hook in this engine at
+# all (checked: neither on_game_started nor on_game_started_after_lobby
+# fire on a subsequent load, only "for the first time for each campaign"
+# per vanilla's own comment in common/on_actions/00_code_on_actions.txt;
+# no on_savegame_loaded-style on_action exists anywhere in the game's
+# on_actions files either). So a save that predates this mod (or one
+# where the player manually cleared every watched country) would never
+# see any prompt to set the Watchlist up, since the one-time
+# smart_notifications_mod_loaded toast only ever fires on brand-new
+# campaigns. Worked around the missing hook the same way the law/tax
+# toasts already do: check monthly instead of on load, which reaches the
+# same practical outcome (the player sees this shortly after opening any
+# save, new or old) without needing a hook that doesn't exist.
+#
+# Edge-detected via a single flag on the player's own country, same
+# pattern as the law-ready and taxation-deficit toasts: fires once when
+# the Watchlist is found empty, clears when it's no longer empty (so it
+# can fire again if the player empties it again later).
+on_monthly_pulse_country = {
+	on_actions = {
+		smart_notifications_watchlist_empty_check
+	}
+}
+
+smart_notifications_watchlist_empty_check = {
+	effect = {
+		if = {
+			limit = { is_player = yes }
+			if = {
+				# "Watchlist is empty" = no OTHER country carries any of
+				# the 4 real watch-provenance flags. Deliberately NOT
+				# reusing smart_notifications_is_watched here -- that
+				# trigger bakes in `is_player = yes` (so the player's own
+				# country always trivially counts as "watched"), which
+				# would make this check never see an empty list.
+				limit = {
+					NOT = {
+						any_country = {
+							NOT = { is_player = yes }
+							NOT = { is_country_type = decentralized }
+							OR = {
+								has_variable = watched_via_great_power
+								has_variable = watched_via_neighbor
+								has_variable = watched_via_rival
+								has_variable = watched_manually
+							}
+						}
+					}
+				}
+				if = {
+					limit = { NOT = { has_variable = smart_notifications_notified_empty_watchlist } }
+					set_variable = smart_notifications_notified_empty_watchlist
+					post_notification = smart_notifications_watchlist_empty_prompt
+					debug_log = "SNW_WATCHLIST_EMPTY|fired"
+				}
+			}
+			else = {
+				if = {
+					limit = { has_variable = smart_notifications_notified_empty_watchlist }
+					remove_variable = smart_notifications_notified_empty_watchlist
+					debug_log = "SNW_WATCHLIST_EMPTY|reset"
+				}
+			}
+		}
+	}
+}

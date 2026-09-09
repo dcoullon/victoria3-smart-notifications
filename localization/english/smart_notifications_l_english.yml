@@ -1,7 +1,7 @@
 ﻿l_english:
  notification_smart_notifications_mod_loaded_tooltip:0 "#header $notification_smart_notifications_mod_loaded_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_mod_loaded_desc$"
  notification_smart_notifications_mod_loaded_name:0 "Smart Notifications active"
- notification_smart_notifications_mod_loaded_desc:0 "This mod is loaded and its notification changes are in effect. You can mute this message from the Message Settings screen."
+ notification_smart_notifications_mod_loaded_desc:0 "This mod is loaded and its notification changes are in effect. A few countries are already flagged as watched (great powers and your neighbors) -- open Message Settings (bell icon) and go to the Watchlist tab to add or remove any. You can mute this message from the same screen."
  smart_notifications_mod_loaded_group:0 "Smart Notifications Mod"
 
  # New Message Settings categories created by splitting a vanilla group so
@@ -869,3 +869,12 @@ $TOOLTIP_DELIMITER$
 $notification_smart_notifications_taxation_deficit_toast_desc$"
  notification_smart_notifications_taxation_deficit_toast_name:0 "[SCOPE.GetRootScope.GetState.GetName] has a Taxation Deficit"
  notification_smart_notifications_taxation_deficit_toast_desc:0 "[SCOPE.GetRootScope.GetState.GetName] has insufficient Taxation Capacity for its population, reducing the efficiency of all forms of taxation there."
+
+ # One-time toast prompting Watchlist setup when it's found empty -- see
+ # common/on_actions/11_smart_notifications_watchlist_empty_prompt.txt.
+ smart_notifications_watchlist_empty_prompt_group:0 "(SN) Watchlist Setup Reminder"
+ notification_smart_notifications_watchlist_empty_prompt_tooltip:0 "#header $notification_smart_notifications_watchlist_empty_prompt_name$#!
+$TOOLTIP_DELIMITER$
+$notification_smart_notifications_watchlist_empty_prompt_desc$"
+ notification_smart_notifications_watchlist_empty_prompt_name:0 "Your Watchlist is Empty"
+ notification_smart_notifications_watchlist_empty_prompt_desc:0 "You have no countries flagged as watched, so diplomatic plays and wars involving other countries will stay quiet in the feed. Open Message Settings (bell icon) and go to the Watchlist tab to flag the ones you care about."

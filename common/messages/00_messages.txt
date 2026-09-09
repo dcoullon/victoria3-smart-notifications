@@ -3713,3 +3713,16 @@ smart_notifications_taxation_deficit_toast = {
 	notification_type = toast
 	color = bad
 }
+
+# Smart Notifications mod: one-time toast prompting Watchlist setup when
+# it's found empty -- see
+# common/on_actions/11_smart_notifications_watchlist_empty_prompt.txt.
+smart_notifications_watchlist_empty_prompt = {
+	type = country
+	group = "smart_notifications_watchlist_empty_prompt_group"
+
+	texture = "gfx/interface/icons/notification_icons/influence.dds"
+
+	notification_type = toast
+	color = neutral
+}

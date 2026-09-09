@@ -47,6 +47,31 @@
 # `SCOPE.sC('actor').GetNameNoFormatting` pattern (no `.GetCountry`) used
 # everywhere else in this mod for the diplomatic_play root -- evidently
 # also correct here, once written the same way.
+#
+# REVISED 2026-09-09 per the user: reported "two notifications about the
+# same thing" plus "our own content is useless" for a Junagadh -> Great
+# Qing diplomatic action. Root-caused via error.log/debug.log rather than
+# guessing: confirmed `smart_notifications_diplomatic_action_watched`
+# fired exactly once (no duplicate bug in OUR code), and confirmed the
+# second popup is vanilla's own per-action-type notification (e.g.
+# `increase_relations_action_notification_desc`,
+# localization/english/diplomacy_l_english.yml) -- checked ALL such keys
+# in that file and every one is written from the RECIPIENT's own
+# perspective (`GetPlayer`/"us"/"we" throughout) and is NOT a
+# common/messages/ entry at all (grepped both vanilla's and our own copy,
+# zero matches) -- it's fired by a separate, hardcoded, non-message-
+# system mechanism, confirmed unfilterable by any mod. Since this native
+# popup only exists/fires when the action targets the PLAYER specifically
+# (never for a third party watching two other countries interact), our
+# own generic notification is 100% redundant, strictly-worse-worded noise
+# in exactly that one case -- and that's precisely the case the user hit
+# (Junagadh's action targeted Great Qing, the player). Fixed by
+# suppressing our own notification entirely when `scope:recipient` is the
+# player, letting vanilla's specific, informative popup stand alone. Our
+# notification still fires for the genuinely-uncovered case: a watched
+# THIRD PARTY's diplomatic action where the player is NOT the recipient
+# (no native per-action popup exists for an observer, so this remains the
+# only signal there).
 
 on_diplomatic_action = {
 	on_actions = {
@@ -66,6 +91,10 @@ on_diplomatic_action = {
 smart_notifications_diplomatic_action = {
 	effect = {
 		if = {
+			limit = { scope:recipient ?= { is_player = yes } }
+			debug_log = "SNW_FILTER|diplomatic_action|posted_key=NONE|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|PLAYER_RECIPIENT_SUPPRESSED"
+		}
+		else_if = {
 			limit = {
 				OR = {
 					scope:actor ?= { smart_notifications_is_watched = yes }
