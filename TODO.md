@@ -3228,5 +3228,34 @@ reached) and posts the new key; falls through to the existing
 watched/quiet branches otherwise. This effectively reintroduces a
 player-recipient special case (removed entirely just one fix ago) --
 but this time as its own accurate message, not a suppression, so it
-can't reintroduce the earlier silent-notification regression. NOT YET
-LIVE-TESTED.
+can't reintroduce the earlier silent-notification regression.
+
+
+## Confirmed live; watched-but-not-player diplomatic action toast demoted to feed (2026-09-09)
+
+Player-targeted case confirmed working: user saw real vanilla-quality
+wording and detail in a live session ("it seems that they all triggered
+well now, with the format used by the native notifs"). Bumped to 0.36
+and tagged (per this feature being genuinely new and confirmed working).
+
+User then pushed on a second point: "the lighter generic wording
+doesn't make things less spammy, it just is generic" -- correctly
+separating two different problems the earlier fixes conflated
+(wording quality vs. interruption frequency). Asked directly whether
+the watched-but-not-player case (a watched great power acting on some
+unwatched minor, e.g.) is even supposed to toast, since they hadn't
+consciously noticed it firing.
+
+Checked debug.log rather than guessing: confirmed 13 fires in the
+current session alone (Spain -> Philippines, Ottoman Empire -> Fezzan,
+Portugal -> Gaza, Brunei -> Bulungan, US -> Tokugawa Shogunate, ...) --
+genuinely firing often, just blending into other toast traffic
+unnoticed. User's call once confirmed: suppress it. Demoted
+`smart_notifications_diplomatic_action_watched` from `notification_type
+= toast` to `feed` in common/messages/00_messages.txt -- keeps the
+accurate specific title/detail (now genuinely useful to skim in the
+feed log) without popping a toast for routine third-party diplomacy.
+The player-targeted case
+(`smart_notifications_diplomatic_action_targeting_player`) is
+unaffected -- still toasts, since that's the case actually worth
+interrupting for. NOT YET LIVE-TESTED (the demotion itself).

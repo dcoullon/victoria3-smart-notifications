@@ -2300,7 +2300,18 @@ smart_notifications_diplomatic_action_watched = {
 
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
-	notification_type = toast
+	# DEMOTED 2026-09-09 from `toast`: confirmed via debug.log (13 fires
+	# in one session -- e.g. Spain -> Philippines, Ottoman Empire ->
+	# Fezzan, Portugal -> Gaza, all a watched great power acting on an
+	# unwatched minor) that this fires often enough in practice to be
+	# genuine screen-interruption spam, per the user. The accurate,
+	# specific title text (see smart_notifications_l_english.yml) stays
+	# -- still useful to skim in the feed log -- but no longer pops a
+	# toast for a watched-but-not-player diplomatic action. The
+	# player-targeted case (smart_notifications_diplomatic_action_targeting_player)
+	# is unaffected and still toasts, since that one's about the player
+	# directly and isn't the spam being reported here.
+	notification_type = feed
 	color = neutral
 }
 

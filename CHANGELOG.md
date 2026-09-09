@@ -31,10 +31,14 @@ mod hasn't reached a 1.0 concept of "breaking changes" yet.
   full detail in the body (current relation standing, their attitude
   towards you, and so on) — matching the quality of vanilla's own
   notifications, instead of a generic "X has taken a diplomatic action
-  involving Y." A watched country's action against a different watched
-  country still shows the specific action title, with a lighter,
-  general description (deliberately not the full detail, to avoid
-  implying you're personally involved when you're not).
+  involving Y."
+- A watched country taking a diplomatic action against someone else (not
+  you) no longer pops a toast — confirmed via a live session this was
+  firing often enough (13 times in one session) to be real
+  screen-interruption spam, not the "worth interrupting you for" case
+  this mod exists to surface. Still logged in the notification feed with
+  the accurate, specific wording if you want to check what a watched
+  country's been up to.
 - This also permanently fixes the earlier double-notification issue for
   actions directed at you: you'll now see exactly one notification,
   with full detail, for that case.
