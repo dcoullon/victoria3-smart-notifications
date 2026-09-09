@@ -1,39 +1,30 @@
-[h1]Smart Notifications[/h1]
+[h1]Smart Notifications (Closed Beta)[/h1]
+[b]Less notification noise, a watchlist for the countries you actually care about, and new alerts vanilla is missing.[/b]
 
-Less notification noise, a watchlist for the countries you actually
-care about, and new alerts — including one that names the exact law
-worth enacting.
+Vanilla buries the things you actually need to act on in a wall of low-value popups, while diplomatic plays on the other side of the map interrupt you just as often as ones involving you. This mod retunes what pops up, lets you flag the countries you actually care about, and adds a few alerts the base game should have had.
 
 [hr][/hr]
 
 [h1]Key Features[/h1]
 
+[b]Country watchlist[/b]
 [list]
-[b]Smarter notification defaults[/b] — a pass over vanilla's own
-notification settings, demoting passive/low-value events (like transient
-domestic political noise) from toast-tier to feed-tier, and quieting
-repetitive dominion/subject diplomatic spam, without touching anything
-you'd actually want a popup for.
+[*] Flag specific countries (rivals, allies, threats).
+[*] Diplomatic plays, wars, and countries joining a side only pop up when a watchlisted country (or you) is actually involved.
+[*] Everything else quietly goes to the feed instead of interrupting you.
+[/list]
 
-[b]Relational country watchlist[/b] — flag the countries you actually
-care about (rivals, allies, potential targets). Diplomatic plays, wars
-starting, and countries joining a side now only interrupt you when a
-watchlisted country (or you) is a genuine participant — not every play
-happening anywhere in the world.
+[b]Retuned notification defaults[/b]
+[list]
+[*] Low-value vanilla notifications demoted from popup/toast to feed.
+[*] Repetitive dominion/subject diplomatic notifications quieted.
+[/list]
 
-[b]Agitator Invite Available alert[/b] — fires when you have an open
-agitator slot and an exiled character eligible to fill it, so the Invite
-Exile opportunity doesn't quietly expire unnoticed.
-
-[b]States with a Taxation Deficit alert[/b] — flags incorporated states
-where tax collection can't keep up with spending, grouped into one
-stacked entry when it's happening in more than one state.
-
-[b]Law Ready to Enact alert[/b] — tick an opt-in checkbox on any law's
-detail panel to mark it as one you're working toward. Once that law's
-next checkpoint has better odds of succeeding than stalling, an alert
-and a toast both name the exact law and its law group, so you know which
-one to spend Political Power on.
+[b]New alerts[/b]
+[list]
+[*] [b]Taxation Deficit[/b] — alert plus a one-time toast naming the specific state, when its tax capacity can't keep up with usage.
+[*] [b]Agitator Invite Available[/b] — fires when you have an open agitator slot and an exiled character eligible to fill it.
+[*] [b]Law Ready to Enact[/b] — flag a law you're working toward from its detail panel; get an alert plus a one-time toast naming that law and its law group the moment it has better odds of passing than stalling.
 [/list]
 
 [hr][/hr]
@@ -41,73 +32,24 @@ one to spend Political Power on.
 [h1]Compatibility[/h1]
 
 [list]
-[b]Save games:[/b] safe to add to an existing campaign at any time — it's
-script/UI only, adds no new game mechanics. Removing it mid-campaign is
-also expected to be safe (the mod's own tracked flags simply become
-inert and are ignored, the way Jomini-engine mods generally handle
-removed script content) but hasn't been stress-tested across many saves
-yet — if you try it during the beta, please report back what you see.
-
-[b]Achievements:[/b] unaffected. Steam achievements are disabled by
-debug mode, not by having mods enabled — this mod doesn't touch that.
-
-[b]Ironman:[/b] not applicable — Victoria 3 doesn't have an Ironman mode.
-
-[b]Known conflicts:[/b] this mod fully replaces vanilla's
-[i]common/messages/00_messages.txt[/i] (the file controlling default
-notification presentation) to apply its notification-tuning pass. Any
-other mod that [i]also[/i] fully replaces that same file will conflict —
-whichever one loads later in your playset will silently win for every
-setting in that file, not merge with the other. If you use another
-notification-tuning or "QoL notification" mod, check for this specific
-overlap. No other conflicts are known as of this beta.
+[*] [b]Game version:[/b] 1.13.* (current patch)
+[*] [b]Save games:[/b] safe to add mid-campaign. Removal is expected safe too (script/UI only, no new mechanics) but not yet stress-tested across many saves — report back if you try it.
+[*] [b]Achievements:[/b] unaffected — only debug mode disables achievements, not mods.
+[*] [b]Ironman:[/b] not applicable, Victoria 3 has no Ironman mode.
+[*] [b]File overrides:[/b] this mod fully overrides [i]common/messages/00_messages.txt[/i] (needed for the notification retuning). [i]common/alert_types/[/i] and [i]common/alert_groups/[/i] are additive — no vanilla file touched there.
 [/list]
 
-[hr][/hr]
-
-[h1]Load Order Guidelines[/h1]
-
-Load this mod after any general gameplay/content mods. If you use another
-mod that changes default notification settings, load whichever one you
-want to "win" for shared settings [b]last[/b] — see the Compatibility
-note above on why they can't both apply their changes to the same file at
-once. Otherwise, position doesn't matter — everything else this mod adds
-(alerts, scripted triggers, the law-panel checkbox) is additive and
-doesn't depend on load order relative to other mods.
+[b]Known conflicts:[/b] any other mod that also fully overrides [i]common/messages/00_messages.txt[/i] — whichever loads later in your playset wins for that whole file, they don't merge. Check for that specific overlap if you run another notification-tuning mod. No other conflicts known as of this beta.
 
 [hr][/hr]
 
-[h1]Changelog[/h1]
+[h1]Reporting Issues[/h1]
 
-[b]0.35 — initial private beta[/b]
+This is a closed beta. If something's off, include:
 [list]
-[*] Agitator Invite Available alert
-[*] States with a Taxation Deficit alert, plus a one-time toast naming
-    the specific state
-[*] Law Ready to Enact alert, with an opt-in per-law checkbox, plus a
-    one-time toast naming the specific law and its law group
-[*] (SN) tagging on all mod-added Message Settings rows and in-panel UI
-    labels, so they're identifiable at a glance
-[/list]
-
-Full history of every change, including the notification-defaults pass
-and the relational watchlist this beta builds on, is tracked in the
-repository's own CHANGELOG.
-
-[hr][/hr]
-
-[h1]Issue Reporting & Source[/h1]
-
-This is a closed beta — thank you for testing. If you hit a bug or an
-alert that doesn't behave as described above, please report it with:
-
-[list]
-[*] What you expected vs. what happened
-[*] Your Victoria 3 version and any other mods enabled
-[*] If possible, your [i]debug.log[/i] and [i]error.log[/i] from
-    [i]Documents\Paradox Interactive\Victoria 3\logs\[/i] — this mod
-    keeps detailed logging specifically so issues can be diagnosed from
-    these files without needing a repro session
+[*] What you expected vs. what happened.
+[*] Your Victoria 3 version and other mods enabled.
+[*] Your [i]debug.log[/i]/[i]error.log[/i] from [i]Documents\Paradox Interactive\Victoria 3\logs\[/i], if you can — this mod logs specifically so issues can be diagnosed from those files.
 [/list]
 
 Source and issue tracker: [url=https://github.com/dcoullon/victoria3-smart-notifications]github.com/dcoullon/victoria3-smart-notifications[/url]
