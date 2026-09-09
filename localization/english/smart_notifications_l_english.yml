@@ -152,22 +152,6 @@
  notification_smart_notifications_diplomatic_action_watched_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
  notification_smart_notifications_diplomatic_action_watched_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] has taken a diplomatic action involving [SCOPE.sC('recipient').GetNameNoFormatting]. Open the Diplomacy screen for details."
 
- # The routine (Increase/Decrease Relations) siblings -- same text as their
- # toast counterparts, feed tier instead. See
- # 06_smart_notifications_diplomatic_action_filtering.txt for the routing.
- smart_notifications_diplomatic_action_watched_routine_group:0 "(SN) Diplomatic Action, Watched Country Involved (Routine)"
- notification_smart_notifications_diplomatic_action_watched_routine_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_watched_routine_name$#!
-$TOOLTIP_DELIMITER$
-$notification_smart_notifications_diplomatic_action_watched_routine_desc$"
- notification_smart_notifications_diplomatic_action_watched_routine_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
- notification_smart_notifications_diplomatic_action_watched_routine_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] has taken a diplomatic action involving [SCOPE.sC('recipient').GetNameNoFormatting]. Open the Diplomacy screen for details."
- smart_notifications_diplomatic_action_targeting_player_routine_group:0 "(SN) Diplomatic Action, Targeting You (Routine)"
- notification_smart_notifications_diplomatic_action_targeting_player_routine_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_targeting_player_routine_name$#!
-$TOOLTIP_DELIMITER$
-$notification_smart_notifications_diplomatic_action_targeting_player_routine_desc$"
- notification_smart_notifications_diplomatic_action_targeting_player_routine_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
- notification_smart_notifications_diplomatic_action_targeting_player_routine_desc:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationDesc]"
-
  smart_notifications_diplomatic_action_quiet_group:0 "(SN) Diplomatic Action, Ambient"
  notification_smart_notifications_diplomatic_action_quiet_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_quiet_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplomatic_action_quiet_desc$"
  notification_smart_notifications_diplomatic_action_quiet_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"

@@ -2323,20 +2323,6 @@ smart_notifications_diplomatic_action_watched = {
 	color = neutral
 }
 
-# ADDED 2026-09-09 (evening): the routine-action sibling of the key above
-# -- an unwatched country merely improving/damaging relations with a
-# country you watch. Same generic wording, feed instead of toast. Routed
-# here via the flag set by this mod's override of
-# common/diplomatic_actions/00_relations_actions.txt.
-smart_notifications_diplomatic_action_watched_routine = {
-	type = diplomatic_action
-	group = "smart_notifications_diplomatic_action_watched_routine_group"
-
-	texture = "gfx/interface/icons/notification_icons/influence.dds"
-
-	notification_type = feed
-	color = neutral
-}
 
 smart_notifications_diplomatic_action_quiet = {
 	type = diplomatic_action
@@ -2370,28 +2356,6 @@ smart_notifications_diplomatic_action_targeting_player = {
 	color = neutral
 }
 
-# ADDED 2026-09-09 (evening), replacing the version deleted earlier the
-# same day: a routine relations change aimed at YOU, from a country you
-# are not watching. Keeps vanilla's own full per-action text (it's
-# accurate here -- the player really is a party to this action), just in
-# the feed rather than as a toast. A WATCHED country doing the same thing
-# still toasts via the key above, per the user: you're tracking that
-# country specifically.
-#
-# The first attempt at this key was reverted because the routing behind
-# it could never fire (docs/engine-notes.md § The pact for a diplomatic
-# action does not exist yet). It only works now because the action type
-# is flagged from the action's own definition instead of being inferred
-# after the fact.
-smart_notifications_diplomatic_action_targeting_player_routine = {
-	type = diplomatic_action
-	group = "smart_notifications_diplomatic_action_targeting_player_routine_group"
-
-	texture = "gfx/interface/icons/notification_icons/influence.dds"
-
-	notification_type = feed
-	color = neutral
-}
 
 
 # Smart Notifications mod: one-time toast when a law becomes ready, fired

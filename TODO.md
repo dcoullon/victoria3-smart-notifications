@@ -23,10 +23,10 @@ of what actually shipped in each version, see [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
-## IN FLIGHT: the toast rule, restated by the user, and how it's being built (2026-09-09)
+## THE TOAST RULE: what's built, what the engine refuses, what's left (2026-09-09)
 
-Kept at the top of this file because it's the mod's core rule and it took
-three attempts to state and build correctly.
+Kept at the top of this file: it's the mod's core rule, and the half that
+can't be built has now been attempted three different ways.
 
 ### The rule, in the user's own words
 
@@ -34,71 +34,66 @@ three attempts to state and build correctly.
 > important actions towards you or involving a watched country, and only
 > that.
 
-Which resolves to a two-axis matrix:
-
 | | aimed at you / a watched country | aimed at anyone else |
 |---|---|---|
 | **important action** | **toast** | feed |
 | **routine action** (relations changes) | feed | feed |
 
-With one deliberate exception, confirmed with the user: a **watched**
-country improving/damaging relations *with you* still toasts. Being
-watched outranks the action being routine — you're tracking that country
-specifically. "Important" includes diplomatic play starts (which are
-unaffected here; they fire through their own already-elevated on_action).
+Plus one exception the user confirmed: a **watched** country's relations
+change *toward you* still toasts — being watched outranks the action
+being routine.
 
-### What was wrong before
+### DONE: the aimed-at axis
 
-Two separate bugs, both now fixed in
-`06_smart_notifications_diplomatic_action_filtering.txt`:
+`06_smart_notifications_diplomatic_action_filtering.txt` no longer ORs
+actor and recipient together. A watched country *acting on* an unrelated
+minor and a watched country *being acted on* were previously identical;
+under the rule they're opposites. Now:
 
-1. **Actor and recipient were OR'd together.** A watched great power
-   *acting on* an unrelated minor was treated identically to a watched
-   country *being acted on*. The rule says those are opposite cases. This
-   also re-diagnoses the v0.37 spam report — all 13 sampled fires were
-   the first kind, so muting the entire watched path (as v0.37 did)
-   treated the symptom and silenced the actions this mod exists to
-   surface. Reversed; the split is the real fix, and it needed no new
-   engine capability at all, just reading the two scopes separately.
-2. **Action importance was inferred after the fact.** See below.
+- recipient is you → toast
+- recipient is a watched country → toast
+- neither → feed, **even if the actor is watched**
 
-### Why importance needed an unusual solution
+This is also the honest fix for the v0.37 spam report: all 13 sampled
+fires were a watched actor hitting an unwatched minor — the branch that
+should never have toasted. v0.37 muted the whole watched path instead,
+which also silenced actions aimed *at* watched countries. That demotion
+is reversed.
 
-At the instant `on_diplomatic_action` fires, the engine offers no way to
-ask what kind of action it was: zero triggers and zero effects work on
-`diplomatic_action` scope, and the pact the action creates does not exist
-yet (proven three times over — `docs/engine-notes.md` § *The pact for a
-diplomatic action does not exist yet*).
+Measured against one real session (271 diplomatic actions): 233 fall to
+the quiet branch, 38 reach a toast.
 
-So we stopped asking. The mod now **overrides
-`common/diplomatic_actions/00_relations_actions.txt`** and has each action
-flag its own target from inside its own definition, where its identity was
-never in doubt. Vanilla defines exactly `increase_relations` and
-`damage_relations` in that file and nothing else, so the override's blast
-radius is precisely the pair we care about.
+### CANNOT BE BUILT: the importance axis
 
-### Open risks on this approach — NOT YET LIVE-TESTED
+Three mechanisms tried, each ruled out by direct evidence:
 
-- **The `effect = {}` block is documented but unproven.** It's in the
-  game's own `diplomatic_action.md` schema, and **zero** vanilla
-  diplomatic actions use one. Unknown until a live run: whether it fires
-  at all, and whether it fires *before* the notification (required) or
-  after (useless as written). Both instrumented via `SNW_ROUTINE_FLAG` /
-  `SNW_ROUTINE_READ`, whose order in `debug.log` answers it.
-- **A parse failure here is not cosmetic.** If `effect` turns out not to
-  be a valid key in this file, the file may fail to load and take
-  Improve/Damage Relations with it. First thing to check in a test:
-  those two actions still exist in the diplomacy UI.
-- **Maintenance:** this file will conflict with any other mod overriding
-  it, and can drift silently when Paradox patches vanilla. Re-diff
-  against `reference/vanilla` on each game update.
+1. **Query the pact the action creates.** The pact isn't in gamestate yet
+   at that instant — three countries proved it by showing up in a later
+   monthly sweep. `docs/engine-notes.md` § *The pact for a diplomatic
+   action does not exist yet*.
+2. **Ask the action object.** `script_docs` supports zero triggers and
+   zero effects on `diplomatic_action` scope; no event target leads out
+   of it.
+3. **Have the action flag its target from its own definition**, via the
+   `effect = {}` block that `diplomatic_action.md` documents. The parser
+   rejects the key: `Unexpected token: effect`. The schema doc describes
+   a field this version doesn't accept, and zero vanilla actions use one.
+   `docs/engine-notes.md` § *A `.md` schema doc is not proof a key
+   parses*.
 
-### If the effect block turns out not to work
+So every action aimed at you or a watched country toasts, routine or not.
 
-Fall back to filtering on the **actor** rather than the action — rank,
-`has_diplomatic_relevance`, country type are all readable at that instant.
-Cruder (it would quiet a minor's rivalry declaration too), but it needs no
-override and no new engine behaviour.
+### THE ONE OPTION LEFT — needs a product call from the user
+
+Filter on the **actor** instead of the action: rank,
+`has_diplomatic_relevance`, `is_country_type`. All readable at the right
+instant, no override, no new engine behaviour. "An unwatched, minor,
+diplomatically irrelevant country did something to you" → feed.
+
+**The catch, stated honestly:** it judges the sender, not the message, so
+a small country declaring a *rivalry* on you would be quieted too. That
+is a different rule from the one above, not an implementation of it —
+which is why it hasn't been built.
 
 ## Phase 0 — Bootstrap Verification (target: v0.1.0)
 

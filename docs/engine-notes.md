@@ -763,6 +763,48 @@ is to assume the function doesn't exist there and reach for a static
 `$key$` loc reference instead, which needs no scope-specific function at
 all.
 
+## A `.md` schema doc is not proof a key parses — `effect` in a diplomatic action
+
+Confirmed 2026-09-09, and it cost a live test.
+`common/diplomatic_actions/diplomatic_action.md` — the game's own schema
+doc, shipped in the same folder as the definitions it describes — lists:
+
+```
+effect = {} # Effect of action on execution
+```
+
+at the top level of an action, between `second_state_trigger` and
+`is_hostile`. Placed exactly there, in an override of
+`00_relations_actions.txt`, the 1.13.11 parser rejects it outright:
+
+```
+Error: "Unexpected token: effect, near line: 70" in file:
+"common/diplomatic_actions/00_relations_actions.txt"
+```
+
+The key does not exist in this version, whatever the doc says.
+
+**The warning sign was there and was noted before testing:** grepping all
+49 vanilla files in `common/diplomatic_actions/` for a top-level `effect`
+block returns **zero** hits. A documented field that no vanilla file uses
+even once is a field to test in isolation before designing around it —
+the same "documented ≠ confirmed" rule this project already applies to
+dynamic-text functions (see § Two separate function tables), now extended
+to schema docs. The `.md` files are as capable of being stale as any
+wiki.
+
+**Cheap way to test a doubtful key next time:** put it in a throwaway
+override with a static `debug_log` beside it, launch once, and grep
+`error.log` for the filename. A parse error names the file and line
+directly. That is one relaunch, versus discovering it after building a
+feature on top.
+
+**Practical consequence here:** there is no way to attach mod script to
+the execution of a specific vanilla diplomatic action type. Combined with
+the finding below (nothing about an action is knowable inside
+`on_diplomatic_action`), notification tiers cannot depend on which
+diplomatic action fired — from any direction, by any known mechanism.
+
 ## The pact for a diplomatic action does not exist yet when `on_diplomatic_action` fires
 
 Confirmed 2026-09-09 with named countries in two independent instruments
