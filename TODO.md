@@ -23,6 +23,90 @@ of what actually shipped in each version, see [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
+## KNOWN LIMITATION: relations-change toasts can't be quieted by action type (2026-09-09)
+
+Kept at the top of this file on purpose — it's the one thing we tried to
+build, twice, that the engine does not allow, and it's easy to forget
+that and try a third time.
+
+### What's missing
+
+When another country improves or damages relations with you, you get a
+toast. That's the single most common diplomatic action in the game, and
+it's usually not worth interrupting you for — a random minor nudging
+relations with you is very different news from a rival declaring an
+embargo. The goal was: **relations changes aimed at you drop to the feed;
+everything else aimed at you keeps toasting.**
+
+Right now every diplomatic action aimed at you toasts equally. That's
+deliberate, not an oversight — see below.
+
+### Why we can't do that yet
+
+To pick a notification's tier we have to know *what kind of action it
+was*, at the moment the notification is posted. The engine won't tell us,
+and this is now confirmed by live test rather than assumed:
+
+1. **The action's own object is a dead end.** Our code runs on
+   `on_diplomatic_action`, whose root object is the diplomatic action
+   itself. The game's own generated script documentation lists **zero
+   triggers and zero effects** that work on that scope, and no way to
+   navigate from it to anything else. The debug scope dump prints
+   `Root: Diplo action Improve Relations` — the object knows exactly what
+   it is, and script has no way to ask it.
+2. **The pact it creates doesn't exist yet.** The obvious workaround was
+   to check whether the acting country now holds an "improve relations"
+   pact with us. That check is real and works — just not yet at that
+   instant. Tested three times over: Nawanagar took Improve Relations on
+   us on 17 Jan 1836; at the moment the notification fired, a full walk
+   of Nawanagar's own pact list found no relations pact at all. One month
+   later, the exact same check returned yes. Tibet and Selangor
+   reproduced it. The pact is created *just after* our code runs, and
+   there's no un-toasting a notification after the fact.
+3. **The only things in scope are countries.** `actor`, `recipient`,
+   `notification_target` — all countries, none of them carrying the
+   action type.
+
+So the tier has to be chosen at a moment when the type is unknowable.
+Not a bug we can fix; a genuine ordering constraint in the engine. Full
+technical write-up: `docs/engine-notes.md` § *The pact for a diplomatic
+action does not exist yet*.
+
+### What we could do instead
+
+Three options, in rough order of how much they cost:
+
+- **Filter on the actor instead of the action** *(cheap, available
+  today)*. We can't ask "was this a relations change?" but we can ask
+  plenty about who did it — their rank, whether they're diplomatically
+  relevant to us, whether they're decentralized. "An unwatched
+  insignificant minor did something to you" would go to the feed;
+  everyone else keeps toasting. **The trade-off is the honest catch:** a
+  minor declaring a rivalry on you would get quieted too, since we'd be
+  judging the sender, not the message. Needs a product call from the
+  user, which is why it isn't built.
+- **Delay our own notification by a tick** *(medium cost, real
+  downside)*. If we post on the next daily pulse instead of immediately,
+  the pact exists and the type is readable. But the notification's text
+  (`GetActionNotificationDesc` and friends) resolves against the
+  notification's own scopes, which we'd no longer have — so we'd trade
+  the specific, accurate wording won in v0.36 for a generic one. Worse
+  overall, unless someone finds a way to carry the text across.
+- **Wait for Paradox.** If a future patch exposes a trigger on
+  `diplomatic_action` scope, or binds the pact before the on_action
+  fires, option 1 in the "why not" list above stops being a dead end and
+  this becomes a five-line change. Worth re-checking the generated
+  `triggers.log` after a major patch.
+
+### What was actually tried (so it isn't repeated)
+
+`has_diplomatic_pact = { who = scope:recipient type =
+increase_relations/damage_relations }` from `scope:actor`, with and
+without `is_initiator` — all four combinations, 11 real firings, all
+returned no, for the timing reason above. Reverted in full;
+the dead `..._targeting_player_routine` message key, group and loc are
+deleted. Nothing shipped to players, since it never worked.
+
 ## Phase 0 — Bootstrap Verification (target: v0.1.0)
 
 Confirm the simplest possible mod actually loads in-game before anything else.

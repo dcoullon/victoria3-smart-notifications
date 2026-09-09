@@ -19,6 +19,23 @@ instrumentation and doc-only changes get a commit but **no** version bump
 unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.37] — 2026-09-09
+
+### Changed
+
+- **A watched country taking a diplomatic action against someone else
+  (not you) no longer pops a toast.** A live session showed this firing
+  51 times — a watched great power acting on some unrelated minor, over
+  and over — which is screen-interruption spam, not the "worth
+  interrupting you for" case this mod exists to surface. It's still in
+  the notification feed with the accurate, specific wording, so you can
+  skim what a watched country has been up to whenever you want.
+  Anything aimed at **you** still toasts, unchanged.
+- A watched country's subject being **released** now pops a toast
+  instead of only appearing in the feed — a small enough event not to
+  deserve a full popup, but a real change to a country you're
+  deliberately tracking. The unwatched version stays silent.
+
 ## [0.36] — 2026-09-09
 
 ### Changed
@@ -32,20 +49,6 @@ mod hasn't reached a 1.0 concept of "breaking changes" yet.
   towards you, and so on) — matching the quality of vanilla's own
   notifications, instead of a generic "X has taken a diplomatic action
   involving Y."
-- A watched country taking a diplomatic action against someone else (not
-  you) no longer pops a toast — confirmed via a live session this was
-  firing often enough (13 times in one session) to be real
-  screen-interruption spam, not the "worth interrupting you for" case
-  this mod exists to surface. Still logged in the notification feed with
-  the accurate, specific wording if you want to check what a watched
-  country's been up to.
-- A country improving or damaging relations with you specifically no
-  longer pops a toast either, for the same reason — it's the single most
-  common diplomatic action and rarely worth interrupting you for. Still
-  shown in the feed with full detail. Every other diplomatic action
-  aimed at you directly (rivalries, subjugation attempts, embargoes,
-  autonomy changes, alliance/pact offers, etc.) still toasts, since
-  those are genuinely worth knowing about immediately.
 - This also permanently fixes the earlier double-notification issue for
   actions directed at you: you'll now see exactly one notification,
   with full detail, for that case.
