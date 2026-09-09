@@ -2604,3 +2604,32 @@ generalizing the alert-loc-completeness check to messages: every
 `post_notification` target must resolve to a real message with its
 `_name`/`_desc` loc keys. Verified it fires on an injected typo before
 trusting it clean.
+
+
+## Release candidates now versioned via git tags (2026-09-09)
+
+User asked: "can I easily go back to what we released on [this date]?"
+Answer was no before today -- only one unrelated tag existed. Backfilled
+`v<version>-<short-hash>` tags for the entire history (v0.20 through
+v0.34, 18 tags total, using the short hash because a past version-
+numbering regression means some version numbers legitimately point at
+two different real commits -- see docs/engine-notes.md for the full
+list). Added the rule to CLAUDE.md: every future version bump gets a tag
+on that same commit, immediately.
+
+Also added automatic tagging to `tools/package_release.py`
+(`release-v<version>-<date>`) so "what did we actually package for
+external release" is separately, trivially findable -- distinct from
+version-bump tags since not every bump gets externally released.
+
+**Real bug found and fixed while testing this**: the packaging script's
+original delete-then-recreate-in-place approach hit a file lock (the
+Paradox Launcher had the release folder open as a registered mod entry)
+mid-delete, leaving the live output folder PARTIALLY DELETED
+(common/alert_groups and common/alert_types gone, common/messages
+emptied) -- worse than not running it at all. Fixed by staging the full
+copy in a temp directory first and only swapping items into place once
+staged, with per-item failure handling instead of one all-or-nothing
+operation. The actual release folder is still in that broken state as of
+this writing -- the Launcher needs to be closed before a re-run can
+finish repairing it; flagged to the user.

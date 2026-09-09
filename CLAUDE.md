@@ -11,6 +11,7 @@ link it.
 - Never include "Co-Authored-By", AI mentions, or session URLs in git commit messages or PR descriptions.
 - Commit (and push to GitHub) every time a new feature ships — no batching multiple features into one commit.
 - **Bump `.metadata/metadata.json`'s `version` by `0.01` ONLY for something genuinely new that is confirmed working** (`0.20` → `0.21`); the tenths digit is a major milestone. **Do NOT bump for bug fixes, iterations on a feature that isn't working yet, debug instrumentation, or doc-only changes** — those still get their own commit, just no version bump (revised 2026-09-07 per the user: repeated bumps for fix-attempts on the same unfinished feature make the version meaningless). See CHANGELOG.md's own header for the full convention.
+- **Every version bump also gets a git tag on that same commit**, immediately, right after committing: `git tag -a v<version>-<short-hash> <hash> -m "Version <version>"` then `git push origin <tag>` — so any past version is trivially checkoutable later (`git checkout v0.34-b61f8715`) without needing to dig through `git log`. See docs/engine-notes.md § Release candidates are now tagged for the full history and why the short hash is part of the tag name (a past version-numbering regression means a version string isn't always unique on its own).
 
 ## 2. Token Budget & Large File Protocol (CRITICAL)
 

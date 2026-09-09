@@ -790,6 +790,57 @@ future JSON validation in this project must decode as plain `utf-8`, not
 `check_json_files_have_no_bom` now does this permanently, for every
 `.json` file in the repo, not just `metadata.json`.
 
+## Release candidates are now tagged
+
+The user asked (2026-09-09): "can I easily go back to what we released
+on [this date]?" -- previously no. Only one, unrelated tag
+(`watchlist-baseline`) existed; every version bump was just a plain
+commit, findable only by scrolling `git log`.
+
+Two tag types now exist, both pushed to origin immediately:
+
+- `v<version>-<short-hash>` -- created on every version bump commit (see
+  CLAUDE.md § Git Authorship Rules). The short hash is part of the name,
+  not decoration: a past version-numbering regression (a 2026-09-07
+  commit accidentally reverted `version` from 0.33 back to 0.31, then
+  0.32/0.33 were re-earned going forward) means the same version STRING
+  legitimately points at two different real commits in this repo's
+  history (`v0.31-56e91734` and `v0.31-a2fe32f9`, `v0.32-f8470253` and
+  `v0.32-8b852a1b`, `v0.33-0172fc5c` and `v0.33-b70e79e1`) -- a bare
+  `v0.31` tag would have collided. Backfilled retroactively for the
+  entire existing history (`v0.20` through `v0.34`), from
+  `git log --follow -- .metadata/metadata.json`.
+- `release-v<version>-<date>` -- created automatically by
+  `tools/package_release.py` every time it successfully packages (see
+  its own `tag_release_commit` function), pointing at whatever commit was
+  actually packaged for external release that day. This is the one that
+  directly answers "what did we release on this date" -- distinct from
+  the version-bump tags because not every version bump gets externally
+  released, and packaging can happen more than once for the same
+  version.
+
+To go back to either: `git checkout v0.34-b61f8715` (or any tag from
+`git tag -l`). Both are annotated tags (`git tag -a`), not lightweight,
+so `git show <tag>` also gives the tagging message/date directly.
+
+## Packaging must stage before swapping, never delete-then-copy in place
+
+Confirmed real 2026-09-09: `package_release.py`'s first version deleted
+each shipped folder in the output directory, then recreated it directly.
+The Paradox Launcher had `smart_notifications_release` open as a
+registered mod entry, and hit a file lock mid-`rmtree` on
+`common/messages` -- this left the live output folder PARTIALLY DELETED
+(`common/alert_groups` and `common/alert_types` gone entirely,
+`common/messages` emptied) until the lock cleared, worse than doing
+nothing. Fixed by staging the full copy in a sibling temp directory
+first (a lock during staging only touches the temp copy, leaving the
+previous good output completely untouched), then swapping each top-level
+item into place independently, catching a lock on any individual item
+without corrupting the others or aborting the whole operation. A retry
+after closing whatever holds the lock only needs to re-run the same
+command -- staging always starts fresh from source, which is cheap and
+not the risky part.
+
 ## Never upload the dev mod folder directly -- it bundles the whole repo
 
 Confirmed 2026-09-08 from the user's own screenshot of the Paradox
