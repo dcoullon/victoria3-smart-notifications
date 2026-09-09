@@ -2671,3 +2671,17 @@ line is missing despite conditions looking right, or a `reset` never
 happens for a law that visibly stopped being enactable, that's a real
 bug to chase. DELETE this instrumentation once confirmed either way, not
 before.
+
+
+## Open item: keep verifying toast triggering is correct
+
+2026-09-09: user confirmed BOTH the alert and the toast fired correctly
+in the latest test (previously only the alert had been consistently
+seen). The level-vs-edge-triggering explanation for the toast's rarity
+(see the entry above this one) is looking right, but this is only one
+positive data point with the new diagnostic logging in place -- not yet
+enough plays to call it fully confirmed. Keep an eye on
+`SNW_LAW_TOAST|fired`/`|reset`/`|pulse` lines
+(`python tools/scan_logs.py`) across future sessions before removing
+that temporary instrumentation. Don't close this out from a single
+success.
