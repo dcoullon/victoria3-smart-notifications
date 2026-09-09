@@ -27,6 +27,37 @@
 # evaluated fresh every time the tooltip renders, not baked into a slow-
 # updating variable, so there's no staleness/lag concern the way a
 # monthly-pulse-computed value would have.
+#
+# REVISED AGAIN 2026-09-08, SECOND root cause of the blank law name (the
+# folder move above fixed "SGUI not found at all", but the name still
+# rendered blank after that): error.log, once the SGUI was actually being
+# found and run, showed two further, unambiguous errors every time this
+# ran:
+#   Could not find data system function 'GetNameNoFormatting' in
+#   'THIS.GetNameNoFormatting'.
+#   Could not find promote for 'GetGroup' in 'THIS.GetGroup.GetName'.
+# i.e. `law` scope has NEITHER a name-getter NOR a `GetGroup` promote in
+# the script-side dynamic-text/data-function system (the GUI-binding
+# language's `Law.GetGroup`, used by the real vanilla law-list widgets in
+# gui/politics_panel_types.gui, is a DIFFERENT function table -- it isn't
+# available from `custom_tooltip`/`[...]` context, confirmed by these
+# errors, not a guess).
+#
+# Fixed by dropping dynamic text entirely for this and going fully static
+# instead, mirroring the same per-law-type dispatch pattern already used
+# by smart_notifications_law_notify_sgui.txt: every law's name AND its
+# group both already have their own normal loc keys in vanilla
+# (`law_<type>` -> display name, the law's own `group = lawgroup_X` field
+# -> `lawgroup_X` display name -- confirmed for all 138 law types by
+# checking common/laws/*.txt against localization/english/*.yml), so each
+# branch below picks a law-specific loc key
+# (`smart_notifications_law_entry_<type>`) whose text is a plain
+# `$law_<type>$ ($lawgroup_X$)` inline loc reference -- a confirmed real
+# vanilla technique (localization/english/laws_l_english.yml uses
+# `"$ideology_carlist$"` the same way) needing no dynamic function call
+# at all, so it can't hit this class of error. GENERATED 2026-09-08 from
+# the same law_type list as the other two generated files (regenerate
+# all three together if the law list ever changes).
 smart_notifications_law_commitment_list_sgui = {
 	scope = country
 
@@ -45,7 +76,558 @@ smart_notifications_law_commitment_list_sgui = {
 					can_be_enacted = yes
 					smart_notifications_law_ready_to_enact = yes
 				}
-				custom_tooltip = "smart_notifications_law_commitment_list_entry"
+				if = {
+					limit = { THIS.type = law_type:law_affirmative_action }
+					custom_tooltip = "smart_notifications_law_entry_law_affirmative_action"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_agrarianism }
+					custom_tooltip = "smart_notifications_law_entry_law_agrarianism"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_anarchy }
+					custom_tooltip = "smart_notifications_law_entry_law_anarchy"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_anti_strike_laws }
+					custom_tooltip = "smart_notifications_law_entry_law_anti_strike_laws"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_appointed_bureaucrats }
+					custom_tooltip = "smart_notifications_law_entry_law_appointed_bureaucrats"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_autocracy }
+					custom_tooltip = "smart_notifications_law_entry_law_autocracy"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_bakufu }
+					custom_tooltip = "smart_notifications_law_entry_law_bakufu"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_canton_system }
+					custom_tooltip = "smart_notifications_law_entry_law_canton_system"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_censorship }
+					custom_tooltip = "smart_notifications_law_entry_law_censorship"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_census_voting }
+					custom_tooltip = "smart_notifications_law_entry_law_census_voting"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_charitable_health_system }
+					custom_tooltip = "smart_notifications_law_entry_law_charitable_health_system"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_chiefdom }
+					custom_tooltip = "smart_notifications_law_entry_law_chiefdom"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_chiefs_distribute_aid }
+					custom_tooltip = "smart_notifications_law_entry_law_chiefs_distribute_aid"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_child_labor_allowed }
+					custom_tooltip = "smart_notifications_law_entry_law_child_labor_allowed"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_closed_borders }
+					custom_tooltip = "smart_notifications_law_entry_law_closed_borders"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_collectivized_agriculture }
+					custom_tooltip = "smart_notifications_law_entry_law_collectivized_agriculture"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_colonial_administration }
+					custom_tooltip = "smart_notifications_law_entry_law_colonial_administration"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_colonial_exploitation }
+					custom_tooltip = "smart_notifications_law_entry_law_colonial_exploitation"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_colonial_resettlement }
+					custom_tooltip = "smart_notifications_law_entry_law_colonial_resettlement"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_colonial_slavery }
+					custom_tooltip = "smart_notifications_law_entry_law_colonial_slavery"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_combination_acts }
+					custom_tooltip = "smart_notifications_law_entry_law_combination_acts"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_command_economy }
+					custom_tooltip = "smart_notifications_law_entry_law_command_economy"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_commercialized_agriculture }
+					custom_tooltip = "smart_notifications_law_entry_law_commercialized_agriculture"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_compulsory_primary_school }
+					custom_tooltip = "smart_notifications_law_entry_law_compulsory_primary_school"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_consumption_based_taxation }
+					custom_tooltip = "smart_notifications_law_entry_law_consumption_based_taxation"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_cooperative_ownership }
+					custom_tooltip = "smart_notifications_law_entry_law_cooperative_ownership"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_corporate_state }
+					custom_tooltip = "smart_notifications_law_entry_law_corporate_state"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_corporatized_unions }
+					custom_tooltip = "smart_notifications_law_entry_law_corporatized_unions"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_council_republic }
+					custom_tooltip = "smart_notifications_law_entry_law_council_republic"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_crownland_diets }
+					custom_tooltip = "smart_notifications_law_entry_law_crownland_diets"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_cultural_exclusion }
+					custom_tooltip = "smart_notifications_law_entry_law_cultural_exclusion"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_debt_slavery }
+					custom_tooltip = "smart_notifications_law_entry_law_debt_slavery"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_dedicated_police }
+					custom_tooltip = "smart_notifications_law_entry_law_dedicated_police"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_diplomatic_navy }
+					custom_tooltip = "smart_notifications_law_entry_law_diplomatic_navy"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_elder_council }
+					custom_tooltip = "smart_notifications_law_entry_law_elder_council"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_elected_bureaucrats }
+					custom_tooltip = "smart_notifications_law_entry_law_elected_bureaucrats"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_ethnostate }
+					custom_tooltip = "smart_notifications_law_entry_law_ethnostate"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_expanded_latifundias }
+					custom_tooltip = "smart_notifications_law_entry_law_expanded_latifundias"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_extraction_economy }
+					custom_tooltip = "smart_notifications_law_entry_law_extraction_economy"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_factory_councils }
+					custom_tooltip = "smart_notifications_law_entry_law_factory_councils"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_free_trade }
+					custom_tooltip = "smart_notifications_law_entry_law_free_trade"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_freedom_of_conscience }
+					custom_tooltip = "smart_notifications_law_entry_law_freedom_of_conscience"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_frontier_colonization }
+					custom_tooltip = "smart_notifications_law_entry_law_frontier_colonization"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_graduated_taxation }
+					custom_tooltip = "smart_notifications_law_entry_law_graduated_taxation"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_guaranteed_liberties }
+					custom_tooltip = "smart_notifications_law_entry_law_guaranteed_liberties"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_guild_system }
+					custom_tooltip = "smart_notifications_law_entry_law_guild_system"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_hereditary_bureaucrats }
+					custom_tooltip = "smart_notifications_law_entry_law_hereditary_bureaucrats"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_hindu_caste_codified }
+					custom_tooltip = "smart_notifications_law_entry_law_hindu_caste_codified"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_hindu_caste_enforced }
+					custom_tooltip = "smart_notifications_law_entry_law_hindu_caste_enforced"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_hindu_caste_not_enforced }
+					custom_tooltip = "smart_notifications_law_entry_law_hindu_caste_not_enforced"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_homesteading }
+					custom_tooltip = "smart_notifications_law_entry_law_homesteading"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_industry_banned }
+					custom_tooltip = "smart_notifications_law_entry_law_industry_banned"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_intermediate_edo_system }
+					custom_tooltip = "smart_notifications_law_entry_law_intermediate_edo_system"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_interventionism }
+					custom_tooltip = "smart_notifications_law_entry_law_interventionism"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_isolationism }
+					custom_tooltip = "smart_notifications_law_entry_law_isolationism"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_jeune_ecole }
+					custom_tooltip = "smart_notifications_law_entry_law_jeune_ecole"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_laissez_faire }
+					custom_tooltip = "smart_notifications_law_entry_law_laissez_faire"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_land_based_taxation }
+					custom_tooltip = "smart_notifications_law_entry_law_land_based_taxation"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_landed_voting }
+					custom_tooltip = "smart_notifications_law_entry_law_landed_voting"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_latifundias }
+					custom_tooltip = "smart_notifications_law_entry_law_latifundias"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_lax_edo_system }
+					custom_tooltip = "smart_notifications_law_entry_law_lax_edo_system"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_legacy_slavery }
+					custom_tooltip = "smart_notifications_law_entry_law_legacy_slavery"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_local_police }
+					custom_tooltip = "smart_notifications_law_entry_law_local_police"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_manorialism }
+					custom_tooltip = "smart_notifications_law_entry_law_manorialism"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_mass_conscription }
+					custom_tooltip = "smart_notifications_law_entry_law_mass_conscription"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_mercantilism }
+					custom_tooltip = "smart_notifications_law_entry_law_mercantilism"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_merchant_navy }
+					custom_tooltip = "smart_notifications_law_entry_law_merchant_navy"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_migration_controls }
+					custom_tooltip = "smart_notifications_law_entry_law_migration_controls"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_militarized_police }
+					custom_tooltip = "smart_notifications_law_entry_law_militarized_police"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_millet_system }
+					custom_tooltip = "smart_notifications_law_entry_law_millet_system"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_monarchy }
+					custom_tooltip = "smart_notifications_law_entry_law_monarchy"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_multicultural }
+					custom_tooltip = "smart_notifications_law_entry_law_multicultural"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_national_guard }
+					custom_tooltip = "smart_notifications_law_entry_law_national_guard"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_national_militia }
+					custom_tooltip = "smart_notifications_law_entry_law_national_militia"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_national_supremacy }
+					custom_tooltip = "smart_notifications_law_entry_law_national_supremacy"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_neo_absolutism }
+					custom_tooltip = "smart_notifications_law_entry_law_neo_absolutism"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_no_colonial_affairs }
+					custom_tooltip = "smart_notifications_law_entry_law_no_colonial_affairs"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_no_health_system }
+					custom_tooltip = "smart_notifications_law_entry_law_no_health_system"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_no_home_affairs }
+					custom_tooltip = "smart_notifications_law_entry_law_no_home_affairs"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_no_migration_controls }
+					custom_tooltip = "smart_notifications_law_entry_law_no_migration_controls"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_no_police }
+					custom_tooltip = "smart_notifications_law_entry_law_no_police"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_no_schools }
+					custom_tooltip = "smart_notifications_law_entry_law_no_schools"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_no_social_security }
+					custom_tooltip = "smart_notifications_law_entry_law_no_social_security"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_no_womens_rights }
+					custom_tooltip = "smart_notifications_law_entry_law_no_womens_rights"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_no_workers_rights }
+					custom_tooltip = "smart_notifications_law_entry_law_no_workers_rights"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_old_age_pension }
+					custom_tooltip = "smart_notifications_law_entry_law_old_age_pension"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_oligarchy }
+					custom_tooltip = "smart_notifications_law_entry_law_oligarchy"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_organic_regulation }
+					custom_tooltip = "smart_notifications_law_entry_law_organic_regulation"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_outlawed_dissent }
+					custom_tooltip = "smart_notifications_law_entry_law_outlawed_dissent"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_parliamentary_republic }
+					custom_tooltip = "smart_notifications_law_entry_law_parliamentary_republic"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_peasant_levies }
+					custom_tooltip = "smart_notifications_law_entry_law_peasant_levies"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_peasant_proprietorship }
+					custom_tooltip = "smart_notifications_law_entry_law_peasant_proprietorship"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_people_of_the_book }
+					custom_tooltip = "smart_notifications_law_entry_law_people_of_the_book"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_per_capita_based_taxation }
+					custom_tooltip = "smart_notifications_law_entry_law_per_capita_based_taxation"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_poor_laws }
+					custom_tooltip = "smart_notifications_law_entry_law_poor_laws"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_presidential_republic }
+					custom_tooltip = "smart_notifications_law_entry_law_presidential_republic"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_private_health_insurance }
+					custom_tooltip = "smart_notifications_law_entry_law_private_health_insurance"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_private_schools }
+					custom_tooltip = "smart_notifications_law_entry_law_private_schools"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_professional_army }
+					custom_tooltip = "smart_notifications_law_entry_law_professional_army"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_professional_navy }
+					custom_tooltip = "smart_notifications_law_entry_law_professional_navy"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_proportional_taxation }
+					custom_tooltip = "smart_notifications_law_entry_law_proportional_taxation"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_protected_speech }
+					custom_tooltip = "smart_notifications_law_entry_law_protected_speech"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_protectionism }
+					custom_tooltip = "smart_notifications_law_entry_law_protectionism"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_public_health_insurance }
+					custom_tooltip = "smart_notifications_law_entry_law_public_health_insurance"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_public_schools }
+					custom_tooltip = "smart_notifications_law_entry_law_public_schools"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_racial_segregation }
+					custom_tooltip = "smart_notifications_law_entry_law_racial_segregation"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_regulatory_bodies }
+					custom_tooltip = "smart_notifications_law_entry_law_regulatory_bodies"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_religious_schools }
+					custom_tooltip = "smart_notifications_law_entry_law_religious_schools"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_restricted_child_labor }
+					custom_tooltip = "smart_notifications_law_entry_law_restricted_child_labor"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_right_of_assembly }
+					custom_tooltip = "smart_notifications_law_entry_law_right_of_assembly"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_right_to_associate }
+					custom_tooltip = "smart_notifications_law_entry_law_right_to_associate"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_sakoku }
+					custom_tooltip = "smart_notifications_law_entry_law_sakoku"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_secret_police }
+					custom_tooltip = "smart_notifications_law_entry_law_secret_police"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_serfdom }
+					custom_tooltip = "smart_notifications_law_entry_law_serfdom"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_shinsengumi }
+					custom_tooltip = "smart_notifications_law_entry_law_shinsengumi"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_single_party_state }
+					custom_tooltip = "smart_notifications_law_entry_law_single_party_state"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_slave_trade }
+					custom_tooltip = "smart_notifications_law_entry_law_slave_trade"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_slavery_banned }
+					custom_tooltip = "smart_notifications_law_entry_law_slavery_banned"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_social_monarchy }
+					custom_tooltip = "smart_notifications_law_entry_law_social_monarchy"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_state_atheism }
+					custom_tooltip = "smart_notifications_law_entry_law_state_atheism"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_state_religion }
+					custom_tooltip = "smart_notifications_law_entry_law_state_religion"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_strict_edo_system }
+					custom_tooltip = "smart_notifications_law_entry_law_strict_edo_system"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_subjecthood }
+					custom_tooltip = "smart_notifications_law_entry_law_subjecthood"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_technocracy }
+					custom_tooltip = "smart_notifications_law_entry_law_technocracy"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_tenant_farmers }
+					custom_tooltip = "smart_notifications_law_entry_law_tenant_farmers"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_terakoya }
+					custom_tooltip = "smart_notifications_law_entry_law_terakoya"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_theocracy }
+					custom_tooltip = "smart_notifications_law_entry_law_theocracy"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_total_separation }
+					custom_tooltip = "smart_notifications_law_entry_law_total_separation"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_traditionalism }
+					custom_tooltip = "smart_notifications_law_entry_law_traditionalism"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_universal_suffrage }
+					custom_tooltip = "smart_notifications_law_entry_law_universal_suffrage"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_wage_subsidies }
+					custom_tooltip = "smart_notifications_law_entry_law_wage_subsidies"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_warrior_caste }
+					custom_tooltip = "smart_notifications_law_entry_law_warrior_caste"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_wealth_voting }
+					custom_tooltip = "smart_notifications_law_entry_law_wealth_voting"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_women_in_the_fields }
+					custom_tooltip = "smart_notifications_law_entry_law_women_in_the_fields"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_women_in_the_workplace }
+					custom_tooltip = "smart_notifications_law_entry_law_women_in_the_workplace"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_women_own_property }
+					custom_tooltip = "smart_notifications_law_entry_law_women_own_property"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_womens_suffrage }
+					custom_tooltip = "smart_notifications_law_entry_law_womens_suffrage"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_worker_protections }
+					custom_tooltip = "smart_notifications_law_entry_law_worker_protections"
+				}
 			}
 		}
 		else = {

@@ -2413,3 +2413,56 @@ the in-game toast/popup sentence itself). Applied retroactively to
 and [CLAUDE.md](CLAUDE.md). Deliberately NOT applied to
 `invasion_against_us_notification_group`/`diplo_play_subject_overlord_notification_group`
 (Phase 1 group-splits of vanilla content, not new notifications).
+
+
+## Law commitment alert: real root cause of the blank law name found and fixed (2026-09-08)
+
+Live testing (screenshot) confirmed the tooltip still showed blank/garbled
+text ("• )") after the SGUI-folder fix. Checked error.log directly instead
+of asking for another test round -- found the SECOND, real root cause,
+distinct from the folder issue:
+
+```
+Could not find data system function 'GetNameNoFormatting' in 'THIS.GetNameNoFormatting'.
+Could not find promote for 'GetGroup' in 'THIS.GetGroup.GetName'.
+Data error in loc string 'smart_notifications_law_commitment_list_entry'
+```
+
+`law` scope has neither a name-getter nor a `GetGroup` promote in the
+script-side dynamic-text/data-function system used by `custom_tooltip`/
+`[...]` loc brackets. The GUI-binding-language `Law.GetGroup` used by
+vanilla's own law-list widgets (`gui/politics_panel_types.gui`) is a
+completely separate function table -- confirmed real there, but not
+reachable from script-side dynamic text, which is a different system. This
+was never re-verified after the folder fix in the last session, exactly
+the kind of unverified claim the user has been (rightly) pushing back on --
+this time it was checked directly against error.log before reporting back.
+
+**Fix:** dropped dynamic text for this entirely. Every one of the 138 law
+types already has its own vanilla loc key (`law_<type>`) and so does its
+`group` field (`lawgroup_<X>`) -- confirmed for all 138 by cross-checking
+`common/laws/*.txt` against `localization/english/*.yml`. Generated one
+static loc key per law type
+(`smart_notifications_law_entry_<type>:0 "• $law_<type>$ ($lawgroup_<X>$)
+"`)
+using the vanilla inline-loc-reference syntax (`$key$`, confirmed real via
+`laws_l_english.yml`'s own `"$ideology_carlist$"` usage) -- no dynamic
+function call needed, so this class of error can't recur here. The
+tooltip-list SGUI now dispatches on `THIS.type = law_type:X` (138
+branches, same generated pattern as the notify-toggle SGUI) and calls the
+matching static key instead of the broken dynamic one.
+`validate_syntax.py` passes; not yet re-tested live.
+
+**On the "wrong screen on click" complaint in the same report:** checked
+whether `important_action`-type alerts actually honor a tab argument in
+`open_panel` (rather than assuming) -- vanilla's own `formable_possible`
+alert (`common/alert_types/00_alert_types.txt`) is `type = important_action`
+with `open_panel = diplomatic_overview|nation_formation` and is known-working
+vanilla content, confirming the mechanism does apply the tab for this alert
+type. `politics|laws` should behave the same way. The known, already-
+documented limitation stands: this can only land on the Laws tab overview,
+never highlight/jump to the specific law group (no scriptable parameterized
+version of `InformationPanelBar.OpenChangeLaw(Law.GetGroup)` exists --
+confirmed in the previous session). The just-fixed tooltip text (specific
+law name + group) is the intended mitigation for that gap, not a
+workaround still to come.
