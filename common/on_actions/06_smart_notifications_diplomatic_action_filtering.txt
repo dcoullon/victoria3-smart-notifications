@@ -192,6 +192,69 @@ smart_notifications_diplomatic_action = {
 			# exact on_action pulse) or a wrong is_initiator assumption.
 			# Delete once the real cause is found and fixed. Grep debug.log
 			# for SNW_PACT_PROBE.
+			#
+			# EXTENDED 2026-09-09 (SNW_PACT_PROBE2 lines): 11 firings of
+			# the four checks below have now all returned "no", so the
+			# question is no longer "which of the four" but "is a pact
+			# object reachable AT ALL at this instant, by any mechanism".
+			# Three additional, independent instruments, all confirmed
+			# real in the game's own script_docs dumps before use:
+			#  1. `debug_log_scopes = yes` (effects.log; vanilla uses it in
+			#     00_victoria_scripted_effects.txt) dumps every saved scope
+			#     bound at this moment. event_targets.log lists BOTH
+			#     `diplomatic_action` and `diplomatic_pact` among the
+			#     scopes code can save -- if either is bound here, the dump
+			#     says so outright instead of us guessing at names.
+			#  2. `scope:diplomatic_pact` probed directly with `?=`, then
+			#     asked its type via `is_diplomatic_action_type`
+			#     (triggers.log: supported on `diplomatic_pact` scope).
+			#     This is the outcome worth hoping for -- it would answer
+			#     the action type at the right instant with no pact query
+			#     and no timing dependency at all.
+			#  3. `every_scope_diplomatic_pact` from scope:actor
+			#     (effects.log: country scope -> diplomatic_pact) walks
+			#     every pact the actor actually holds right now. If the
+			#     just-created relations pact exists in gamestate yet, it
+			#     is in this list even if has_diplomatic_pact can't see it.
+			# Note what is NOT here and why: ROOT itself is untouchable.
+			# triggers.log and effects.log between them support exactly
+			# ZERO triggers and ZERO effects on `diplomatic_action` scope,
+			# and event_targets.log has no target leading out of it, so
+			# the action object this on_action is rooted on cannot be
+			# asked anything directly -- only its saved scopes can.
+			debug_log = "SNW_PACT_PROBE2|scopes_dump_follows|date=[TimeKeeper.GetCurrentDate.GetString]"
+			debug_log_scopes = yes
+
+			scope:diplomatic_pact ?= {
+				debug_log = "SNW_PACT_PROBE2|scope:diplomatic_pact|bound=yes"
+				if = {
+					limit = { is_diplomatic_action_type = increase_relations }
+					debug_log = "SNW_PACT_PROBE2|scope:diplomatic_pact|type=increase_relations"
+				}
+				if = {
+					limit = { is_diplomatic_action_type = damage_relations }
+					debug_log = "SNW_PACT_PROBE2|scope:diplomatic_pact|type=damage_relations"
+				}
+			}
+
+			scope:actor ?= {
+				every_scope_diplomatic_pact = {
+					debug_log = "SNW_PACT_PROBE2|actor_pact_seen"
+					if = {
+						limit = { is_diplomatic_action_type = increase_relations }
+						debug_log = "SNW_PACT_PROBE2|actor_pact|type=increase_relations"
+					}
+					if = {
+						limit = { is_diplomatic_action_type = damage_relations }
+						debug_log = "SNW_PACT_PROBE2|actor_pact|type=damage_relations"
+					}
+					if = {
+						limit = { any_participant = { is_player = yes } }
+						debug_log = "SNW_PACT_PROBE2|actor_pact|involves_player=yes"
+					}
+				}
+			}
+
 			scope:actor ?= {
 				if = {
 					limit = { has_diplomatic_pact = { who = scope:recipient type = increase_relations is_initiator = yes } }
