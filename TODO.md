@@ -2757,3 +2757,33 @@ published listing never says "Dev". Verified: dev entry now reads
 `Smart Notifications - Dev`, packaged release entry reads
 `Smart Notifications`, both otherwise byte-identical metadata (version,
 id, etc. unchanged).
+
+
+## Open item: does a watchlist flag survive a watched country reforming into a new tag?
+
+Raised 2026-09-09 via an external "deep research" report on launch
+readiness -- most of that report's specific technical claims didn't hold
+up against our actual code (see the session's own review: the taxation
+alert already uses `script_context = player_state`, not a global scope
+walk; the agitator alert already reuses vanilla's own `can_agitate` gate
+rather than a weaker home-grown check). This one item, though, is a
+genuine open question, not yet checked either way:
+
+The Watchlist's flag (`watched_manually`/`watched_via_great_power`/etc.,
+common/scripted_guis/watchlist_sgui.txt) is a variable set directly on
+the watched country's own scope. If that country is annexed outright,
+the variable simply ceases to exist with it -- not a bug, nothing to
+handle. But if a watched country instead REFORMS into a new tag (e.g.
+Prussia -> German Empire, Ottoman -> Turkey, or any other
+`change_country_definition`-style transition), it's genuinely unknown
+whether Victoria 3 preserves country-scope variables across that
+specific transition or resets them. No documented answer found in
+effects.log for this. If variables DON'T survive, the practical impact is
+mild (the player just silently stops being notified about a country they
+cared about once it reforms, no error/crash) but worth confirming and,
+if needed, deciding whether it's worth a fix (e.g., re-flagging based on
+the previous tag via an on_action hook, if one exists for tag changes).
+
+Test: watchlist a country likely to reform (e.g. Ottoman Empire) in a
+real session, let it reform, and check via the Watchlist UI (or a
+temporary debug_log tap) whether it's still flagged afterward.
