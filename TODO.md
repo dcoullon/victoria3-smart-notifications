@@ -2842,3 +2842,28 @@ shipping either.
 User: too long. Cut from 3 sentences down to 1: "Great powers and
 neighbors are already on your Watchlist. Adjust it anytime in Message
 Settings (bell icon) > Watchlist."
+
+
+## Taxation toast capped at 3 concurrent; diplomatic-action unfilterable-native-popup confirmed (2026-09-09)
+
+User clarified the ask: keep the persistent ALERT as-is (already grouped
+into one stacked row, fine), cap only the one-time TOASTS at 3
+concurrent. Much simpler than ranking states by deficit severity (the
+earlier, more complex idea that would have needed the same threshold-
+sweep workaround as the law alert) -- the toast's own tracking list
+(`smart_notifications_notified_deficit_states`) already IS the live
+count of active notifications, so `variable_list_size >= 3` as a firing
+gate is a direct, small addition. Capped in
+common/on_actions/10_smart_notifications_taxation_deficit_toast.txt.
+
+Separately: reviewed the user's Tibet/Shan/Baroda screenshots. Confirmed
+these are NOT a gap in our own filtering -- they're vanilla's own native,
+per-action-type popups (damage_relations/increase_relations_action_
+notification, etc.), which fire for ANY country's diplomatic action
+targeting the player, completely independent of watchlist status,
+confirmed via the earlier investigation (not a common/messages/ entry,
+no on_action posts it, fired by hardcoded engine logic with no moddable
+hook at all). Baroda (not a neighbor, not a great power, not watched) is
+exactly what this looks like when it fires -- expected, not a bug, and
+not something any mod can filter. This is the same confirmed limitation
+already logged in memory as "Notification logger coverage gaps."

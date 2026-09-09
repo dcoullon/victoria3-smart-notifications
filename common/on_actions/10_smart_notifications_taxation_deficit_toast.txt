@@ -36,6 +36,13 @@
 # state, not the country, as root -- required for `type = state` to
 # resolve correctly) after having stepped into THIS.owner to reach the
 # country-scope variable list.
+#
+# CAPPED 2026-09-09 per the user: playing China, so many states start in
+# deficit at once (newly incorporated, under-resourced) that the toasts
+# alone were overwhelming, even though the persistent ALERT (which groups
+# into one stacked row already) was fine as-is. Capped concurrent TOASTS
+# at 3 via `variable_list_size` on the same tracking list -- the ALERT is
+# completely untouched by this, still shows every deficit state.
 on_monthly_pulse_country = {
 	on_actions = {
 		smart_notifications_taxation_deficit_toast_check
@@ -59,6 +66,22 @@ smart_notifications_taxation_deficit_toast_check = {
 									is_target_in_variable_list = {
 										name = smart_notifications_notified_deficit_states
 										target = prev
+									}
+								}
+								# Cap 2026-09-09 per the user: China's early game can put
+								# a dozen+ states into deficit at once (newly incorporated
+								# states starting under-resourced) -- the persistent ALERT
+								# still shows every one (grouped into its one stacked row,
+								# unchanged), but no more than 3 one-time TOASTS are active
+								# at once. This list's size IS the count of currently-
+								# active notifications (a state's entry is removed by the
+								# `reset` branch below once it's no longer in deficit), so
+								# this is a live concurrent cap, not "first 3 ever" -- once
+								# one of the 3 resolves, a 4th can fire.
+								NOT = {
+									variable_list_size = {
+										name = smart_notifications_notified_deficit_states
+										target >= 3
 									}
 								}
 							}
