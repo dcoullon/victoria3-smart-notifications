@@ -2720,3 +2720,24 @@ independently tested before now. `validate_syntax.py` passes. Added
 matching `SNW_TAX_TOAST|fired`/`|reset` debug_log taps (same pattern as
 the law toast) so this can be confirmed or debugged from logs rather
 than guessed at. NOT YET LIVE TESTED -- next thing to verify.
+
+
+## Backlog: agitator invite (2026-09-09)
+
+Two ideas from the user, for later -- NOT implemented, investigation only:
+
+1. **Top-bar banner treatment**, like market/goods shortages show (a red
+   icon near the top of the screen, distinct from the Important Actions
+   list on the left). Needs investigation before assuming it's even
+   possible from script: unclear whether that top-bar treatment is driven
+   by the same `alert_types` system at all, or a separate/hardcoded UI
+   element tied specifically to market/goods shortages. Check
+   gui/ for the relevant widget and what data-binds it before promising
+   this is buildable the same way the Important Actions alerts are.
+2. **One-time toast when an agitator slot opens up** -- same
+   edge-triggered pattern as the law-readiness and taxation-deficit
+   toasts (empty_agitator_slots crossing from 0 to >=1). Simpler than
+   both of those: no per-type dispatch needed (there's nothing to name --
+   "a slot opened" is the whole message), likely just a single flag
+   variable + monthly-pulse edge check, closer in shape to a from-scratch
+   version of the truce tracker than to the law/tax toasts.
