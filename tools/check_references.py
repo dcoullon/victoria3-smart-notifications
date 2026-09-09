@@ -211,6 +211,38 @@ def check_alert_group_registration(root: Path, defined_loc: set[str]) -> list[st
     return errs
 
 
+def check_post_notification_targets(root: Path, defined_loc: set[str]) -> list[str]:
+    """Every `post_notification = X` must resolve to a real message
+    defined under common/messages/*.txt, and that message needs its
+    notification_<X>_name/_desc/_tooltip loc keys -- same completeness
+    rule as an alert_type's loc keys, generalized. Added 2026-09-09 when
+    the law-ready toast was switched from one generic message to 138
+    per-law-type ones (see common/on_actions/09_smart_notifications_law_ready_toast.txt)
+    specifically so that generated set can't silently drift the same way
+    the law_type dispatch files could."""
+    errs = []
+    messages_dir = root / "common" / "messages"
+    defined_messages = set()
+    if messages_dir.is_dir():
+        for path in messages_dir.glob("*.txt"):
+            text = _read(path)
+            for m in re.finditer(r"(?m)^([A-Za-z0-9_]+)\s*=\s*\{", text):
+                defined_messages.add(m.group(1))
+
+    for path in _iter_mod_files(root):
+        text = _read(path)
+        for m in re.finditer(r"post_notification\s*=\s*([A-Za-z0-9_]+)", text):
+            key = m.group(1)
+            if key not in defined_messages:
+                errs.append(f"{path}: post_notification references undefined message '{key}'")
+                continue
+            for suffix in ("_name", "_desc"):
+                loc_key = f"notification_{key}{suffix}"
+                if loc_key not in defined_loc:
+                    errs.append(f"message '{key}' missing loc key '{loc_key}'")
+    return errs
+
+
 LAW_TYPE_DISPATCH_FILES = [
     "common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt",
     "common/scripted_guis/smart_notifications_law_notify_sgui.txt",
@@ -305,6 +337,7 @@ def run_all(root: Path) -> list[str]:
     errs += check_scripted_gui_references(root)
     errs += check_alert_loc_completeness(root, defined_loc)
     errs += check_alert_group_registration(root, defined_loc)
+    errs += check_post_notification_targets(root, defined_loc)
     errs += check_law_type_dispatch_consistency(root)
     errs += check_law_types_exist_in_vanilla(root)
     errs += check_json_files_have_no_bom(root)

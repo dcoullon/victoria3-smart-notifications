@@ -2297,7 +2297,22 @@ smart_notifications_diplomatic_action_quiet = {
 # TODO.md for why (confirmed: important_action dismissal is edge-triggered
 # on the alert's own `valid`, not per-item, so a DIFFERENT law becoming
 # ready after dismissal would otherwise never re-surface).
-smart_notifications_law_ready_toast = {
+#
+# REVISED 2026-09-09 per the user: the toast's body text was deliberately
+# generic ("A law you flagged...") to avoid re-risking the same dynamic-
+# text bug that broke the alert's law name (see docs/engine-notes.md
+# "Two separate function tables"). Now that the fix for THAT bug is
+# confirmed working (a static per-law-type dispatch to a plain `$law_X$`
+# loc reference, no dynamic function call), the identical technique
+# applies here: one message key PER law type (138, same generated set as
+# every other per-law file in this mod), all sharing
+# `group = "smart_notifications_law_ready_toast_group"` so Message
+# Settings still shows a single row, not 138. The on_action below now
+# calls `post_notification = smart_notifications_law_ready_toast_<type>`
+# instead of one shared generic key -- `post_notification` takes a bare
+# key with no per-call override (CLAUDE.md), so distinct text needs
+# distinct keys, not a parameter.
+smart_notifications_law_ready_toast_law_affirmative_action = {
 	type = country
 	group = "smart_notifications_law_ready_toast_group"
 
@@ -2306,3 +2321,1374 @@ smart_notifications_law_ready_toast = {
 	notification_type = toast
 	color = good
 }
+
+smart_notifications_law_ready_toast_law_agrarianism = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_anarchy = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_anti_strike_laws = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_appointed_bureaucrats = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_autocracy = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_bakufu = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_canton_system = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_censorship = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_census_voting = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_charitable_health_system = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_chiefdom = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_chiefs_distribute_aid = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_child_labor_allowed = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_closed_borders = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_collectivized_agriculture = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_colonial_administration = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_colonial_exploitation = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_colonial_resettlement = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_colonial_slavery = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_combination_acts = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_command_economy = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_commercialized_agriculture = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_compulsory_primary_school = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_consumption_based_taxation = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_cooperative_ownership = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_corporate_state = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_corporatized_unions = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_council_republic = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_crownland_diets = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_cultural_exclusion = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_debt_slavery = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_dedicated_police = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_diplomatic_navy = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_elder_council = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_elected_bureaucrats = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_ethnostate = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_expanded_latifundias = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_extraction_economy = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_factory_councils = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_free_trade = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_freedom_of_conscience = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_frontier_colonization = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_graduated_taxation = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_guaranteed_liberties = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_guild_system = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_hereditary_bureaucrats = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_hindu_caste_codified = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_hindu_caste_enforced = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_hindu_caste_not_enforced = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_homesteading = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_industry_banned = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_intermediate_edo_system = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_interventionism = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_isolationism = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_jeune_ecole = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_laissez_faire = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_land_based_taxation = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_landed_voting = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_latifundias = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_lax_edo_system = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_legacy_slavery = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_local_police = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_manorialism = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_mass_conscription = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_mercantilism = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_merchant_navy = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_migration_controls = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_militarized_police = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_millet_system = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_monarchy = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_multicultural = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_national_guard = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_national_militia = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_national_supremacy = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_neo_absolutism = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_no_colonial_affairs = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_no_health_system = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_no_home_affairs = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_no_migration_controls = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_no_police = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_no_schools = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_no_social_security = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_no_womens_rights = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_no_workers_rights = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_old_age_pension = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_oligarchy = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_organic_regulation = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_outlawed_dissent = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_parliamentary_republic = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_peasant_levies = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_peasant_proprietorship = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_people_of_the_book = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_per_capita_based_taxation = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_poor_laws = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_presidential_republic = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_private_health_insurance = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_private_schools = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_professional_army = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_professional_navy = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_proportional_taxation = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_protected_speech = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_protectionism = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_public_health_insurance = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_public_schools = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_racial_segregation = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_regulatory_bodies = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_religious_schools = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_restricted_child_labor = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_right_of_assembly = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_right_to_associate = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_sakoku = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_secret_police = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_serfdom = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_shinsengumi = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_single_party_state = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_slave_trade = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_slavery_banned = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_social_monarchy = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_state_atheism = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_state_religion = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_strict_edo_system = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_subjecthood = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_technocracy = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_tenant_farmers = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_terakoya = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_theocracy = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_total_separation = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_traditionalism = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_universal_suffrage = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_wage_subsidies = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_warrior_caste = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_wealth_voting = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_women_in_the_fields = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_women_in_the_workplace = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_women_own_property = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_womens_suffrage = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+
+smart_notifications_law_ready_toast_law_worker_protections = {
+	type = country
+	group = "smart_notifications_law_ready_toast_group"
+
+	texture = "gfx/interface/icons/notification_icons/laws.dds"
+
+	notification_type = toast
+	color = good
+}
+

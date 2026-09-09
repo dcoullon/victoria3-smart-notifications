@@ -2563,3 +2563,44 @@ Mod Library entry.
 Still blocking before any actual upload: `thumbnail.png` doesn't exist
 yet (see STORE_ASSETS_GUIDE.md) -- the packaging script picks it up
 automatically from the repo root once it does.
+
+
+## Toast vs alert investigated (2026-09-09): confirmed NOT a regression, then fixed the actual ask
+
+User reported the persistent alert no longer appears, only the toast --
+on both the dev and packaged release folders. Checked the code before
+assuming a bug: the toast's own header comment
+(common/on_actions/09_smart_notifications_law_ready_toast.txt) already
+documented this exact scenario as the reason the toast was built in the
+first place -- important_action dismissal is edge-triggered on the
+alert's `valid` going false->true, so if some OTHER wanted law was
+already ready (and the alert shown+dismissed) before this new law became
+ready, "any wanted law ready" never flips false->true again and the
+persistent alert stays hidden, while the toast (per-law edge detection)
+correctly fires independently. Toast firing is proof the underlying
+condition is true, since both check the identical shared triggers -- this
+is expected, previously-documented engine behavior, not a new bug. (To
+confirm live: TopFrontend.UnhideAllImportantActions, the list's own
+"unhide all" control, should bring the alert back immediately.)
+
+The actual, valid ask underneath the report: "the toast is a great idea,
+just need to ensure it has the details of which law triggered it, just
+like the alert." The toast's body text was deliberately generic when
+built, to avoid re-risking the law-scope dynamic-text bug that was still
+unfixed at the time. That bug is now fixed and proven
+(docs/engine-notes.md "Two separate function tables") -- applied the
+identical technique here: 138 per-law-type message keys
+(`smart_notifications_law_ready_toast_<type>`, all sharing one `group`
+so Message Settings still shows a single row), each with its own
+`$law_X$ Is Ready to Enact` / `... ($lawgroup_Y$)` static loc text, and
+the on_action's 138-branch dispatch now calls the matching per-law key
+instead of one shared generic one (`post_notification` takes a bare key,
+no per-call override -- CLAUDE.md). Verified positionally (the branch
+order and the law-type order matched exactly before doing a 1:1 string
+rewrite) rather than guessing the mapping held.
+
+Added `check_post_notification_targets` to `tools/check_references.py`,
+generalizing the alert-loc-completeness check to messages: every
+`post_notification` target must resolve to a real message with its
+`_name`/`_desc` loc keys. Verified it fires on an injected typo before
+trusting it clean.
