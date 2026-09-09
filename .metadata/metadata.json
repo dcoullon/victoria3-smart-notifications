@@ -1,7 +1,7 @@
 {
   "name": "Smart Notifications",
   "id": "smart_notifications",
-  "version": "0.34",
+  "version": "0.35",
   "supported_game_version": "1.13.*",
   "short_description": "Smarter notification defaults, a relational country watchlist, and new alerts for agitators, taxation deficits, and law readiness.",
   "tags": ["User Interface", "Utilities", "Fixes"],

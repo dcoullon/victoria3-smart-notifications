@@ -19,6 +19,19 @@ instrumentation and doc-only changes get a commit but **no** version bump
 unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.35] — 2026-09-09
+
+### Added
+
+- **One-time toasts, confirmed working end-to-end in a live session**:
+  the Law Ready to Enact alert now also fires a toast naming the
+  specific law and its law group the moment it becomes ready, and the
+  Taxation Deficit alert now fires a toast naming the specific state the
+  moment it enters deficit — both independent of the persistent alert's
+  own dismiss state, so a second (different) law or state becoming ready
+  while the alert is already showing/dismissed for an earlier one no
+  longer goes unnoticed.
+
 ## [0.34] — 2026-09-08
 
 ### Added
