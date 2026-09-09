@@ -29,20 +29,52 @@
 # loc, the SAME cast chain our own taxation_deficit_alert's loc already
 # uses successfully (confirmed working live this session).
 #
-# `prev` (confirmed real global scope link, usable in effect context too
-# -- see vanilla's own `prev.owner = { activate_law = prev.type }` in
-# common/laws/00_governance_principles.txt) is what lets this re-enter
-# the specific state's own scope (to call post_notification with the
-# state, not the country, as root -- required for `type = state` to
-# resolve correctly) after having stepped into THIS.owner to reach the
-# country-scope variable list.
+# CAP, FIRST ATTEMPT 2026-09-09 (WRONG, replaced below): tried gating the
+# fire condition on `NOT = { variable_list_size >= 3 }` INSIDE the same
+# `every_scope_state` loop that also does `add_to_variable_list` for each
+# match. CONFIRMED BROKEN live: the user still got 30 toasts in one pulse
+# (debug.log showed 30 consecutive `SNW_TAX_TOAST|fired` lines, all same
+# timestamp). Root cause: `every_scope_state`'s `limit` for each state
+# does not see the `add_to_variable_list` mutations made by EARLIER
+# states in the SAME pass -- every state's limit is evaluated against
+# the list's state at the START of this pulse, not updated live as the
+# loop runs. This is a real, confirmed engine behavior difference from
+# what was assumed, not a guess corrected in the abstract -- the fix
+# below is a structurally different mechanism specifically BECAUSE this
+# one failed, not a tweak of the same approach.
 #
-# CAPPED 2026-09-09 per the user: playing China, so many states start in
-# deficit at once (newly incorporated, under-resourced) that the toasts
-# alone were overwhelming, even though the persistent ALERT (which groups
-# into one stacked row already) was fine as-is. Capped concurrent TOASTS
-# at 3 via `variable_list_size` on the same tracking list -- the ALERT is
-# completely untouched by this, still shows every deficit state.
+# CAP, ACTUAL FIX: `ordered_scope_state` (confirmed real,
+# script_docs effects.log, same iterator family used by vanilla's own
+# common/scripted_effects/00_victoria_ip4_scripted_effects.txt for
+# picking states) has SELECT-THEN-ACT semantics BY DESIGN -- it picks its
+# `max`-capped subset of matching states FIRST (limit-filtered, before
+# any effect in its body runs for ANY of them), then runs the effect body
+# for exactly that subset. This sidesteps the specific mid-loop-mutation-
+# visibility bug above entirely: `max` is an engine-enforced cap on the
+# selection itself, not something computed by watching side effects
+# accumulate turn-by-turn inside the loop.
+#
+# `order_by` has no meaningful criterion available here (tax_capacity/
+# tax_capacity_usage are confirmed comparison-only, not extractable as a
+# raw number -- same limitation as the law alert's success/stall values,
+# see docs/engine-notes.md "Success-vs-stall comparisons have no numeric
+# form"). Uses a flat literal (order_by = 1, every candidate tied) since
+# WHICH 3 states get picked doesn't matter, only that no more than 3 do.
+#
+# KNOWN IMPRECISION, disclosed rather than hidden: this checks the
+# currently-active count ONCE per pulse (`NOT variable_list_size >= 3`,
+# gating the whole ordered_scope_state block) and then lets
+# `max = 3` add up to 3 MORE regardless of that starting count -- so if
+# 1 or 2 states were already active going into a pulse, this pulse could
+# push the total to 4 or 5, not hold it at a strict 3. This is NOT the
+# reported problem (many states going into deficit simultaneously,
+# starting from 0 active) -- for that case (0 already active, gate
+# passes, up to 3 new ones fire) this is exactly correct. A fully precise
+# cap would need `max` to be a computed `3 - <current count>` script
+# value; not attempted here since no confirmed-real vanilla precedent for
+# reading variable_list_size as a raw number (as opposed to a
+# >=/<=-comparison trigger) was found, and guessing at that specific
+# syntax is exactly the mistake being corrected in this same file already.
 on_monthly_pulse_country = {
 	on_actions = {
 		smart_notifications_taxation_deficit_toast_check
@@ -52,65 +84,65 @@ on_monthly_pulse_country = {
 smart_notifications_taxation_deficit_toast_check = {
 	effect = {
 		if = {
-			limit = { is_player = yes }
-			every_scope_state = {
-				if = {
-					limit = {
-						is_incorporated = yes
-						tax_capacity < tax_capacity_usage
+			limit = {
+				is_player = yes
+				NOT = {
+					variable_list_size = {
+						name = smart_notifications_notified_deficit_states
+						target >= 3
 					}
-					THIS.owner = {
-						if = {
-							limit = {
-								NOT = {
-									is_target_in_variable_list = {
-										name = smart_notifications_notified_deficit_states
-										target = prev
-									}
-								}
-								# Cap 2026-09-09 per the user: China's early game can put
-								# a dozen+ states into deficit at once (newly incorporated
-								# states starting under-resourced) -- the persistent ALERT
-								# still shows every one (grouped into its one stacked row,
-								# unchanged), but no more than 3 one-time TOASTS are active
-								# at once. This list's size IS the count of currently-
-								# active notifications (a state's entry is removed by the
-								# `reset` branch below once it's no longer in deficit), so
-								# this is a live concurrent cap, not "first 3 ever" -- once
-								# one of the 3 resolves, a 4th can fire.
-								NOT = {
-									variable_list_size = {
-										name = smart_notifications_notified_deficit_states
-										target >= 3
-									}
-								}
-							}
-							add_to_variable_list = {
-								name = smart_notifications_notified_deficit_states
-								target = prev
-							}
-							prev = {
-								post_notification = smart_notifications_taxation_deficit_toast
-							}
-							debug_log = "SNW_TAX_TOAST|fired"
+				}
+			}
+			ordered_scope_state = {
+				limit = {
+					is_incorporated = yes
+					tax_capacity < tax_capacity_usage
+					NOT = {
+						is_target_in_variable_list = {
+							name = smart_notifications_notified_deficit_states
+							target = THIS
 						}
 					}
 				}
-				else = {
-					THIS.owner = {
-						if = {
-							limit = {
-								is_target_in_variable_list = {
-									name = smart_notifications_notified_deficit_states
-									target = prev
-								}
-							}
-							remove_list_variable = {
+				order_by = 1
+				max = 3
+				check_range_bounds = no
+				THIS.owner = {
+					add_to_variable_list = {
+						name = smart_notifications_notified_deficit_states
+						target = prev
+					}
+					prev = {
+						post_notification = smart_notifications_taxation_deficit_toast
+					}
+					debug_log = "SNW_TAX_TOAST|fired"
+				}
+			}
+		}
+		if = {
+			limit = { is_player = yes }
+			every_scope_state = {
+				limit = {
+					NOT = {
+						AND = {
+							is_incorporated = yes
+							tax_capacity < tax_capacity_usage
+						}
+					}
+				}
+				THIS.owner = {
+					if = {
+						limit = {
+							is_target_in_variable_list = {
 								name = smart_notifications_notified_deficit_states
 								target = prev
 							}
-							debug_log = "SNW_TAX_TOAST|reset"
 						}
+						remove_list_variable = {
+							name = smart_notifications_notified_deficit_states
+							target = prev
+						}
+						debug_log = "SNW_TAX_TOAST|reset"
 					}
 				}
 			}

@@ -2867,3 +2867,44 @@ hook at all). Baroda (not a neighbor, not a great power, not watched) is
 exactly what this looks like when it fires -- expected, not a bug, and
 not something any mod can filter. This is the same confirmed limitation
 already logged in memory as "Notification logger coverage gaps."
+
+
+## Taxation toast cap: first attempt CONFIRMED BROKEN, rebuilt on a different mechanism (2026-09-09)
+
+User: cap didn't work, still got ~15/30 toasts. Checked the actual
+debug.log rather than re-guessing: 30 `SNW_TAX_TOAST|fired` lines, all
+the same timestamp -- confirmed the cap never engaged.
+
+Root cause: the first attempt gated firing on
+`NOT = { variable_list_size >= 3 }` INSIDE the same `every_scope_state`
+loop that also does `add_to_variable_list` for each match. Each state's
+`limit` does not see the list mutations made by earlier states in the
+SAME pass -- confirmed by the log, not assumed. every_scope_state
+combines filter+act per item with no isolation between iterations'
+trigger checks and prior iterations' effects within one pulse.
+
+Rebuilt on `ordered_scope_state` instead (confirmed real,
+script_docs effects.log, real vanilla precedent in
+common/scripted_effects/00_victoria_ip4_scripted_effects.txt) --
+select-then-act by design: it picks its max-capped subset FIRST (against
+the list's state before any of this pulse's effects run), then executes
+effects for exactly that subset. This is architecturally immune to the
+specific bug that broke the first attempt, not the same approach
+retried. `order_by` has no real ranking criterion available (tax_capacity/
+usage confirmed comparison-only, same limitation as the law alert), so
+uses a flat tied literal -- which specific 3 states get picked doesn't
+matter, only that no more than 3 do.
+
+Disclosed, not hidden: this checks the current count ONCE per pulse
+before allowing up to 3 MORE, so if 1-2 were already active going in, a
+pulse could push the total to 4-5 rather than holding a strict cap.
+NOT the reported scenario (many states going into deficit simultaneously
+from 0 active, where this is exact). A fully precise cap would need
+`max` to be a computed `3 - <current count>` script value; not attempted
+since no confirmed-real vanilla precedent was found for reading
+variable_list_size as a raw number rather than a boolean comparison, and
+guessing at that syntax is exactly the mistake being corrected here.
+
+STILL NOT LIVE-CONFIRMED. Next test: count `SNW_TAX_TOAST|fired` lines
+in debug.log after a fresh China-style start with many simultaneous
+deficits -- should be <= 3, not 15+.
