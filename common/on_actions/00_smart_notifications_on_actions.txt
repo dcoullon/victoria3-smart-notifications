@@ -22,6 +22,30 @@ smart_notifications_on_game_started = {
 			limit = { is_player = yes }
 			post_notification = smart_notifications_mod_loaded
 
+			# Guarantee smart_notifications_notified_deficit_states EXISTS
+			# (even if empty) from campaign start onward. Confirmed real bug
+			# 2026-09-09, found in the user's own error.log: querying a
+			# variable list that was never created (via variable_list_size/
+			# is_target_in_variable_list) throws an outright engine error
+			# ("Could not find list from read name flag ..."), not a graceful
+			# false/0 -- and 10_smart_notifications_taxation_deficit_toast.txt
+			# queries this exact list on every monthly pulse, starting with
+			# the very first one, before add_to_variable_list has ever run.
+			# Add-then-immediately-remove a dummy member (the country itself;
+			# variable lists are untyped, this is a one-time initialization
+			# trick, not a real list member) so the list exists, empty, from
+			# turn one -- cheaper and far less error-prone than guarding
+			# every is_target_in_variable_list call in that file individually
+			# across its 3 passes.
+			add_to_variable_list = {
+				name = smart_notifications_notified_deficit_states
+				target = this
+			}
+			remove_list_variable = {
+				name = smart_notifications_notified_deficit_states
+				target = this
+			}
+
 			# Global "who is the player" pointer, used by the Watchlist's
 			# per-row checks (see watchlist_sgui.txt). Also refreshed
 			# monthly by 02_smart_notifications_truce_tracker.txt so it

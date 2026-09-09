@@ -3039,3 +3039,56 @@ check not seeing prior same-loop mutations; (B) only does a per-state
 membership check, no counting/aggregation involved, and it runs as a
 separate, already-sequenced effect after (A) fully completes, not
 nested inside it. NOT YET LIVE-TESTED.
+
+
+## common/messages/ cross-file key redefinition: conclusively answered, no gameplay needed (2026-09-09)
+
+Standing question from earlier the same day ("why can't we do an append
+rather than an override here?"): does a later-loaded file in
+common/messages/ that redefines an EXISTING key (as opposed to adding a
+brand-new key) win, the way loc overrides do? Built a throwaway test
+file (99_smart_notifications_redefinition_test.txt) redefining vanilla's
+country_attitude_improved, plus a loc override on its text so a hit
+would be unmistakable if it ever fired. Never needed to actually play
+for it -- the very first game load with the test file present wrote the
+engine's own answer straight to error.log:
+"[gamedatabase.h:378]: Duplicated key country_attitude_improved will not
+be created from file: common/messages/99_smart_notifications_redefinition_test.txt:41"
+Confirmed: cross-file key redefinition in common/messages/ is silently
+rejected by the engine (last-loaded file does NOT win, unlike loc).
+Adding brand-new keys across multiple files IS additive -- vanilla
+itself splits messages across 7 files with zero key overlap -- but
+redefining an existing key from a second file is not. This conclusively
+validates that 00_messages.txt needed to be a full-copy override, not
+an assumption. Test file and its loc override deleted once the answer
+was in hand; no logging/live-test was ever needed for this question.
+
+
+## Two more real bugs found while investigating the above (2026-09-09)
+
+While checking error.log/game.log for the redefinition test result,
+found two unrelated, real, confirmed bugs:
+
+1. **variable_list_size / is_target_in_variable_list on a never-created
+   list throws an outright engine error**, not a graceful false/0 --
+   confirmed via error.log: "jomini_trigger.cpp:706: Failed to read
+   'target' for 'variable_list_size' [ Could not find list from read
+   name flag smart_notifications_notified_deficit_states ]". Fixed by
+   initializing the list (add-then-immediately-remove a dummy target) in
+   common/on_actions/00_smart_notifications_on_actions.txt's
+   smart_notifications_on_game_started effect, right after the mod-
+   loaded toast, so the list exists (empty) from turn one of every
+   campaign.
+
+2. **"Diplomatic Action Group has mixed Notification Types" engine
+   warning**, confirmed firing live 3x in game.log
+   (player_message_type.cpp:177). Root cause: diplomatic_action_notification
+   was muted to notification_type = none (Phase 4 filtering) but left in
+   diplomatic_action_notification_group alongside 3 sibling messages
+   still set to toast -- vanilla itself never has such a mismatch. Fixed
+   by moving the muted message into its own new group,
+   smart_notifications_diplomatic_action_notification_muted_group, with
+   its own loc entry in smart_notifications_l_english.yml.
+
+Both fixed and passing validate_syntax.py; neither yet re-confirmed
+live.

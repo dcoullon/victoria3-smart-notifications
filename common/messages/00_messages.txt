@@ -294,7 +294,18 @@ rank_changed_notification = {
 
 diplomatic_action_notification = {
 	type = diplomatic_action
-	group = "diplomatic_action_notification_group"
+	# REGROUPED 2026-09-09: was "diplomatic_action_notification_group",
+	# shared with 3 unmuted siblings (diplomatic_action_overlord_decrease_
+	# autonomy_notification, _overlord_increase_autonomy_notification,
+	# _subject_increase_own_autonomy_notification) that are still
+	# `notification_type = toast`. Muting THIS one to `none` below while
+	# they stayed `toast` created a real, confirmed "mixed Notification
+	# Types" engine warning (found live in the user's own game.log,
+	# firing 3 times -- once per unmuted sibling). Vanilla itself has no
+	# such mismatch (checked: all 4 are `toast` there) -- this was
+	# introduced by our own Phase 4 muting, not a pre-existing issue.
+	# Own group now, since nothing else shares its muted status.
+	group = "smart_notifications_diplomatic_action_notification_muted_group"
 
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
