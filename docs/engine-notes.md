@@ -765,6 +765,31 @@ numbered `01_` or higher and kept in one file (or several, all sorting
 after `00_`); it is not something the alert format lets us pin down more
 precisely than that.
 
+## JSON files must NOT have a BOM
+
+Confirmed 2026-09-08 from a real bug: the Paradox launcher's Mod Library
+showed "Parsing metadata failed" on this mod, plus a bogus 78-byte size
+that never updated after real edits (a stale fallback value shown when
+parsing fails, not the real file size). `.metadata/metadata.json` carried
+a leading UTF-8 BOM — present since early in this project's history, well
+before it was ever noticed, because nothing had actually opened the
+Paradox launcher's Mod Library screen against a recently-edited copy
+until now.
+
+This is the *opposite* rule from every other modded file: CLAUDE.md
+requires a BOM on `.txt`/`.gui`/`.yml` (the game's own script lexer
+expects one — see § BOM above), but a BOM is not valid JSON syntax at
+all. Confirmed directly: `json.loads(data.decode("utf-8"))` on the BOM'd
+file raises `Unexpected UTF-8 BOM` outright, while decoding with
+`utf-8-sig` (BOM-tolerant) hides the problem completely. That's exactly
+what let this slip past an earlier one-off repo audit in this same
+session — it validated "all JSON files parse cleanly" using `utf-8-sig`,
+which is BOM-tolerant by design, so it could never have caught this. Any
+future JSON validation in this project must decode as plain `utf-8`, not
+`utf-8-sig`, specifically to catch this. `tools/check_references.py`'s
+`check_json_files_have_no_bom` now does this permanently, for every
+`.json` file in the repo, not just `metadata.json`.
+
 ## Steam Workshop / Paradox mod policy
 
 See [distribution-guidelines.md](distribution-guidelines.md) for the full,

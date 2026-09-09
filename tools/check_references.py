@@ -255,6 +255,26 @@ def check_law_type_dispatch_consistency(root: Path) -> list[str]:
     return errs
 
 
+def check_json_files_have_no_bom(root: Path) -> list[str]:
+    """`.json` files must be PLAIN UTF-8, no BOM -- the opposite rule from
+    `.txt`/`.gui`/`.yml`. Confirmed real 2026-09-08: `.metadata/metadata.json`
+    carried a leading BOM and the Paradox launcher's mod library showed
+    "Parsing metadata failed" plus a bogus 78-byte size, because a BOM is
+    not valid JSON syntax under a strict decoder (Python's own
+    `json.loads` on plain `utf-8` rejects it outright: "Unexpected UTF-8
+    BOM"). This had been silently missed by an earlier one-off repo audit
+    that decoded JSON with `utf-8-sig` (BOM-tolerant) instead of plain
+    `utf-8` -- that lenient check could never have caught this, which is
+    why this is now a permanent, strict check instead of a one-time scan."""
+    errs = []
+    for path in root.rglob("*.json"):
+        if ".git" in path.parts:
+            continue
+        if path.read_bytes().startswith(b"\xef\xbb\xbf"):
+            errs.append(f"{path}: JSON file must NOT have a UTF-8 BOM (breaks strict JSON parsers)")
+    return errs
+
+
 def check_law_types_exist_in_vanilla(root: Path) -> list[str]:
     """Every law_type:X referenced anywhere in this mod must be a real
     vanilla law -- catches a typo'd or removed-by-patch law type. Skipped
@@ -287,6 +307,7 @@ def run_all(root: Path) -> list[str]:
     errs += check_alert_group_registration(root, defined_loc)
     errs += check_law_type_dispatch_consistency(root)
     errs += check_law_types_exist_in_vanilla(root)
+    errs += check_json_files_have_no_bom(root)
     return errs
 
 

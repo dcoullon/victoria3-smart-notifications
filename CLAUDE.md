@@ -26,6 +26,7 @@ link it.
 - Logic (`.txt`) lives in `/common/` and `/events/`, lowercase snake_case. Layouts (`.gui`) live in `/gui/`, Jomini declarative syntax.
 - Localization (`.yml`) lives in `/localization/english/`, must begin with `l_english:`.
 - **UTF-8 BOM required on every modded `.txt`/`.gui`/`.yml`** — the `Write` tool doesn't add it; see engine-notes.md § BOM for the one-liner to add it after writing a new file.
+- **`.json` files (`.metadata/metadata.json`) are the opposite: NO BOM, ever.** A BOM is not valid JSON syntax under a strict parser and breaks the Paradox launcher's mod metadata parsing outright. See engine-notes.md § JSON files must not have a BOM.
 - Scripted GUIs in `common/scripted_guis/` MUST include `ai_is_valid = { always = no }` and `ai_chance = { base = 0 }`.
 - Dynamic text (anything in `[...]` brackets — loc, tooltips, `debug_log`) uses `THIS`/`SCOPE.sX('name')`, NEVER `root`/`scope:x` — that's effect/trigger-only syntax. See engine-notes.md § Dynamic text vs. effect/trigger syntax.
 - **A literal `[...]` bracket in loc text is never just text** — it's always parsed as a dynamic-text function call, no escape exists. Never use square brackets as a visual tag/decoration in a loc string; use parentheses instead. See engine-notes.md § Literal `[...]` in loc text.
