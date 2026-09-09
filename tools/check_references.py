@@ -330,6 +330,58 @@ def check_law_types_exist_in_vanilla(root: Path) -> list[str]:
     return errs
 
 
+# Every file this mod FULLY overrides (a same-named vanilla file exists
+# and we ship a complete replacement, not an additive new file) needs an
+# entry here, mapping it to its baseline snapshot under
+# reference/vanilla/1.13.x/. Confirmed real gap found 2026-09-09: this
+# mod overrides two .gui files that had never been snapshotted at all --
+# see reference/vanilla/README.md for the full writeup.
+FULL_OVERRIDE_FILES = [
+    ("common/messages/00_messages.txt", "reference/vanilla/1.13.x/common/messages/00_messages.txt"),
+    ("gui/message_settings.gui", "reference/vanilla/1.13.x/gui/message_settings.gui"),
+    ("gui/politics_panel_change_law.gui", "reference/vanilla/1.13.x/gui/politics_panel_change_law.gui"),
+]
+
+
+def check_full_overrides_match_installed_vanilla(root: Path) -> list[str]:
+    """For every file this mod fully overrides, confirm the game's
+    CURRENTLY INSTALLED copy has no content our own copy is missing
+    (ignoring pure whitespace/line-ending differences) -- catches a
+    Victoria 3 patch silently changing a file we've fully overridden,
+    which would otherwise ship stale content with no signal at all.
+    Skipped (not failed) per-file if the vanilla install or that file
+    isn't found locally, since this depends on local environment. This
+    only checks for MISSING content (vanilla has something we don't) --
+    it can't tell intentional divergence from real drift, so a genuine
+    hit here needs a human look at reference/vanilla/README.md's re-sync
+    steps, not an automatic fix."""
+    errs = []
+    for our_rel, snapshot_rel in FULL_OVERRIDE_FILES:
+        installed = VANILLA_ROOT / our_rel
+        if not installed.is_file():
+            print(f"  (skipped: vanilla install file not found at {installed})")
+            continue
+        our_path = root / our_rel
+        if not our_path.is_file():
+            errs.append(f"{our_rel}: listed as a full override but the file doesn't exist in this repo")
+            continue
+
+        def norm(text: str) -> set[str]:
+            return {line.strip() for line in text.splitlines() if line.strip()}
+
+        installed_lines = norm(installed.read_text(encoding="utf-8-sig", errors="ignore"))
+        our_lines = norm(our_path.read_text(encoding="utf-8-sig", errors="ignore"))
+        missing = installed_lines - our_lines
+        if missing:
+            sample = sorted(missing)[:3]
+            errs.append(
+                f"{our_rel}: {len(missing)} line(s) present in the currently installed vanilla file "
+                f"are missing from our override -- likely a game patch changed it since this was last "
+                f"synced (see reference/vanilla/README.md). Sample: {sample}"
+            )
+    return errs
+
+
 def run_all(root: Path) -> list[str]:
     defined_loc = load_defined_loc_keys(root)
     errs = []
@@ -341,6 +393,7 @@ def run_all(root: Path) -> list[str]:
     errs += check_law_type_dispatch_consistency(root)
     errs += check_law_types_exist_in_vanilla(root)
     errs += check_json_files_have_no_bom(root)
+    errs += check_full_overrides_match_installed_vanilla(root)
     return errs
 
 
