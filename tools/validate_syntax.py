@@ -1,6 +1,8 @@
 ﻿import sys
 from pathlib import Path
 
+import check_references
+
 def validate_file(file_path: Path):
     errors = []
     if file_path.suffix == ".yml":
@@ -273,6 +275,16 @@ if __name__ == "__main__":
         print("FAIL: known-good invariant broken (confirmed-working behaviour regressed)")
         for e in kg: print(f"  - {e}")
 
+    # Cross-file reference integrity (tools/check_references.py) -- separate
+    # module, run automatically here so the existing "always run
+    # validate_syntax.py" habit (CLAUDE.md) covers it without a second
+    # command to remember.
+    ref_errs = check_references.run_all(target)
+    if ref_errs:
+        has_err = True
+        print("FAIL: cross-reference checks (see tools/check_references.py)")
+        for e in ref_errs: print(f"  - {e}")
+
     if not has_err:
-        print("PASS: Syntax, brackets and known-good invariants verified.")
+        print("PASS: Syntax, brackets, known-good invariants, and cross-references verified.")
     sys.exit(1 if has_err else 0)

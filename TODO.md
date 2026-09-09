@@ -2496,3 +2496,41 @@ now be deleted -- both pieces of this feature (the alert itself and the
 name-render fix) are confirmed working live. Still unconfirmed: the
 decoupled one-time toast for re-firing after dismissal
 (`common/on_actions/09_smart_notifications_law_ready_toast.txt`).
+
+
+## Automated cross-reference tests added (2026-09-08), per the user
+
+"Add tests into your code so we know it's still working without relying
+on me testing it all the time." Can't execute Jomini script logic outside
+the actual game, but every bug this session (and several from before)
+that produced NO error.log signature at all -- a typo'd loc key, a
+forgotten alert_group registration, a scripted_gui in the wrong folder, a
+law dropped from one generated list but not another -- is exactly the
+kind of thing a static cross-reference scan CAN catch, mechanically,
+every time, without needing a live repro. Added
+`tools/check_references.py`, wired into `python tools/validate_syntax.py`
+so the existing habit covers it automatically:
+
+- Every `custom_tooltip = "KEY"` resolves to a real loc key.
+- Every `GetScriptedGui('X')` resolves to an X defined under
+  `common/scripted_guis/` specifically (and any scripted_gui-shaped block
+  found outside that folder is flagged even before anything references
+  it) -- direct regression test for the exact bug behind the law
+  commitment alert's blank name.
+- Every `alert_group` used is declared in `common/alert_groups/` and has
+  its `ag_*_name/_desc/_tooltip` loc keys -- regression test for the
+  taxation deficit alert's aggregation bug.
+- Every alert_type has all 5 required loc keys
+  (`alert_<key>_name/_desc/_hint/_action`, `<key>_setting_name`).
+- The 4 generated per-law-type files (wanted-flag trigger, notify
+  toggle/check sgui, commitment tooltip sgui, readiness toast) all
+  reference the exact same 138 laws -- regression test for the BOM
+  extraction bug that silently dropped 12 laws from one list only.
+- Every `law_type:X` referenced anywhere is a real vanilla law (skipped,
+  not failed, if the vanilla install isn't found on the machine running
+  the check).
+
+Verified the checker actually catches regressions, not just passes
+vacuously, by injecting each of the three confirmed-real historical bugs
+into a scratch copy and confirming a FAIL with the right message for
+each, before trusting it clean on the real repo.

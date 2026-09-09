@@ -41,6 +41,7 @@ link it.
   `python tools/validate_syntax.py`
 - Fix any reported bracket/encoding issues immediately before finishing.
 - `validate_syntax.py` also flags a short list of confirmed-real, repeated-mistake patterns (uncast `SCOPE.GetRootScope`, `any_X` inside an `effect`, effect keywords inside a `valid`/`limit` trigger block) — fix any of these before finishing too, same as a bracket error. See engine-notes.md § Known mistake patterns before adding a new one to that list.
+- `validate_syntax.py` also runs `tools/check_references.py`: static cross-file checks (undefined `custom_tooltip` loc keys, a `GetScriptedGui` reference or a scripted-gui-shaped block outside `common/scripted_guis/`, an `alert_group` used but not declared, missing alert loc keys, and law-type-list drift across this mod's generated per-law files). These catch bug classes that previously required a live playtest to notice — add a new check there whenever a bug is found that a static scan could have caught.
 
 ## 5. Other
 
