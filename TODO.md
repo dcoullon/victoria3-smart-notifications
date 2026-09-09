@@ -2931,3 +2931,27 @@ unconditional per-pulse `gate=open/blocked` log, so if this somehow
 still fails, the log alone tells us whether the outer gate or the
 ordered_scope_state selection is the broken half -- no more blind
 re-guessing rounds needed.
+
+
+## Taxation toast repeating monthly for same state(s) -- investigating (2026-09-09)
+
+User: the toast repeats every month or so, should only fire once per
+new deficit. Checked debug.log: `gate=open` every pulse with 3 fresh
+`fired` lines each time and ZERO `reset` lines in between -- meaning
+either the notified-list isn't persisting membership across monthly
+pulses at all, or (less likely) 3 genuinely different states are newly
+entering deficit every single month. Ruled out an auto-expiry theory
+for `add_to_variable_list` (multiple real vanilla examples, e.g.
+journal_entries' acw_dixie_states/krakatoa_states, add to a list with no
+duration specified and clearly mean it to be permanent).
+
+Added diagnostics rather than guess further: state names now logged on
+every fired/reset line (`[prev.GetName]`, matching the confirmed-real
+state-scope `.GetName` pattern, NOT `.GetNameNoFormatting` which is
+country-only), plus a full list-membership dump every pulse via
+`every_in_list` (confirmed real, vanilla precedent:
+common/journal_entries/05_danubian_federation.txt's
+`every_in_list = { variable = aus_integrated_cultures ... }`). This will
+show definitively whether the SAME states repeat (real bug) or DIFFERENT
+ones fire each month (not a bug, just legitimately volatile early-game
+finances) before attempting any further fix.

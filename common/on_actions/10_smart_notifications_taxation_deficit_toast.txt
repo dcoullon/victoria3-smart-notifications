@@ -112,6 +112,20 @@ smart_notifications_taxation_deficit_toast_check = {
 			else = {
 				debug_log = "SNW_TAX_TOAST|pulse|date=[TimeKeeper.GetCurrentDate.GetString]|gate=open"
 			}
+			# TEMPORARY diagnostic 2026-09-09: dump the full list membership
+			# every pulse, so a repeated-toast report can be checked against
+			# what the list actually contains at that exact moment, not just
+			# its size. Delete once the repeat-toast bug is confirmed fixed.
+			if = {
+				limit = { has_variable_list = smart_notifications_notified_deficit_states }
+				every_in_list = {
+					variable = smart_notifications_notified_deficit_states
+					debug_log = "SNW_TAX_TOAST|list_member|date=[TimeKeeper.GetCurrentDate.GetString]|state=[THIS.GetName]"
+				}
+			}
+			else = {
+				debug_log = "SNW_TAX_TOAST|list_member|date=[TimeKeeper.GetCurrentDate.GetString]|NO_LIST_EXISTS"
+			}
 		}
 		if = {
 			limit = {
@@ -145,7 +159,7 @@ smart_notifications_taxation_deficit_toast_check = {
 					prev = {
 						post_notification = smart_notifications_taxation_deficit_toast
 					}
-					debug_log = "SNW_TAX_TOAST|fired|date=[TimeKeeper.GetCurrentDate.GetString]"
+					debug_log = "SNW_TAX_TOAST|fired|state=[prev.GetName]|date=[TimeKeeper.GetCurrentDate.GetString]"
 				}
 			}
 		}
@@ -172,7 +186,7 @@ smart_notifications_taxation_deficit_toast_check = {
 							name = smart_notifications_notified_deficit_states
 							target = prev
 						}
-						debug_log = "SNW_TAX_TOAST|reset|date=[TimeKeeper.GetCurrentDate.GetString]"
+						debug_log = "SNW_TAX_TOAST|reset|state=[prev.GetName]|date=[TimeKeeper.GetCurrentDate.GetString]"
 					}
 				}
 			}
