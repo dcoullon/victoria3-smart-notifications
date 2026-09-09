@@ -13,110 +13,66 @@
 # while A's is still ongoing, "some state has a deficit" never flips
 # false->true again, so the alert never resurfaces for the new state B.
 #
-# UNLIKE the law toast, this does NOT need a per-type static dispatch --
-# there is no small, fixed, enumerable set of "state types" the way there
-# are exactly 138 law types (see
-# common/on_actions/09_smart_notifications_law_ready_toast.txt's own
-# header for why THAT one needs 138 branches). States are tracked
-# individually via a country-scope VARIABLE LIST holding event-target
-# references to the actual state objects (add_to_variable_list /
-# is_target_in_variable_list / remove_list_variable -- all confirmed real
+# States are tracked individually via a country-scope VARIABLE LIST
+# holding event-target references to the actual state objects
+# (add_to_variable_list / is_target_in_variable_list -- confirmed real
 # via script_docs effects.log/triggers.log), so one shared message
 # definition suffices, exactly like vanilla's own `type = state` messages
 # (e.g. colony_created) do -- confirmed via
 # localization/english/interfaces_l_english.yml's own
 # `[SCOPE.GetRootScope.GetState.GetName]` usage in exactly that message's
 # loc, the SAME cast chain our own taxation_deficit_alert's loc already
-# uses successfully (confirmed working live this session).
+# uses successfully (confirmed working live).
 #
-# CAP, FIRST ATTEMPT 2026-09-09 (WRONG, replaced below): tried gating the
-# fire condition on `NOT = { variable_list_size >= 3 }` INSIDE the same
-# `every_scope_state` loop that also does `add_to_variable_list` for each
-# match. CONFIRMED BROKEN live: the user still got 30 toasts in one pulse
-# (debug.log showed 30 consecutive `SNW_TAX_TOAST|fired` lines, all same
-# timestamp). Root cause: `every_scope_state`'s `limit` for each state
-# does not see the `add_to_variable_list` mutations made by EARLIER
-# states in the SAME pass -- every state's limit is evaluated against
-# the list's state at the START of this pulse, not updated live as the
-# loop runs. This is a real, confirmed engine behavior difference from
-# what was assumed, not a guess corrected in the abstract -- the fix
-# below is a structurally different mechanism specifically BECAUSE this
-# one failed, not a tweak of the same approach.
+# CAP -- REDESIGNED 2026-09-09, THIRD ITERATION, deliberately simpler
+# than the first two: 3 toasts TOTAL PER CAMPAIGN, not 3 concurrent
+# slots that free up as states recover. The first two attempts (a
+# same-pass mutation-visibility bug, then a wrong-scope membership
+# check) were both bugs in the "3 concurrent, refillable" tracking
+# logic specifically -- and even once that logic was correctly fixed,
+# the user reported the RESULT still wasn't what they wanted: it kept
+# cycling through a stream of different states over time as old ones
+# recovered and new slots opened, which still reads as noisy, just with
+# rotating targets instead of a stuck one. Per the user's own call
+# ("last attempt... otherwise just the alert, no toast"), this drops the
+# "recover and re-open a slot" mechanism ENTIRELY rather than trying to
+# retune it a third time -- a state added to the notified list here
+# NEVER leaves it, so once 3 states have ever triggered a toast this
+# campaign, the door is permanently shut. This is a real behavior
+# change, not just a bug fix: an isolated, meaningful deficit occurring
+# long after the campaign's first 3 will now stay silent (the persistent
+# ALERT, untouched by any of this, still shows it) -- accepted as the
+# right trade-off specifically because it removes an entire class of
+# state-tracking complexity that has been the source of every bug in
+# this file so far, in favor of a monotonic counter that cannot drift.
 #
-# CAP, ACTUAL FIX: `ordered_scope_state` (confirmed real,
-# script_docs effects.log) has SELECT-THEN-ACT semantics BY DESIGN -- it
-# picks its `max`-capped subset of matching states FIRST (limit-filtered,
-# before any effect in its body runs for ANY of them), then runs the
-# effect body for exactly that subset. This sidesteps the specific
-# mid-loop-mutation-visibility bug above entirely: `max` is an
-# engine-enforced cap on the selection itself, not something computed by
-# watching side effects accumulate turn-by-turn inside the loop.
+# `ordered_scope_state` (confirmed real, script_docs effects.log;
+# confirmed to actually run its effect body against the WHOLE selected
+# batch, not just one entity, via common/on_actions/00_on_actions_monthly.txt's
+# exile-pool culling on_action, which uses the identical
+# ordered_X + computed max + single effect-line shape) still does the
+# actual selection, `max = 3` per call. `order_by` uses the same
+# nested-block literal as before (`order_by = { value = 1 }`, confirmed
+# real shape from that same exile-pool example) since there's still no
+# real ranking criterion available (tax_capacity/usage are
+# comparison-only, not extractable as a number).
 #
-# NOT JUST REASONED, CONFIRMED BY A REAL VANILLA EXAMPLE doing the exact
-# same thing: common/on_actions/00_on_actions_monthly.txt's exile-pool
-# culling on_action uses `ordered_character_in_exile_pool` with a
-# computed `max` and a SINGLE effect line (`retire_character = yes`)
-# applied to the whole selected batch -- direct proof this mechanism
-# really does run its effect body against N selected entities, not just
-# one, which is the core assumption this whole fix depends on. That same
-# vanilla example also fixed the `order_by` syntax used here: it uses a
-# nested script_value block (`order_by = { value = popularity multiply =
-# -1 }`), not a bare literal -- an earlier version of this file used
-# `order_by = 1` (untested, no vanilla precedent found for a bare
-# literal there), now corrected to `order_by = { value = 1 }` to match
-# the confirmed-real shape exactly, even though the actual ranking value
-# doesn't matter here (every candidate ties; there's no real ranking
-# criterion available -- tax_capacity/usage are comparison-only, same
-# limitation as the law alert's success/stall values, see
-# docs/engine-notes.md "Success-vs-stall comparisons have no numeric
-# form").
+# The OUTER `variable_list_size >= 3` gate is still required and kept --
+# `max = 3` only limits how many get selected IN ONE MONTHLY CALL, it is
+# NOT a running total across separate calls. Without the outer gate, a
+# genuinely new 4th state discovered a year later would still be
+# eligible (it was never a list member) and would still fire, since
+# nothing else would stop it. The gate is what makes 3 a true, permanent,
+# whole-campaign ceiling: once the list reaches 3 members and nothing
+# ever removes any (no reset branch exists anymore), the gate blocks
+# every future pulse's selection outright, regardless of how many new
+# states become eligible afterward.
 #
-# KNOWN IMPRECISION, disclosed rather than hidden: this checks the
-# currently-active count ONCE per pulse (`NOT variable_list_size >= 3`,
-# gating the whole ordered_scope_state block) and then lets
-# `max = 3` add up to 3 MORE regardless of that starting count -- so if
-# 1 or 2 states were already active going into a pulse, this pulse could
-# push the total to 4 or 5, not hold it at a strict 3. This is NOT the
-# reported problem (many states going into deficit simultaneously,
-# starting from 0 active) -- for that case (0 already active, gate
-# passes, up to 3 new ones fire) this is exactly correct.
-#
-# REPEAT-FIRE BUG FOUND AND FIXED 2026-09-09: user reported the SAME 3
-# states re-firing the toast every month, not just newly-deficit ones.
-# Root cause: the "not already notified" check inside
-# `ordered_scope_state`'s own `limit` called
-# `is_target_in_variable_list = { target = THIS }` directly -- but THIS,
-# inside that specific `limit`, is the CANDIDATE STATE, not the country.
-# The list only ever lives on the country (added via `THIS.owner` in the
-# effect body just below it), so that check was really asking "does this
-# STATE have this list on itself" -- always false, since states never
-# carry it, making "not already notified" unconditionally true for every
-# candidate every single month. Fixed by re-scoping to `THIS.owner`
-# first inside the trigger check too, matching the exact same
-# owner+prev idiom already used (and confirmed working) everywhere else
-# in this file for the identical list. This is the same class of mistake
-# as CLAUDE.md's "THIS needs a cast" rule -- a bare THIS/prev doesn't
-# carry the scope context you assume just because a neighboring effect
-# block happens to be scoped correctly.
-#
-# The diagnostic debug_log lines added to chase this had their OWN
-# version of the same mistake -- `[prev.GetName]`/`[THIS.GetName]`
-# without the confirmed-required `.GetState` cast (same rule as
-# `.GetCountry` for country, see docs/engine-notes.md), producing "Data
-# error in loc string" instead of the state name and corrupting the very
-# diagnostic meant to catch this. Fixed to `.GetState.GetName`,
-# consistent with the already-proven `SCOPE.GetRootScope.GetState.GetName`
-# pattern used successfully elsewhere in this same file's own loc.
-#
-# DIAGNOSTICS: every debug_log below now includes
-# `[TimeKeeper.GetCurrentDate.GetString]` (confirmed real, used
-# throughout vanilla's own loc, e.g. CLOCK_TEXT in interfaces_l_english.yml)
-# so a repeat of the exact original bug (many fires at once) is instantly
-# visible by date, not just by log-line count -- and an unconditional
-# per-pulse `SNW_TAX_TOAST|pulse|...|gate=open/blocked` line was added so
-# a failure, if one still happens, is immediately diagnosable as
-# "outer gate" vs "ordered_scope_state selection" without another round
-# of investigation.
+# The membership check bug found live 2026-09-09 (THIS inside
+# ordered_scope_state's own `limit` is the candidate state, not the
+# country -- the list lives on the country, so the check must re-scope
+# via `THIS.owner` first) is preserved here; that part was correct, only
+# the "does membership ever get removed" design was wrong.
 on_monthly_pulse_country = {
 	on_actions = {
 		smart_notifications_taxation_deficit_toast_check
@@ -125,35 +81,6 @@ on_monthly_pulse_country = {
 
 smart_notifications_taxation_deficit_toast_check = {
 	effect = {
-		if = {
-			limit = { is_player = yes }
-			if = {
-				limit = {
-					variable_list_size = {
-						name = smart_notifications_notified_deficit_states
-						target >= 3
-					}
-				}
-				debug_log = "SNW_TAX_TOAST|pulse|date=[TimeKeeper.GetCurrentDate.GetString]|gate=blocked_already_3_active"
-			}
-			else = {
-				debug_log = "SNW_TAX_TOAST|pulse|date=[TimeKeeper.GetCurrentDate.GetString]|gate=open"
-			}
-			# TEMPORARY diagnostic 2026-09-09: dump the full list membership
-			# every pulse, so a repeated-toast report can be checked against
-			# what the list actually contains at that exact moment, not just
-			# its size. Delete once the repeat-toast bug is confirmed fixed.
-			if = {
-				limit = { has_variable_list = smart_notifications_notified_deficit_states }
-				every_in_list = {
-					variable = smart_notifications_notified_deficit_states
-					debug_log = "SNW_TAX_TOAST|list_member|date=[TimeKeeper.GetCurrentDate.GetString]|state=[THIS.GetState.GetName]"
-				}
-			}
-			else = {
-				debug_log = "SNW_TAX_TOAST|list_member|date=[TimeKeeper.GetCurrentDate.GetString]|NO_LIST_EXISTS"
-			}
-		}
 		if = {
 			limit = {
 				is_player = yes
@@ -168,20 +95,6 @@ smart_notifications_taxation_deficit_toast_check = {
 				limit = {
 					is_incorporated = yes
 					tax_capacity < tax_capacity_usage
-					# BUG, FOUND 2026-09-09 via the user reporting the same
-					# 3 states re-firing every month: this check used to be
-					# `is_target_in_variable_list = { target = THIS }`
-					# called directly here -- but THIS, inside
-					# ordered_scope_state's own `limit`, is the CANDIDATE
-					# STATE, not the country. The list only ever lives on
-					# the country (added via THIS.owner below), so that
-					# call was asking "does this STATE have this list on
-					# itself" -- always false, since states never have it,
-					# meaning "not already notified" was unconditionally
-					# true for every candidate, every month. Fixed by
-					# re-scoping to THIS.owner first, matching the exact
-					# same owner+prev idiom already used (and working)
-					# everywhere else in this file for the identical list.
 					NOT = {
 						THIS.owner = {
 							is_target_in_variable_list = {
@@ -203,34 +116,6 @@ smart_notifications_taxation_deficit_toast_check = {
 						post_notification = smart_notifications_taxation_deficit_toast
 					}
 					debug_log = "SNW_TAX_TOAST|fired|state=[prev.GetState.GetName]|date=[TimeKeeper.GetCurrentDate.GetString]"
-				}
-			}
-		}
-		if = {
-			limit = { is_player = yes }
-			every_scope_state = {
-				limit = {
-					NOT = {
-						AND = {
-							is_incorporated = yes
-							tax_capacity < tax_capacity_usage
-						}
-					}
-				}
-				THIS.owner = {
-					if = {
-						limit = {
-							is_target_in_variable_list = {
-								name = smart_notifications_notified_deficit_states
-								target = prev
-							}
-						}
-						remove_list_variable = {
-							name = smart_notifications_notified_deficit_states
-							target = prev
-						}
-						debug_log = "SNW_TAX_TOAST|reset|state=[prev.GetState.GetName]|date=[TimeKeeper.GetCurrentDate.GetString]"
-					}
 				}
 			}
 		}

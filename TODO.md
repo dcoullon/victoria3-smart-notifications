@@ -2980,3 +2980,30 @@ Fixed to `.GetState.GetName`. NOT YET LIVE-CONFIRMED after this specific
 fix -- next test needs a session reload (script only re-parses at
 campaign/session start) and a few months of play to check the corrected
 diagnostics.
+
+
+## Taxation toast: redesigned as a 3-toasts-per-campaign cap, not concurrent slots (2026-09-09)
+
+User: the scope-fix worked (no more stuck-on-same-3), but now it just
+cycles through a stream of different states over time as old ones
+recover and new slots open -- still not the desired experience. Said
+this was the last attempt before reverting to alert-only, no toast.
+
+Rather than retune the "concurrent slots that free up on recovery"
+design a third time -- every bug so far (same-pass mutation visibility,
+wrong-scope membership check) lived in that specific mechanism -- removed
+it entirely. New design: once a state has ever triggered a toast this
+campaign, it's permanently marked (no reset branch exists anymore), and
+once 3 states have ever done so, the outer gate permanently blocks all
+further selection for the rest of the campaign. This is a genuine
+behavior change (a meaningful, isolated deficit occurring long after the
+initial 3 will now stay toast-silent, though the persistent alert is
+completely unaffected and still shows it) -- accepted deliberately
+because it trades a small amount of coverage for removing an entire
+class of state-tracking complexity that had been the source of every bug
+in this file. The membership-check scope fix from the previous round is
+preserved (that part was correct); only the recover-and-reopen mechanism
+was removed. Simulated it wasn't like the earlier over-firing bug
+because -- (a) no reset branch, entries can never be removed, so
+variable_list_size only ever grows -- (b) the outer gate directly
+enforces the lifetime cap on that monotonic count. NOT YET LIVE-TESTED.
