@@ -3403,5 +3403,129 @@ Added TEMPORARY diagnostic instrumentation in
 debug_log lines) -- breaks out increase_relations/damage_relations, each
 WITH and WITHOUT is_initiator, into 4 independent results per firing, so
 the next test conclusively shows which variant (if any) actually
-matches, instead of guessing again. NOT YET LIVE-TESTED (the diagnostic
-itself, or a fix).
+matches, instead of guessing again.
+
+**RESULT: all 4 combinations returned "no" in a real firing (Bulungan ->
+Great Qing, confirmed watched=no).** Dropping `is_initiator` entirely
+made no difference, ruling out the semantics theory. This left two live
+hypotheses: (a) timing -- the pact isn't registered in gamestate yet at
+the exact instant `on_diplomatic_action` fires, or (b) the user's own
+hypothesis -- these one-sided relations actions never create a
+`has_diplomatic_pact`-queryable pact object at all, ever.
+
+Re-checked vanilla's own code for evidence: `increase_relations`'s own
+`possible` block (common/diplomatic_actions/00_relations_actions.txt)
+uses `NOT = { has_diplomatic_pact = { who = scope:target_country type =
+damage_relations } } }` to block proposing Increase Relations while a
+Decrease Relations pact is already active -- this only works if
+`has_diplomatic_pact` CAN reliably detect an established one-sided
+relations pact, which argues against hypothesis (b) and for (a) (timing
+-- works for OLD pacts, not the one just created by THIS action).
+
+User's call: keep pushing rather than revert. Added a NEW temporary
+diagnostic to distinguish (a) from (b) conclusively --
+common/on_actions/04_smart_notifications_probes.txt's
+`smart_notifications_probe_pact_sweep`, hooked to
+`on_monthly_pulse_country`: from the player's own scope, sweeps EVERY
+other country monthly checking `has_diplomatic_pact = { who = ROOT type
+= increase_relations/damage_relations }` (both with and without
+`is_initiator`), logging any match via SNW_PACT_SWEEP. If Siam or
+Bulungan (or any country already confirmed to have fired this
+notification) EVER shows up on a LATER pulse, that confirms (a) --
+pure timing gap, fixable by deferring the check. If neither ever shows
+up despite clearly having taken such an action, that's strong evidence
+for (b) -- these actions never register as a queryable pact at all, and
+type-based filtering for this case isn't achievable this way.
+
+NOT YET LIVE-TESTED. A prompt for continuing this specific investigation
+in a fresh Opus 5 session (per the user's request) is at the end of this
+file.
+
+
+## Handoff prompt: routine-relations demotion investigation (2026-09-09)
+
+Copy-pasted verbatim into a new session per the user's request -- see
+that session's own transcript for how it was actually resolved; update
+this note (or delete it) once closed out.
+
+```
+I'm working on a Victoria 3 mod, "Smart Notifications"
+(C:\Users\damie\Dropbox\_Damien\Perso et tech\Claude-code\Victoria-smart-notifs,
+git remote dcoullon/victoria3-smart-notifications). Read CLAUDE.md and
+docs/engine-notes.md first -- they document hard-won engine constraints
+(dynamic-text vs effect/trigger syntax are two separate function tables,
+BOM requirements, known mistake patterns, etc.) that matter for this bug.
+
+CURRENT BUG: a feature added earlier today demotes routine "Increase/
+Decrease Relations" diplomatic actions targeting the player from a toast
+to a feed-tier notification, UNLESS the acting country is on the
+player's Watchlist (in which case it should still toast). The mechanism
+-- checking `has_diplomatic_pact = { who = scope:recipient type =
+increase_relations/damage_relations is_initiator = yes/no }` from
+scope:actor, in
+common/on_actions/06_smart_notifications_diplomatic_action_filtering.txt
+-- has NEVER successfully matched in two real, confirmed test firings
+(Siam -> Great Qing, Bulungan -> Great Qing, both genuinely relations-
+improvement actions, both confirmed `watched=no` via a separate
+diagnostic). All 4 combinations (increase/damage_relations x with/
+without is_initiator) returned "no" every time -- see SNW_PACT_PROBE
+debug_log lines already in that file (search for that tag).
+
+Two live hypotheses:
+(a) TIMING -- the diplomatic_pact object for the just-fired action isn't
+    registered in gamestate yet at the exact instant `on_diplomatic_action`
+    fires. Evidence FOR: vanilla's own increase_relations definition
+    (common/diplomatic_actions/00_relations_actions.txt) uses
+    `NOT = { has_diplomatic_pact = { who = scope:target_country
+    type = damage_relations } } }` in its own `possible` block to check
+    for an EXISTING (already-established) pact before allowing a NEW
+    action -- meaning has_diplomatic_pact DOES work for this exact pact
+    type in general, just apparently not for the one JUST created.
+(b) The user's own hypothesis -- these one-sided relations actions
+    (`is_two_sided_pact = no` in their definition) never create a
+    `has_diplomatic_pact`-queryable pact object at all, ever, regardless
+    of timing.
+
+A diagnostic to distinguish these was just added and pushed
+(common/on_actions/04_smart_notifications_probes.txt,
+`smart_notifications_probe_pact_sweep`, hooked to
+`on_monthly_pulse_country`): from the player's own scope, sweeps every
+other country monthly, logging (via debug_log tagged SNW_PACT_SWEEP)
+any country that shows `has_diplomatic_pact = { who = ROOT type =
+increase_relations/damage_relations }` true, with and without
+is_initiator. NOT YET LIVE-TESTED -- the user needs to relaunch
+Victoria 3 (mod files only load at launch) and play at least a few
+in-game months after triggering another relations-change action against
+themselves (Great Qing, in the current test save), then report back
+what SNW_PACT_SWEEP shows in
+`C:\Users\damie\Documents\Paradox Interactive\Victoria 3\logs\debug.log`.
+
+YOUR TASK: guide the user through running this test, read the resulting
+debug.log yourself (same path pattern used throughout this project --
+grep for the relevant SNW_* tags, never dump the whole log into
+context), and determine which hypothesis is correct:
+- If (a): a country that already fired the notification eventually shows
+  up in a LATER sweep. Fix: since we can't retroactively un-toast an
+  already-shown notification, and delaying the notification itself would
+  be worse UX, consider whether the routine-relations demotion feature
+  is worth keeping at all, or whether a different signal exists (re-scan
+  vanilla script_docs / triggers.log / effects.log the same way this
+  session did for `has_diplomatic_pact` and `is_diplomatic_action_type`
+  -- there may be a scope reachable at THIS exact moment, before the
+  pact commits, that also carries the action type).
+- If (b): no country ever shows up despite clearly having taken such
+  actions. This rules out type-based filtering for this specific case
+  entirely via any pact-query mechanism. Recommend reverting the
+  routine-relations demotion to always-toast (the state before today's
+  attempt) -- explain this clearly to the user with the evidence, don't
+  just silently revert.
+
+Also worth deleting once resolved: the temporary SNW_PACT_PROBE
+diagnostic already in 06_smart_notifications_diplomatic_action_filtering.txt
+and the SNW_PACT_SWEEP one in 04_smart_notifications_probes.txt, per this
+project's own convention of removing temporary diagnostics once their
+question is answered (see TODO.md's many prior examples of this pattern).
+Run `python tools/validate_syntax.py` after any change, and follow
+CLAUDE.md's git rules (no AI/attribution lines in commits, version bump
+only for confirmed-working new features, tag every version bump).
+```

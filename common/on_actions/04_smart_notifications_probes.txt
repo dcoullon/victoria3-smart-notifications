@@ -211,3 +211,56 @@ smart_notifications_probe_spreading_technology = {
 	}
 }
 
+# ADDED 2026-09-09 -- see 06_smart_notifications_diplomatic_action_filtering.txt's
+# header comment and TODO.md's "BUG: routine-relations demotion never
+# actually fires" entry for the full story. `has_diplomatic_pact = {
+# who = X type = increase_relations/damage_relations }` (checked from
+# scope:actor, both with and without is_initiator) has returned "no" in
+# EVERY real firing so far (Siam, Bulungan -> Great Qing), even though
+# these were genuinely relations-change actions. Two live theories:
+# (a) the pact isn't registered in gamestate yet at the EXACT instant
+# on_diplomatic_action fires (timing), or (b) these one-sided actions
+# never create a `has_diplomatic_pact`-queryable pact object at all, ever
+# (the user's own hypothesis). This sweep runs monthly from the player's
+# own scope and checks EVERY other country for an existing
+# increase_relations/damage_relations pact with the player, regardless
+# of when it started -- if Siam or Bulungan (or any other country that
+# already fired this notification) EVER shows up here on a later pulse,
+# that confirms (a) (pure timing gap) and rules out (b). If NEITHER
+# ever shows up despite the player clearly having had such actions taken
+# on them, that's strong evidence for (b) instead. Delete once the real
+# cause is found. Grep debug.log for SNW_PACT_SWEEP.
+on_monthly_pulse_country = {
+	on_actions = { smart_notifications_probe_pact_sweep }
+}
+
+smart_notifications_probe_pact_sweep = {
+	effect = {
+		if = {
+			limit = { is_player = yes }
+			every_country = {
+				limit = {
+					NOT = { is_player = yes }
+				}
+				if = {
+					limit = { has_diplomatic_pact = { who = ROOT type = increase_relations } }
+					debug_log = "SNW_PACT_SWEEP|country=[THIS.GetNameNoFormatting]|type=increase_relations|is_initiator=unspecified|result=yes|date=[TimeKeeper.GetCurrentDate.GetString]"
+				}
+				if = {
+					limit = { has_diplomatic_pact = { who = ROOT type = damage_relations } }
+					debug_log = "SNW_PACT_SWEEP|country=[THIS.GetNameNoFormatting]|type=damage_relations|is_initiator=unspecified|result=yes|date=[TimeKeeper.GetCurrentDate.GetString]"
+				}
+				if = {
+					limit = { has_diplomatic_pact = { who = ROOT type = increase_relations is_initiator = yes } }
+					debug_log = "SNW_PACT_SWEEP|country=[THIS.GetNameNoFormatting]|type=increase_relations|is_initiator=yes|result=yes|date=[TimeKeeper.GetCurrentDate.GetString]"
+				}
+				if = {
+					limit = { has_diplomatic_pact = { who = ROOT type = increase_relations is_initiator = no } }
+					debug_log = "SNW_PACT_SWEEP|country=[THIS.GetNameNoFormatting]|type=increase_relations|is_initiator=no|result=yes|date=[TimeKeeper.GetCurrentDate.GetString]"
+				}
+			}
+			debug_log = "SNW_PACT_SWEEP|sweep_ran|date=[TimeKeeper.GetCurrentDate.GetString]"
+		}
+	}
+}
+
