@@ -81,6 +81,33 @@
 # starting from 0 active) -- for that case (0 already active, gate
 # passes, up to 3 new ones fire) this is exactly correct.
 #
+# REPEAT-FIRE BUG FOUND AND FIXED 2026-09-09: user reported the SAME 3
+# states re-firing the toast every month, not just newly-deficit ones.
+# Root cause: the "not already notified" check inside
+# `ordered_scope_state`'s own `limit` called
+# `is_target_in_variable_list = { target = THIS }` directly -- but THIS,
+# inside that specific `limit`, is the CANDIDATE STATE, not the country.
+# The list only ever lives on the country (added via `THIS.owner` in the
+# effect body just below it), so that check was really asking "does this
+# STATE have this list on itself" -- always false, since states never
+# carry it, making "not already notified" unconditionally true for every
+# candidate every single month. Fixed by re-scoping to `THIS.owner`
+# first inside the trigger check too, matching the exact same
+# owner+prev idiom already used (and confirmed working) everywhere else
+# in this file for the identical list. This is the same class of mistake
+# as CLAUDE.md's "THIS needs a cast" rule -- a bare THIS/prev doesn't
+# carry the scope context you assume just because a neighboring effect
+# block happens to be scoped correctly.
+#
+# The diagnostic debug_log lines added to chase this had their OWN
+# version of the same mistake -- `[prev.GetName]`/`[THIS.GetName]`
+# without the confirmed-required `.GetState` cast (same rule as
+# `.GetCountry` for country, see docs/engine-notes.md), producing "Data
+# error in loc string" instead of the state name and corrupting the very
+# diagnostic meant to catch this. Fixed to `.GetState.GetName`,
+# consistent with the already-proven `SCOPE.GetRootScope.GetState.GetName`
+# pattern used successfully elsewhere in this same file's own loc.
+#
 # DIAGNOSTICS: every debug_log below now includes
 # `[TimeKeeper.GetCurrentDate.GetString]` (confirmed real, used
 # throughout vanilla's own loc, e.g. CLOCK_TEXT in interfaces_l_english.yml)
@@ -120,7 +147,7 @@ smart_notifications_taxation_deficit_toast_check = {
 				limit = { has_variable_list = smart_notifications_notified_deficit_states }
 				every_in_list = {
 					variable = smart_notifications_notified_deficit_states
-					debug_log = "SNW_TAX_TOAST|list_member|date=[TimeKeeper.GetCurrentDate.GetString]|state=[THIS.GetName]"
+					debug_log = "SNW_TAX_TOAST|list_member|date=[TimeKeeper.GetCurrentDate.GetString]|state=[THIS.GetState.GetName]"
 				}
 			}
 			else = {
@@ -141,10 +168,26 @@ smart_notifications_taxation_deficit_toast_check = {
 				limit = {
 					is_incorporated = yes
 					tax_capacity < tax_capacity_usage
+					# BUG, FOUND 2026-09-09 via the user reporting the same
+					# 3 states re-firing every month: this check used to be
+					# `is_target_in_variable_list = { target = THIS }`
+					# called directly here -- but THIS, inside
+					# ordered_scope_state's own `limit`, is the CANDIDATE
+					# STATE, not the country. The list only ever lives on
+					# the country (added via THIS.owner below), so that
+					# call was asking "does this STATE have this list on
+					# itself" -- always false, since states never have it,
+					# meaning "not already notified" was unconditionally
+					# true for every candidate, every month. Fixed by
+					# re-scoping to THIS.owner first, matching the exact
+					# same owner+prev idiom already used (and working)
+					# everywhere else in this file for the identical list.
 					NOT = {
-						is_target_in_variable_list = {
-							name = smart_notifications_notified_deficit_states
-							target = THIS
+						THIS.owner = {
+							is_target_in_variable_list = {
+								name = smart_notifications_notified_deficit_states
+								target = prev
+							}
 						}
 					}
 				}
@@ -159,7 +202,7 @@ smart_notifications_taxation_deficit_toast_check = {
 					prev = {
 						post_notification = smart_notifications_taxation_deficit_toast
 					}
-					debug_log = "SNW_TAX_TOAST|fired|state=[prev.GetName]|date=[TimeKeeper.GetCurrentDate.GetString]"
+					debug_log = "SNW_TAX_TOAST|fired|state=[prev.GetState.GetName]|date=[TimeKeeper.GetCurrentDate.GetString]"
 				}
 			}
 		}
@@ -186,7 +229,7 @@ smart_notifications_taxation_deficit_toast_check = {
 							name = smart_notifications_notified_deficit_states
 							target = prev
 						}
-						debug_log = "SNW_TAX_TOAST|reset|state=[prev.GetName]|date=[TimeKeeper.GetCurrentDate.GetString]"
+						debug_log = "SNW_TAX_TOAST|reset|state=[prev.GetState.GetName]|date=[TimeKeeper.GetCurrentDate.GetString]"
 					}
 				}
 			}

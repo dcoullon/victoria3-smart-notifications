@@ -2955,3 +2955,28 @@ common/journal_entries/05_danubian_federation.txt's
 show definitively whether the SAME states repeat (real bug) or DIFFERENT
 ones fire each month (not a bug, just legitimately volatile early-game
 finances) before attempting any further fix.
+
+
+## Repeated taxation toast: real root cause found, fixed (2026-09-09)
+
+User confirmed: same set of states firing every month, not just newly-
+deficit ones. Root cause found by inspecting the exact code, not
+guessing: the "not already notified" check inside `ordered_scope_state`'s
+own `limit` called `is_target_in_variable_list = { target = THIS }`
+directly, but THIS there is the candidate STATE, not the country -- the
+list only ever lives on the country. That check was unconditionally
+asking "does this state have this list on itself" (always false), making
+"not already notified" always true regardless of real membership. Fixed
+by re-scoping to `THIS.owner` first, matching the same owner+prev idiom
+already proven working elsewhere in the same file.
+
+Same session, found the diagnostic logging added to chase this had its
+own version of the identical mistake: `[prev.GetName]`/`[THIS.GetName]`
+without the required `.GetState` cast, producing "Data error in loc
+string" and corrupting the very data meant to catch the bug (per this
+project's own "verify instrumentation before trusting it" rule -- the
+list-member dump I read before this fix could not be trusted at all).
+Fixed to `.GetState.GetName`. NOT YET LIVE-CONFIRMED after this specific
+fix -- next test needs a session reload (script only re-parses at
+campaign/session start) and a few months of play to check the corrected
+diagnostics.
