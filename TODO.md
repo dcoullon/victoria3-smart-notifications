@@ -2466,3 +2466,33 @@ version of `InformationPanelBar.OpenChangeLaw(Law.GetGroup)` exists --
 confirmed in the previous session). The just-fixed tooltip text (specific
 law name + group) is the intended mitigation for that gap, not a
 workaround still to come.
+
+
+## Law commitment alert CONFIRMED working live (2026-09-08) + alert-order question answered
+
+User confirmed the correct law name and group now render in the alert
+tooltip. Root cause and fix are documented above and in
+[docs/engine-notes.md § Two separate function tables](docs/engine-notes.md)
+-- this took far more live-test rounds than it should have, and that
+section is the retrospective on why, plus the new CLAUDE.md rule meant to
+stop it recurring: precedent for a dynamic-text/`custom_tooltip` call must
+come from another dynamic-text call, never from a `.gui` file's own
+bindings, even when the `.gui` usage is genuinely real.
+
+**"Can it sit at the bottom with the other SN alerts?"** -- checked rather
+than guessed: `common/alert_types/00_alert_types.txt`'s own complete
+header comment documents every field the format supports, and there is no
+priority/order field at all (only "angry_important_action alerts are
+sorted first" is documented). No code change was needed or possible here
+-- the three SN alerts already appear grouped, consecutively, after every
+vanilla one, because they all live in one file
+(`01_smart_notifications_alerts.txt`) that sorts after vanilla's `00_`
+file by filename, in the order they were added within it. Full writeup:
+[docs/engine-notes.md § Important-action alert order](docs/engine-notes.md).
+
+The temporary diagnostic probe
+(`common/on_actions/08_smart_notifications_law_commitment_probe.txt`) can
+now be deleted -- both pieces of this feature (the alert itself and the
+name-render fix) are confirmed working live. Still unconfirmed: the
+decoupled one-time toast for re-firing after dismissal
+(`common/on_actions/09_smart_notifications_law_ready_toast.txt`).

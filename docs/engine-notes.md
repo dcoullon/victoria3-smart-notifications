@@ -681,6 +681,90 @@ isn't overengineering for its own sake; it's the closest approximation
 of an exact numeric comparison the engine's own trigger vocabulary
 allows.
 
+## Two separate function tables: `.gui` bindings vs. script-side dynamic text — confirming one does NOT confirm the other
+
+**The expensive mistake, made explicit so it doesn't repeat.** The law
+commitment alert's dynamic law-name/group text
+(`common/scripted_guis/smart_notifications_law_commitment_list_sgui.txt`)
+went through several live-test rounds before working, and the final root
+cause was a category of mistake this project's own precedent-checking
+habit should have caught on the first try: `Law.GetGroup` was treated as
+"confirmed real" because it's genuinely, verifiably used in
+`gui/politics_panel_types.gui` (`widgetid = "[Law.GetGroup.GetKey]"`,
+`InformationPanelBar.OpenChangeLaw(Law.GetGroup)`). That confirmation was
+real — but it confirmed the wrong system. Victoria 3 has (at least) two
+separate, non-overlapping function/promote tables:
+
+1. **The GUI-binding language**, used inside `.gui` files' own
+   `onclick`/`text`/`visible`/`widgetid` attributes. `Law.GetGroup` lives
+   here.
+2. **The script-side dynamic-text / data-function system**, used inside
+   `[...]` brackets in loc strings, `custom_tooltip`, and `debug_log`. This
+   is a different, much more restricted table — confirmed by `error.log`
+   itself distinguishing them by error type ("Could not find data system
+   function" / "Could not find promote for 'X' in 'Y'").
+
+A function confirmed real in one table is **not evidence** it exists in
+the other, even for the exact same scope and the exact same-looking dotted
+call. `law` scope turned out to have neither a name-getter nor `GetGroup`
+in table 2 at all — confirmed directly from `error.log`'s own two lines
+(`Could not find data system function 'GetNameNoFormatting'`, `Could not
+find promote for 'GetGroup'`), not inferred.
+
+**The fix, once this was understood, was mechanical and fast**: both the
+`Get*` calls turned out to be replaceable with zero dynamic-function calls
+at all — every law and every law group already carries its own plain
+vanilla loc key (`law_<type>`, `lawgroup_<X>`), so a static per-law-type
+dispatch (`THIS.type = law_type:X`) selecting a static
+`"$law_X$ ($lawgroup_Y$)"` loc string sidesteps the whole function-table
+question. Confirmed as the right vanilla pattern before shipping it, this
+time by finding on-point precedent in the SAME context we needed — vanilla's
+`ACW_DIXIE_STATES_LIST_ENTRY` (a `custom_tooltip`-built list entry, same
+mechanism as ours) mixes `[THIS.GetState.GetName]` with plain
+`$concept_incorporated$`/`$dixie$` references in one string, proving `$key$`
+substitution works inside this exact rendering path, not just in an
+ordinary static loc line.
+
+**Why this should not take multiple iterations next time:** the standing
+rule (see [[v3-claude-md-restructure]], CLAUDE.md § Engine & Syntax Rules)
+was always "confirm via vanilla precedent, don't guess" — but precedent
+was accepted from the wrong context. The rule now has teeth: **precedent
+for a dynamic-text/`[...]`/`custom_tooltip` call must come from another
+dynamic-text/`[...]`/`custom_tooltip` call, never from a `.gui` file's own
+binding attributes** — even when the `.gui` usage is 100% real and looks
+identical. When no such same-context precedent exists for a scope (as
+turned out to be the case for `law` scope's name/group), the safe default
+is to assume the function doesn't exist there and reach for a static
+`$key$` loc reference instead, which needs no scope-specific function at
+all.
+
+## Important-action alert order has no priority field — it's file/definition order
+
+Checked directly (per the user asking what it'd take to keep the law
+commitment alert grouped with this mod's other alerts at the bottom of the
+Important Actions list) rather than guessing: `common/alert_types/`'s own
+complete header comment (`00_alert_types.txt`, lines 1-8) documents every
+field the format supports, and there is no priority/weight/order field of
+any kind — the only documented sort behavior at all is
+"angry_important_action alerts are sorted first". No script-side function
+to reorder them was found either (`gui/important_actions_list.gui`'s list
+binds to `TopFrontend.AccessImportantActions`, a native accessor with
+nothing exposed to influence its ordering).
+
+The observed order (agitator invite, taxation deficit, law commitment —
+exactly this mod's own alerts, consecutively, after every vanilla one) is
+consistent with the base sort being **file-scan order, then in-file
+definition order**: this mod's alerts all live in one file,
+`01_smart_notifications_alerts.txt`, which sorts after vanilla's own
+`00_alert_types.txt` by filename alone, and the three alerts appear inside
+it in exactly the order they were added
+(amendment repeal, agitator, taxation deficit, law commitment). No code
+change was needed — this grouping already happens by construction and
+should stay stable as long as future mod alerts are added to files
+numbered `01_` or higher and kept in one file (or several, all sorting
+after `00_`); it is not something the alert format lets us pin down more
+precisely than that.
+
 ## Steam Workshop / Paradox mod policy
 
 See [distribution-guidelines.md](distribution-guidelines.md) for the full,
