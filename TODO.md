@@ -2633,3 +2633,41 @@ staged, with per-item failure handling instead of one all-or-nothing
 operation. The actual release folder is still in that broken state as of
 this writing -- the Launcher needs to be closed before a re-run can
 finish repairing it; flagged to the user.
+
+
+## Toast rarity investigated (2026-09-09): likely by design, instrumented rather than guessed
+
+User confirmed both the alert and toast now show the correct law, but
+reported only getting the toast once, with the alert showing far more
+often -- "unclear what makes it show or not."
+
+Leading explanation, NOT yet confirmed via logs (deliberately not
+asserted as fact until it is): the alert is level-triggered (visible
+continuously whenever ANY wanted law is currently ready, refreshed every
+ALERTS_FRAMES_BETWEEN_UPDATES), while the toast is edge-triggered (fires
+once per LAW's own false-to-true readiness transition, sampled only
+monthly via on_monthly_pulse_country, then suppressed for that same law
+until it goes un-ready and ready again). If only one flagged law has
+crossed ready so far and stays ready, the toast correctly fires once and
+goes quiet while the alert keeps showing continuously -- exactly matching
+what was reported, and not a bug under that explanation.
+
+Rather than asserting this without proof (the exact mistake being
+actively corrected all session), added TEMPORARY diagnostic logging to
+common/on_actions/09_smart_notifications_law_ready_toast.txt:
+- Once per month per player-country: whether the alert-equivalent
+  condition (any_law wanted+can_be_enacted+ready) is currently true
+  (`SNW_LAW_TOAST|pulse|...|at_least_one_wanted_law_ready=yes/no`).
+- Every actual toast fire, per law type (`SNW_LAW_TOAST|fired|<type>`).
+- Every notified-flag reset, per law type
+  (`SNW_LAW_TOAST|reset|<type>`) -- confirms when a law drops back to
+  not-ready, re-arming it for a future toast.
+
+Next play session: `python tools/scan_logs.py` (or `/scan-logs`) will
+surface all of these. If `at_least_one_wanted_law_ready=yes` persists for
+many months with no new `fired` line for a DIFFERENT law type, that
+confirms the level-vs-edge explanation is the whole story. If a `fired`
+line is missing despite conditions looking right, or a `reset` never
+happens for a law that visibly stopped being enactable, that's a real
+bug to chase. DELETE this instrumentation once confirmed either way, not
+before.
