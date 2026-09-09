@@ -18,10 +18,18 @@ Usage:
     python tools/scan_logs.py                 # last 20 matches per file/category
     python tools/scan_logs.py --lines 50       # more context per category
     python tools/scan_logs.py --logs-dir PATH  # override the default logs dir
+    python tools/scan_logs.py --unfiltered     # ALL error.log lines, no pattern filter
 
 Intended for a beta tester to run against their own log files and paste
 the (small, filtered) output when reporting an issue -- see
 STEAM_WORKSHOP_DESCRIPTION.bbcode's Issue Reporting section.
+
+`--unfiltered` exists for checks where you're specifically looking for
+something NOT on the known-pattern list -- e.g. confirming a save loads
+cleanly after removing the mod (orphaned script variables left behind in
+the save are expected and harmless, but any genuinely NEW error type
+wouldn't match SNW_* tags or the known engine-error signatures below, so
+the normal filtered scan could miss it).
 """
 import argparse
 import re
@@ -63,11 +71,29 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--lines", type=int, default=20, help="max lines to show per file/category")
     ap.add_argument("--logs-dir", type=Path, default=DEFAULT_LOGS_DIR)
+    ap.add_argument("--unfiltered", action="store_true",
+                     help="Print ALL error.log lines (no pattern filter) -- use when checking "
+                          "for something not on the known-pattern list, e.g. confirming a save "
+                          "loads cleanly with the mod removed.")
     args = ap.parse_args()
 
     if not args.logs_dir.is_dir():
         print(f"Logs directory not found: {args.logs_dir}")
         print("Pass --logs-dir to point at your own Victoria 3/logs folder.")
+        return
+
+    if args.unfiltered:
+        path = args.logs_dir / "error.log"
+        print(f"=== error.log (unfiltered, last {args.lines} lines) ===")
+        if not path.exists():
+            print("  (not found)")
+            return
+        with path.open(encoding="utf-8", errors="replace") as f:
+            lines = f.readlines()
+        if not lines:
+            print("  (empty -- no errors logged at all)")
+        for line in lines[-args.lines:]:
+            print(f"    {line.rstrip()}")
         return
 
     for name in FILES_TO_SCAN:
