@@ -216,10 +216,31 @@
  # REVISED 2026-09-08: wording updated to match the flag now meaning "a
  # specific law you flagged," not "whatever you're currently enacting."
  alert_smart_notifications_law_commitment_alert_name:0 "(SN) Law Ready to Enact"
- alert_smart_notifications_law_commitment_alert_desc:0 "A law you flagged now has more support than pushback and is worth enacting."
- alert_smart_notifications_law_commitment_alert_hint:0 "Open the Politics screen's Laws tab and start enacting the flagged law while the odds are in your favor."
+ # REVISED 2026-09-08 per the user: name the specific law(s) and group(s)
+ # instead of generic text, since clicking the alert can't deep-link to
+ # the exact law (see the alert_type's own header comment for why -- the
+ # real function for that, InformationPanelBar.OpenChangeLaw, is GUI-only
+ # and can't be parameterized from a scripted alert). Built via
+ # common/alert_types/01_smart_notifications_alerts.txt's
+ # smart_notifications_law_commitment_list_sgui, using the real, documented
+ # "build a list via a scripted GUI's custom_tooltip calls, then render it
+ # live with ExecuteTooltip" technique from
+ # common/scripted_guis/scripted_guis.md -- evaluated fresh every time the
+ # tooltip renders, no staleness. UNCONFIRMED: `THIS.GetNameNoFormatting`
+ # from a `law`-scoped THIS inside custom_tooltip -- the toggle SGUI's own
+ # debug_log tap failed with this exact call from law scope earlier this
+ # session ("Data error in loc string"), for reasons never isolated;
+ # custom_tooltip's rendering pipeline may or may not be the same one.
+ # First thing to check if this alert's text renders blank or broken.
+ alert_smart_notifications_law_commitment_alert_desc:0 "Ready to enact:\n[GetScriptedGui('smart_notifications_law_commitment_list_sgui').ExecuteTooltip(GuiScope.SetRoot(SCOPE.GetRootScope.MakeScope).End)]"
+ alert_smart_notifications_law_commitment_alert_hint:0 "Open the Politics screen's Laws tab, find the listed law group, and start enacting the flagged law while the odds are in your favor."
  alert_smart_notifications_law_commitment_alert_action:0 "Open Politics"
  smart_notifications_law_commitment_alert_setting_name:0 "(SN) Law Ready to Enact"
+
+ # Entries built by smart_notifications_law_commitment_list_sgui's
+ # custom_tooltip calls (THIS = the specific law at build time).
+ smart_notifications_law_commitment_list_entry:0 "• [THIS.GetNameNoFormatting] ([THIS.GetGroup.GetName])\n"
+ smart_notifications_law_commitment_list_empty:0 "(nothing currently -- this shouldn't normally show, since the alert itself hides when this list is empty)"
 
  # "Notify me" checkbox on the law detail panel itself (see
  # gui/politics_panel_change_law.gui). REVISED 2026-09-08 per the user,

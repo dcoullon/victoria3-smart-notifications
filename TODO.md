@@ -1910,6 +1910,69 @@ a hot per-frame loop, and the number of simultaneously-flagged laws is
 normally small), so tightened to a 1-point grid (99 steps, every 0.01
 from 0.01 to 0.99) in both files. Same mechanism, just finer.
 
+## CONFIRMED WORKING LIVE 2026-09-08 — the alert actually fires
+
+The user saw "(SN) Law Ready to Enact" appear for real. This closes out
+the core mechanism after five real bugs across the session (law-scope
+variables not supported, `ROOT` vs `THIS.owner`, effect-in-a-trigger,
+`any_law`/`every_law` mixup, and the >50% vs success>stall threshold
+question) — the checkbox-to-alert pipeline is now confirmed correct
+end-to-end.
+
+**Follow-up requested immediately**: the alert didn't say WHICH law, and
+clicking it opened the Laws tab with nothing highlighted, so there was no
+way to tell which of the flagged laws (or which group) was actually
+ready. Two real asks: name the law/group in the text, and deep-link
+directly to it.
+
+**Deep link: checked, not possible.** The real native function for
+jumping straight to a specific law's group,
+`InformationPanelBar.OpenChangeLaw(Law.GetGroup)`
+(`gui/politics_panel_types.gui`, the law list's own row onclick), is a
+GUI-only action that takes a live object argument. `alert_types`'
+`open_panel`/`open_popup` fields only accept a static `"panel[|tab]"`
+string (confirmed via the alert_types header comment and every vanilla
+example) — there's no way to parameterize either field with a specific
+law/group from script. This is a hard engine limitation, not something
+worth spending more time trying to work around; `open_panel =
+politics|laws` (the general overview) remains the best available click
+target.
+
+**Naming the law/group: built, using a real documented technique.**
+`common/scripted_guis/scripted_guis.md`'s own "Using SGUIs to build lists
+in loc" section describes exactly this: a scripted GUI's effect can call
+`custom_tooltip = "LOC_KEY"` once per matching item, and a loc string
+elsewhere renders the built list live via
+`[GetScriptedGui('key').ExecuteTooltip(GuiScope.SetRoot(...).End)]` —
+evaluated fresh every time the tooltip renders, so there's no staleness
+the way a slow monthly-pulse-computed value would have. Added
+`smart_notifications_law_commitment_list_sgui`
+([common/alert_types/01_smart_notifications_alerts.txt](common/alert_types/01_smart_notifications_alerts.txt)),
+which lists every ready law via `[THIS.GetNameNoFormatting]
+([THIS.GetGroup.GetName])` entries, embedded into the alert's `_desc`.
+
+**Real refactor along the way**: with a third consumer (this list
+builder) needing the identical ~400-line success-vs-stall threshold
+sweep as the alert and the probe, factored it into one shared scripted
+trigger, `smart_notifications_law_ready_to_enact`
+([common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt](common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt)) —
+the alert's own `valid` and the probe both got dramatically shorter as a
+result, and there's now exactly one place to ever change this logic
+again.
+
+**UNCONFIRMED, flagged honestly**: `THIS.GetNameNoFormatting` from a
+`law`-scoped `THIS` inside `custom_tooltip` specifically. The toggle
+SGUI's own debug_log tap failed with this exact call from law scope
+earlier this session ("Data error in loc string", never isolated why) —
+`custom_tooltip`'s rendering pipeline may or may not share that same
+failure mode; genuinely don't know without testing. **First thing to
+check**: does the alert's text show real law/group names, or blank/
+garbled text? If the latter, check `error.log` for "Data error in loc
+string" pointing at
+`smart_notifications_law_commitment_list_entry` — the group name half
+(`THIS.GetGroup.GetName`) is more likely to survive even if the law name
+half doesn't, since `GetGroup` returns a different, simpler object type.
+
 ## New notifications/alerts backlog — sized and sequenced 2026-09-08
 
 All four items below are **P1 per the user**. This is the recommended

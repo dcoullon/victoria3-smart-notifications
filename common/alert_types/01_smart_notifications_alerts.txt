@@ -133,19 +133,32 @@ smart_notifications_law_commitment_alert = {
 	# player wants and tell them when IT now has more support than
 	# pushback -- not "notify me about whatever I happen to be enacting
 	# right now" (the first version built, which the user correctly
-	# rejected as useless: it only worked once you'd already committed to
-	# enacting something, which is exactly what this feature exists to
-	# help decide).
+	# rejected as useless for deciding whether to START enacting
+	# something).
 	#
-	# REVISED 2026-09-08: the "wanted" flag was confirmed live NOT to
-	# work when stored directly on the `law` scope -- error.log showed,
-	# for every law type tested, "has_variable trigger [ This scope
-	# doesn't support variables. Scope: Law ... ]" -- `law` scope
-	# categorically cannot hold variables in this engine. Moved to a
-	# country-scope, per-law-type static variable instead; see
+	# REVISED 2026-09-08: the "wanted" flag couldn't live on the `law`
+	# scope itself -- error.log confirmed, for every law type tested,
+	# "has_variable trigger [ This scope doesn't support variables.
+	# Scope: Law ... ]" -- `law` scope categorically cannot hold
+	# variables in this engine. Moved to a country-scope, per-law-type
+	# static variable instead; see
 	# common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt
 	# (the generated law_type <-> variable_name mapping, shared with the
-	# check_sgui's own `is_valid`) for the detail.
+	# check_sgui's own `is_valid`).
+	#
+	# REVISED AGAIN 2026-09-08, per the user: "ready to activate" means
+	# the next checkpoint's Success chance beating its Stall chance (the
+	# same comparison the law list itself displays), not an absolute
+	# ">50% overall" threshold -- a law showing Success 43% / Stall 30%
+	# is "success > stall" but was reading false against a flat 0.5.
+	# `smart_notifications_law_ready_to_enact` (same trigger file as
+	# above) is the shared "does this law's next checkpoint favor
+	# success" check -- see its own header comment for why it needs a
+	# 99-point threshold sweep instead of a single comparison (no trigger
+	# compares two chances directly, and neither can be pulled out as a
+	# raw number for script math). Factored out of this file 2026-09-08
+	# once the new tooltip list builder below needed the identical logic
+	# a third time.
 	#
 	# All confirmed real via script_docs triggers.log/event_targets.log:
 	# - any_law -- "iterate through all laws in a country" (country scope,
@@ -160,489 +173,74 @@ smart_notifications_law_commitment_alert = {
 	#   excludes the already-active law in its group and anything
 	#   currently blocked, so this alert self-cleans once a flagged law
 	#   passes or becomes unavailable, with no separate reset needed.
-	# - enactment_chance_for_law = { target = <law_type> value > 0.5 } --
-	#   "the enactment success chance in scope COUNTRY for GIVEN law"
-	#   (triggers.log: "Supported Scopes: country" -- unlike
-	#   `can_be_enacted`/`smart_notifications_law_matches_wanted_flag`
-	#   above, both `law`-scoped) -- unlike plain `enactment_chance`, this
-	#   works whether or not the country is actively enacting that law
-	#   yet, which is exactly the "tell me when it's worth starting" case
-	#   this feature is for.
-	#
-	#   CAUGHT BEFORE SHIPPING 2026-09-08 (not live-tested, found by
-	#   re-auditing this exact feature for the same "which scope is this
-	#   actually running in" mistake that hit both the sgui and the
-	#   scripted_trigger already): a bare `enactment_chance_for_law` line
-	#   directly inside `any_law` would run with the CURRENT scope set to
-	#   the iterated LAW, not country, since that's what `any_law`
-	#   rebinds unqualified triggers to -- the exact same class of error
-	#   already confirmed twice via error.log for this feature.
-	#
-	#   FIRST FIX WAS ITSELF WRONG, confirmed live 2026-09-08 (the alert
-	#   never fired even for a law with success clearly > stall):
-	#   `save_scope_as` is an EFFECT, and `valid` is a pure TRIGGER
-	#   block -- effects cannot run inside a trigger at all. error.log
-	#   confirmed exactly this: "Event target
-	#   'smart_notifications_law_commitment_candidate' is used but is
-	#   never set. Setting it in an unused scripted trigger or effect
-	#   does not count" -- the save silently never happened, so the
-	#   `target` reference was always undefined and the whole condition
-	#   always failed. **Real fix**: `prev` -- a genuine trigger-side
-	#   scope link ("the previous scope", confirmed real and used this
-	#   exact way in vanilla's own
-	#   `common/achievements/ip2_pivot_of_empire_achievements.txt`:
-	#   `harvest_condition_intensity = { target = prev.owner value > 5
-	#   }`) -- needs no effect at all. Entering `THIS.owner = { ... }`
-	#   switches current scope to the country (a plain scope transition,
-	#   valid in triggers), and `prev` inside that block refers back to
-	#   the law scope we just left, so `prev.type` is exactly the law
-	#   type `target` needs -- all pure trigger syntax, no save/root
-	#   effect trick required.
-	#   REVISED AGAIN 2026-09-08, per the user, after the >0.5 threshold
-	#   turned out not to match their intent: they confirmed via the
-	#   diagnostic probe that a law with the law-list's own "Success" %
-	#   clearly above its "Stall" % still read `chance_over_threshold=no`
-	#   against a flat 0.5 -- e.g. a law showing Success 43% / Stall 30%
-	#   is "success > stall" but not ">50% overall". The user wants
-	#   exactly that RELATIVE comparison ("ready to activate" = success
-	#   beats stall for the next checkpoint), not an absolute threshold.
-	#
-	#   No single trigger compares two chances directly, and there is no
-	#   confirmed way to pull either one out as a raw number for script
-	#   math -- only `stall_chance_for_law`/`enactment_chance_for_law`
-	#   exist for a not-yet-enacting law (both confirmed real,
-	#   triggers.log), and both only support "> literal" comparisons, not
-	#   comparison to each other. Worked around this by testing whether
-	#   some threshold value sits strictly between the two: "success >
-	#   stall" is true if and only if there exists a V with success > V
-	#   and stall <= V. Checking this across a dense grid of V values
-	#   approximates the exact comparison to within the grid's own
-	#   spacing -- the only remaining inaccuracy is the rare case where
-	#   both values fall inside the same band, which this can't
-	#   distinguish and would miss.
-	#   REVISED 2026-09-08, same day, per the user: the first version used
-	#   a 5-point grid (19 steps), which the user correctly flagged as too
-	#   coarse -- success/stall both commonly sit in the 20-30% range,
-	#   close enough together that a 5-point band can easily contain both.
-	#   Tightened to a 1-point grid (99 steps, every 0.01 from 0.01 to
-	#   0.99). There was never a real reason to keep it coarse: each
-	#   comparison is cheap, this only runs on the normal alert refresh
-	#   cadence (not a hot per-frame loop), and the number of flagged laws
-	#   being checked at once is normally small -- 99 comparisons per
-	#   flagged law is a negligible cost, not a tradeoff worth making for
-	#   fewer lines of generated script. Every individual comparison here
-	#   is still the same already-confirmed-working `_for_law` trigger
-	#   shape, just repeated at more threshold points.
 	valid = {
 		any_law = {
 			smart_notifications_law_matches_wanted_flag = yes
 			can_be_enacted = yes
-			THIS.owner = {
-				OR = {
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.01 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.01 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.02 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.02 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.03 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.03 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.04 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.04 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.05 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.05 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.06 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.06 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.07 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.07 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.08 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.08 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.09 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.09 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.1 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.1 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.11 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.11 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.12 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.12 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.13 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.13 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.14 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.14 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.15 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.15 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.16 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.16 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.17 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.17 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.18 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.18 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.19 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.19 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.2 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.2 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.21 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.21 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.22 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.22 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.23 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.23 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.24 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.24 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.25 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.25 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.26 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.26 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.27 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.27 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.28 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.28 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.29 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.29 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.3 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.3 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.31 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.31 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.32 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.32 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.33 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.33 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.34 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.34 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.35 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.35 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.36 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.36 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.37 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.37 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.38 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.38 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.39 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.39 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.4 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.4 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.41 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.41 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.42 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.42 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.43 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.43 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.44 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.44 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.45 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.45 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.46 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.46 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.47 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.47 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.48 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.48 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.49 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.49 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.5 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.5 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.51 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.51 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.52 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.52 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.53 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.53 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.54 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.54 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.55 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.55 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.56 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.56 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.57 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.57 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.58 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.58 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.59 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.59 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.6 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.6 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.61 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.61 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.62 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.62 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.63 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.63 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.64 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.64 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.65 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.65 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.66 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.66 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.67 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.67 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.68 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.68 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.69 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.69 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.7 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.7 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.71 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.71 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.72 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.72 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.73 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.73 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.74 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.74 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.75 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.75 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.76 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.76 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.77 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.77 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.78 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.78 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.79 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.79 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.8 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.8 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.81 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.81 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.82 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.82 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.83 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.83 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.84 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.84 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.85 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.85 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.86 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.86 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.87 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.87 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.88 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.88 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.89 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.89 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.9 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.9 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.91 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.91 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.92 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.92 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.93 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.93 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.94 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.94 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.95 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.95 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.96 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.96 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.97 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.97 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.98 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.98 } }
-				}
-				AND = {
-					enactment_chance_for_law = { target = prev.type  value > 0.99 }
-					NOT = { stall_chance_for_law = { target = prev.type  value > 0.99 } }
-				}
-			}
-			}
+			smart_notifications_law_ready_to_enact = yes
 		}
 	}
 
 	# "politics|laws" is the confirmed real tab identifier for the Laws
 	# tab (gui/politics_panel.gui: `InformationPanel.SelectTab('laws')`).
+	# CHECKED 2026-09-08, per the user's ask for a direct deep link to the
+	# specific law/group: the real native function for this,
+	# `InformationPanelBar.OpenChangeLaw(Law.GetGroup)`
+	# (gui/politics_panel_types.gui, the law list's own row onclick), is a
+	# GUI-only action taking a live object argument -- alert_types'
+	# `open_panel`/`open_popup` only accept a static "panel[|tab]" string
+	# (confirmed via the alert_types header comment and every vanilla
+	# example), with no way to parameterize it with a specific group at
+	# script time. No deeper link is possible here; this opens the Laws
+	# overview (where every group is at least visible to click into), and
+	# the alert's own text below is how the player learns WHICH group.
 	open_panel = politics|laws
 	type = important_action
 	color = green
 }
+
+# Smart Notifications mod: dynamic tooltip list builder for the alert
+# above, ADDED 2026-09-08 per the user (originally shipped with static
+# text; the user asked for the specific law name and group, since
+# clicking the alert alone doesn't highlight anything -- see the
+# open_panel comment above for why a direct link isn't possible).
+#
+# Real, documented vanilla technique (common/scripted_guis/scripted_guis.md
+# "Using SGUIs to build lists in loc"): a scripted GUI's `effect` can call
+# `custom_tooltip = "LOC_KEY"` once per matching item, and a loc string
+# elsewhere can render the whole built list live via
+# `[GetScriptedGui('key').ExecuteTooltip(GuiScope.SetRoot(...).End)]` --
+# evaluated fresh every time the tooltip renders, not baked into a slow-
+# updating variable, so there's no staleness/lag concern the way a
+# monthly-pulse-computed value would have.
+smart_notifications_law_commitment_list_sgui = {
+	scope = country
+
+	effect = {
+		if = {
+			limit = {
+				any_law = {
+					smart_notifications_law_matches_wanted_flag = yes
+					can_be_enacted = yes
+					smart_notifications_law_ready_to_enact = yes
+				}
+			}
+			every_law = {
+				limit = {
+					smart_notifications_law_matches_wanted_flag = yes
+					can_be_enacted = yes
+					smart_notifications_law_ready_to_enact = yes
+				}
+				custom_tooltip = "smart_notifications_law_commitment_list_entry"
+			}
+		}
+		else = {
+			custom_tooltip = "smart_notifications_law_commitment_list_empty"
+		}
+	}
+
+	# Per CLAUDE.md: scripted GUIs must never be available to the AI.
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
