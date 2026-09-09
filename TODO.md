@@ -2741,3 +2741,19 @@ Two ideas from the user, for later -- NOT implemented, investigation only:
    "a slot opened" is the whole message), likely just a single flag
    variable + monthly-pulse edge check, closer in shape to a from-scratch
    version of the truce tracker than to the law/tax toasts.
+
+
+## Dev mod entry renamed to avoid upload-flow confusion (2026-09-09)
+
+User: the two mod entries (dev/test junction vs. release folder) looked
+identical in the Launcher's upload flow. Since the dev junction points
+directly at this repo's real `.metadata/metadata.json`, it can't show a
+different name than the release folder just by editing that file in
+place -- the packaging step has to actively rewrite it for the shipped
+copy. Repo's canonical `name` is now `"Smart Notifications - Dev"`;
+`tools/package_release.py` strips the `" - Dev"` suffix back off when
+staging the packaged copy (`strip_dev_name_suffix`), so the actual
+published listing never says "Dev". Verified: dev entry now reads
+`Smart Notifications - Dev`, packaged release entry reads
+`Smart Notifications`, both otherwise byte-identical metadata (version,
+id, etc. unchanged).

@@ -50,6 +50,15 @@ DEFAULT_OUT = Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3" /
 SHIP_DIRS = [".metadata", "common", "events", "gui", "localization"]
 SHIP_FILES = ["thumbnail.png"]  # copied only if present
 
+# The dev/test mod entry's metadata.json intentionally carries a
+# " - Dev" suffix on its name (2026-09-09 per the user: the two entries
+# looked confusingly identical in the launcher's upload flow). Since the
+# dev junction points at this repo's real .metadata/metadata.json
+# directly, that suffix has to be stripped back off for the actual
+# packaged/published copy -- the public Workshop listing should never
+# say "Dev".
+DEV_NAME_SUFFIX = " - Dev"
+
 
 def run_validation() -> bool:
     result = subprocess.run(
@@ -60,6 +69,22 @@ def run_validation() -> bool:
     if result.returncode != 0:
         print(result.stderr.strip())
     return result.returncode == 0
+
+
+def strip_dev_name_suffix(metadata_path: Path):
+    """Rewrite the staged metadata.json's `name` back to the real public
+    name, removing the dev-only ' - Dev' suffix (see DEV_NAME_SUFFIX).
+    Every other field (id, version, etc.) is left exactly as-is -- this
+    is purely a display-name fix, never a `.json` file with a BOM (see
+    docs/engine-notes.md § JSON files must not have a BOM -- read/write
+    strictly as plain utf-8 here, deliberately not utf-8-sig)."""
+    with open(metadata_path, encoding="utf-8") as f:
+        meta = json.load(f)
+    if meta.get("name", "").endswith(DEV_NAME_SUFFIX):
+        meta["name"] = meta["name"][: -len(DEV_NAME_SUFFIX)]
+        with open(metadata_path, "w", encoding="utf-8") as f:
+            json.dump(meta, f, indent=2)
+            f.write("\n")
 
 
 def package(out_dir: Path):
@@ -91,6 +116,8 @@ def package(out_dir: Path):
             if src.is_file():
                 shutil.copy2(src, staging / name)
                 copied.append(name)
+
+        strip_dev_name_suffix(staging / ".metadata" / "metadata.json")
     except PermissionError as e:
         print(f"\nABORTED while staging: {e.filename} is locked by another "
               f"process. The existing output at {out_dir} was NOT touched. "
