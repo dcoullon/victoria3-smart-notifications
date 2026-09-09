@@ -2347,6 +2347,23 @@ smart_notifications_diplomatic_action_targeting_player = {
 	color = neutral
 }
 
+# ADDED 2026-09-09, same day: the routine-action carve-out from the key
+# above (Increase/Decrease Relations specifically -- see
+# 06_smart_notifications_diplomatic_action_filtering.txt for the
+# has_diplomatic_pact check that routes here). Same full accurate text
+# as the toast version, just `feed` instead of `toast` -- a minor
+# improving relations with you shouldn't interrupt you, but you can
+# still see it happened if you check the feed.
+smart_notifications_diplomatic_action_targeting_player_routine = {
+	type = diplomatic_action
+	group = "smart_notifications_diplomatic_action_targeting_player_routine_group"
+
+	texture = "gfx/interface/icons/notification_icons/influence.dds"
+
+	notification_type = feed
+	color = neutral
+}
+
 # Smart Notifications mod: one-time toast when a law becomes ready, fired
 # independently of the persistent law_commitment alert's dismiss state --
 # see common/on_actions/09_smart_notifications_law_ready_toast.txt and

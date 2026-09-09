@@ -3259,3 +3259,48 @@ The player-targeted case
 (`smart_notifications_diplomatic_action_targeting_player`) is
 unaffected -- still toasts, since that's the case actually worth
 interrupting for. NOT YET LIVE-TESTED (the demotion itself).
+
+
+## Player-targeted diplomatic actions: routine relations changes demoted, real type-discrimination found (2026-09-09)
+
+Live example surfaced the question: "i got toast notified that aceh was
+improving relations despite it not being in my watchlist, why?" Checked
+debug.log -- confirmed expected (Aceh was the actor, player was
+recipient, so it went through the always-toasts targeting_player path,
+correctly independent of watchlist).
+
+User then pushed back harder: shouldn't a low-stakes routine action
+(improve relations) get the same feed-tier treatment we just gave the
+watched-but-not-player case, rather than always toasting just because
+it's aimed at the player? I initially answered by asking the user to
+choose between "keep all player-targeted actions as toast" or "demote
+ALL of them to feed," on the claimed basis that script can't
+distinguish action types. User correctly rejected that framing:
+"aren't we able to see the type of action? improve relation is very
+different from starting a diplo play."
+
+That claim was wrong, and re-checking properly (Documents/.../docs/triggers.log
+this time, not assumption) found it: `has_diplomatic_pact = { who = X
+type = Y is_initiator = yes/no }` -- a real, `country`-scoped trigger,
+already used by vanilla's own increase_relations/damage_relations
+definitions in common/diplomatic_actions/00_relations_actions.txt. This
+lets us check, from `scope:actor`, whether the actor now holds an
+increase_relations or damage_relations pact with `scope:recipient`
+specifically. (Diplomatic Plays were never actually part of this gap --
+those already go through a completely separate, already-correctly-
+elevated on_action from earlier phases; the user's example was slightly
+off but the underlying point -- routine relations changes shouldn't
+toast -- was right.)
+
+Implemented in
+common/on_actions/06_smart_notifications_diplomatic_action_filtering.txt:
+within the player-targeted branch, check for an increase_relations/
+damage_relations pact (with `is_initiator = yes` to tie it to THIS
+actor, not some unrelated pre-existing pact of that type) and route to
+a new feed-tier message,
+`smart_notifications_diplomatic_action_targeting_player_routine`
+(common/messages/00_messages.txt), with the exact same full accurate
+text as the toast version -- just not interrupting. Everything else
+targeting the player (rivalry, subjugation, embargo, autonomy changes,
+alliance offers, ...) still toasts, since `has_diplomatic_pact` only
+matches those two specific types. NOT YET LIVE-TESTED.

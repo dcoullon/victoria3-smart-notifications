@@ -129,8 +129,44 @@ smart_notifications_diplomatic_action = {
 			# branch first, the watched-country toast would fire instead
 			# and this more-specific one never would.
 			limit = { scope:recipient ?= { is_player = yes } }
-			post_notification = smart_notifications_diplomatic_action_targeting_player
-			debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_targeting_player|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|PLAYER_TARGETED"
+
+			# REFINED 2026-09-09, same day: user correctly pushed back that
+			# "a random country doing a not-very-important action to you"
+			# (e.g. a minor improving relations) shouldn't toast the same
+			# as something consequential. Initially claimed there's no
+			# script-side way to tell action types apart -- wrong, found
+			# via docs/triggers.log: `has_diplomatic_pact = { who = X
+			# type = Y is_initiator = yes/no }` (confirmed real, already
+			# used by vanilla's own increase_relations/damage_relations
+			# definitions in common/diplomatic_actions/00_relations_actions.txt)
+			# lets us check, from a country scope, whether the actor now
+			# holds a specific pact type with the recipient. Increase/
+			# Decrease Relations are the routine, high-frequency case this
+			# was actually about -- demoted specifically those to their own
+			# feed-tier message
+			# (smart_notifications_diplomatic_action_targeting_player_routine),
+			# same full accurate text, just not a toast. Everything else
+			# targeting the player (rivalry, subjugation, embargo,
+			# autonomy changes, alliance/pact offers, ...) still toasts.
+			# `is_initiator = yes` on the check ties it to THIS actor
+			# specifically, not just any pre-existing pact of that type
+			# between the two countries from some unrelated earlier event.
+			if = {
+				limit = {
+					scope:actor ?= {
+						OR = {
+							has_diplomatic_pact = { who = scope:recipient type = increase_relations is_initiator = yes }
+							has_diplomatic_pact = { who = scope:recipient type = damage_relations is_initiator = yes }
+						}
+					}
+				}
+				post_notification = smart_notifications_diplomatic_action_targeting_player_routine
+				debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_targeting_player_routine|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|PLAYER_TARGETED_ROUTINE"
+			}
+			else = {
+				post_notification = smart_notifications_diplomatic_action_targeting_player
+				debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_targeting_player|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|PLAYER_TARGETED"
+			}
 		}
 		else_if = {
 			limit = {

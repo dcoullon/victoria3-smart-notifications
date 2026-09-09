@@ -39,6 +39,13 @@ mod hasn't reached a 1.0 concept of "breaking changes" yet.
   this mod exists to surface. Still logged in the notification feed with
   the accurate, specific wording if you want to check what a watched
   country's been up to.
+- A country improving or damaging relations with you specifically no
+  longer pops a toast either, for the same reason — it's the single most
+  common diplomatic action and rarely worth interrupting you for. Still
+  shown in the feed with full detail. Every other diplomatic action
+  aimed at you directly (rivalries, subjugation attempts, embargoes,
+  autonomy changes, alliance/pact offers, etc.) still toasts, since
+  those are genuinely worth knowing about immediately.
 - This also permanently fixes the earlier double-notification issue for
   actions directed at you: you'll now see exactly one notification,
   with full detail, for that case.

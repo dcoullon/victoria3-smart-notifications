@@ -168,6 +168,14 @@
  notification_smart_notifications_diplomatic_action_targeting_player_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
  notification_smart_notifications_diplomatic_action_targeting_player_desc:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationDesc]"
 
+ # ADDED 2026-09-09: the routine (Increase/Decrease Relations) carve-out
+ # from the group above -- same full accurate text, just feed instead of
+ # toast (see 06_smart_notifications_diplomatic_action_filtering.txt).
+ smart_notifications_diplomatic_action_targeting_player_routine_group:0 "(SN) Diplomatic Action, Targeting You (Routine)"
+ notification_smart_notifications_diplomatic_action_targeting_player_routine_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_targeting_player_routine_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplomatic_action_targeting_player_routine_desc$"
+ notification_smart_notifications_diplomatic_action_targeting_player_routine_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
+ notification_smart_notifications_diplomatic_action_targeting_player_routine_desc:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationDesc]"
+
  # Amendment-repealable alert (see 01_smart_notifications_alerts.txt).
  #
  # CORRECTED 2026-09-06: an alert has TWO separate name-shaped loc keys, not
