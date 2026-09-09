@@ -2835,3 +2835,10 @@ gui/message_settings.gui directly and confirmed our actual tab is a
 genuinely new fourth one labeled "Watchlist"
 (SMART_NOTIFICATIONS_WATCHLIST_TAB). Fixed both loc entries before
 shipping either.
+
+
+## Startup message shortened (2026-09-09)
+
+User: too long. Cut from 3 sentences down to 1: "Great powers and
+neighbors are already on your Watchlist. Adjust it anytime in Message
+Settings (bell icon) > Watchlist."

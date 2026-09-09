@@ -1,7 +1,7 @@
 ﻿l_english:
  notification_smart_notifications_mod_loaded_tooltip:0 "#header $notification_smart_notifications_mod_loaded_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_mod_loaded_desc$"
  notification_smart_notifications_mod_loaded_name:0 "Smart Notifications active"
- notification_smart_notifications_mod_loaded_desc:0 "This mod is loaded and its notification changes are in effect. A few countries are already flagged as watched (great powers and your neighbors) -- open Message Settings (bell icon) and go to the Watchlist tab to add or remove any. You can mute this message from the same screen."
+ notification_smart_notifications_mod_loaded_desc:0 "Great powers and neighbors are already on your Watchlist. Adjust it anytime in Message Settings (bell icon) > Watchlist."
  smart_notifications_mod_loaded_group:0 "Smart Notifications Mod"
 
  # New Message Settings categories created by splitting a vanilla group so
