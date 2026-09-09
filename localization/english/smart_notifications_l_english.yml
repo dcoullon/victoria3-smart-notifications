@@ -162,7 +162,7 @@
  alert_smart_notifications_amendment_repealable_alert_name:0 "(SN) Amendment Repeal Available"
  alert_smart_notifications_amendment_repealable_alert_desc:0 "At least one amendment on one of our active laws can now be repealed without contesting a new enactment vote."
  alert_smart_notifications_amendment_repealable_alert_hint:0 "Open the Politics screen's Laws tab, find the active law with the repealable amendment, and repeal it without needing to win a full re-enactment vote."
- alert_smart_notifications_amendment_repealable_alert_action:0 "Open Politics"
+ alert_smart_notifications_amendment_repealable_alert_action:0 "Politics Panel"
  smart_notifications_amendment_repealable_alert_setting_name:0 "(SN) Amendment Repeal Available"
 
  # Agitator invite alert (see common/alert_types/01_smart_notifications_alerts.txt
@@ -172,7 +172,7 @@
  alert_smart_notifications_agitator_invite_available_alert_name:0 "(SN) Agitator Invite Available"
  alert_smart_notifications_agitator_invite_available_alert_desc:0 "We have an open agitator slot and at least one exiled agitator eligible to invite."
  alert_smart_notifications_agitator_invite_available_alert_hint:0 "Open the exile pool from the Politics screen and use Invite Exile to bring an eligible agitator into an open slot."
- alert_smart_notifications_agitator_invite_available_alert_action:0 "Open Politics"
+ alert_smart_notifications_agitator_invite_available_alert_action:0 "Politics Panel"
  smart_notifications_agitator_invite_available_alert_setting_name:0 "(SN) Agitator Invite Available"
 
  # Taxation deficit alert (see common/alert_types/01_smart_notifications_alerts.txt
@@ -226,15 +226,25 @@
  # "build a list via a scripted GUI's custom_tooltip calls, then render it
  # live with ExecuteTooltip" technique from
  # common/scripted_guis/scripted_guis.md -- evaluated fresh every time the
- # tooltip renders, no staleness. UNCONFIRMED: `THIS.GetNameNoFormatting`
- # from a `law`-scoped THIS inside custom_tooltip -- the toggle SGUI's own
- # debug_log tap failed with this exact call from law scope earlier this
- # session ("Data error in loc string"), for reasons never isolated;
- # custom_tooltip's rendering pipeline may or may not be the same one.
- # First thing to check if this alert's text renders blank or broken.
- alert_smart_notifications_law_commitment_alert_desc:0 "Ready to enact:\n[GetScriptedGui('smart_notifications_law_commitment_list_sgui').ExecuteTooltip(GuiScope.SetRoot(SCOPE.GetRootScope.MakeScope).End)]"
+ # tooltip renders, no staleness.
+ #
+ # CORRECTED 2026-09-08, confirmed live via error.log: the first version
+ # used `SCOPE.GetRootScope.MakeScope` directly, which failed outright
+ # ("Failed to convert statement for argument '0' for call
+ # 'ExecuteTooltip'" -- the whole GuiScope argument never even
+ # constructed, not a soft/blank failure). `SCOPE.GetRootScope` is a
+ # generic wrapper that always needs an explicit per-type cast chained
+ # onto it before anything else works -- exactly the same lesson already
+ # learned once this project for `THIS` vs `SCOPE.sC(...)` (see
+ # docs/engine-notes.md), just re-hit here for a different accessor.
+ # Confirmed via an exhaustive check of every vanilla
+ # `SCOPE.GetRootScope.` usage in localization/english/: every single one
+ # chains `.GetCountry` immediately afterward, with zero exceptions, even
+ # from contexts (journal entries) where root is already conceptually a
+ # country. Fixed by adding the missing `.GetCountry` cast.
+ alert_smart_notifications_law_commitment_alert_desc:0 "Ready to enact:\n[GetScriptedGui('smart_notifications_law_commitment_list_sgui').ExecuteTooltip(GuiScope.SetRoot(SCOPE.GetRootScope.GetCountry.MakeScope).End)]"
  alert_smart_notifications_law_commitment_alert_hint:0 "Open the Politics screen's Laws tab, find the listed law group, and start enacting the flagged law while the odds are in your favor."
- alert_smart_notifications_law_commitment_alert_action:0 "Open Politics"
+ alert_smart_notifications_law_commitment_alert_action:0 "Politics Panel"
  smart_notifications_law_commitment_alert_setting_name:0 "(SN) Law Ready to Enact"
 
  # Entries built by smart_notifications_law_commitment_list_sgui's

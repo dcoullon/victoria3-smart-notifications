@@ -1973,6 +1973,42 @@ string" pointing at
 (`THIS.GetGroup.GetName`) is more likely to survive even if the law name
 half doesn't, since `GetGroup` returns a different, simpler object type.
 
+## Dynamic list still not rendering — real bug, found and fixed
+
+Confirmed live via the user's screenshot: the alert's tooltip showed no
+body text at all (just the title and hint, nothing in between) — the
+whole `_desc` failed, not a partial/garbled render. `error.log` was
+explicit and pointed at the actual cause immediately: `Failed to convert
+statement for argument '0' for call 'ExecuteTooltip'` — the
+`GuiScope.SetRoot(SCOPE.GetRootScope.MakeScope)` argument itself never
+even constructed.
+
+**Root cause: the exact same mistake this project already learned once,
+just for a different accessor.** `SCOPE.GetRootScope` is a generic
+wrapper that always needs an explicit per-type cast chained onto it
+before anything else works — this mod's own
+[docs/engine-notes.md](docs/engine-notes.md) already documents this for
+`THIS` vs `SCOPE.sC(...)`, and the taxation deficit alert's own working
+loc (`SCOPE.GetRootScope.GetState.GetName`) already demonstrated the
+cast pattern for state alerts — but writing this alert's `player_country`
+version, the cast was dropped entirely rather than swapped for the
+country equivalent. Confirmed by an exhaustive check of every
+`SCOPE.GetRootScope.` usage across every vanilla `localization/english/`
+file: 100% of them chain `.GetCountry` immediately after, with zero
+exceptions, even inside journal-entry contexts where root is already
+conceptually a country. **Fixed**: `SCOPE.GetRootScope.GetCountry.MakeScope`.
+
+**Also fixed while in there**: the alert's "Click to open the Open
+Politics" wording (visible in the same screenshot) — vanilla's own
+`_action` convention is `"<Panel Name> Panel"` (confirmed:
+`alert_can_resign_alert_action:0 "Politics Panel"` and every other
+vanilla example), never `"Open <Panel Name>"`. Applied `"Politics
+Panel"` to all three of this mod's country-scoped alerts (amendment,
+agitator, law commitment) for consistency — they'd all shipped with the
+same wording mistake, just only this one had a screenshot revealing it.
+
+**Not yet re-confirmed live.**
+
 ## New notifications/alerts backlog — sized and sequenced 2026-09-08
 
 All four items below are **P1 per the user**. This is the recommended
