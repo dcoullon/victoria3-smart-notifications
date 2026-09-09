@@ -790,6 +790,35 @@ future JSON validation in this project must decode as plain `utf-8`, not
 `check_json_files_have_no_bom` now does this permanently, for every
 `.json` file in the repo, not just `metadata.json`.
 
+## Never upload the dev mod folder directly -- it bundles the whole repo
+
+Confirmed 2026-09-08 from the user's own screenshot of the Paradox
+Launcher's "Upload Mod" dialog, opened on the existing dev/test mod entry
+(`Documents/Paradox Interactive/Victoria 3/mod/smart_notifications`, the
+junction to this repo's root). The Launcher's Mod Tools package the
+ENTIRE directory a mod entry points at for upload -- there's no
+per-folder include/exclude filter in that dialog. Since the dev junction
+points at this whole repo, uploading from it would ship `tools/`,
+`docs/`, `reference/` (verbatim vanilla-file snapshots, see
+docs/distribution-guidelines.md), `.git/`, `TODO.md` (160KB+ of internal
+process history), and every other dev-only file to every subscriber.
+
+**Decision (explicitly the user's call, not assumed):** given a choice
+between (a) restructuring this repo so mod content lives in its own
+subfolder and repointing the dev junction there -- correct in principle,
+but touches every tool script's paths and dozens of path references
+across CLAUDE.md/TODO.md/this file -- versus (b) a separate packaging
+script producing a clean copy at a second, upload-only mod folder, the
+user chose (b): zero risk to the existing dev/test workflow. Implemented
+as `tools/package_release.py` (wrapped as `/package-release`) -- copies
+only `.metadata/`, `common/`, `events/`, `gui/`, `localization/`, and
+`thumbnail.png` to
+`Documents/Paradox Interactive/Victoria 3/mod/smart_notifications_release`,
+refusing to run if `validate_syntax.py` fails on the source first. The
+existing dev junction is untouched; add the release folder as its own
+separate Mod Library entry and upload from there, never from the dev
+one.
+
 ## Steam Workshop / Paradox mod policy
 
 See [distribution-guidelines.md](distribution-guidelines.md) for the full,

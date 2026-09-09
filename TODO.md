@@ -2534,3 +2534,32 @@ Verified the checker actually catches regressions, not just passes
 vacuously, by injecting each of the three confirmed-real historical bugs
 into a scratch copy and confirming a FAIL with the right message for
 each, before trusting it clean on the real repo.
+
+
+## Launcher bundles the whole mod folder on upload -- fixed with a packaging script (2026-09-08)
+
+User's own screenshot of the Paradox Launcher's Upload Mod dialog,
+opened on the existing dev/test entry (the junction to this repo's
+root), confirmed it: the Launcher packages the ENTIRE target directory
+for upload, no include/exclude filter. Uploading straight from the dev
+junction would ship tools/, docs/, reference/, .git/, TODO.md and every
+other dev-only file to subscribers.
+
+Given a choice between restructuring this repo (mod content into its own
+subfolder, repoint the junction -- correct in principle but touches
+every tool script's paths and dozens of references across
+CLAUDE.md/TODO.md/engine-notes.md) versus a separate packaging script
+(zero risk to the existing dev/test workflow), the user chose the
+packaging script. Added `tools/package_release.py` (wrapped as
+`/package-release`): copies only `.metadata/`, `common/`, `events/`,
+`gui/`, `localization/`, `thumbnail.png` to a SEPARATE mod folder,
+`smart_notifications_release`, refusing to run if `validate_syntax.py`
+fails on the source first. The existing dev junction/entry is completely
+untouched. Verified the output contains exactly those 5 folders and
+nothing else, and ran it for real against the actual Documents mod
+folder so `smart_notifications_release` is ready to add as its own
+Mod Library entry.
+
+Still blocking before any actual upload: `thumbnail.png` doesn't exist
+yet (see STORE_ASSETS_GUIDE.md) -- the packaging script picks it up
+automatically from the repo root once it does.

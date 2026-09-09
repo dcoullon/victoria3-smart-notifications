@@ -8,10 +8,27 @@ an actual play session with the mod's junction active (see
 of these can be captured any time the game is running with the mod
 enabled in the launcher's playset).
 
+## Before uploading: package a clean copy, don't upload the dev folder
+
+The dev junction (`Documents\Paradox Interactive\Victoria 3\mod\smart_notifications`)
+points at this whole repo — uploading from it directly would bundle
+`tools/`, `docs/`, `reference/`, `.git/`, and every internal doc to
+subscribers, since the Paradox Launcher packages the entire target
+directory with no include/exclude filter. Run `python tools/package_release.py`
+first (or `/package-release`) — it builds a clean copy (just
+`.metadata/`, `common/`, `events/`, `gui/`, `localization/`,
+`thumbnail.png`) at a *separate* mod folder,
+`smart_notifications_release`, alongside the dev one. Add that as its own
+entry in the launcher's Mod Library and upload from there — the dev
+entry stays untouched and keeps reflecting live edits for testing. See
+docs/engine-notes.md § Never upload the dev mod folder directly.
+
 ## Blocking: thumbnail.png
 
-**Not currently present — this blocks upload.** The Paradox launcher-v2
-mod format expects a `thumbnail.png` at the mod's root (confirmed by
+**Not currently present — this blocks upload.** Drop it at this repo's
+root (`tools/package_release.py` will pick it up automatically from
+there). The Paradox launcher-v2 mod format expects a `thumbnail.png` at
+the mod's root (confirmed by
 convention from the game's own DLC descriptors, e.g.
 `game/dlc/dlc001_preorder/dlc001_preorder.dlc.json`'s `"thumbnailPath":
 "thumbnail.png"` key — mods follow the same pattern). Exact accepted
