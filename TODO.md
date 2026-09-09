@@ -3303,4 +3303,27 @@ a new feed-tier message,
 text as the toast version -- just not interrupting. Everything else
 targeting the player (rivalry, subjugation, embargo, autonomy changes,
 alliance offers, ...) still toasts, since `has_diplomatic_pact` only
-matches those two specific types. NOT YET LIVE-TESTED.
+matches those two specific types.
+
+
+## Routine-relations demotion narrowed: only applies to an unwatched actor (2026-09-09)
+
+User clarified the rule further: the routine-relations-targeting-player
+demotion should only kick in when the ACTOR isn't on the watchlist --
+"if it's an important notification type (like start a diplo play)
+targeting you it should toast regardless of the country being in the
+watchlist." A watched country's action against you is worth knowing
+even when it's "only" a relations change, precisely because you're
+tracking that country specifically -- the demotion was only ever meant
+for the "random unwatched minor doing something routine" case. Added
+`scope:actor ?= { NOT = { smart_notifications_is_watched = yes } }` to
+the existing has_diplomatic_pact check in
+06_smart_notifications_diplomatic_action_filtering.txt, so a watched
+actor always falls through to the full toast regardless of action type.
+
+Noted for the user but didn't need a code change: Diplomatic Plays
+(their "start a diplo play" example) were never actually routed through
+this file at all -- they fire through a completely separate on_action,
+already elevated appropriately from earlier phases, so they were never
+affected by any of this session's demotions either way. NOT YET
+LIVE-TESTED.

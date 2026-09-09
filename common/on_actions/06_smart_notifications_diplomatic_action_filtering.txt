@@ -151,9 +151,22 @@ smart_notifications_diplomatic_action = {
 			# `is_initiator = yes` on the check ties it to THIS actor
 			# specifically, not just any pre-existing pact of that type
 			# between the two countries from some unrelated earlier event.
+			#
+			# REFINED AGAIN 2026-09-09, same day: user clarified the
+			# routine-demotion should only apply when the ACTOR isn't
+			# watched -- a watched country's action against you is worth
+			# knowing about even if it's "only" a relations change,
+			# precisely because you're tracking that country specifically.
+			# The demotion is for the "random unwatched minor doing
+			# something routine" case only. (Diplomatic Plays, the user's
+			# other example of an "important" type, were never actually
+			# affected by this file at all -- those fire through a
+			# completely separate, already-elevated on_action from earlier
+			# phases, so they're unaffected either way.)
 			if = {
 				limit = {
 					scope:actor ?= {
+						NOT = { smart_notifications_is_watched = yes }
 						OR = {
 							has_diplomatic_pact = { who = scope:recipient type = increase_relations is_initiator = yes }
 							has_diplomatic_pact = { who = scope:recipient type = damage_relations is_initiator = yes }
