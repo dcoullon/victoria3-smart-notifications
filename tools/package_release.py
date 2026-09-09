@@ -105,12 +105,37 @@ def package(out_dir: Path):
             continue
         dst = out_dir / name
         try:
-            if dst.exists():
-                if dst.is_dir():
-                    shutil.rmtree(dst)
-                else:
-                    dst.unlink()
-            shutil.move(str(src), str(dst))
+            if not dst.exists():
+                shutil.move(str(src), str(dst))
+            elif dst.is_dir():
+                # Merge/overwrite into the EXISTING directory rather than
+                # deleting it first -- confirmed real 2026-09-09: an empty
+                # directory can be held by a transient handle (Windows
+                # Search Indexer watching Documents for changes is the
+                # common cause) that blocks rmdir/rmtree even with no
+                # game/launcher running and no file inside actually
+                # locked. dirs_exist_ok=True never needs to remove the
+                # container, only write into it, sidestepping the whole
+                # class of problem.
+                shutil.copytree(src, dst, dirs_exist_ok=True)
+                # Remove stale files/subdirs that exist in dst but not in
+                # the freshly staged src (best-effort; a locked stale item
+                # left behind harmlessly doesn't affect what the game
+                # loads, so this never raises).
+                src_names = {p.name for p in src.iterdir()}
+                for existing in dst.iterdir():
+                    if existing.name not in src_names:
+                        try:
+                            if existing.is_dir():
+                                shutil.rmtree(existing)
+                            else:
+                                existing.unlink()
+                        except PermissionError:
+                            pass
+                shutil.rmtree(src, ignore_errors=True)
+            else:
+                dst.unlink()
+                shutil.move(str(src), str(dst))
         except PermissionError as e:
             failed.append((name, str(e.filename)))
 
