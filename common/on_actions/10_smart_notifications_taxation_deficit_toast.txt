@@ -44,22 +44,32 @@
 # one failed, not a tweak of the same approach.
 #
 # CAP, ACTUAL FIX: `ordered_scope_state` (confirmed real,
-# script_docs effects.log, same iterator family used by vanilla's own
-# common/scripted_effects/00_victoria_ip4_scripted_effects.txt for
-# picking states) has SELECT-THEN-ACT semantics BY DESIGN -- it picks its
-# `max`-capped subset of matching states FIRST (limit-filtered, before
-# any effect in its body runs for ANY of them), then runs the effect body
-# for exactly that subset. This sidesteps the specific mid-loop-mutation-
-# visibility bug above entirely: `max` is an engine-enforced cap on the
-# selection itself, not something computed by watching side effects
-# accumulate turn-by-turn inside the loop.
+# script_docs effects.log) has SELECT-THEN-ACT semantics BY DESIGN -- it
+# picks its `max`-capped subset of matching states FIRST (limit-filtered,
+# before any effect in its body runs for ANY of them), then runs the
+# effect body for exactly that subset. This sidesteps the specific
+# mid-loop-mutation-visibility bug above entirely: `max` is an
+# engine-enforced cap on the selection itself, not something computed by
+# watching side effects accumulate turn-by-turn inside the loop.
 #
-# `order_by` has no meaningful criterion available here (tax_capacity/
-# tax_capacity_usage are confirmed comparison-only, not extractable as a
-# raw number -- same limitation as the law alert's success/stall values,
-# see docs/engine-notes.md "Success-vs-stall comparisons have no numeric
-# form"). Uses a flat literal (order_by = 1, every candidate tied) since
-# WHICH 3 states get picked doesn't matter, only that no more than 3 do.
+# NOT JUST REASONED, CONFIRMED BY A REAL VANILLA EXAMPLE doing the exact
+# same thing: common/on_actions/00_on_actions_monthly.txt's exile-pool
+# culling on_action uses `ordered_character_in_exile_pool` with a
+# computed `max` and a SINGLE effect line (`retire_character = yes`)
+# applied to the whole selected batch -- direct proof this mechanism
+# really does run its effect body against N selected entities, not just
+# one, which is the core assumption this whole fix depends on. That same
+# vanilla example also fixed the `order_by` syntax used here: it uses a
+# nested script_value block (`order_by = { value = popularity multiply =
+# -1 }`), not a bare literal -- an earlier version of this file used
+# `order_by = 1` (untested, no vanilla precedent found for a bare
+# literal there), now corrected to `order_by = { value = 1 }` to match
+# the confirmed-real shape exactly, even though the actual ranking value
+# doesn't matter here (every candidate ties; there's no real ranking
+# criterion available -- tax_capacity/usage are comparison-only, same
+# limitation as the law alert's success/stall values, see
+# docs/engine-notes.md "Success-vs-stall comparisons have no numeric
+# form").
 #
 # KNOWN IMPRECISION, disclosed rather than hidden: this checks the
 # currently-active count ONCE per pulse (`NOT variable_list_size >= 3`,
@@ -69,12 +79,17 @@
 # push the total to 4 or 5, not hold it at a strict 3. This is NOT the
 # reported problem (many states going into deficit simultaneously,
 # starting from 0 active) -- for that case (0 already active, gate
-# passes, up to 3 new ones fire) this is exactly correct. A fully precise
-# cap would need `max` to be a computed `3 - <current count>` script
-# value; not attempted here since no confirmed-real vanilla precedent for
-# reading variable_list_size as a raw number (as opposed to a
-# >=/<=-comparison trigger) was found, and guessing at that specific
-# syntax is exactly the mistake being corrected in this same file already.
+# passes, up to 3 new ones fire) this is exactly correct.
+#
+# DIAGNOSTICS: every debug_log below now includes
+# `[TimeKeeper.GetCurrentDate.GetString]` (confirmed real, used
+# throughout vanilla's own loc, e.g. CLOCK_TEXT in interfaces_l_english.yml)
+# so a repeat of the exact original bug (many fires at once) is instantly
+# visible by date, not just by log-line count -- and an unconditional
+# per-pulse `SNW_TAX_TOAST|pulse|...|gate=open/blocked` line was added so
+# a failure, if one still happens, is immediately diagnosable as
+# "outer gate" vs "ordered_scope_state selection" without another round
+# of investigation.
 on_monthly_pulse_country = {
 	on_actions = {
 		smart_notifications_taxation_deficit_toast_check
@@ -83,6 +98,21 @@ on_monthly_pulse_country = {
 
 smart_notifications_taxation_deficit_toast_check = {
 	effect = {
+		if = {
+			limit = { is_player = yes }
+			if = {
+				limit = {
+					variable_list_size = {
+						name = smart_notifications_notified_deficit_states
+						target >= 3
+					}
+				}
+				debug_log = "SNW_TAX_TOAST|pulse|date=[TimeKeeper.GetCurrentDate.GetString]|gate=blocked_already_3_active"
+			}
+			else = {
+				debug_log = "SNW_TAX_TOAST|pulse|date=[TimeKeeper.GetCurrentDate.GetString]|gate=open"
+			}
+		}
 		if = {
 			limit = {
 				is_player = yes
@@ -104,7 +134,7 @@ smart_notifications_taxation_deficit_toast_check = {
 						}
 					}
 				}
-				order_by = 1
+				order_by = { value = 1 }
 				max = 3
 				check_range_bounds = no
 				THIS.owner = {
@@ -115,7 +145,7 @@ smart_notifications_taxation_deficit_toast_check = {
 					prev = {
 						post_notification = smart_notifications_taxation_deficit_toast
 					}
-					debug_log = "SNW_TAX_TOAST|fired"
+					debug_log = "SNW_TAX_TOAST|fired|date=[TimeKeeper.GetCurrentDate.GetString]"
 				}
 			}
 		}
@@ -142,7 +172,7 @@ smart_notifications_taxation_deficit_toast_check = {
 							name = smart_notifications_notified_deficit_states
 							target = prev
 						}
-						debug_log = "SNW_TAX_TOAST|reset"
+						debug_log = "SNW_TAX_TOAST|reset|date=[TimeKeeper.GetCurrentDate.GetString]"
 					}
 				}
 			}

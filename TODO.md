@@ -2908,3 +2908,26 @@ guessing at that syntax is exactly the mistake being corrected here.
 STILL NOT LIVE-CONFIRMED. Next test: count `SNW_TAX_TOAST|fired` lines
 in debug.log after a fresh China-style start with many simultaneous
 deficits -- should be <= 3, not 15+.
+
+
+## Taxation toast cap: upgraded with confirmed vanilla precedent, not just reasoning (2026-09-09)
+
+User: "are you sure?" then "do what it takes so we don't do more than 1
+or 2 back and forths." Went and found actual proof rather than just
+re-asserting confidence: common/on_actions/00_on_actions_monthly.txt's
+exile-pool culling on_action uses `ordered_character_in_exile_pool` with
+a computed `max` and ONE effect line applied to the whole selected
+batch -- direct, real vanilla confirmation that ordered_X + max really
+does run its effect body against N selected entities, the core
+assumption the whole fix depends on. That same example also exposed a
+real gap: `order_by` needs a nested script_value block
+(`order_by = { value = ... }`), not the bare literal (`order_by = 1`)
+the previous version used with no vanilla precedent found for that
+specific form -- fixed to match the confirmed shape exactly.
+
+Also added `[TimeKeeper.GetCurrentDate.GetString]` (confirmed real,
+used throughout vanilla's own loc) to every debug_log line, and an
+unconditional per-pulse `gate=open/blocked` log, so if this somehow
+still fails, the log alone tells us whether the outer gate or the
+ordered_scope_state selection is the broken half -- no more blind
+re-guessing rounds needed.
