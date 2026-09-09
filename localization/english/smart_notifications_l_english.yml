@@ -878,3 +878,13 @@ $TOOLTIP_DELIMITER$
 $notification_smart_notifications_watchlist_empty_prompt_desc$"
  notification_smart_notifications_watchlist_empty_prompt_name:0 "Your Watchlist is Empty"
  notification_smart_notifications_watchlist_empty_prompt_desc:0 "You have no countries flagged as watched, so diplomatic plays and wars involving other countries will stay quiet in the feed. Open Message Settings (bell icon) and go to the Watchlist tab to flag the ones you care about."
+
+ # TEMPORARY test override, 2026-09-09 -- see
+ # common/messages/99_smart_notifications_redefinition_test.txt. Loc
+ # overrides work by simple last-loaded-file-wins per key (a separate,
+ # well-established mechanism from the common/messages/ script question
+ # actually being tested) -- used here just to make the result
+ # unmistakable if it fires, per the user's own suggestion. Delete both
+ # this and the test file together once the result is observed.
+ notification_country_attitude_improved_name:0 "THIS IS THE TOAST YOU WANTED"
+ notification_country_attitude_improved_desc:0 "If you see this text, the common/messages/ cross-file redefinition test worked -- [SCOPE.GetRootScope.GetCountry.GetNameNoFormatting]'s attitude improved, and this file's popup won over 00_messages.txt's mute."
