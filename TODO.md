@@ -2009,6 +2009,46 @@ same wording mistake, just only this one had a screenshot revealing it.
 
 **Not yet re-confirmed live.**
 
+## Law name still blank — real bug #4, found and fixed
+
+`error.log`: "Promote 'GetScriptedGui' returned nullptr" — the scripted
+GUI wasn't found AT ALL, not a rendering/cast problem this time. Root
+cause: `smart_notifications_law_commitment_list_sgui` was defined inside
+`common/alert_types/01_smart_notifications_alerts.txt` — the only
+scripted_gui in this whole mod NOT placed in `common/scripted_guis/`.
+The engine only scans that dedicated folder for scripted_gui
+definitions. Fixed by moving it, unchanged otherwise, to
+[common/scripted_guis/smart_notifications_law_commitment_list_sgui.txt](common/scripted_guis/smart_notifications_law_commitment_list_sgui.txt).
+**Not yet re-confirmed live.**
+
+## Alert won't re-fire after dismissal — likely a real engine constraint, not a bug
+
+Reported same session: once the player dismisses (X's) the alert, a
+different law becoming ready afterward doesn't bring it back. No
+`error.log` evidence of a script fault here. Checked
+`common/defines/00_interfaces.txt` for a dismiss-cooldown/mute define —
+none exists, meaning this is native, unexposed client-side state, not
+something a definable value controls.
+
+**Working theory**: `important_action` dismissal is almost certainly
+edge-triggered on the alert's own `valid` going false→true, not
+per-list-item — reasonable default for a persistent icon, but a real
+mismatch for this alert's design, where ONE alert instance's underlying
+condition can stay continuously true (some law is always ready) while
+WHICH law changes underneath it. Since there's no `player_law`
+script_context (confirmed earlier this session), there's no way to give
+each law its own independently-dismissible alert instance.
+
+**Not fixed yet** — this needs a design call before spending more
+implementation effort: accept the current behavior, or add a
+SEPARATE one-time toast/message (fired via an edge-detecting on_action,
+similar to the truce tracker) so a newly-ready law always gets a fresh
+notification regardless of whether the persistent alert is currently
+dismissed. The latter would roughly double the size of the already-large
+generated law-tracking files (needs its own per-law-type "was ready last
+check" variable set) — worth confirming that's wanted before building it
+blind.
+
 ## Process fix: mistake patterns now caught mechanically, not by memory
 
 Per the user, directly: "how do we prevent you from doing the same

@@ -1,0 +1,59 @@
+﻿# Smart Notifications mod: dynamic tooltip list builder for
+# smart_notifications_law_commitment_alert
+# (common/alert_types/01_smart_notifications_alerts.txt). ADDED 2026-09-08
+# per the user (originally shipped with static text; the user asked for
+# the specific law name and group, since clicking the alert alone doesn't
+# highlight anything -- see that alert's own open_panel comment for why a
+# direct link isn't possible).
+#
+# MOVED here from common/alert_types/01_smart_notifications_alerts.txt
+# 2026-09-08, same day, after the law name showed up blank live and
+# error.log gave an unambiguous reason: "Promote 'GetScriptedGui' returned
+# nullptr" -- the SGUI wasn't found AT ALL when `ExecuteTooltip` looked it
+# up, despite parsing fine (validate_syntax.py passed) and despite
+# `.Execute()`/`.IsValid()` working fine for every OTHER scripted_gui this
+# mod ships. The one structural difference: every other one lives in
+# common/scripted_guis/, and this was the only scripted_gui definition
+# ever placed in common/alert_types/ instead. Confirmed real: the engine
+# only scans common/scripted_guis/ for scripted_gui definitions, not
+# arbitrary other common/ subfolders -- moving it here with no other
+# change is the fix.
+#
+# Real, documented vanilla technique (scripted_guis.md "Using SGUIs to
+# build lists in loc"): a scripted GUI's `effect` can call
+# `custom_tooltip = "LOC_KEY"` once per matching item, and a loc string
+# elsewhere can render the whole built list live via
+# `[GetScriptedGui('key').ExecuteTooltip(GuiScope.SetRoot(...).End)]` --
+# evaluated fresh every time the tooltip renders, not baked into a slow-
+# updating variable, so there's no staleness/lag concern the way a
+# monthly-pulse-computed value would have.
+smart_notifications_law_commitment_list_sgui = {
+	scope = country
+
+	effect = {
+		if = {
+			limit = {
+				any_law = {
+					smart_notifications_law_matches_wanted_flag = yes
+					can_be_enacted = yes
+					smart_notifications_law_ready_to_enact = yes
+				}
+			}
+			every_law = {
+				limit = {
+					smart_notifications_law_matches_wanted_flag = yes
+					can_be_enacted = yes
+					smart_notifications_law_ready_to_enact = yes
+				}
+				custom_tooltip = "smart_notifications_law_commitment_list_entry"
+			}
+		}
+		else = {
+			custom_tooltip = "smart_notifications_law_commitment_list_empty"
+		}
+	}
+
+	# Per CLAUDE.md: scripted GUIs must never be available to the AI.
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
