@@ -23,89 +23,82 @@ of what actually shipped in each version, see [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
-## KNOWN LIMITATION: relations-change toasts can't be quieted by action type (2026-09-09)
+## IN FLIGHT: the toast rule, restated by the user, and how it's being built (2026-09-09)
 
-Kept at the top of this file on purpose — it's the one thing we tried to
-build, twice, that the engine does not allow, and it's easy to forget
-that and try a third time.
+Kept at the top of this file because it's the mod's core rule and it took
+three attempts to state and build correctly.
 
-### What's missing
+### The rule, in the user's own words
 
-When another country improves or damages relations with you, you get a
-toast. That's the single most common diplomatic action in the game, and
-it's usually not worth interrupting you for — a random minor nudging
-relations with you is very different news from a rival declaring an
-embargo. The goal was: **relations changes aimed at you drop to the feed;
-everything else aimed at you keeps toasting.**
+> The spirit of the country selector is that toasts should contain all
+> important actions towards you or involving a watched country, and only
+> that.
 
-Right now every diplomatic action aimed at you toasts equally. That's
-deliberate, not an oversight — see below.
+Which resolves to a two-axis matrix:
 
-### Why we can't do that yet
+| | aimed at you / a watched country | aimed at anyone else |
+|---|---|---|
+| **important action** | **toast** | feed |
+| **routine action** (relations changes) | feed | feed |
 
-To pick a notification's tier we have to know *what kind of action it
-was*, at the moment the notification is posted. The engine won't tell us,
-and this is now confirmed by live test rather than assumed:
+With one deliberate exception, confirmed with the user: a **watched**
+country improving/damaging relations *with you* still toasts. Being
+watched outranks the action being routine — you're tracking that country
+specifically. "Important" includes diplomatic play starts (which are
+unaffected here; they fire through their own already-elevated on_action).
 
-1. **The action's own object is a dead end.** Our code runs on
-   `on_diplomatic_action`, whose root object is the diplomatic action
-   itself. The game's own generated script documentation lists **zero
-   triggers and zero effects** that work on that scope, and no way to
-   navigate from it to anything else. The debug scope dump prints
-   `Root: Diplo action Improve Relations` — the object knows exactly what
-   it is, and script has no way to ask it.
-2. **The pact it creates doesn't exist yet.** The obvious workaround was
-   to check whether the acting country now holds an "improve relations"
-   pact with us. That check is real and works — just not yet at that
-   instant. Tested three times over: Nawanagar took Improve Relations on
-   us on 17 Jan 1836; at the moment the notification fired, a full walk
-   of Nawanagar's own pact list found no relations pact at all. One month
-   later, the exact same check returned yes. Tibet and Selangor
-   reproduced it. The pact is created *just after* our code runs, and
-   there's no un-toasting a notification after the fact.
-3. **The only things in scope are countries.** `actor`, `recipient`,
-   `notification_target` — all countries, none of them carrying the
-   action type.
+### What was wrong before
 
-So the tier has to be chosen at a moment when the type is unknowable.
-Not a bug we can fix; a genuine ordering constraint in the engine. Full
-technical write-up: `docs/engine-notes.md` § *The pact for a diplomatic
-action does not exist yet*.
+Two separate bugs, both now fixed in
+`06_smart_notifications_diplomatic_action_filtering.txt`:
 
-### What we could do instead
+1. **Actor and recipient were OR'd together.** A watched great power
+   *acting on* an unrelated minor was treated identically to a watched
+   country *being acted on*. The rule says those are opposite cases. This
+   also re-diagnoses the v0.37 spam report — all 13 sampled fires were
+   the first kind, so muting the entire watched path (as v0.37 did)
+   treated the symptom and silenced the actions this mod exists to
+   surface. Reversed; the split is the real fix, and it needed no new
+   engine capability at all, just reading the two scopes separately.
+2. **Action importance was inferred after the fact.** See below.
 
-Three options, in rough order of how much they cost:
+### Why importance needed an unusual solution
 
-- **Filter on the actor instead of the action** *(cheap, available
-  today)*. We can't ask "was this a relations change?" but we can ask
-  plenty about who did it — their rank, whether they're diplomatically
-  relevant to us, whether they're decentralized. "An unwatched
-  insignificant minor did something to you" would go to the feed;
-  everyone else keeps toasting. **The trade-off is the honest catch:** a
-  minor declaring a rivalry on you would get quieted too, since we'd be
-  judging the sender, not the message. Needs a product call from the
-  user, which is why it isn't built.
-- **Delay our own notification by a tick** *(medium cost, real
-  downside)*. If we post on the next daily pulse instead of immediately,
-  the pact exists and the type is readable. But the notification's text
-  (`GetActionNotificationDesc` and friends) resolves against the
-  notification's own scopes, which we'd no longer have — so we'd trade
-  the specific, accurate wording won in v0.36 for a generic one. Worse
-  overall, unless someone finds a way to carry the text across.
-- **Wait for Paradox.** If a future patch exposes a trigger on
-  `diplomatic_action` scope, or binds the pact before the on_action
-  fires, option 1 in the "why not" list above stops being a dead end and
-  this becomes a five-line change. Worth re-checking the generated
-  `triggers.log` after a major patch.
+At the instant `on_diplomatic_action` fires, the engine offers no way to
+ask what kind of action it was: zero triggers and zero effects work on
+`diplomatic_action` scope, and the pact the action creates does not exist
+yet (proven three times over — `docs/engine-notes.md` § *The pact for a
+diplomatic action does not exist yet*).
 
-### What was actually tried (so it isn't repeated)
+So we stopped asking. The mod now **overrides
+`common/diplomatic_actions/00_relations_actions.txt`** and has each action
+flag its own target from inside its own definition, where its identity was
+never in doubt. Vanilla defines exactly `increase_relations` and
+`damage_relations` in that file and nothing else, so the override's blast
+radius is precisely the pair we care about.
 
-`has_diplomatic_pact = { who = scope:recipient type =
-increase_relations/damage_relations }` from `scope:actor`, with and
-without `is_initiator` — all four combinations, 11 real firings, all
-returned no, for the timing reason above. Reverted in full;
-the dead `..._targeting_player_routine` message key, group and loc are
-deleted. Nothing shipped to players, since it never worked.
+### Open risks on this approach — NOT YET LIVE-TESTED
+
+- **The `effect = {}` block is documented but unproven.** It's in the
+  game's own `diplomatic_action.md` schema, and **zero** vanilla
+  diplomatic actions use one. Unknown until a live run: whether it fires
+  at all, and whether it fires *before* the notification (required) or
+  after (useless as written). Both instrumented via `SNW_ROUTINE_FLAG` /
+  `SNW_ROUTINE_READ`, whose order in `debug.log` answers it.
+- **A parse failure here is not cosmetic.** If `effect` turns out not to
+  be a valid key in this file, the file may fail to load and take
+  Improve/Damage Relations with it. First thing to check in a test:
+  those two actions still exist in the diplomacy UI.
+- **Maintenance:** this file will conflict with any other mod overriding
+  it, and can drift silently when Paradox patches vanilla. Re-diff
+  against `reference/vanilla` on each game update.
+
+### If the effect block turns out not to work
+
+Fall back to filtering on the **actor** rather than the action — rank,
+`has_diplomatic_relevance`, country type are all readable at that instant.
+Cruder (it would quiet a minor's rivalry declaration too), but it needs no
+override and no new engine behaviour.
 
 ## Phase 0 — Bootstrap Verification (target: v0.1.0)
 
