@@ -2894,6 +2894,36 @@ this exact bug class fails the build automatically from now on
 (confirmed it catches the original bug by re-injecting it and reverting).
 
 
+## Found and fixed a real silent-notification regression from the above (2026-09-09)
+
+User asked a sharp follow-up: "if these countries were in our watchlist,
+we should get the toast notification for that, no?" That's what exposed
+an actual bug, on top of the wrong-claim correction above. Two fixes
+made earlier the SAME DAY interacted badly:
+
+- 12:20 (`ae81158`): suppressed our own
+  `smart_notifications_diplomatic_action_watched` notification whenever
+  `scope:recipient` was the player, on the (wrong, since-corrected)
+  belief vanilla's own popup was a separate unfilterable mechanism that
+  would "stand alone."
+- 14:28 (`03eaf5d`): fixed the mixed-notification-types bug, which (per
+  the game.log timestamp evidence already documented above) was the
+  actual reason vanilla's *muted* `diplomatic_action_notification` had
+  been leaking through as a toast up to that point.
+
+Once the second fix actually closed that leak, the first fix's
+assumption ("vanilla's popup will still show") stopped being true --
+net result: a diplomatic action targeting the player directly now
+produced NO toast at all, from either side. Fixed in
+common/on_actions/06_smart_notifications_diplomatic_action_filtering.txt
+by removing the player-recipient suppression branch entirely -- it was
+redundant as well as wrong, since `smart_notifications_is_watched`
+already includes `is_player = yes`
+(common/scripted_triggers/00_smart_notifications_triggers.txt), so the
+normal watched-check elevates a player-targeted action on its own with
+no special case needed. NOT YET LIVE-TESTED.
+
+
 ## Taxation toast cap: first attempt CONFIRMED BROKEN, rebuilt on a different mechanism (2026-09-09)
 
 User: cap didn't work, still got ~15/30 toasts. Checked the actual

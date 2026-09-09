@@ -52,26 +52,36 @@
 # same thing" plus "our own content is useless" for a Junagadh -> Great
 # Qing diplomatic action. Root-caused via error.log/debug.log rather than
 # guessing: confirmed `smart_notifications_diplomatic_action_watched`
-# fired exactly once (no duplicate bug in OUR code), and confirmed the
-# second popup is vanilla's own per-action-type notification (e.g.
-# `increase_relations_action_notification_desc`,
-# localization/english/diplomacy_l_english.yml) -- checked ALL such keys
-# in that file and every one is written from the RECIPIENT's own
-# perspective (`GetPlayer`/"us"/"we" throughout) and is NOT a
-# common/messages/ entry at all (grepped both vanilla's and our own copy,
-# zero matches) -- it's fired by a separate, hardcoded, non-message-
-# system mechanism, confirmed unfilterable by any mod. Since this native
-# popup only exists/fires when the action targets the PLAYER specifically
-# (never for a third party watching two other countries interact), our
-# own generic notification is 100% redundant, strictly-worse-worded noise
-# in exactly that one case -- and that's precisely the case the user hit
-# (Junagadh's action targeted Great Qing, the player). Fixed by
-# suppressing our own notification entirely when `scope:recipient` is the
-# player, letting vanilla's specific, informative popup stand alone. Our
-# notification still fires for the genuinely-uncovered case: a watched
-# THIRD PARTY's diplomatic action where the player is NOT the recipient
-# (no native per-action popup exists for an observer, so this remains the
-# only signal there).
+# fired exactly once (no duplicate bug in OUR code), and (WRONGLY)
+# concluded the second popup was vanilla's own per-action-type
+# notification fired by a separate, hardcoded, unfilterable mechanism --
+# so suppressed our own notification whenever `scope:recipient` was the
+# player, on the assumption vanilla's own popup would stand alone.
+#
+# CORRECTED, same day, later (2026-09-09): that "hardcoded/unfilterable"
+# claim was wrong. The vanilla per-action-type popup
+# (`increase_relations_action_notification_name`/_desc etc.) is resolved
+# via `GetDiplomaticAction.GetActionNotificationName`, the SAME dynamic-
+# text call behind `notification_diplomatic_action_notification_name` --
+# i.e. it IS `diplomatic_action_notification`, a real common/messages/
+# key this mod already mutes (notification_type = none, see
+# common/messages/00_messages.txt). At the time this suppression was
+# added (12:20), that mute was ALSO silently broken by the (then still
+# unnoticed) mixed-notification-types bug -- diplomatic_action_notification
+# shared a group with 3 `toast` siblings, and per the exact game.log
+# timestamp evidence, that mismatch caused the "muted" message to render
+# as a toast anyway. That's what was actually showing up as the
+# "duplicate" here at the time. Once the mixed-group bug was fixed later
+# the same day (see common/messages/00_messages.txt's own comment,
+# committed 14:28), vanilla's mute started actually working -- so THIS
+# suppression branch and that now-effective mute combined into total
+# silence for the exact case that matters most (someone's diplomatic
+# action targeting the player directly). Removed the player-recipient
+# special case entirely: it's also redundant, not just wrong --
+# `smart_notifications_is_watched` already includes `is_player = yes`
+# (00_smart_notifications_triggers.txt), so the normal watched-check
+# below already elevates this case on its own, with no special-casing
+# needed. NOT YET LIVE-TESTED after this correction.
 
 on_diplomatic_action = {
 	on_actions = {
@@ -91,10 +101,6 @@ on_diplomatic_action = {
 smart_notifications_diplomatic_action = {
 	effect = {
 		if = {
-			limit = { scope:recipient ?= { is_player = yes } }
-			debug_log = "SNW_FILTER|diplomatic_action|posted_key=NONE|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|PLAYER_RECIPIENT_SUPPRESSED"
-		}
-		else_if = {
 			limit = {
 				OR = {
 					scope:actor ?= { smart_notifications_is_watched = yes }
