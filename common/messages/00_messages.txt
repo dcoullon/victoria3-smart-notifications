@@ -2251,7 +2251,13 @@ smart_notifications_diplo_play_subject_released_watched = {
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
-	notification_type = feed
+	# RAISED 2026-09-09 from `feed`: the user's call after seeing the full
+	# toast/feed/popup breakdown across all diplo-play events -- a watched
+	# country's subject being released is a small enough change to be a
+	# toast rather than a popup, but still worth a toast rather than just
+	# feed, unlike this event's unwatched sibling (still fully muted, see
+	# smart_notifications_diplo_play_subject_released_quiet below).
+	notification_type = toast
 	color = neutral
 }
 

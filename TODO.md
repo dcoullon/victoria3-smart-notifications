@@ -3325,5 +3325,49 @@ Noted for the user but didn't need a code change: Diplomatic Plays
 (their "start a diplo play" example) were never actually routed through
 this file at all -- they fire through a completely separate on_action,
 already elevated appropriately from earlier phases, so they were never
-affected by any of this session's demotions either way. NOT YET
+affected by any of this session's demotions either way.
+
+
+## Full toast/feed/popup table given to the user; Subject Released (watched) raised to toast (2026-09-09)
+
+Gave the user a complete, code-verified table of every notification tier
+across both the diplomatic-action and diplomatic-play systems (all 12
+keys). Surfaced an inconsistency worth a decision: unlike every other
+diplo-play event, `smart_notifications_diplo_play_subject_released_watched`
+was `feed`, not `toast`, even for a watched participant. User's call:
+raise it to `toast` -- "we can put to toast when watched if it's just
+changing a small setting." Changed in common/messages/00_messages.txt.
+The unwatched sibling stays `none` (fully muted), unaffected. NOT YET
 LIVE-TESTED.
+
+
+## Backlog: alliance-related notifications (2026-09-09)
+
+User, after seeing the full notification table, flagged a real gap:
+"more important notifications that may be missing, like when you lose
+an ally, or when a watched country gains/loses an ally." NOT
+implemented -- investigation only, for later:
+
+1. **You lose an ally.** Need to find the actual hook -- likely an
+   `alliance`-type diplomatic pact ending (broken/expired/dissolved).
+   Vanilla has `alliance_action_notification_group`/
+   `defensive_pact_action_notification_group` for FORMING one (confirmed
+   present in this mod's messagetypes_custom.txt dump); check whether
+   there's a corresponding "pact broken" message/on_action, similar to
+   `diplomatic_action_break_notification_group` seen in that same dump.
+   If it goes through the generic `on_diplomatic_action`-style break
+   mechanism, it may already be reachable via the same
+   `has_diplomatic_pact`-style checks used for the routine-relations
+   carve-out this session -- worth checking before assuming a new hook
+   is needed.
+2. **A watched country gains/loses an ally** (third-party case, doesn't
+   involve the player). Same underlying event as #1, just gated on the
+   Watchlist instead of `is_player`, matching the existing
+   watched/quiet pattern used everywhere else in this mod. Natural
+   candidate for the SAME on_action/message pair as #1, split into a
+   player-targeted vs watched-third-party branch the same way
+   06_smart_notifications_diplomatic_action_filtering.txt already does.
+
+Both should probably default to `toast` given the user's stated bar
+here (losing an ally is significant; a watched country's alliance
+status changing is exactly the kind of thing the Watchlist exists for).
