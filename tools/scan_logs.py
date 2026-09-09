@@ -1,0 +1,98 @@
+﻿"""
+Scan Victoria 3's own log files for lines relevant to this mod, without
+ever dumping a whole log into context (error.log/debug.log routinely run
+several hundred KB -- see CLAUDE.md's Token Budget rule).
+
+Two categories, always both scanned:
+  - This mod's own `debug_log` output (all tagged `SNW_<NAME>|...`,
+    confirmed real convention -- see `grep -rohE 'debug_log = "[A-Z_]+\\|'
+    common/`).
+  - Confirmed-real engine error signatures this project has hit before
+    (see docs/engine-notes.md) -- "Could not find data system function",
+    "Could not find promote for", "This scope doesn't support variables",
+    "Data error in loc string" -- printed regardless of tag, since a
+    genuine new engine error from this mod's own files won't carry an
+    SNW_ tag.
+
+Usage:
+    python tools/scan_logs.py                 # last 20 matches per file/category
+    python tools/scan_logs.py --lines 50       # more context per category
+    python tools/scan_logs.py --logs-dir PATH  # override the default logs dir
+
+Intended for a beta tester to run against their own log files and paste
+the (small, filtered) output when reporting an issue -- see
+STEAM_WORKSHOP_DESCRIPTION.bbcode's Issue Reporting section.
+"""
+import argparse
+import re
+from pathlib import Path
+
+DEFAULT_LOGS_DIR = Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3" / "logs"
+
+ENGINE_ERROR_PATTERNS = [
+    r"Could not find data system function",
+    r"Could not find promote for",
+    r"This scope doesn't support variables",
+    r"Data error in loc string",
+    r"Promote 'GetScriptedGui' returned nullptr",
+    r"Unknown effect",
+    r"Failed to convert statement",
+    r"should be in utf8-bom encoding",
+]
+MOD_TAG_PATTERN = r"SNW_[A-Z_]+\|"
+
+FILES_TO_SCAN = ["error.log", "debug.log"]
+
+
+def scan_file(path: Path, lines_limit: int) -> tuple[list[str], list[str]]:
+    if not path.exists():
+        return [], []
+    mod_tag_re = re.compile(MOD_TAG_PATTERN)
+    error_re = re.compile("|".join(ENGINE_ERROR_PATTERNS))
+    tagged, errors = [], []
+    with path.open(encoding="utf-8", errors="replace") as f:
+        for line in f:
+            if mod_tag_re.search(line):
+                tagged.append(line.rstrip())
+            elif error_re.search(line):
+                errors.append(line.rstrip())
+    return tagged[-lines_limit:], errors[-lines_limit:]
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--lines", type=int, default=20, help="max lines to show per file/category")
+    ap.add_argument("--logs-dir", type=Path, default=DEFAULT_LOGS_DIR)
+    args = ap.parse_args()
+
+    if not args.logs_dir.is_dir():
+        print(f"Logs directory not found: {args.logs_dir}")
+        print("Pass --logs-dir to point at your own Victoria 3/logs folder.")
+        return
+
+    for name in FILES_TO_SCAN:
+        path = args.logs_dir / name
+        tagged, errors = scan_file(path, args.lines)
+        print(f"=== {name} ===")
+        if not path.exists():
+            print("  (not found)")
+            continue
+
+        print(f"  Mod debug_log lines (SNW_*), last {len(tagged)}:")
+        if tagged:
+            for line in tagged:
+                print(f"    {line}")
+        else:
+            print("    (none found)")
+
+        print(f"  Known engine-error signatures, last {len(errors)}:")
+        if errors:
+            for line in errors:
+                print(f"    {line}")
+        else:
+            print("    (none found)")
+        print()
+
+
+if __name__ == "__main__":
+    main()

@@ -47,3 +47,4 @@ link it.
 
 - Game install: `C:\Program Files (x86)\Steam\steamapps\common\Victoria 3`
 - Distribution constraints (Steam/Paradox mod policy, download expectations): `docs/distribution-guidelines.md`.
+- To check whether something is actually working without asking the user to test again: `python tools/scan_logs.py` filters the live `error.log`/`debug.log` down to this mod's own `SNW_*` debug lines and known engine-error signatures — never dump a full log into context instead. Slash commands `/validate-mod`, `/compare-notifications`, `/scan-logs` wrap this and the other `tools/*.py` scripts for direct human use.

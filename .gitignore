@@ -1,5 +1,8 @@
-# Local Claude Code tooling config, not part of the mod itself.
-.claude/
+# Local Claude Code settings (attribution config etc.) -- not part of the
+# mod itself. .claude/skills/ is tracked deliberately (2026-09-08): those
+# wrap this repo's own tools/*.py scripts and belong with the rest of the
+# dev tooling, not treated as personal/local config.
+.claude/settings.json
 
 # Unrelated personal script that ended up in this working directory --
 # not part of the Victoria 3 mod, never intended for this repo.
