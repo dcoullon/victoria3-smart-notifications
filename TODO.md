@@ -3373,7 +3373,7 @@ here (losing an ally is significant; a watched country's alliance
 status changing is exactly the kind of thing the Watchlist exists for).
 
 
-## BUG: routine-relations demotion never actually fires (2026-09-09)
+## RESOLVED: routine-relations demotion never actually fires (2026-09-09)
 
 User: "i got toasted for relationship improvement by siam who isn't on
 my watch list." Checked debug.log across two rotated sessions --
@@ -3442,11 +3442,65 @@ in a fresh Opus 5 session (per the user's request) is at the end of this
 file.
 
 
+## RESOLUTION (2026-09-09, evening): hypothesis 1 -- timing. Feature removed.
+
+Settled by a live test with the two competing theories instrumented
+separately. **Hypothesis 1 (timing) is correct**; hypothesis 2
+(`is_initiator` semantics) and the user's own hypothesis (one-sided
+pacts never create a queryable pact object) are both ruled out.
+
+Nawanagar -> Great Qing, Improve Relations, 17 Jan 1836. At the firing
+instant all four `has_diplomatic_pact` variants said no, AND an
+`every_scope_diplomatic_pact` walk of Nawanagar's own pacts found two
+pacts of which neither was `increase_relations`. On the next monthly
+pulse the identical query returned **yes** for Nawanagar. Tibet
+(`damage_relations`) and Selangor (`increase_relations`, the action the
+user was toasted for in this test) reproduced it exactly. The pact
+object simply is not in gamestate yet when `on_diplomatic_action` runs.
+
+One-sided pacts DO create queryable pact objects -- both relations types
+showed up by name in the sweep -- so `is_two_sided_pact = no` was never
+the problem.
+
+**No replacement signal exists at that instant**, and this is now
+established rather than assumed: zero triggers and zero effects in the
+game's own script_docs support `diplomatic_action` scope, no event target
+leads out of it or into a `diplomatic_pact`, and the only bound scopes
+are `actor`, `recipient` and `notification_target` (all countries).
+`debug_log_scopes = yes` confirmed all of this in one line -- worth
+reaching for first, next time a scope's contents are in question.
+
+Reverted to a plain toast for every diplomatic action targeting the
+player, i.e. the state before the attempt, and deleted the dead
+`..._targeting_player_routine` message key, group and loc (never present
+in any tagged version, so no player ever saw it). Both temporary
+diagnostics (SNW_PACT_PROBE, SNW_PACT_SWEEP) deleted. Full write-up in
+docs/engine-notes.md § The pact for a diplomatic action does not exist
+yet, and in the header comment of
+06_smart_notifications_diplomatic_action_filtering.txt.
+
+**If the "random minor shouldn't toast like something consequential"
+complaint comes back**, the direction to take is a property of the
+ACTOR -- rank, `has_diplomatic_relevance`, country type -- all readable
+at that instant, rather than a property of the action, which is not.
+Not built: it would demote a rivalry or embargo from a minor too, which
+is a product call the user hasn't been asked yet.
+
+**One incidental bug found and NOT fixed** (out of scope, worth its own
+pass): `SNW_TAX_TOAST`'s two debug_log lines in
+10_smart_notifications_taxation_deficit_toast.txt are silently failing
+with "Data error in loc string" on `[prev.GetState.GetName]` -- lowercase
+`prev` is effect syntax, invalid in dynamic text, and `.GetName` is the
+already-documented wrong accessor. That instrumentation is currently
+blind.
+
+
 ## Handoff prompt: routine-relations demotion investigation (2026-09-09)
 
-Copy-pasted verbatim into a new session per the user's request -- see
-that session's own transcript for how it was actually resolved; update
-this note (or delete it) once closed out.
+Copy-pasted verbatim into a new session per the user's request.
+**Closed out 2026-09-09** -- see the RESOLUTION section directly above
+for the answer. Kept only as a record of what the question looked like
+before it was answered.
 
 ```
 I'm working on a Victoria 3 mod, "Smart Notifications"

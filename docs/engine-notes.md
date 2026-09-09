@@ -763,6 +763,77 @@ is to assume the function doesn't exist there and reach for a static
 `$key$` loc reference instead, which needs no scope-specific function at
 all.
 
+## The pact for a diplomatic action does not exist yet when `on_diplomatic_action` fires
+
+Confirmed 2026-09-09 with named countries in two independent instruments
+at two different times, after a feature built on the opposite assumption
+failed silently through 11 real firings.
+
+**The claim:** at the exact instant `on_diplomatic_action` runs, the
+`diplomatic_pact` object the action creates is not yet in gamestate. Any
+`has_diplomatic_pact` query made from that on_action therefore returns
+`no` for the very action that just triggered it — while returning `yes`
+normally for every pact established earlier.
+
+**The evidence.** Nawanagar took Improve Relations on the player (Great
+Qing) on 17 Jan 1836. At the firing instant:
+
+- all four `has_diplomatic_pact` variants (`increase_relations` /
+  `damage_relations`, with and without `is_initiator`) returned `no`;
+- an `every_scope_diplomatic_pact` walk of Nawanagar's *own* pact list
+  found two pacts, **neither** of type `increase_relations`.
+
+On the next monthly pulse, the identical query — `has_diplomatic_pact = {
+who = ROOT type = increase_relations is_initiator = yes }` — returned
+`yes` for Nawanagar. Tibet (`damage_relations`, 16 Jan) and Selangor
+(`increase_relations`) reproduced it exactly. Two unrelated mechanisms
+agreeing at time T+1month and both silent at time T is what makes this a
+timing finding rather than a "that trigger doesn't work" finding: **the
+query is correct, it is just asked one moment too early.**
+
+This also settles the competing theory that one-sided pacts
+(`is_two_sided_pact = no`, which both relations actions are) never create
+a queryable pact object at all. They do — `increase_relations` and
+`damage_relations` pacts both showed up in the sweep by name.
+
+### Nothing about the action is knowable at that instant
+
+Worth recording so the next attempt doesn't re-derive it. `debug_log_scopes
+= yes` at that moment prints:
+
+```
+Root: Diplo action Improve Relations (165)
+
+Saved event targets:
+actor: Country Nawanagar (415)
+recipient: Country Great Qing (156)
+notification_target: Country Great Qing (156)
+```
+
+The root object plainly knows its own type — and script still cannot ask
+it. `triggers.log` and `effects.log` between them support **zero**
+triggers and **zero** effects on `diplomatic_action` scope;
+`event_targets.log` has no target leading out of `diplomatic_action`, and
+none leading into `diplomatic_pact` from anywhere. `is_diplomatic_action_type`
+is real but documented for `diplomatic_pact` scope only, and no pact is
+reachable here. The three bound scopes are all countries.
+
+(`notification_target` was previously undocumented in this project — it
+is bound here and equals the recipient. Found by the scope dump, not by
+guessing at names; `debug_log_scopes = yes` is the right first move any
+time a scope's contents are in question, and vanilla uses it in
+`common/scripted_effects/00_victoria_scripted_effects.txt`.)
+
+**Consequence for design:** a notification's tier cannot depend on the
+*type* of the diplomatic action that fired it, because the tier is chosen
+at post time and the type is unknowable at post time. Deferring the post
+to a later pulse would make the type readable but costs the saved scopes
+the message text depends on (`GetActionNotificationDesc` and friends
+resolve against the notification's own root), so it trades correct text
+for correct tier. If action-importance filtering is wanted here again,
+filter on a property of the **actor** — rank, `has_diplomatic_relevance`,
+country type — all of which are available at that instant.
+
 ## Important-action alert order has no priority field — it's file/definition order
 
 Checked directly (per the user asking what it'd take to keep the law

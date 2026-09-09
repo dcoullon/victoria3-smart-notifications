@@ -130,161 +130,58 @@ smart_notifications_diplomatic_action = {
 			# and this more-specific one never would.
 			limit = { scope:recipient ?= { is_player = yes } }
 
-			# REFINED 2026-09-09, same day: user correctly pushed back that
-			# "a random country doing a not-very-important action to you"
-			# (e.g. a minor improving relations) shouldn't toast the same
-			# as something consequential. Initially claimed there's no
-			# script-side way to tell action types apart -- wrong, found
-			# via docs/triggers.log: `has_diplomatic_pact = { who = X
-			# type = Y is_initiator = yes/no }` (confirmed real, already
-			# used by vanilla's own increase_relations/damage_relations
-			# definitions in common/diplomatic_actions/00_relations_actions.txt)
-			# lets us check, from a country scope, whether the actor now
-			# holds a specific pact type with the recipient. Increase/
-			# Decrease Relations are the routine, high-frequency case this
-			# was actually about -- demoted specifically those to their own
-			# feed-tier message
-			# (smart_notifications_diplomatic_action_targeting_player_routine),
-			# same full accurate text, just not a toast. Everything else
-			# targeting the player (rivalry, subjugation, embargo,
-			# autonomy changes, alliance/pact offers, ...) still toasts.
-			# `is_initiator = yes` on the check ties it to THIS actor
-			# specifically, not just any pre-existing pact of that type
-			# between the two countries from some unrelated earlier event.
+			# RESOLVED 2026-09-09 (evening) -- this branch briefly carried a
+			# further carve-out: Increase/Decrease Relations targeting the
+			# player, from an UNWATCHED actor, was demoted from toast to a
+			# feed-tier key on the grounds that "a random minor improving
+			# relations with you" isn't worth an interruption. The
+			# mechanism was `has_diplomatic_pact = { who = scope:recipient
+			# type = increase_relations/damage_relations }` checked from
+			# scope:actor. It never once fired in 11 real firings, and the
+			# reason is now confirmed, not guessed: **the pact object for
+			# the action that just fired does not exist in gamestate yet at
+			# the instant `on_diplomatic_action` runs.**
 			#
-			# REFINED AGAIN 2026-09-09, same day: user clarified the
-			# routine-demotion should only apply when the ACTOR isn't
-			# watched -- a watched country's action against you is worth
-			# knowing about even if it's "only" a relations change,
-			# precisely because you're tracking that country specifically.
-			# The demotion is for the "random unwatched minor doing
-			# something routine" case only. (Diplomatic Plays, the user's
-			# other example of an "important" type, were never actually
-			# affected by this file at all -- those fire through a
-			# completely separate, already-elevated on_action from earlier
-			# phases, so they're unaffected either way.)
-			if = {
-				limit = {
-					scope:actor ?= {
-						NOT = { smart_notifications_is_watched = yes }
-						OR = {
-							has_diplomatic_pact = { who = scope:recipient type = increase_relations is_initiator = yes }
-							has_diplomatic_pact = { who = scope:recipient type = damage_relations is_initiator = yes }
-						}
-					}
-				}
-				post_notification = smart_notifications_diplomatic_action_targeting_player_routine
-				debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_targeting_player_routine|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|PLAYER_TARGETED_ROUTINE"
-			}
-			else = {
-				post_notification = smart_notifications_diplomatic_action_targeting_player
-				debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_targeting_player|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|PLAYER_TARGETED"
-			}
-
-			# TEMPORARY diagnostic (2026-09-09) -- the routine-relations
-			# demotion above never actually fired in two real sessions
-			# (confirmed: Siam -> Great Qing, watched=no, still went to
-			# PLAYER_TARGETED not PLAYER_TARGETED_ROUTINE), despite the
-			# user reporting exactly a "relations improvement" action.
-			# Breaks out each half of the has_diplomatic_pact check
-			# individually -- WITH and WITHOUT is_initiator -- to find out
-			# whether it's a timing issue (pact not yet registered at this
-			# exact on_action pulse) or a wrong is_initiator assumption.
-			# Delete once the real cause is found and fixed. Grep debug.log
-			# for SNW_PACT_PROBE.
+			# The proof is three countries appearing in two independent
+			# instruments at two different times (see the SNW_PACT_PROBE2 /
+			# SNW_PACT_SWEEP diagnostics, both since deleted; full write-up
+			# in docs/engine-notes.md § The pact for a diplomatic action
+			# does not exist yet). Nawanagar -> Great Qing, Improve
+			# Relations, Jan 17 1836: at the firing instant an
+			# `every_scope_diplomatic_pact` walk of Nawanagar's own pacts
+			# found two pacts, NEITHER of type increase_relations, and all
+			# four has_diplomatic_pact variants returned no. On the next
+			# monthly pulse the exact same query -- `has_diplomatic_pact =
+			# { who = ROOT type = increase_relations is_initiator = yes }`
+			# -- returned yes for Nawanagar. Same for Tibet
+			# (damage_relations) and Selangor (increase_relations). The
+			# query is correct; it is simply asked one moment too early,
+			# and there is no way to un-toast a notification after the
+			# fact.
 			#
-			# EXTENDED 2026-09-09 (SNW_PACT_PROBE2 lines): 11 firings of
-			# the four checks below have now all returned "no", so the
-			# question is no longer "which of the four" but "is a pact
-			# object reachable AT ALL at this instant, by any mechanism".
-			# Three additional, independent instruments, all confirmed
-			# real in the game's own script_docs dumps before use:
-			#  1. `debug_log_scopes = yes` (effects.log; vanilla uses it in
-			#     00_victoria_scripted_effects.txt) dumps every saved scope
-			#     bound at this moment. event_targets.log lists BOTH
-			#     `diplomatic_action` and `diplomatic_pact` among the
-			#     scopes code can save -- if either is bound here, the dump
-			#     says so outright instead of us guessing at names.
-			#  2. `scope:diplomatic_pact` probed directly with `?=`, then
-			#     asked its type via `is_diplomatic_action_type`
-			#     (triggers.log: supported on `diplomatic_pact` scope).
-			#     This is the outcome worth hoping for -- it would answer
-			#     the action type at the right instant with no pact query
-			#     and no timing dependency at all.
-			#  3. `every_scope_diplomatic_pact` from scope:actor
-			#     (effects.log: country scope -> diplomatic_pact) walks
-			#     every pact the actor actually holds right now. If the
-			#     just-created relations pact exists in gamestate yet, it
-			#     is in this list even if has_diplomatic_pact can't see it.
-			# Note what is NOT here and why: ROOT itself is untouchable.
-			# triggers.log and effects.log between them support exactly
-			# ZERO triggers and ZERO effects on `diplomatic_action` scope,
-			# and event_targets.log has no target leading out of it, so
-			# the action object this on_action is rooted on cannot be
-			# asked anything directly -- only its saved scopes can.
-			debug_log = "SNW_PACT_PROBE2|scopes_dump_follows|date=[TimeKeeper.GetCurrentDate.GetString]"
-			debug_log_scopes = yes
-
-			scope:diplomatic_pact ?= {
-				debug_log = "SNW_PACT_PROBE2|scope:diplomatic_pact|bound=yes"
-				if = {
-					limit = { is_diplomatic_action_type = increase_relations }
-					debug_log = "SNW_PACT_PROBE2|scope:diplomatic_pact|type=increase_relations"
-				}
-				if = {
-					limit = { is_diplomatic_action_type = damage_relations }
-					debug_log = "SNW_PACT_PROBE2|scope:diplomatic_pact|type=damage_relations"
-				}
-			}
-
-			scope:actor ?= {
-				every_scope_diplomatic_pact = {
-					debug_log = "SNW_PACT_PROBE2|actor_pact_seen"
-					if = {
-						limit = { is_diplomatic_action_type = increase_relations }
-						debug_log = "SNW_PACT_PROBE2|actor_pact|type=increase_relations"
-					}
-					if = {
-						limit = { is_diplomatic_action_type = damage_relations }
-						debug_log = "SNW_PACT_PROBE2|actor_pact|type=damage_relations"
-					}
-					if = {
-						limit = { any_participant = { is_player = yes } }
-						debug_log = "SNW_PACT_PROBE2|actor_pact|involves_player=yes"
-					}
-				}
-			}
-
-			scope:actor ?= {
-				if = {
-					limit = { has_diplomatic_pact = { who = scope:recipient type = increase_relations is_initiator = yes } }
-					debug_log = "SNW_PACT_PROBE|increase_relations|is_initiator=yes|result=yes"
-				}
-				else = {
-					debug_log = "SNW_PACT_PROBE|increase_relations|is_initiator=yes|result=no"
-				}
-				if = {
-					limit = { has_diplomatic_pact = { who = scope:recipient type = increase_relations } }
-					debug_log = "SNW_PACT_PROBE|increase_relations|no_is_initiator|result=yes"
-				}
-				else = {
-					debug_log = "SNW_PACT_PROBE|increase_relations|no_is_initiator|result=no"
-				}
-				if = {
-					limit = { has_diplomatic_pact = { who = scope:recipient type = damage_relations is_initiator = yes } }
-					debug_log = "SNW_PACT_PROBE|damage_relations|is_initiator=yes|result=yes"
-				}
-				else = {
-					debug_log = "SNW_PACT_PROBE|damage_relations|is_initiator=yes|result=no"
-				}
-				if = {
-					limit = { has_diplomatic_pact = { who = scope:recipient type = damage_relations } }
-					debug_log = "SNW_PACT_PROBE|damage_relations|no_is_initiator|result=yes"
-				}
-				else = {
-					debug_log = "SNW_PACT_PROBE|damage_relations|no_is_initiator|result=no"
-				}
-			}
+			# No replacement signal exists at this instant, and that is
+			# now established rather than assumed. The scope dump here
+			# reads `Root: Diplo action Improve Relations (165)`, so the
+			# root object plainly knows its own type -- but script cannot
+			# ask it: triggers.log and effects.log support ZERO triggers
+			# and ZERO effects on `diplomatic_action` scope, and
+			# event_targets.log has no target leading out of it or into a
+			# `diplomatic_pact`. `is_diplomatic_action_type` exists but is
+			# documented for `diplomatic_pact` scope only, and no pact is
+			# reachable here (that's the bug). The only scopes bound at
+			# this moment are `actor`, `recipient` and `notification_target`
+			# -- all countries, none carrying the action type.
+			#
+			# So: reverted to a plain toast for every action targeting the
+			# player, which is where this was before the attempt and is
+			# the safe direction to fail in (over-notifying about something
+			# aimed directly at you beats silently dropping it). If the
+			# "random minor" complaint needs addressing again, the signal
+			# to reach for is a property of the ACTOR -- rank, diplomatic
+			# relevance, country type -- all of which ARE available at this
+			# instant, rather than a property of the action, which is not.
+			post_notification = smart_notifications_diplomatic_action_targeting_player
+			debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_targeting_player|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|PLAYER_TARGETED"
 		}
 		else_if = {
 			limit = {
