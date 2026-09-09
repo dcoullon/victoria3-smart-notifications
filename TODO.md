@@ -1901,6 +1901,15 @@ Updated both
 (the temporary diagnostic, now mirroring the exact same check so its
 output stays meaningful) to match. **Not yet re-confirmed live.**
 
+**Grid tightened same day, per the user**: the initial 5-point grid (19
+steps) was too coarse — success/stall commonly both sit in the 20-30%
+range, close enough together that a single 5-point band can contain
+both and miss a real "success > stall" case. There was never an actual
+reason to keep it coarse (each comparison is cheap, this doesn't run in
+a hot per-frame loop, and the number of simultaneously-flagged laws is
+normally small), so tightened to a 1-point grid (99 steps, every 0.01
+from 0.01 to 0.99) in both files. Same mechanism, just finer.
+
 ## New notifications/alerts backlog — sized and sequenced 2026-09-08
 
 All four items below are **P1 per the user**. This is the recommended
