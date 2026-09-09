@@ -48,8 +48,20 @@ def _read(path: Path) -> str:
 
 
 def _iter_mod_files(root: Path):
+    """Files this mod actually ships/the game actually loads -- excludes
+    `reference/` (pristine vanilla snapshots and any other reference-only
+    copies kept for diffing, never loaded by the game itself; scanning
+    them alongside our own files caused a confirmed false-positive here,
+    e.g. vanilla's own untouched `popup`-type message getting compared
+    against our deliberately-muted override of the same key as if they
+    were two messages sharing one group)."""
     for path in root.rglob("*.*"):
-        if path.suffix in TEXT_SUFFIXES and "tools" not in path.parts and ".git" not in path.parts:
+        if (
+            path.suffix in TEXT_SUFFIXES
+            and "tools" not in path.parts
+            and ".git" not in path.parts
+            and "reference" not in path.parts
+        ):
             yield path
 
 
@@ -382,6 +394,50 @@ def check_full_overrides_match_installed_vanilla(root: Path) -> list[str]:
     return errs
 
 
+def check_mixed_group_notification_types(root: Path) -> list[str]:
+    """Every message sharing a `group` must agree on `notification_type`.
+    Added 2026-09-09 after a confirmed, LIVE, non-cosmetic bug: muting
+    `diplomatic_action_notification` to `none` while it stayed in
+    `diplomatic_action_notification_group` alongside 3 `toast` siblings
+    produced the engine's own "Diplomatic Action Group has mixed
+    Notification Types" warning (player_message_type.cpp:177) in every
+    play session -- and, per game.log timestamps lining up exactly with
+    when the warning stopped appearing (regrouping fix committed, then
+    the unwanted vanilla-worded relations popups the user had been
+    seeing stopped in that same session), the mismatch didn't just log a
+    warning: it appears to have silently defeated the intended `none`
+    mute for the whole group. Never assume this warning is purely
+    cosmetic -- treat it as a real bug, same severity as any other check
+    here. This scans every message-defining file (not just
+    common/messages/) since this mod could in principle add a message
+    elsewhere."""
+    errs = []
+    group_types: dict[str, dict[str, str]] = {}  # group -> {notification_type: sample_key}
+    for path in _iter_mod_files(root):
+        if path.suffix != ".txt":
+            continue
+        text = _read(path)
+        for m in re.finditer(r"(?m)^([A-Za-z0-9_]+)\s*=\s*\{", text):
+            key = m.group(1)
+            block = _brace_span(text, m.end())
+            if block is None:
+                continue
+            group_m = re.search(r'group\s*=\s*"([^"]+)"', block)
+            type_m = re.search(r"notification_type\s*=\s*(\w+)", block)
+            if not group_m or not type_m:
+                continue
+            group_types.setdefault(group_m.group(1), {}).setdefault(type_m.group(1), key)
+
+    for group, types in group_types.items():
+        if len(types) > 1:
+            detail = ", ".join(f"{t} (e.g. '{k}')" for t, k in sorted(types.items()))
+            errs.append(
+                f"group '{group}' has mixed notification_type values: {detail} -- "
+                f"split the mismatched message(s) into their own group"
+            )
+    return errs
+
+
 def run_all(root: Path) -> list[str]:
     defined_loc = load_defined_loc_keys(root)
     errs = []
@@ -394,6 +450,7 @@ def run_all(root: Path) -> list[str]:
     errs += check_law_types_exist_in_vanilla(root)
     errs += check_json_files_have_no_bom(root)
     errs += check_full_overrides_match_installed_vanilla(root)
+    errs += check_mixed_group_notification_types(root)
     return errs
 
 

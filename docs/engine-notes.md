@@ -29,8 +29,33 @@ Consequences:
   Phase 0 bootstrap notification.
 - If two keys share a group but disagree on `notification_type`, the game
   logs `"<Group> has mixed Notification Types"` — confirmed live in
-  `error.log`. Fix by aligning them or splitting the diverging one into its
-  own group (with a matching `<group>_group` localization string).
+  `error.log`/`game.log` (`player_message_type.cpp:177`). Fix by aligning
+  them or splitting the diverging one into its own group (with a matching
+  `<group>_group` localization string).
+  **This is NOT purely cosmetic — treat it as a real functional bug, not
+  just log noise.** Confirmed 2026-09-09: `diplomatic_action_notification`
+  was muted (`notification_type = none`) but left sharing
+  `diplomatic_action_notification_group` with 3 sibling messages still set
+  to `toast`. Every play session before the fix (`game.5.log` 12:56 through
+  `game.1.log` 14:05, all same day) logged the mixed-types warning 3x, and
+  the user kept seeing vanilla-worded "X improving/damaging Relations"
+  popups they shouldn't have (that generic wording is
+  `diplomatic_action_notification`'s own vanilla text, confirmed via
+  `GetDiplomaticAction.GetActionNotificationName`'s loc dispatch — it is
+  NOT a separate hardcoded/unfilterable notification with no moddable
+  hook, an earlier wrong claim made this same session before the logs were
+  actually checked). The regroup fix (splitting the muted key into its own
+  group) was committed at 14:28; the very next session (`game.log`,
+  started 14:29) has zero mixed-types warnings AND the unwanted popups
+  stopped appearing, in the same session, alongside the warning
+  disappearing. Working theory, log-correlated but not proven from source:
+  a mixed-type group doesn't just warn, it silently falls back the whole
+  group to its loudest member's type, defeating an individual `none`.
+  Whether or not that's the exact mechanism, the actionable rule is the
+  same: never let a muted (`none`) message share a group with a `toast`/
+  `popup` one. `tools/check_references.py`'s
+  `check_mixed_group_notification_types` now catches this statically —
+  confirmed by re-injecting the exact original bug and seeing it fail.
 
 ## BOM required on every modded file, not just `.yml`
 

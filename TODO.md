@@ -2868,6 +2868,31 @@ exactly what this looks like when it fires -- expected, not a bug, and
 not something any mod can filter. This is the same confirmed limitation
 already logged in memory as "Notification logger coverage gaps."
 
+**CORRECTION, same day, later: the above "hardcoded/unfilterable" claim
+was wrong.** User pushed back after screenshots showed these popups
+appearing in an earlier test session but NOT in a later one, despite
+nothing about their watch status changing. Actually checked the log
+evidence this time instead of re-asserting the earlier claim:
+`increase_relations_action_notification_name`/`damage_relations_
+action_notification_name` (the exact loc keys behind these popups) are
+resolved via `GetDiplomaticAction.GetActionNotificationName`, which is
+also the SAME dynamic-text call behind
+`notification_diplomatic_action_notification_name` -- i.e. these popups
+ARE `diplomatic_action_notification`, just with per-action-type wording
+substituted in. That key is fully within this mod's own
+`common/messages/` and had been muted since Phase 4 -- but see the
+"Mixed group notification types" fix above/in engine-notes.md: it was
+still sharing a group with 3 `toast` siblings, which (per exact
+game.log timestamp correlation) appears to have silently defeated its
+own mute the whole time. The popups disappeared in the exact same
+session the regroup fix landed, with the mixed-types warning also gone.
+Not hardcoded, not unfilterable, not a "no moddable hook" case -- it
+was our own grouping bug. See the corrected, evidence-based writeup in
+docs/engine-notes.md's "Override hierarchy" section. Added
+`tools/check_references.py`'s `check_mixed_group_notification_types` so
+this exact bug class fails the build automatically from now on
+(confirmed it catches the original bug by re-injecting it and reverting).
+
 
 ## Taxation toast cap: first attempt CONFIRMED BROKEN, rebuilt on a different mechanism (2026-09-09)
 
