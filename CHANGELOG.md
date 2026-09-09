@@ -19,6 +19,26 @@ instrumentation and doc-only changes get a commit but **no** version bump
 unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.36] — 2026-09-09
+
+### Changed
+
+- **Diplomatic action notifications now show the real, specific wording,
+  confirmed working end-to-end in a live session.** A country taking a
+  diplomatic action against you (increasing/damaging relations, a
+  rivalry, an embargo, an autonomy change, etc.) now shows the actual
+  action in the toast title (e.g. "Kokand improving Relations") with the
+  full detail in the body (current relation standing, their attitude
+  towards you, and so on) — matching the quality of vanilla's own
+  notifications, instead of a generic "X has taken a diplomatic action
+  involving Y." A watched country's action against a different watched
+  country still shows the specific action title, with a lighter,
+  general description (deliberately not the full detail, to avoid
+  implying you're personally involved when you're not).
+- This also permanently fixes the earlier double-notification issue for
+  actions directed at you: you'll now see exactly one notification,
+  with full detail, for that case.
+
 ## [0.35] — 2026-09-09
 
 ### Added
@@ -35,8 +55,8 @@ mod hasn't reached a 1.0 concept of "breaking changes" yet.
 ### Fixed (2026-09-09, same version — see versioning convention above)
 
 - A diplomatic action directed at you could show two notifications for
-  the same event (our own, plus vanilla's own specific one). Ours is now
-  suppressed in that case, since vanilla's is better anyway.
+  the same event. Fixed for good in [0.36](#036--2026-09-09) below —
+  see that entry for the final behavior.
 - Empires with many states entering a taxation deficit at once (e.g.
   newly incorporated territory) could produce a wall of one-time toasts,
   one per state. Now capped at 3 concurrent — the persistent alert is
