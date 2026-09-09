@@ -57,6 +57,137 @@ def validate_file(file_path: Path):
 
     if curly != 0: errors.append(f"Mismatch: {curly} unclosed '{{'")
     if square != 0: errors.append(f"Mismatch: {square} unclosed '['")
+    errors.extend(check_known_mistake_patterns(content))
+    return errors
+
+
+# --- Known mistake patterns -------------------------------------------------
+# Confirmed-real engine errors this project has hit MORE THAN ONCE, each
+# time only caught after asking the user to test a broken build. Added
+# 2026-09-08 per the user, directly: "how do we prevent you from doing the
+# same mistakes over and over again, and not even verifying before sending
+# me to test?" -- a human re-reading the code before shipping had already
+# failed to catch these several times in one session, so the fix is a
+# mechanical check that runs every time, not a promise to look harder.
+#
+# Each entry here is a class of mistake, not a one-off typo -- these are
+# real corners of the Jomini script/dynamic-text system where two
+# almost-identical-looking constructs mean different things, confirmed via
+# live error.log entries this session:
+# - SCOPE.GetRootScope is a generic wrapper needing an explicit per-type
+#   cast (.GetCountry, .GetState, ...) chained on immediately -- confirmed
+#   by an exhaustive check of every vanilla localization/english/ usage,
+#   100% of which cast it. Calling .MakeScope (or anything else) on it
+#   directly produced a real "Failed to convert statement" error live.
+# - `any_X` (any_law, any_active_law, any_country, ...) is trigger-only;
+#   the effect-side iterator is always a DIFFERENTLY NAMED keyword
+#   (every_X). Using any_X inside an `effect` block produced a real
+#   "Unknown effect any_X" error live.
+# - `save_scope_as`/`set_variable`/`remove_variable` are effects; `valid`/
+#   `is_valid` blocks in alert_types/scripted_guis are pure triggers.
+#   Effects silently do nothing inside a trigger block (no crash, no
+#   error at the call site -- just "Event target ... is used but is never
+#   set" much later, when something tries to read it) -- confirmed live.
+import re
+
+_ANY_TRIGGER_ONLY = [
+    "any_law", "any_active_law", "any_country", "any_scope_state",
+    "any_scope_country", "any_active_law", "any_scope_play_involved",
+    "any_scope_amendment", "any_character_in_exile_pool",
+]
+_EFFECT_ONLY_KEYWORDS = [
+    "save_scope_as", "save_temporary_scope_as", "set_variable",
+    "remove_variable", "post_notification", "trigger_event",
+    "custom_tooltip", "hidden_effect", "add_variable",
+]
+
+def check_known_mistake_patterns(content: str) -> list[str]:
+    errors = []
+
+    # 1. SCOPE.GetRootScope must always be immediately followed by a cast
+    #    (a `.` then a capitalized Get-style method). Bare `.MakeScope` or
+    #    any other chain directly on it is the confirmed-broken pattern.
+    for m in re.finditer(r"SCOPE\.GetRootScope\.(\w+)", content):
+        if not m.group(1).startswith("Get"):
+            line_num = content.count("\n", 0, m.start()) + 1
+            errors.append(
+                f"Line {line_num}: SCOPE.GetRootScope.{m.group(1)}(...) -- "
+                f"GetRootScope must be cast first (e.g. .GetCountry, .GetState) "
+                f"before chaining anything else; confirmed real vanilla usage "
+                f"never skips this cast."
+            )
+
+    # 2. Track brace depth alongside a block-type stack: are we inside an
+    #    `effect = {` block, or a `valid =`/`is_valid =`/`limit =` (pure
+    #    trigger) block? A nested `limit = {` inside an effect flips back to
+    #    trigger context for that nested block; there is no real inverse
+    #    (effects cannot appear inside `limit`), so a simple stack of "which
+    #    kind of block are we in at this depth" is enough. Walk the file
+    #    once, classifying each new block by the keyword immediately before
+    #    its opening '{', and flag any_X-in-effect / effect-keyword-in-trigger
+    #    as they're encountered.
+    stack = []  # list of "effect" | "trigger" | "other" per open '{'
+    quote = False
+    i = 0
+    n = len(content)
+    line_num = 1
+    pending_keyword = ""
+    word_re = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+    while i < n:
+        ch = content[i]
+        if ch == "\n":
+            line_num += 1
+        if ch == '"':
+            quote = not quote
+            i += 1
+            continue
+        if quote:
+            i += 1
+            continue
+        if ch == '#':
+            nl = content.find("\n", i)
+            i = nl if nl != -1 else n
+            continue
+        m = word_re.match(content, i)
+        if m:
+            word = m.group(0)
+            cur_kind = stack[-1] if stack else "other"
+            if cur_kind == "effect" and word in _ANY_TRIGGER_ONLY:
+                errors.append(
+                    f"Line {line_num}: `{word}` used directly inside an "
+                    f"`effect` block -- any_X is trigger-only; the effect-side "
+                    f"iterator is a differently-named every_X keyword."
+                )
+            if cur_kind == "trigger" and word in _EFFECT_ONLY_KEYWORDS:
+                errors.append(
+                    f"Line {line_num}: `{word}` used inside a `valid`/"
+                    f"`is_valid`/`limit` (trigger-only) block -- this is an "
+                    f"effect and will silently do nothing there."
+                )
+            i = m.end()
+            pending_keyword = word
+            continue
+        if ch == "{":
+            kw = pending_keyword
+            if kw == "effect":
+                kind = "effect"
+            elif kw in ("valid", "is_valid", "limit"):
+                kind = "trigger"
+            else:
+                kind = stack[-1] if stack else "other"
+            stack.append(kind)
+            pending_keyword = ""
+            i += 1
+            continue
+        if ch == "}":
+            if stack:
+                stack.pop()
+            i += 1
+            continue
+        if ch not in " \t\r\n=":
+            pending_keyword = ""
+        i += 1
+
     return errors
 
 # --- Known-good invariants -------------------------------------------------

@@ -595,6 +595,92 @@ list as a mod; the unfiltered list (every country, per TODO.md's original
 guessing at an unconfirmed mechanism. Revisit only if a genuine
 per-window search accessor is found some other way.
 
+## Known mistake patterns — now caught by `validate_syntax.py`, not just memory
+
+Raised directly by the user 2026-09-08, mid-session, after the law
+commitment feature (see TODO.md) hit the same general CLASS of mistake
+five separate times across one afternoon, each only caught after asking
+for a live test: "how do we prevent you from doing the same mistakes
+over and over again, and not even verifying before sending me to test?"
+The honest answer: re-reading the code carefully before shipping had
+already failed to catch these more than once in the same session, so the
+fix is a mechanical check that runs every time (already a required step
+per CLAUDE.md § Autonomous Quality Assurance), not a promise to look
+harder next time.
+
+`tools/validate_syntax.py`'s `check_known_mistake_patterns` now flags
+three confirmed-real, repeated patterns automatically:
+
+1. **`SCOPE.GetRootScope` used without an immediate cast.** It's a
+   generic wrapper — every single vanilla `localization/english/` usage
+   of it chains a `.Get*` cast (`.GetCountry`, `.GetState`,
+   `.GetDiplomaticPlay`, ...) immediately afterward, with zero
+   exceptions found in an exhaustive check, even from contexts where
+   root is already conceptually the right type. Calling `.MakeScope` (or
+   anything else) on it directly produced a real, confirmed
+   `error.log` entry: "Failed to convert statement for argument '0' for
+   call 'ExecuteTooltip'" — the whole GuiScope argument never even
+   constructed. This is the SAME underlying lesson as `THIS` needing a
+   cast that `SCOPE.sC(...)` doesn't (see § Dynamic text vs
+   effect/trigger syntax above), just re-hit for a different accessor
+   because the earlier lesson wasn't generalized into a rule that gets
+   checked every time.
+2. **`any_X` (any_law, any_country, ...) used directly inside an
+   `effect` block.** `any_X` is trigger-only; the effect-side iterator
+   is always a differently-spelled keyword (`every_X`). Produced a real
+   `error.log` entry: "Unknown effect any_law". A `limit = { ... }`
+   nested inside an effect is still a trigger context, so `any_X` is
+   fine there — the checker tracks this correctly (a `limit` block
+   flips back to trigger classification even inside an enclosing
+   `effect`).
+3. **Effect-only keywords (`save_scope_as`, `set_variable`,
+   `remove_variable`, `post_notification`, `trigger_event`,
+   `custom_tooltip`, `hidden_effect`, `add_variable`) used inside a
+   `valid`/`is_valid`/`limit` (pure trigger) block.** Effects silently
+   do nothing there — no crash, no error at the call site, just a
+   confirmed-real, much-later, easy-to-misread `error.log` entry ("Event
+   target 'X' is used but is never set. Setting it in an unused scripted
+   trigger or effect does not count") once something tries to read the
+   variable that was never actually set.
+
+All three were reproduced against known-bad snippets and known-good
+snippets from this repo before being trusted (a linter that's never been
+shown to catch anything is worse than useless — it's a false sense of
+safety). If a new mistake pattern of this same shape turns up (a
+same-looking construct with a subtly different, confirmed-real
+requirement), add it to the same function rather than just noting it
+here — the goal is that this class of error gets caught by the next
+`validate_syntax.py` run, not by re-reading the code more carefully next
+time.
+
+## Success-vs-stall comparisons have no numeric form — only threshold checks
+
+The law commitment alert (TODO.md) needed "does this law's next
+checkpoint have Success beating Stall" — the same comparison the law
+list's own UI displays. There is no single trigger for this, and,
+checked directly per the user's own question ("why do you need 99 steps
+to compare 2 values? shouldn't you just do A - B > 1%?"): there is no
+confirmed way to get either value out as a plain number to subtract.
+`enactment_chance_for_law`/`stall_chance_for_law` (script_docs
+triggers.log) are pure `{ target = X value > Y }` comparison triggers,
+not value-returning functions — `Y` must be a literal (or another
+script_value), never another trigger's result. Checked
+`common/script_values/script_values.md` directly (the actual spec for
+what can appear as a numeric `value`): script values accept numbers,
+named script values, and `scope.something` chains to real numeric
+event_targets, but nothing suggests a comparison-shaped trigger like
+these can be embedded as a bare number — an exhaustive grep for
+`value = enactment_chance`/`value = stall_chance` anywhere in the game's
+own files (vanilla never does this either) turned up nothing. Absent a
+raw number to subtract, "success > stall" is approximated by testing
+whether some threshold value V exists with success > V and stall <= V,
+swept across a fine grid (1-point steps, 0.01 to 0.99) — see
+common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt's
+`smart_notifications_law_ready_to_enact` for the implementation. This
+isn't overengineering for its own sake; it's the closest approximation
+of an exact numeric comparison the engine's own trigger vocabulary
+allows.
+
 ## Steam Workshop / Paradox mod policy
 
 See [distribution-guidelines.md](distribution-guidelines.md) for the full,

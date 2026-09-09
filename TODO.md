@@ -2009,6 +2009,40 @@ same wording mistake, just only this one had a screenshot revealing it.
 
 **Not yet re-confirmed live.**
 
+## Process fix: mistake patterns now caught mechanically, not by memory
+
+Per the user, directly: "how do we prevent you from doing the same
+mistakes over and over again, and not even verifying before sending me
+to test?" Real, fair critique — the same general class of mistake
+(a subtly-wrong scope/context assumption) hit this one feature five
+times in an afternoon, each only caught after a live test. Rather than
+just committing to look harder, extended
+[tools/validate_syntax.py](tools/validate_syntax.py) (already a required
+step after every file change, per CLAUDE.md) to catch the three
+confirmed-real patterns behind those five bugs automatically: an uncast
+`SCOPE.GetRootScope`, `any_X` used inside an `effect` block, and effect
+keywords used inside a `valid`/`is_valid`/`limit` trigger block. Verified
+it actually works both directions — reproduced known-bad snippets from
+this session's real bugs (all three caught) and known-good snippets from
+the current codebase (zero false positives) — before trusting it. See
+[docs/engine-notes.md § Known mistake patterns](docs/engine-notes.md) for
+the full writeup; add new patterns there (and to the checker function)
+if a similar mistake shape turns up again.
+
+**Also answered directly: why 99 threshold steps instead of `A - B >
+1%`.** Checked rather than just re-asserted: there is no confirmed way
+to pull either chance out as a raw number for arithmetic —
+`enactment_chance_for_law`/`stall_chance_for_law` are pure comparison
+triggers (`{ target = X value > Y }`), and `common/script_values/script_values.md`
+(the actual spec for what can appear as a numeric value) gives no
+indication a comparison-shaped trigger like these can be embedded as a
+plain number; an exhaustive grep for `value = enactment_chance`/
+`value = stall_chance` anywhere in the game's own files (vanilla
+included) found nothing. The threshold sweep is the closest
+approximation of an exact subtraction the engine's own vocabulary
+allows, not an unnecessary complication. See
+[docs/engine-notes.md § Success-vs-stall comparisons have no numeric form](docs/engine-notes.md).
+
 ## New notifications/alerts backlog — sized and sequenced 2026-09-08
 
 All four items below are **P1 per the user**. This is the recommended

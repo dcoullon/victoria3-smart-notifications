@@ -39,6 +39,7 @@ link it.
 - After creating or modifying any `.txt`, `.gui`, or `.yml` file, always run:
   `python tools/validate_syntax.py`
 - Fix any reported bracket/encoding issues immediately before finishing.
+- `validate_syntax.py` also flags a short list of confirmed-real, repeated-mistake patterns (uncast `SCOPE.GetRootScope`, `any_X` inside an `effect`, effect keywords inside a `valid`/`limit` trigger block) — fix any of these before finishing too, same as a bracket error. See engine-notes.md § Known mistake patterns before adding a new one to that list.
 
 ## 5. Other
 

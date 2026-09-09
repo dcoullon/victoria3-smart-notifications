@@ -4,3 +4,4 @@
 # Unrelated personal script that ended up in this working directory --
 # not part of the Victoria 3 mod, never intended for this repo.
 tools/dmv_checker/
+__pycache__/
