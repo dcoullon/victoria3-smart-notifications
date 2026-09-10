@@ -1,4 +1,4 @@
-# Victoria 3 Modding Agent Protocol
+﻿# Victoria 3 Modding Agent Protocol
 
 Detailed rationale and "how we confirmed this" for the rules below lives in
 [docs/engine-notes.md](docs/engine-notes.md) — read the relevant section
@@ -48,6 +48,7 @@ link it.
 ## 5. Other
 
 - Game install: `C:\Program Files (x86)\Steam\steamapps\common\Victoria 3`
+- **In-game screenshots the user takes land in `C:\Program Files (x86)\Steam\userdata\42572\760\remote\529340\screenshots\`**, named `YYYYMMDDHHMMSS_1.jpg`. Read them from there with the `Read` tool rather than asking the user to paste them (their standing request, 2026-09-09); `ls -t` that folder to find the ones just taken.
 - Distribution constraints (Steam/Paradox mod policy, download expectations): `docs/distribution-guidelines.md`.
 - To check whether something is actually working without asking the user to test again: `python tools/scan_logs.py` filters the live `error.log`/`debug.log` down to this mod's own `SNW_*` debug lines and known engine-error signatures — never dump a full log into context instead. Slash commands `/validate-mod`, `/compare-notifications`, `/scan-logs`, `/package-release` wrap this and the other `tools/*.py` scripts for direct human use.
 - **Never upload straight from the dev mod folder/junction** — the Paradox Launcher bundles its entire target directory, including this repo's `tools/`, `docs/`, `reference/`, `.git/`, and root-level docs. Run `python tools/package_release.py` first (see engine-notes.md § Never upload the dev mod folder directly) to build a clean copy at a separate mod entry, and upload from that instead.
