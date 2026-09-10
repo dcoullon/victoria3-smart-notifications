@@ -57,7 +57,46 @@ Consequences:
   `check_mixed_group_notification_types` now catches this statically —
   confirmed by re-injecting the exact original bug and seeing it fail.
 
-### Refined 2026-09-09 evening: defaults DO propagate to untouched groups
+### RE-CORRECTED 2026-09-09, later still: stored values DO win. The original note was right.
+
+**Read this one, not the section below it.** The refinement that follows was
+wrong, and the sequence is worth keeping only because the wrong reading is an
+easy one to reach twice.
+
+Decisive evidence, from the user's own session: `harvest_condition_started_in_country_important`
+was changed in script from `toast` to `feed` and committed at 22:22. The user
+launched after 22:32 (their session ran F10 code committed at that time), and
+**still got a toast for it**. `messagetypes_custom.txt` read
+`harvest_condition_important_notification_group={ notification=toast }`. So a
+stored value overrides the script default at load time, exactly as the
+original note said.
+
+Then why did 20 stored values change to match script edits earlier that
+evening? Because the user clicked "Reset to Default Settings" during the day
+-- they said so at the time. Reset clears the stored table, the script
+defaults apply, and the game then writes those resolved values back. The
+diff was reading the aftermath of a reset, not evidence of automatic
+propagation.
+
+The working model, consistent with everything seen so far:
+
+1. The file stores a resolved value for **every** group, not just deviations,
+   and is rewritten on exit.
+2. On load, a stored value **beats** the script default.
+3. "Reset to Default Settings" is the only thing that clears them.
+
+**Consequences that actually bite:**
+- Changing a `notification_type` in this mod does **not** reach anyone who has
+  played before, including the developer, until they reset. Every playtest of
+  a tier change must start with a reset, or it tests the old value.
+- Every Workshop release that retunes a tier must say so in its notes. This is
+  already in TODO.md's release checklist; treat it as mandatory, not advisory.
+- The diagnostic in the section below still works and is still the right one:
+  compare the file's values against the mod's script defaults. What a mismatch
+  means is now unambiguous -- the stored value is winning, and only a reset
+  will dislodge it.
+
+### Superseded: "defaults DO propagate to untouched groups" (wrong, kept for the trail)
 
 The bullet above ("any returning player who's ever touched Message Settings
 won't see our new defaults") is right about explicitly-overridden groups but

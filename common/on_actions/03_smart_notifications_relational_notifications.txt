@@ -73,6 +73,32 @@
 # alert alongside it, so a watched play produces exactly one notification,
 # not two.
 
+# ADDED 2026-09-09 -- the fix for a confirmed, serious gap: a diplomatic
+# play declared ON THE PLAYER produced no notification at all.
+#
+# The 2026-09-07 note below concluded that on_diplo_play_start and
+# on_diplo_play_start_third_party were two channels for the same event, and
+# dropped the former on the strength of a log where both fired for one play.
+# That generalised from a play the player was a BYSTANDER to. A live session
+# 2026-09-09 shows the opposite for the case that matters: Great Britain
+# opened a play against the player, `on_diplo_play_start` fired (twice in the
+# session, per the frequency logger) and `on_diplo_play_start_third_party`
+# fired **not once** -- the whole session logged zero `SNW_FILTER|start`
+# decisions. Because vanilla's own `diplo_play_start_notification` (the
+# "X started a play against us" key) is muted by this mod, the result was
+# total silence for someone declaring a play on you. The single worst
+# failure this mod can have, and it shipped.
+#
+# Both hooks now post, and the dedup guard already on the shared handler is
+# what stops a play that somehow fires both from notifying twice: it is a
+# flag on the diplomatic play itself (root), so it spans both on_actions
+# rather than being per-hook.
+on_diplo_play_start = {
+	on_actions = {
+		smart_notifications_diplo_play_start
+	}
+}
+
 on_diplo_play_start_third_party = {
 	on_actions = {
 		smart_notifications_diplo_play_start
@@ -171,11 +197,31 @@ smart_notifications_diplo_play_start = {
 			# watched branch below, which is today's behaviour and what the
 			# user asked to keep.
 			if = {
+				# Two ways to be "the player is in this play", OR'd, because
+				# neither alone is reliable on every hook in this file:
+				#
+				# - scope:target is the direct answer but is NOT dependably
+				#   bound at on_diplo_play_start (see the 2026-09-07 note in
+				#   the header -- target= logged empty there, and vanilla's
+				#   own loc for that key never references it either). `?=`
+				#   makes an unbound scope fail the branch instead of
+				#   erroring.
+				# - any_scope_play_involved + is_diplomatic_play_participant_with
+				#   is the reliable one later on, but it asks about COMMITTED
+				#   participants, and the target of a brand-new play may not
+				#   be committed yet at the instant it opens.
+				#
+				# Either matching is enough. Getting this wrong in the safe
+				# direction costs a toast instead of a popup; getting it wrong
+				# the other way is the silence bug this file just had.
 				limit = {
 					scope:actor ?= { NOT = { is_player = yes } }
-					any_scope_play_involved = {
-						is_diplomatic_play_participant_with = scope:actor
-						is_player = yes
+					OR = {
+						scope:target ?= { is_player = yes }
+						any_scope_play_involved = {
+							is_diplomatic_play_participant_with = scope:actor
+							is_player = yes
+						}
 					}
 				}
 				post_notification = smart_notifications_diplo_play_start_player
@@ -200,33 +246,6 @@ smart_notifications_diplo_play_start = {
 			debug_log = "SNW_FILTER|start|DUPLICATE_SUPPRESSED"
 		}
 
-		# TEMPORARY instrumentation (2026-09-07) so a playtest can show
-		# exactly what was elevated vs quieted and why -- one line per
-		# participant with its watched status, alongside the decision
-		# above. Delete once the filtering is confirmed tuned correctly,
-		# same as the truce tracker's taps. Grep debug.log for SNW_FILTER.
-		every_scope_play_involved = {
-			if = {
-				limit = { smart_notifications_is_watched = yes }
-				debug_log = "SNW_FILTER|start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=yes"
-			}
-			else = {
-				debug_log = "SNW_FILTER|start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=no"
-			}
-
-			# Confirmed correct 2026-09-08 against 2 real revolutions
-			# (Bali, Sulu) -- see the header comment above for the full
-			# story of why this replaced any_scope_play_involved's own
-			# broad "involved" concept, and why is_diplomatic_play_committed_participant
-			# (tried and rejected first) is gone from here now.
-			if = {
-				limit = { is_diplomatic_play_participant_with = scope:actor }
-				debug_log = "SNW_FILTER|start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|participant_with_actor=yes"
-			}
-			else = {
-				debug_log = "SNW_FILTER|start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|participant_with_actor=no"
-			}
-		}
 	}
 }
 
@@ -254,11 +273,31 @@ smart_notifications_diplo_play_join_side = {
 			# watched branch below, which is today's behaviour and what the
 			# user asked to keep.
 			if = {
+				# Two ways to be "the player is in this play", OR'd, because
+				# neither alone is reliable on every hook in this file:
+				#
+				# - scope:target is the direct answer but is NOT dependably
+				#   bound at on_diplo_play_start (see the 2026-09-07 note in
+				#   the header -- target= logged empty there, and vanilla's
+				#   own loc for that key never references it either). `?=`
+				#   makes an unbound scope fail the branch instead of
+				#   erroring.
+				# - any_scope_play_involved + is_diplomatic_play_participant_with
+				#   is the reliable one later on, but it asks about COMMITTED
+				#   participants, and the target of a brand-new play may not
+				#   be committed yet at the instant it opens.
+				#
+				# Either matching is enough. Getting this wrong in the safe
+				# direction costs a toast instead of a popup; getting it wrong
+				# the other way is the silence bug this file just had.
 				limit = {
 					scope:actor ?= { NOT = { is_player = yes } }
-					any_scope_play_involved = {
-						is_diplomatic_play_participant_with = scope:actor
-						is_player = yes
+					OR = {
+						scope:target ?= { is_player = yes }
+						any_scope_play_involved = {
+							is_diplomatic_play_participant_with = scope:actor
+							is_player = yes
+						}
 					}
 				}
 				post_notification = smart_notifications_diplo_play_join_side_player
@@ -283,30 +322,6 @@ smart_notifications_diplo_play_join_side = {
 			debug_log = "SNW_FILTER|join_side|DUPLICATE_SUPPRESSED"
 		}
 
-		# TEMPORARY instrumentation (2026-09-07) so a playtest can show
-		# exactly what was elevated vs quieted and why -- one line per
-		# participant with its watched status, alongside the decision
-		# above. Delete once the filtering is confirmed tuned correctly,
-		# same as the truce tracker's taps. Grep debug.log for SNW_FILTER.
-		every_scope_play_involved = {
-			if = {
-				limit = { smart_notifications_is_watched = yes }
-				debug_log = "SNW_FILTER|join_side|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=yes"
-			}
-			else = {
-				debug_log = "SNW_FILTER|join_side|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=no"
-			}
-
-			# Confirmed correct 2026-09-08 -- see smart_notifications_diplo_play_start's
-			# copy of this block above for the full writeup.
-			if = {
-				limit = { is_diplomatic_play_participant_with = scope:actor }
-				debug_log = "SNW_FILTER|join_side|involved|country=[THIS.GetCountry.GetNameNoFormatting]|participant_with_actor=yes"
-			}
-			else = {
-				debug_log = "SNW_FILTER|join_side|involved|country=[THIS.GetCountry.GetNameNoFormatting]|participant_with_actor=no"
-			}
-		}
 	}
 }
 
@@ -332,11 +347,31 @@ smart_notifications_diplo_play_war_start = {
 			# watched branch below, which is today's behaviour and what the
 			# user asked to keep.
 			if = {
+				# Two ways to be "the player is in this play", OR'd, because
+				# neither alone is reliable on every hook in this file:
+				#
+				# - scope:target is the direct answer but is NOT dependably
+				#   bound at on_diplo_play_start (see the 2026-09-07 note in
+				#   the header -- target= logged empty there, and vanilla's
+				#   own loc for that key never references it either). `?=`
+				#   makes an unbound scope fail the branch instead of
+				#   erroring.
+				# - any_scope_play_involved + is_diplomatic_play_participant_with
+				#   is the reliable one later on, but it asks about COMMITTED
+				#   participants, and the target of a brand-new play may not
+				#   be committed yet at the instant it opens.
+				#
+				# Either matching is enough. Getting this wrong in the safe
+				# direction costs a toast instead of a popup; getting it wrong
+				# the other way is the silence bug this file just had.
 				limit = {
 					scope:actor ?= { NOT = { is_player = yes } }
-					any_scope_play_involved = {
-						is_diplomatic_play_participant_with = scope:actor
-						is_player = yes
+					OR = {
+						scope:target ?= { is_player = yes }
+						any_scope_play_involved = {
+							is_diplomatic_play_participant_with = scope:actor
+							is_player = yes
+						}
 					}
 				}
 				post_notification = smart_notifications_diplo_play_war_start_player
@@ -361,30 +396,6 @@ smart_notifications_diplo_play_war_start = {
 			debug_log = "SNW_FILTER|war_start|DUPLICATE_SUPPRESSED"
 		}
 
-		# TEMPORARY instrumentation (2026-09-07) so a playtest can show
-		# exactly what was elevated vs quieted and why -- one line per
-		# participant with its watched status, alongside the decision
-		# above. Delete once the filtering is confirmed tuned correctly,
-		# same as the truce tracker's taps. Grep debug.log for SNW_FILTER.
-		every_scope_play_involved = {
-			if = {
-				limit = { smart_notifications_is_watched = yes }
-				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=yes"
-			}
-			else = {
-				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=no"
-			}
-
-			# Confirmed correct 2026-09-08 -- see smart_notifications_diplo_play_start's
-			# copy of this block above for the full writeup.
-			if = {
-				limit = { is_diplomatic_play_participant_with = scope:actor }
-				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|participant_with_actor=yes"
-			}
-			else = {
-				debug_log = "SNW_FILTER|war_start|involved|country=[THIS.GetCountry.GetNameNoFormatting]|participant_with_actor=no"
-			}
-		}
 	}
 }
 
@@ -415,17 +426,5 @@ smart_notifications_diplo_play_subject_released = {
 			debug_log = "SNW_FILTER|subject_released|DUPLICATE_SUPPRESSED"
 		}
 
-		# TEMPORARY instrumentation (2026-09-07), same shape as the
-		# original 3 events above. Delete once confirmed tuned correctly.
-		# Grep debug.log for SNW_FILTER.
-		every_scope_play_involved = {
-			if = {
-				limit = { smart_notifications_is_watched = yes }
-				debug_log = "SNW_FILTER|subject_released|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=yes"
-			}
-			else = {
-				debug_log = "SNW_FILTER|subject_released|involved|country=[THIS.GetCountry.GetNameNoFormatting]|watched=no"
-			}
-		}
 	}
 }

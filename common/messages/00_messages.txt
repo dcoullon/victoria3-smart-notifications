@@ -547,7 +547,12 @@ cobelligerent_in_default_notification = {
 
 	texture = "gfx/interface/icons/notification_icons/capitulate.dds"
 
-	notification_type = toast
+	# DEMOTED to feed 2026-09-09 per the user: a war participant going into
+	# default is not something they act on, and one session produced 69 of
+	# these. Left ungated by the Watchlist deliberately -- there is no country
+	# scope to test here, and the volume argument applies regardless of who
+	# defaulted.
+	notification_type = feed
 	color = bad
 }
 
@@ -617,7 +622,12 @@ enemy_in_default_notification = {
 
 	texture = "gfx/interface/icons/notification_icons/capitulate.dds"
 
-	notification_type = toast
+	# DEMOTED to feed 2026-09-09 per the user: a war participant going into
+	# default is not something they act on, and one session produced 69 of
+	# these. Left ungated by the Watchlist deliberately -- there is no country
+	# scope to test here, and the volume argument applies regardless of who
+	# defaulted.
+	notification_type = feed
 	color = good
 }
 
@@ -1382,7 +1392,14 @@ country_swayed = {
 
 	# Project 1 (Smart Notification Defaults): elevated from feed to toast, so
 	# subject/third-party sway intervention does not slip by unnoticed. Was: feed.
-	notification_type = toast
+	# DEMOTED back to feed 2026-09-09, second attempt: this mod had raised it
+	# to toast, and a single session with one large diplomatic play produced
+	# 93 sway notifications. Swaying is how a play recruits every uncommitted
+	# country on the map, so its volume scales with the play, not with how
+	# much it matters to you -- and the user reported these as the duplicative
+	# toasts during Great Britain's play, since a sway and the war goal that
+	# bought it read as the same event twice.
+	notification_type = feed
 	color = neutral
 }
 
@@ -1394,7 +1411,14 @@ sway_offer_accepted = {
 
 	# Project 1 (Smart Notification Defaults): elevated from feed to toast, pairs
 	# with country_swayed above. Was: feed.
-	notification_type = toast
+	# DEMOTED back to feed 2026-09-09, second attempt: this mod had raised it
+	# to toast, and a single session with one large diplomatic play produced
+	# 93 sway notifications. Swaying is how a play recruits every uncommitted
+	# country on the map, so its volume scales with the play, not with how
+	# much it matters to you -- and the user reported these as the duplicative
+	# toasts during Great Britain's play, since a sway and the war goal that
+	# bought it read as the same event twice.
+	notification_type = feed
 	color = good
 }
 
@@ -1406,7 +1430,14 @@ reverse_sway_offer_accepted = {
 
 	# Project 1 (Smart Notification Defaults): elevated from feed to toast, pairs
 	# with country_swayed above. Was: feed.
-	notification_type = toast
+	# DEMOTED back to feed 2026-09-09, second attempt: this mod had raised it
+	# to toast, and a single session with one large diplomatic play produced
+	# 93 sway notifications. Swaying is how a play recruits every uncommitted
+	# country on the map, so its volume scales with the play, not with how
+	# much it matters to you -- and the user reported these as the duplicative
+	# toasts during Great Britain's play, since a sway and the war goal that
+	# bought it read as the same event twice.
+	notification_type = feed
 	color = good
 }
 
@@ -1420,7 +1451,14 @@ sway_offer_rejected = {
 	# accepted-sway siblings above -- the game logs "Sway Offer Group has
 	# mixed Notification Types" when a shared group's members disagree
 	# (player overrides apply per group, not per key). Was: feed.
-	notification_type = toast
+	# DEMOTED back to feed 2026-09-09, second attempt: this mod had raised it
+	# to toast, and a single session with one large diplomatic play produced
+	# 93 sway notifications. Swaying is how a play recruits every uncommitted
+	# country on the map, so its volume scales with the play, not with how
+	# much it matters to you -- and the user reported these as the duplicative
+	# toasts during Great Britain's play, since a sway and the war goal that
+	# bought it read as the same event twice.
+	notification_type = feed
 	color = bad
 }
 
@@ -1432,7 +1470,14 @@ reverse_sway_offer_rejected = {
 
 	# Project 1 (Smart Notification Defaults): aligned to toast, see
 	# sway_offer_rejected above. Was: feed.
-	notification_type = toast
+	# DEMOTED back to feed 2026-09-09, second attempt: this mod had raised it
+	# to toast, and a single session with one large diplomatic play produced
+	# 93 sway notifications. Swaying is how a play recruits every uncommitted
+	# country on the map, so its volume scales with the play, not with how
+	# much it matters to you -- and the user reported these as the duplicative
+	# toasts during Great Britain's play, since a sway and the war goal that
+	# bought it read as the same event twice.
+	notification_type = feed
 	color = bad
 }
 

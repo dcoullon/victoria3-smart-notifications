@@ -1382,7 +1382,11 @@ types message_settings {
 	# child in these rows sets InterestingCountryItem.GetCountry individually
 	# (see the small_flag and textbox siblings).
 	type smart_notifications_watchlist_rank_badge = widget {
-		size = { 50 44 }
+		# 62 wide, not 50: the rank icons are not all the same width (the
+		# great-power badge is visibly wider than the minor-power one), so a
+		# tight box let the wider ones crowd the flag to their left. The extra
+		# room is padding, not icon -- the badge inside stays 40x40.
+		size = { 62 44 }
 		alwaystransparent = no
 		datacontext = "[InterestingCountryItem.GetCountry]"
 		tooltip = "[Country.GetRankTooltip]"
@@ -1428,7 +1432,7 @@ types message_settings {
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 540 -1 }
+                maximumsize = { 528 -1 }
                 margin_left = 10
                 elide = right
             }
@@ -1478,7 +1482,7 @@ types message_settings {
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 540 -1 }
+                maximumsize = { 528 -1 }
                 margin_left = 10
                 elide = right
             }
@@ -1529,7 +1533,7 @@ types message_settings {
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 540 -1 }
+                maximumsize = { 528 -1 }
                 margin_left = 10
                 elide = right
             }
@@ -1575,7 +1579,7 @@ types message_settings {
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 540 -1 }
+                maximumsize = { 528 -1 }
                 margin_left = 10
                 elide = right
             }
@@ -1621,7 +1625,7 @@ types message_settings {
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 540 -1 }
+                maximumsize = { 528 -1 }
                 margin_left = 10
                 elide = right
             }
@@ -1667,7 +1671,7 @@ types message_settings {
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 540 -1 }
+                maximumsize = { 528 -1 }
                 margin_left = 10
                 elide = right
             }
@@ -1713,7 +1717,7 @@ types message_settings {
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 540 -1 }
+                maximumsize = { 528 -1 }
                 margin_left = 10
                 elide = right
             }
@@ -1763,7 +1767,7 @@ types message_settings {
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 540 -1 }
+                maximumsize = { 528 -1 }
                 margin_left = 10
                 elide = right
             }
