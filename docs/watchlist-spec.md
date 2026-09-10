@@ -271,8 +271,17 @@ observing, so promoting them wholesale would be noisy.
 
 | situation | tier |
 |---|---|
-| the play involves **you** | toast |
-| any other play | feed |
+| the play **is already a war**, involves **you**, and someone else added the goal | toast |
+| anything else | feed |
+
+**Tightened 2026-09-10, after watching it in practice.** The original rule
+toasted any goal in a play involving the player, on the belief that a play's
+opening goals are created with the play and never reach the hook. They do reach
+it — so each *demand* toasted as a play opened, in both directions. War goals
+added while a play is still a play are its demands; only a goal added after the
+war has actually started is an escalation worth interrupting for. Goals the
+player adds themselves never toast, for the same reason a play you started
+doesn't.
 
 Feasible: `on_wargoal_added` exists (Root = Diplomatic Play,
 `scope:actor` = war goal owner), so the play's participants can be tested

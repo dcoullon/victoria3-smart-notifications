@@ -74,7 +74,26 @@ smart_notifications_wargoal_added = {
 				# player had nothing to do with -- but it does mean the value of
 				# this family is mostly the QUIETING of other people's war goals,
 				# not the elevation of your own.
+				# THREE conditions now, all required -- revised 2026-09-10 after
+				# the user watched this fire in practice. The earlier belief that a
+				# play's OPENING war goals are created with the play and never reach
+				# this hook was simply wrong: they do reach it, and each demand
+				# toasted as it was added.
+				#
+				# 1. ROOT.is_war -- the play must actually have become a war. This is
+				#    the fix. War goals added while a play is still a play ARE its
+				#    demands; they arrive one after another as it opens, and toasting
+				#    each is noise. Vanilla puts all war goals in the feed anyway.
+				#    Once shooting has started, a NEW goal is a real escalation and
+				#    worth interrupting for. (is_war is documented on diplomatic_play
+				#    scope in triggers.log, and vanilla uses it in 02_paraguay.txt.)
+				# 2. Not a goal the player added. You did it, you know -- same
+				#    reasoning as the self-initiated play start in 03.
+				# 3. The play involves the player, tested two ways since neither is
+				#    reliable alone.
 				limit = {
+					ROOT ?= { is_war = yes }
+					scope:actor ?= { NOT = { is_player = yes } }
 					OR = {
 						scope:target ?= { is_player = yes }
 						any_scope_play_involved = {
@@ -129,7 +148,26 @@ smart_notifications_wargoal_removed = {
 				# player had nothing to do with -- but it does mean the value of
 				# this family is mostly the QUIETING of other people's war goals,
 				# not the elevation of your own.
+				# THREE conditions now, all required -- revised 2026-09-10 after
+				# the user watched this fire in practice. The earlier belief that a
+				# play's OPENING war goals are created with the play and never reach
+				# this hook was simply wrong: they do reach it, and each demand
+				# toasted as it was added.
+				#
+				# 1. ROOT.is_war -- the play must actually have become a war. This is
+				#    the fix. War goals added while a play is still a play ARE its
+				#    demands; they arrive one after another as it opens, and toasting
+				#    each is noise. Vanilla puts all war goals in the feed anyway.
+				#    Once shooting has started, a NEW goal is a real escalation and
+				#    worth interrupting for. (is_war is documented on diplomatic_play
+				#    scope in triggers.log, and vanilla uses it in 02_paraguay.txt.)
+				# 2. Not a goal the player added. You did it, you know -- same
+				#    reasoning as the self-initiated play start in 03.
+				# 3. The play involves the player, tested two ways since neither is
+				#    reliable alone.
 				limit = {
+					ROOT ?= { is_war = yes }
+					scope:actor ?= { NOT = { is_player = yes } }
 					OR = {
 						scope:target ?= { is_player = yes }
 						any_scope_play_involved = {
