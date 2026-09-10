@@ -355,6 +355,31 @@ FULL_OVERRIDE_FILES = [
 ]
 
 
+# Lines this mod deliberately does NOT carry over from the vanilla file it
+# overrides. The full-override check below exists to catch a game patch adding
+# content we then silently ship without; an intentional removal has to be
+# declared here, with the reason, or it looks identical to drift.
+#
+# Both entries below were removed from the MUTED diplo_play_war_start_notification
+# on 2026-09-08 to fix a confirmed, reproducible double full-screen popup when
+# a war started involving the player: the muted key's presentation properties
+# appeared to still be processed independently of notification_type, stacking
+# with this mod's own replacement popup. Restoring them reintroduces that bug.
+# See the comment on that key in common/messages/00_messages.txt.
+#
+# Until 2026-09-10 this omission was invisible: the check compares line SETS
+# across the whole file, and this mod's own war-start key happened to contain
+# the same two lines, so the vanilla ones never registered as missing. Moving
+# the mod's keys into 99_smart_notifications_messages.txt removed that
+# coincidence and exposed it.
+ALLOWED_VANILLA_OMISSIONS = {
+    "common/messages/00_messages.txt": {
+        "popup_name = war_started",
+        'on_created_soundeffect = "event:/SFX/UI/Military/to_war_popup_notification"',
+    },
+}
+
+
 def check_full_overrides_match_installed_vanilla(root: Path) -> list[str]:
     """For every file this mod fully overrides, confirm the game's
     CURRENTLY INSTALLED copy has no content our own copy is missing
@@ -384,6 +409,7 @@ def check_full_overrides_match_installed_vanilla(root: Path) -> list[str]:
         installed_lines = norm(installed.read_text(encoding="utf-8-sig", errors="ignore"))
         our_lines = norm(our_path.read_text(encoding="utf-8-sig", errors="ignore"))
         missing = installed_lines - our_lines
+        missing -= ALLOWED_VANILLA_OMISSIONS.get(our_rel.replace("\\", "/"), set())
         if missing:
             sample = sorted(missing)[:3]
             errs.append(

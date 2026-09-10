@@ -180,7 +180,38 @@ a fresh `script_docs` dump after any major update), or another event that
 reliably coincides with an attitude shift turns out to be hookable and
 carries the country in scope.
 
-## TODO: put this mod's rows last in the Message Settings list
+## DONE 2026-09-10: this mod's rows now sit last in Message Settings
+
+Kept for the findings, which cost two attempts to get.
+
+**The order is filename order, then definition order within the file.** Paradox
+reads `common/messages/*.txt` in filename order. This mod's keys were already
+last within `00_messages.txt`, but vanilla's `01_event_messages.txt` through
+`unification_notifcations.txt` are read after it -- so the fix was a filename,
+not a reordering. All 166 invented keys now live in
+`common/messages/99_smart_notifications_messages.txt`.
+
+**What the first attempt got wrong**, both worth remembering:
+
+1. Extracting by byte offset instead of by name. The blocks looked contiguous,
+   but the backward walk over the introducing comment run cut into vanilla
+   content. The rewrite parses line by line, buckets every line into head or a
+   named block, and asserts that no code line was lost -- so a mistake fails
+   loudly instead of quietly shipping.
+2. A regex using `re.S` for the block body while also matching the comment run
+   with `.*` -- DOTALL makes `.` cross newlines, so the comment pattern
+   swallowed whole blocks and only three units were found.
+
+**And it exposed a real latent problem.** `check_full_overrides_match_installed_vanilla`
+compares line SETS across the whole file. Our muted `diplo_play_war_start_notification`
+had deliberately dropped `popup_name` and `on_created_soundeffect` (they caused
+a confirmed double full-screen popup, see that key's comment), and the check
+never noticed because this mod's OWN war-start key contained the same two
+lines. Moving the mod's keys out removed the coincidence. The omission is now
+declared in `ALLOWED_VANILLA_OMISSIONS` with its reason, so it is exempt on
+purpose rather than by accident.
+
+### Superseded notes from before it was done
 
 Asked for by the user 2026-09-10: all `(SN)` rows grouped at the end of the
 Notification Types list, ordered so related ones sit together. Attempted the
