@@ -33,6 +33,7 @@ new one.
 """
 import argparse
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -106,6 +107,12 @@ def strip_dev_name_suffix(metadata_path: Path):
             f.write("\n")
 
 
+# Matches a debug_log / debug_log_scopes call anywhere on a line. The string
+# argument never contains an escaped quote in this mod, so a non-greedy
+# quoted run is enough; debug_log_scopes takes a bare yes/no instead.
+DEBUG_CALL_RE = re.compile(r'\bdebug_log\s*=\s*"[^"]*"|\bdebug_log_scopes\s*=\s*\w+')
+
+
 def drop_dev_only_files(staging: Path) -> list[str]:
     """Remove the diagnostic-only files from the packaged copy entirely.
     Stripping their debug_log lines is not enough -- what would remain is a
@@ -144,14 +151,33 @@ def strip_debug_logging(staging: Path) -> int:
         raw = path.read_bytes()
         had_bom = raw.startswith(b"\xef\xbb\xbf")
         text = raw.decode("utf-8-sig")
-        kept = [l for l in text.split("\n")
-                if not l.lstrip().startswith(("debug_log =", "debug_log=",
-                                              "debug_log_scopes =", "debug_log_scopes="))]
-        n = len(text.split("\n")) - len(kept)
+        out, n = [], 0
+        for line in text.split("\n"):
+            stripped = line.lstrip()
+            if stripped.startswith(("debug_log =", "debug_log=",
+                                    "debug_log_scopes =", "debug_log_scopes=")):
+                # A line that is nothing but a log call: drop it whole.
+                n += 1
+                continue
+            # A log call sitting INSIDE a one-line compound statement, e.g.
+            #   if = { limit = { ... } THIS.owner = { ... } debug_log = "..." }
+            # The generated per-law file is written this way, and a purely
+            # line-based strip left 138 of them in the shipped build -- found
+            # 2026-09-10 by counting the packaged output rather than trusting
+            # the strip. Remove just the call, keeping the braces around it.
+            new_line, k = DEBUG_CALL_RE.subn("", line)
+            if k:
+                n += k
+                # Collapse the double space the removal leaves behind.
+                new_line = re.sub(r"[ \t]{2,}", " ", new_line).rstrip()
+                if not new_line.strip():
+                    continue
+                line = new_line
+            out.append(line)
         if not n:
             continue
-        out = "\n".join(kept)
-        path.write_bytes((b"\xef\xbb\xbf" if had_bom else b"") + out.encode("utf-8"))
+        body = "\n".join(out)
+        path.write_bytes((b"\xef\xbb\xbf" if had_bom else b"") + body.encode("utf-8"))
         removed += n
     return removed
 
