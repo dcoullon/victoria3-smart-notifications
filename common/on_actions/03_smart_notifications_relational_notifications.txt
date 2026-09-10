@@ -196,7 +196,25 @@ smart_notifications_diplo_play_start = {
 			# YOU started is never promoted. It still falls through to the
 			# watched branch below, which is today's behaviour and what the
 			# user asked to keep.
+			# Nothing at all when the PLAYER opened this play, matching
+			# vanilla. Confirmed by a control test on a mod-free game
+			# 2026-09-10: vanilla's diplo_play_start_notification is worded
+			# "X started a play against us" and fires only for the target, so
+			# it never appears for a play you opened yourself. This mod mutes
+			# that key and posts its own, and because the player counts as
+			# watched, the play you just declared fell into the watched branch
+			# and toasted back at you.
+			#
+			# Checked FIRST, before the player and watched branches, since
+			# actor-is-player would otherwise be swallowed by either. Applied
+			# to play start only -- join side is untested and vanilla's key
+			# there is not worded "against us", so it probably does fire for
+			# every join including your own.
 			if = {
+				limit = { scope:actor ?= { is_player = yes } }
+				debug_log = "SNW_FILTER|start|posted_key=NONE_PLAYER_IS_ACTOR|actor=[SCOPE.sC('actor').GetNameNoFormatting]|SELF_INITIATED"
+			}
+			else_if = {
 				# Two ways to be "the player is in this play", OR'd, because
 				# neither alone is reliable on every hook in this file:
 				#

@@ -126,9 +126,14 @@ pauses is the player's own "Pause?" checkbox, stored per group in
 ticks once, not something this mod can ship, and the same applies in reverse to
 un-pausing capitulation.
 
-Plays **you start yourself** keep today's behaviour and are explicitly not
-a concern — the user confirms this works fine now. The popup row means a
-play *someone else* brings to you; see Q4.
+**A play YOU start produces nothing at all** (revised 2026-09-10, after a
+control test on a mod-free game). Vanilla's own key is worded "X started a
+play against us" and fires only for the target, so vanilla never tells you
+about a play you opened. This mod mutes that key and posts its own, and since
+the player counts as watched, a play you declared was falling into the watched
+branch and toasting back at you — a divergence from vanilla with nothing to
+recommend it. Applies to play start only; join side is untested and vanilla's
+key there is not worded "against us".
 
 Note the watched war-start row is a deliberate downgrade from today's
 `popup`. Plays involving you stay `popup`.
