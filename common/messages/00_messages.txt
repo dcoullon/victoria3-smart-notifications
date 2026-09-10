@@ -1196,7 +1196,13 @@ diplomatic_action_break_notification = {
 
 	texture = "gfx/interface/icons/notification_icons/influence_bad.dds"
 
-	notification_type = feed
+	# F10 (docs/watchlist-spec.md): muted 2026-09-09 in favour of the three
+	# smart_notifications_diplomatic_action_break_* keys below, which split
+	# this by who the ended pact was with. Vanilla fires one notification at
+	# one tier for every pact break anywhere, so a watched country ending a
+	# pact with YOU read exactly like two strangers parting ways. Alone in
+	# its group, so muting it carries no mixed-types risk.
+	notification_type = none
 	color = neutral
 }
 
@@ -3985,6 +3991,49 @@ smart_notifications_wargoal_removed_other = {
 	group = "smart_notifications_wargoal_other_group"
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = feed
+	color = neutral
+}
+
+# F10 -- pact breaks, the other half of F1 (docs/watchlist-spec.md). Same
+# matrix, same reasoning: a pact ending matters when it was with you or with
+# somebody you follow, and the country that ended it is one you follow.
+#
+# Three keys on TWO groups. The two toast cells need their own keys because
+# the desc differs -- vanilla's break text, like its creation text, is written
+# assuming the reader was a party to the pact -- but they share a group so this
+# family costs two Message Settings rows instead of three.
+#
+# The name is safe to share across all three: GetActionNotificationBreakName is
+# the action's own title ("Tibet stopped damaging Relations"), not a
+# player-centric sentence, exactly as GetActionNotificationName is on the F1
+# side.
+smart_notifications_diplomatic_action_break_at_player_by_watched = {
+	type = diplomatic_action
+	group = "smart_notifications_diplomatic_action_break_watched_group"
+
+	texture = "gfx/interface/icons/notification_icons/influence.dds"
+
+	notification_type = toast
+	color = neutral
+}
+
+smart_notifications_diplomatic_action_break_at_watched_by_watched = {
+	type = diplomatic_action
+	group = "smart_notifications_diplomatic_action_break_watched_group"
+
+	texture = "gfx/interface/icons/notification_icons/influence.dds"
+
+	notification_type = toast
+	color = neutral
+}
+
+smart_notifications_diplomatic_action_break_other = {
+	type = diplomatic_action
+	group = "smart_notifications_diplomatic_action_break_other_group"
+
+	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
 	notification_type = feed
 	color = neutral

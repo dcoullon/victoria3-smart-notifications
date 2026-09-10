@@ -86,6 +86,24 @@ $notification_smart_notifications_wargoal_removed_other_desc$"
  notification_smart_notifications_wargoal_removed_other_name:0 "[concept_war_goal] Removed!"
  notification_smart_notifications_wargoal_removed_other_desc:0 "A [concept_war_goal] for [SCOPE.sCountry('actor').GetName] has been removed."
 
+ # F10 -- pact breaks. Same split as the F1 cells above: vanilla's own break
+ # wording is reused verbatim for the case where the player was a party to the
+ # pact (it is accurate there and nowhere else), and the third-party case gets
+ # generic wording rather than text claiming an involvement the player does not
+ # have. The two toast keys share one group label, so they appear as a single
+ # Message Settings row.
+ smart_notifications_diplomatic_action_break_watched_group:0 "(SN) Pact Ended: Watched -> You or Watched"
+ smart_notifications_diplomatic_action_break_other_group:0 "(SN) Pact Ended: Other"
+ notification_smart_notifications_diplomatic_action_break_at_player_by_watched_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_break_at_player_by_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplomatic_action_break_at_player_by_watched_desc$"
+ notification_smart_notifications_diplomatic_action_break_at_player_by_watched_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationBreakName]"
+ notification_smart_notifications_diplomatic_action_break_at_player_by_watched_desc:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationBreakDesc]"
+ notification_smart_notifications_diplomatic_action_break_at_watched_by_watched_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_break_at_watched_by_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplomatic_action_break_at_watched_by_watched_desc$"
+ notification_smart_notifications_diplomatic_action_break_at_watched_by_watched_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationBreakName]"
+ notification_smart_notifications_diplomatic_action_break_at_watched_by_watched_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] has ended a diplomatic arrangement with [SCOPE.sC('recipient').GetNameNoFormatting]. Open the Diplomacy screen for details."
+ notification_smart_notifications_diplomatic_action_break_other_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_break_other_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplomatic_action_break_other_desc$"
+ notification_smart_notifications_diplomatic_action_break_other_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationBreakName]"
+ notification_smart_notifications_diplomatic_action_break_other_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] has ended a diplomatic arrangement with [SCOPE.sC('recipient').GetNameNoFormatting]. Open the Diplomacy screen for details."
+
  # F1 -- the five diplomatic-action cells (docs/watchlist-spec.md F1).
  # The at_player_* pair reuses vanilla's own full per-action desc, which is
  # written assuming the reader is a party to the action -- accurate here and

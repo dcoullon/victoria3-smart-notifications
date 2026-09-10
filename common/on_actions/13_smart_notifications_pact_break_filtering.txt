@@ -1,0 +1,103 @@
+﻿# F10 of docs/watchlist-spec.md -- pact breaks, the other half of F1.
+#
+# Found by the user 2026-09-09: "Tibet stopped damaging Relations" sat in the
+# feed while Tibet was on the watchlist and the pact being ended was with the
+# player. F1 had only ever covered pact CREATION (on_diplomatic_action); this
+# is the same event class arriving through a different hook, and it deserves
+# the same rule.
+#
+# Root = Diplomatic Action (`on_diplomatic_action_break`, confirmed via
+# vanilla's own comment in common/on_actions/00_code_on_actions.txt) -- the
+# same root type F1's hook has, which is why the same scope names are expected
+# here.
+#
+# NOT YET LIVE-TESTED. `scope:actor` / `scope:recipient` are ASSUMED bound
+# here, on the strength of the shared root type -- they are not confirmed on
+# this specific on_action, and this project has been bitten before by
+# generalising a scope finding from one on_action to a sibling (see the
+# `_third_party_` family in 06_smart_notifications_diplomatic_action_filtering.txt,
+# where exactly that assumption produced a real runtime error). Every branch
+# below logs, and the `?=` guards mean a missing scope degrades to "no
+# notification" rather than an error spam. First thing to check in the log:
+# whether SNW_FILTER|pact_break lines appear at all, and whether the country
+# names in them resolve.
+#
+# Which of the two break paths this covers: the one whose title reads like the
+# action itself ("Tibet stopped damaging Relations"), i.e.
+# GetActionNotificationBreakName. The OTHER path,
+# on_diplomatic_pact_auto_break (a pact lapsing because a requirement stopped
+# being met, titled "<pact> broken"), is deliberately untouched -- its vanilla
+# text is built around GetPlayer, so it is already player-scoped and needs no
+# filtering, only a tier decision if one is ever wanted.
+
+on_diplomatic_action_break = {
+	on_actions = {
+		smart_notifications_diplomatic_action_break
+	}
+}
+
+smart_notifications_diplomatic_action_break = {
+	effect = {
+		# Same shape as F1's matrix, deliberately: is_player tested before
+		# smart_notifications_is_watched (which counts the player), and the
+		# actor side tested with smart_notifications_is_watched_not_player so
+		# a pact YOU ended is never promoted (spec invariant 5).
+		#
+		# Collapsed to three branches rather than F1's five, because the two
+		# feed cells on the F1 side would be identical here -- there is no
+		# reason to distinguish "a stranger ended a pact with you" from "a
+		# stranger ended one with a stranger" when both are feed and both use
+		# the same generic wording.
+		if = {
+			limit = {
+				scope:recipient ?= { is_player = yes }
+				scope:actor ?= { smart_notifications_is_watched_not_player = yes }
+			}
+			post_notification = smart_notifications_diplomatic_action_break_at_player_by_watched
+			debug_log = "SNW_FILTER|pact_break|posted_key=smart_notifications_diplomatic_action_break_at_player_by_watched|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|AT_PLAYER_BY_WATCHED"
+		}
+		else_if = {
+			limit = {
+				scope:recipient ?= { smart_notifications_is_watched = yes }
+				scope:actor ?= { smart_notifications_is_watched_not_player = yes }
+			}
+			post_notification = smart_notifications_diplomatic_action_break_at_watched_by_watched
+			debug_log = "SNW_FILTER|pact_break|posted_key=smart_notifications_diplomatic_action_break_at_watched_by_watched|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|AT_WATCHED_BY_WATCHED"
+		}
+		else = {
+			post_notification = smart_notifications_diplomatic_action_break_other
+			debug_log = "SNW_FILTER|pact_break|posted_key=smart_notifications_diplomatic_action_break_other|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|OTHER"
+		}
+
+		# Scope-availability tap -- this on_action's scopes are assumed, not
+		# confirmed (see the header). One line per side with its watched
+		# status, so a single session's log answers both "are the scopes
+		# bound" and "did the matrix route correctly". Delete once confirmed.
+		scope:actor ?= {
+			if = {
+				limit = { smart_notifications_is_watched_not_player = yes }
+				debug_log = "SNW_FILTER|pact_break|involved|country=[THIS.GetCountry.GetNameNoFormatting]|role=actor|watched=yes"
+			}
+			else_if = {
+				limit = { is_player = yes }
+				debug_log = "SNW_FILTER|pact_break|involved|country=[THIS.GetCountry.GetNameNoFormatting]|role=actor|watched=self"
+			}
+			else = {
+				debug_log = "SNW_FILTER|pact_break|involved|country=[THIS.GetCountry.GetNameNoFormatting]|role=actor|watched=no"
+			}
+		}
+		scope:recipient ?= {
+			if = {
+				limit = { is_player = yes }
+				debug_log = "SNW_FILTER|pact_break|involved|country=[THIS.GetCountry.GetNameNoFormatting]|role=recipient|watched=self"
+			}
+			else_if = {
+				limit = { smart_notifications_is_watched = yes }
+				debug_log = "SNW_FILTER|pact_break|involved|country=[THIS.GetCountry.GetNameNoFormatting]|role=recipient|watched=yes"
+			}
+			else = {
+				debug_log = "SNW_FILTER|pact_break|involved|country=[THIS.GetCountry.GetNameNoFormatting]|role=recipient|watched=no"
+			}
+		}
+	}
+}

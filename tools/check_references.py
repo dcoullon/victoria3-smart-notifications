@@ -455,6 +455,10 @@ WATCHLIST_SPEC_CELLS = {
     "smart_notifications_diplomatic_action_at_watched_by_watched": "toast",
     "smart_notifications_diplomatic_action_at_watched_by_other": "feed",
     "smart_notifications_diplomatic_action_elsewhere": "feed",
+    # F10 -- pact breaks, two toast cells sharing one group.
+    "smart_notifications_diplomatic_action_break_at_player_by_watched": "toast",
+    "smart_notifications_diplomatic_action_break_at_watched_by_watched": "toast",
+    "smart_notifications_diplomatic_action_break_other": "feed",
     # F2 -- diplomatic plays, three tiers per family.
     "smart_notifications_diplo_play_start_player": "popup",
     "smart_notifications_diplo_play_start_watched": "toast",
@@ -500,6 +504,10 @@ WATCHLIST_SPEC_SHARED_GROUPS = {
         "smart_notifications_diplo_play_join_side_quiet",
         "smart_notifications_diplo_play_war_start_quiet",
     },
+    "smart_notifications_diplomatic_action_break_watched_group": {
+        "smart_notifications_diplomatic_action_break_at_player_by_watched",
+        "smart_notifications_diplomatic_action_break_at_watched_by_watched",
+    },
     "smart_notifications_wargoal_player_group": {
         "smart_notifications_wargoal_added_player",
         "smart_notifications_wargoal_removed_player",
@@ -524,6 +532,7 @@ WATCHLIST_SPEC_VANILLA_TIERS = {
     "country_attitude_improved": "feed",
     "country_attitude_worsened": "feed",
     "harvest_condition_started_in_country_important": "feed",
+    "diplomatic_action_break_notification": "none",
     "wargoal_added": "none",
     "wargoal_removed": "none",
 }

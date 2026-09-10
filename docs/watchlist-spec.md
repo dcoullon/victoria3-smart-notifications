@@ -143,6 +143,40 @@ involving us, and observed volume is negligible (2 in a full session), so
 the gate is not worth building. Revisit only if treaties between
 uninvolved countries are ever seen toasting.
 
+### F10 — Pact breaks
+
+The other half of F1. `on_diplomatic_action` fires when a diplomatic action
+creates a pact; `on_diplomatic_action_break` fires when one ends, and F1 only
+ever specced the first. Found 2026-09-09 by the user noticing "Tibet stopped
+damaging Relations" sitting in the feed when Tibet is watched and the pact was
+with them.
+
+| situation | tier |
+|---|---|
+| aimed at **you**, by a watched country | toast |
+| aimed at a **watched country**, by a watched country | toast |
+| anything else | feed |
+
+Same rule as F1 and the same reasoning, including the actor-side test using
+`smart_notifications_is_watched_not_player` — a pact you ended yourself is not
+news.
+
+**Three keys on two groups.** The two toast cells need separate keys because
+their `_desc` differs (vanilla's break text assumes the reader is a party,
+exactly like the creation text does), but they share a group so the family
+costs two Message Settings rows rather than three. Vanilla's own
+`GetActionNotificationBreakName` / `GetActionNotificationBreakDesc` supply the
+accurate per-action wording — "Tibet stopped damaging Relations" — so this
+family invents no text of its own for the player-facing case.
+
+Vanilla's `diplomatic_action_break_notification` is muted in favour of these.
+
+**Not covered, deliberately:** `diplomatic_pact_auto_break_notification`, the
+other way a pact can end (a requirement stops being met). It needs no keys at
+all — its vanilla text is written around `GetPlayer`, so it is already
+player-scoped like F5's obligations, and raising it would be a one-line tier
+change. Left at `feed` until someone asks.
+
 ### F5 — Obligations
 
 `country_owes_obligation`, `country_owed_obligation`, and their
