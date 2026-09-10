@@ -25,6 +25,14 @@ of what actually shipped in each version, see [CHANGELOG.md](CHANGELOG.md).
 
 ## START HERE — the Watchlist: expectations, state, gaps (as of 2026-09-09 evening)
 
+> **2026-09-09, later:** the expectations half of this section has been
+> superseded by [docs/watchlist-spec.md](docs/watchlist-spec.md), the
+> behavioural spec agreed with the user family by family. That file is the
+> reference the code answers to; **it is still DRAFT and nothing is built
+> against it until the user says "OK" explicitly.** The state-and-gaps half
+> below is still accurate as a description of what exists today.
+
+
 Written as the starting point for the next session, at the user's
 request. Three questions in order: what is the Watchlist *for*, what does
 it actually do today, and what stands between the two.
