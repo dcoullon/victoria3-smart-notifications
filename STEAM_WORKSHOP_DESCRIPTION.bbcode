@@ -1,55 +1,76 @@
-[h1]Smart Notifications (Closed Beta)[/h1]
-[b]Less notification noise, a watchlist for the countries you actually care about, and new alerts vanilla is missing.[/b]
+[h1]Smart Notifications[/h1]
+[b]Fewer interruptions, a watchlist for the countries you actually care about, and a few alerts the base game is missing.[/b]
 
-Vanilla buries the things you actually need to act on in a wall of low-value popups, while diplomatic plays on the other side of the map interrupt you just as often as ones involving you. This mod retunes what pops up, lets you flag the countries you actually care about, and adds a few alerts the base game should have had.
+Victoria 3 interrupts you just as readily for two minor powers adjusting relations on the far side of the map as for a great power declaring on you. This mod sorts notifications by whether they involve [i]you[/i] or a country [i]you[/i] chose to follow — and leaves the rest in the feed, where you can read them when you want to.
+
+It changes nothing about how the game plays. Only what stops you.
 
 [hr][/hr]
 
-[h1]Key Features[/h1]
+[h1]Key features[/h1]
 
-[b]Country watchlist[/b]
+[b]A country watchlist[/b]
 [list]
-[*] Flag specific countries (rivals, allies, threats).
-[*] Diplomatic plays, wars, and countries joining a side only pop up when a watchlisted country (or you) is actually involved.
-[*] Everything else quietly goes to the feed instead of interrupting you.
+[*] Flag the countries you care about — rivals, neighbours, great powers, or anyone you pick by hand. Great powers and neighbours are pre-filled for you.
+[*] Each country shows its power rank and world ranking, so you can tell a great power from an obscure minor while choosing.
+[*] Diplomatic plays, wars and countries joining a side interrupt you only when you or a watched country is genuinely involved.
 [/list]
 
-[b]Retuned notification defaults[/b]
+[b]Diplomatic actions sorted by who did them[/b]
 [list]
-[*] Low-value vanilla notifications demoted from popup/toast to feed.
-[*] Repetitive dominion/subject diplomatic notifications quieted.
+[*] An action aimed at you by a country you watch still toasts.
+[*] The same action from a country you have never heard of goes to the feed.
+[*] Actions between two countries you do not follow stay out of your way entirely — in one test session that was two thirds of all diplomatic traffic.
+[/list]
+
+[b]Retuned defaults[/b]
+[list]
+[*] Low-value vanilla notifications moved from popup or toast down to the feed.
+[*] Repetitive third-party diplomacy — proposals, sway offers, relations churn between countries you do not follow — quieted.
+[*] Notifications that genuinely need you, like a war involving you, are left exactly as the base game had them.
 [/list]
 
 [b]New alerts[/b]
 [list]
-[*] [b]Taxation Deficit[/b] — alert plus a one-time toast naming the specific state, when its tax capacity can't keep up with usage.
-[*] [b]Agitator Invite Available[/b] — fires when you have an open agitator slot and an exiled character eligible to fill it.
-[*] [b]Law Ready to Enact[/b] — flag a law you're working toward from its detail panel; get an alert plus a one-time toast naming that law and its law group the moment it has better odds of passing than stalling.
+[*] [b]Law Ready to Enact[/b] — flag a law you are working toward from its detail panel, and get told the moment it has better odds of passing than stalling, naming that law.
+[*] [b]Taxation Deficit[/b] — when a state's tax capacity can no longer keep up, naming the state.
+[*] [b]Agitator Invite Available[/b] — when you have an open agitator slot and an exiled character who could fill it.
+[*] [b]Amendment Repealable[/b] — when an amendment becomes repealable.
 [/list]
+
+[hr][/hr]
+
+[h1]Have you played Victoria 3 before?[/h1]
+
+[b]Open Message Settings (the bell icon) and press "Reset to Default Settings" once.[/b]
+
+Victoria 3 remembers every notification setting you have ever changed by hand, and those saved choices override any mod. Without that one reset, parts of this mod will silently do nothing on your machine. Resetting clears your custom notification settings, base-game ones included, so re-apply anything you want to keep afterwards.
+
+A fresh install needs no reset. The mod will remind you in game if it thinks you need one.
 
 [hr][/hr]
 
 [h1]Compatibility[/h1]
 
 [list]
-[*] [b]Game version:[/b] 1.13.* (current patch)
-[*] [b]Save games:[/b] safe to add mid-campaign. Removal is expected safe too (script/UI only, no new mechanics) but not yet stress-tested across many saves — report back if you try it.
-[*] [b]Achievements:[/b] unaffected — only debug mode disables achievements, not mods.
-[*] [b]Ironman:[/b] not applicable, Victoria 3 has no Ironman mode.
-[*] [b]File overrides:[/b] this mod fully overrides [i]common/messages/00_messages.txt[/i] (needed for the notification retuning). [i]common/alert_types/[/i] and [i]common/alert_groups/[/i] are additive — no vanilla file touched there.
+[*] [b]Game version:[/b] 1.13.*
+[*] [b]Save games:[/b] safe to add mid-campaign. Removal is expected safe too — this is script and UI only, with no new mechanics — but has not been stress-tested across many saves.
+[*] [b]Achievements:[/b] unaffected. Only debug mode disables achievements, not mods.
+[*] [b]Multiplayer:[/b] single-player only.
+[*] [b]File overrides:[/b] this mod fully overrides [i]common/messages/00_messages.txt[/i], which is what the retuning requires. Everything else it adds is in its own files.
 [/list]
 
-[b]Known conflicts:[/b] any other mod that also fully overrides [i]common/messages/00_messages.txt[/i] — whichever loads later in your playset wins for that whole file, they don't merge. Check for that specific overlap if you run another notification-tuning mod. No other conflicts known as of this beta.
+[b]Known conflicts:[/b] any other mod that also fully overrides [i]common/messages/00_messages.txt[/i] — whichever loads later in your playset wins for that entire file; they do not merge. Worth checking if you run another notification mod. Nothing else known.
 
 [hr][/hr]
 
-[h1]Reporting Issues[/h1]
+[h1]Reporting issues[/h1]
 
-This is a closed beta. If something's off, include:
+Please do — it is how the rough edges get found. Useful to include:
 [list]
-[*] What you expected vs. what happened.
-[*] Your Victoria 3 version and other mods enabled.
-[*] Your [i]debug.log[/i]/[i]error.log[/i] from [i]Documents\Paradox Interactive\Victoria 3\logs\[/i], if you can — this mod logs specifically so issues can be diagnosed from those files.
+[*] What you expected, and what happened instead.
+[*] Your Victoria 3 version and any other mods enabled.
+[*] Whether you had pressed "Reset to Default Settings" — it explains a surprising number of reports.
 [/list]
 
 Source and issue tracker: [url=https://github.com/dcoullon/victoria3-smart-notifications]github.com/dcoullon/victoria3-smart-notifications[/url]

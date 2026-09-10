@@ -260,6 +260,31 @@ This is cosmetic. It changes nothing about behaviour, and it touches the file
 with the highest blast radius in the mod, so it should not ride along with
 functional changes.
 
+## Minor: suppress the feed entry for a war goal YOU add
+
+Raised by the user 2026-09-10, explicitly parked as low priority: "don't tell
+me about things I'm doing while I'm doing it."
+
+**Not currently ours.** The mod no longer touches war goals at all -- the
+family was removed on 2026-09-10 and `wargoal_added`/`wargoal_removed` sit at
+the base game's own `feed`. So the entry the user sees when they add a goal is
+vanilla's, at vanilla's tier.
+
+**What it would cost** to suppress: mute vanilla's key, add one mod key at
+`feed`, add an on_action that posts it only when `scope:actor` is not the
+player. That is one more Message Settings row (19 -> 20), one more hook, and a
+mute -- and mutes are what leave stale settings on players who already
+installed, so it also needs a line in the release notes.
+
+**Open question if it is built:** should only the goals YOU add vanish, with
+other participants' goals still reaching the feed? That is the version worth
+building; a blanket mute would also hide other countries' goals, which the user
+said are good where they are.
+
+**Judgement at the time:** a feed entry is the log rather than an interruption,
+and your own actions appearing in the log is arguably correct. Left alone in
+favour of publishing.
+
 ## KNOWN GAP: a watched country that becomes a NEW country loses its watch
 
 Raised by the user 2026-09-10 ("what happens when a country in our watchlist

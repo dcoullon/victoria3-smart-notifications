@@ -35,8 +35,9 @@ reset. The game will remind you in-game once per campaign.
 - **Pact endings are filtered like pact beginnings.** A watched country ending
   an arrangement with you (or with another country you watch) now toasts
   instead of being buried in the feed with everything else.
-- **War goals** added to a play you are actually in are called out separately
-  from war goals in plays you are only watching.
+- **Third-party diplomatic proposals are silenced.** Two countries proposing,
+  accepting, declining or breaking an arrangement between themselves is never
+  something you can act on.
 - **The Watchlist shows each country's power rank and world ranking**, laid
   out like the game's own at-peace ledger, so you can tell a great power from
   an obscure minor at a glance while choosing who to follow.
@@ -64,11 +65,21 @@ reset. The game will remind you in-game once per campaign.
 
 - Notification tooltips that rendered as raw text instead of a description.
 - A double full-screen popup when a war started involving you.
+- The game no longer stops pausing when a war involving you breaks out. An
+  earlier version replaced that notification with its own and could not carry
+  the base game's pause setting across; it is handed back to the base game
+  now, so the pause works out of the box again.
+- You are no longer told about a diplomatic play you started yourself.
 
 ### Removed
 
 - The permanently-silent "Subject Released, Non Watched" row, which existed
   only to be switched on and never was.
+- The mod's own war goal notifications. They existed to highlight a goal added
+  to a play you are in, but war goals can only be added while a play is still
+  in its opening phases -- so every one of them was simply a demand arriving as
+  the play opened, and highlighting those was noise. The base game's handling
+  is back, unchanged.
 
 ## [0.37] — 2026-09-09
 
