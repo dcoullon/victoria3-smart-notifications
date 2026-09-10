@@ -93,15 +93,35 @@
 # what stops a play that somehow fires both from notifying twice: it is a
 # flag on the diplomatic play itself (root), so it spans both on_actions
 # rather than being per-hook.
+# TWO CHANNELS, TWO AUDIENCES -- separated 2026-09-10 after a real bug.
+#
+# These are not duplicates of each other, which is what this file assumed from
+# 2026-09-07 until now. Vanilla's own keys give it away:
+# diplo_play_start_notification reads "X started a play AGAINST US" and is the
+# TARGET's channel; diplo_play_start_third_party_notification reads "X started
+# a play against Y" and is everyone else's.
+#
+# Both fire for the same play, so a shared dedup guard collapsed them into one
+# notification -- and it kept whichever fired first, which is the target's.
+# When Great Britain opened a play on somebody else, this mod posted into the
+# target's channel and suppressed the only channel that would have reached the
+# player, who then saw nothing at all despite Britain being watched. Confirmed
+# from the log: SNW_LOG|diplo_play_start_notification, our post, then
+# SNW_LOG|diplo_play_start_third_party_notification, then DUPLICATE_SUPPRESSED.
+# It went unnoticed because the case that DID work -- a play declared on the
+# player -- is exactly the case where the player IS the target.
+#
+# So each channel now does its own job, mirroring vanilla, and each keeps its
+# OWN dedup flag (the engine still repeats calls within a channel).
 on_diplo_play_start = {
 	on_actions = {
-		smart_notifications_diplo_play_start
+		smart_notifications_diplo_play_start_at_player
 	}
 }
 
 on_diplo_play_start_third_party = {
 	on_actions = {
-		smart_notifications_diplo_play_start
+		smart_notifications_diplo_play_start_third_party
 	}
 }
 
@@ -167,71 +187,16 @@ on_diplo_play_subject_released = {
 # (toast/feed), not third-party-flavored ones -- this is the sole
 # notification for "a diplomatic play started" now, covering both what
 # used to be two separate (and duplicating) channels.
-smart_notifications_diplo_play_start = {
+smart_notifications_diplo_play_start_at_player = {
 	effect = {
-		# DEDUP GUARD (2026-09-08) -- a real session showed this exact
-		# on_action firing 13 TIMES in the same second for one real
-		# "Cambodia sides with Nepal"-shaped event (see join_side below,
-		# same fix applied to all 4 events in this file since the on_action
-		# invocation, not our own script, is what's repeating). Root
-		# (the diplomatic play) persists across all those repeat calls, so
-		# a short-lived flag on root -- confirmed-real vanilla pattern,
-		# `set_variable = { name = X value = yes days = N }`, e.g.
-		# ai_expedition_cooldown in common/decisions/*_expedition_decision.txt
-		# -- collapses the burst into a single notification. Known
-		# tradeoff, accepted: two genuinely different actors starting a
-		# NEW play against the same target on the same day would also be
-		# collapsed to one notification; far better than 13x spam.
+		# The TARGET's channel. Anything posted here reaches the country the
+		# play was opened against, so it is only worth posting when that is
+		# the player -- and then it is the loudest case this family has.
 		if = {
-			limit = { NOT = { has_variable = smart_notifications_start_notified_recently } }
-			set_variable = { name = smart_notifications_start_notified_recently value = yes days = 1 }
-			# F2 player tier (docs/watchlist-spec.md), added 2026-09-09.
-			# Checked BEFORE the watched branch because the player counts
-			# as watched (00_smart_notifications_triggers.txt) and would
-			# otherwise be swallowed by it -- which is exactly what used to
-			# happen, conflating "someone brought a play to me" with "a
-			# country I follow joined one somewhere".
-			#
-			# `scope:actor` excluded explicitly: spec invariant 5, a play
-			# YOU started is never promoted. It still falls through to the
-			# watched branch below, which is today's behaviour and what the
-			# user asked to keep.
-			# Nothing at all when the PLAYER opened this play, matching
-			# vanilla. Confirmed by a control test on a mod-free game
-			# 2026-09-10: vanilla's diplo_play_start_notification is worded
-			# "X started a play against us" and fires only for the target, so
-			# it never appears for a play you opened yourself. This mod mutes
-			# that key and posts its own, and because the player counts as
-			# watched, the play you just declared fell into the watched branch
-			# and toasted back at you.
-			#
-			# Checked FIRST, before the player and watched branches, since
-			# actor-is-player would otherwise be swallowed by either. Applied
-			# to play start only -- join side is untested and vanilla's key
-			# there is not worded "against us", so it probably does fire for
-			# every join including your own.
+			limit = { NOT = { has_variable = smart_notifications_start_at_player_notified } }
+			set_variable = { name = smart_notifications_start_at_player_notified value = yes days = 1 }
+
 			if = {
-				limit = { scope:actor ?= { is_player = yes } }
-				debug_log = "SNW_FILTER|start|posted_key=NONE_PLAYER_IS_ACTOR|actor=[SCOPE.sC('actor').GetNameNoFormatting]|SELF_INITIATED"
-			}
-			else_if = {
-				# Two ways to be "the player is in this play", OR'd, because
-				# neither alone is reliable on every hook in this file:
-				#
-				# - scope:target is the direct answer but is NOT dependably
-				#   bound at on_diplo_play_start (see the 2026-09-07 note in
-				#   the header -- target= logged empty there, and vanilla's
-				#   own loc for that key never references it either). `?=`
-				#   makes an unbound scope fail the branch instead of
-				#   erroring.
-				# - any_scope_play_involved + is_diplomatic_play_participant_with
-				#   is the reliable one later on, but it asks about COMMITTED
-				#   participants, and the target of a brand-new play may not
-				#   be committed yet at the instant it opens.
-				#
-				# Either matching is enough. Getting this wrong in the safe
-				# direction costs a toast instead of a popup; getting it wrong
-				# the other way is the silence bug this file just had.
 				limit = {
 					scope:actor ?= { NOT = { is_player = yes } }
 					OR = {
@@ -243,7 +208,34 @@ smart_notifications_diplo_play_start = {
 					}
 				}
 				post_notification = smart_notifications_diplo_play_start_player
-				debug_log = "SNW_FILTER|start|posted_key=smart_notifications_diplo_play_start_player|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|PLAYER_INVOLVED"
+				debug_log = "SNW_FILTER|start|channel=at_player|posted_key=smart_notifications_diplo_play_start_player|actor=[SCOPE.sC('actor').GetNameNoFormatting]|PLAYER_IS_TARGET"
+			}
+			else = {
+				# Not aimed at the player, so this channel is not addressed to
+				# them. The third-party channel covers it.
+				debug_log = "SNW_FILTER|start|channel=at_player|posted_key=NONE|actor=[SCOPE.sC('actor').GetNameNoFormatting]|NOT_OUR_CHANNEL"
+			}
+		}
+		else = {
+			debug_log = "SNW_FILTER|start|channel=at_player|DUPLICATE_SUPPRESSED"
+		}
+	}
+}
+
+smart_notifications_diplo_play_start_third_party = {
+	effect = {
+		# Everyone else's channel -- the one that reaches the player for plays
+		# they are not the target of. This is where the Watchlist actually
+		# earns its keep.
+		if = {
+			limit = { NOT = { has_variable = smart_notifications_start_third_party_notified } }
+			set_variable = { name = smart_notifications_start_third_party_notified value = yes days = 1 }
+
+			if = {
+				# A play the player opened themselves: say nothing. Vanilla
+				# does not either -- see the note on the at_player handler.
+				limit = { scope:actor ?= { is_player = yes } }
+				debug_log = "SNW_FILTER|start|channel=third_party|posted_key=NONE_PLAYER_IS_ACTOR|actor=[SCOPE.sC('actor').GetNameNoFormatting]|SELF_INITIATED"
 			}
 			else_if = {
 				limit = {
@@ -253,17 +245,16 @@ smart_notifications_diplo_play_start = {
 					}
 				}
 				post_notification = smart_notifications_diplo_play_start_watched
-				debug_log = "SNW_FILTER|start|posted_key=smart_notifications_diplo_play_start_watched|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
+				debug_log = "SNW_FILTER|start|channel=third_party|posted_key=smart_notifications_diplo_play_start_watched|actor=[SCOPE.sC('actor').GetNameNoFormatting]|ELEVATED"
 			}
 			else = {
 				post_notification = smart_notifications_diplo_play_start_quiet
-				debug_log = "SNW_FILTER|start|posted_key=smart_notifications_diplo_play_start_quiet|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
+				debug_log = "SNW_FILTER|start|channel=third_party|posted_key=smart_notifications_diplo_play_start_quiet|actor=[SCOPE.sC('actor').GetNameNoFormatting]|QUIET"
 			}
 		}
 		else = {
-			debug_log = "SNW_FILTER|start|DUPLICATE_SUPPRESSED"
+			debug_log = "SNW_FILTER|start|channel=third_party|DUPLICATE_SUPPRESSED"
 		}
-
 	}
 }
 
