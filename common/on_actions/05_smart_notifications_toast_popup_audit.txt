@@ -57,8 +57,16 @@ on_acquired_technology = {
 }
 smart_notifications_audit_acquired_technology = {
 	effect = {
+		# is_player added 2026-09-10: without it this counted every country
+		# in the world acquiring technology -- 1323 in one session -- which
+		# made the audit useless for judging how often the PLAYER actually
+		# sees this popup. Root is the acquiring country (vanilla's own
+		# comment on on_acquired_technology), so the filter is safe here.
 		if = {
-			limit = { has_game_started = yes }
+			limit = {
+				has_game_started = yes
+				is_player = yes
+			}
 			debug_log = "SNW_TOAST_AUDIT|acquired_technology_notification"
 		}
 	}
