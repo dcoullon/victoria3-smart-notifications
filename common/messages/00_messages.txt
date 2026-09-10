@@ -265,7 +265,13 @@ resource_discovered = {
 	type = state_region
 	group = "resource_discovery_notification_group"
 
-	notification_type = toast
+	# DEMOTED to feed 2026-09-10 per the user. Both keys share one group so
+	# they move together regardless. The gold case -- the one discovery worth
+	# interrupting for -- cannot be split out: on_resource_discovered gives
+	# scope:target as a building TYPE, and script_docs supports zero triggers
+	# on building_type scope, so "is this gold" is unaskable. Feed for all of
+	# it is the honest resolution rather than toasting everything to catch one.
+	notification_type = feed
 	color = good
 
 	texture = "gfx/interface/icons/notification_icons/resource.dds"
@@ -274,7 +280,13 @@ resource_discovered = {
 resource_depleted = {
 	type = state_region
 	group = "resource_discovery_notification_group"
-	notification_type = toast
+	# DEMOTED to feed 2026-09-10 per the user. Both keys share one group so
+	# they move together regardless. The gold case -- the one discovery worth
+	# interrupting for -- cannot be split out: on_resource_discovered gives
+	# scope:target as a building TYPE, and script_docs supports zero triggers
+	# on building_type scope, so "is this gold" is unaskable. Feed for all of
+	# it is the honest resolution rather than toasting everything to catch one.
+	notification_type = feed
 	color = bad
 
 	texture = "gfx/interface/icons/notification_icons/resource.dds"
