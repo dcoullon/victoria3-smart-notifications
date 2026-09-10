@@ -41,76 +41,110 @@ on_wargoal_removed = {
 
 smart_notifications_wargoal_added = {
 	effect = {
+		# DEDUP GUARD, added 2026-09-10. The four diplo-play families in
+		# 03_smart_notifications_relational_notifications.txt have carried one
+		# since 2026-09-08 -- the engine calls these on_actions repeatedly for
+		# a single real event -- and this file was written without one. The
+		# user saw the result immediately: Russia's war goals produced four
+		# toasts in one second and three in another.
+		#
+		# Same shape as the others: a short-lived flag on ROOT, which is the
+		# diplomatic play and therefore persists across the repeat calls.
+		# Known tradeoff, accepted here as there: several genuinely different
+		# war goals added to the same play on the same day collapse into one
+		# notification. That is the better failure -- a play gaining three
+		# goals at once is one piece of news, not three.
 		if = {
-			# Same two-way test as the diplo-play families use
-			# (03_smart_notifications_relational_notifications.txt): neither
-			# check alone is reliable, so either matching is enough. Applied
-			# here 2026-09-10 for consistency -- it had been fixed in 03 and
-			# missed here, which is exactly the kind of drift between two
-			# copies of one idea that this project keeps producing.
-			#
-			# Note this branch may legitimately be rare: a play's OPENING war
-			# goal appears to be created with the play rather than "added", so
-			# on_wargoal_added seems to fire only for goals added later. In a
-			# session with three player wars it never fired once, while firing
-			# 22 times for other people's wars. That is not evidence of a bug
-			# -- every one of those 22 was a South American or Persian war the
-			# player had nothing to do with -- but it does mean the value of
-			# this family is mostly the QUIETING of other people's war goals,
-			# not the elevation of your own.
-			limit = {
-				OR = {
-					scope:target ?= { is_player = yes }
-					any_scope_play_involved = {
-						is_diplomatic_play_participant_with = scope:actor
-						is_player = yes
+			limit = { NOT = { has_variable = smart_notifications_wargoal_added_notified_recently } }
+			set_variable = { name = smart_notifications_wargoal_added_notified_recently value = yes days = 1 }
+			if = {
+				# Same two-way test as the diplo-play families use
+				# (03_smart_notifications_relational_notifications.txt): neither
+				# check alone is reliable, so either matching is enough. Applied
+				# here 2026-09-10 for consistency -- it had been fixed in 03 and
+				# missed here, which is exactly the kind of drift between two
+				# copies of one idea that this project keeps producing.
+				#
+				# Note this branch may legitimately be rare: a play's OPENING war
+				# goal appears to be created with the play rather than "added", so
+				# on_wargoal_added seems to fire only for goals added later. In a
+				# session with three player wars it never fired once, while firing
+				# 22 times for other people's wars. That is not evidence of a bug
+				# -- every one of those 22 was a South American or Persian war the
+				# player had nothing to do with -- but it does mean the value of
+				# this family is mostly the QUIETING of other people's war goals,
+				# not the elevation of your own.
+				limit = {
+					OR = {
+						scope:target ?= { is_player = yes }
+						any_scope_play_involved = {
+							is_diplomatic_play_participant_with = scope:actor
+							is_player = yes
+						}
 					}
 				}
+				post_notification = smart_notifications_wargoal_added_player
+				debug_log = "SNW_FILTER|wargoal|added|posted_key=smart_notifications_wargoal_added_player|actor=[SCOPE.sCountry('actor').GetNameNoFormatting]|PLAYER_INVOLVED"
 			}
-			post_notification = smart_notifications_wargoal_added_player
-			debug_log = "SNW_FILTER|wargoal|added|posted_key=smart_notifications_wargoal_added_player|actor=[SCOPE.sCountry('actor').GetNameNoFormatting]|PLAYER_INVOLVED"
-		}
-		else = {
-			post_notification = smart_notifications_wargoal_added_other
-			debug_log = "SNW_FILTER|wargoal|added|posted_key=smart_notifications_wargoal_added_other|actor=[SCOPE.sCountry('actor').GetNameNoFormatting]|ELSEWHERE"
+			else = {
+				post_notification = smart_notifications_wargoal_added_other
+				debug_log = "SNW_FILTER|wargoal|added|posted_key=smart_notifications_wargoal_added_other|actor=[SCOPE.sCountry('actor').GetNameNoFormatting]|ELSEWHERE"
+			}
 		}
 	}
 }
 
 smart_notifications_wargoal_removed = {
 	effect = {
+		# DEDUP GUARD, added 2026-09-10. The four diplo-play families in
+		# 03_smart_notifications_relational_notifications.txt have carried one
+		# since 2026-09-08 -- the engine calls these on_actions repeatedly for
+		# a single real event -- and this file was written without one. The
+		# user saw the result immediately: Russia's war goals produced four
+		# toasts in one second and three in another.
+		#
+		# Same shape as the others: a short-lived flag on ROOT, which is the
+		# diplomatic play and therefore persists across the repeat calls.
+		# Known tradeoff, accepted here as there: several genuinely different
+		# war goals added to the same play on the same day collapse into one
+		# notification. That is the better failure -- a play gaining three
+		# goals at once is one piece of news, not three.
 		if = {
-			# Same two-way test as the diplo-play families use
-			# (03_smart_notifications_relational_notifications.txt): neither
-			# check alone is reliable, so either matching is enough. Applied
-			# here 2026-09-10 for consistency -- it had been fixed in 03 and
-			# missed here, which is exactly the kind of drift between two
-			# copies of one idea that this project keeps producing.
-			#
-			# Note this branch may legitimately be rare: a play's OPENING war
-			# goal appears to be created with the play rather than "added", so
-			# on_wargoal_added seems to fire only for goals added later. In a
-			# session with three player wars it never fired once, while firing
-			# 22 times for other people's wars. That is not evidence of a bug
-			# -- every one of those 22 was a South American or Persian war the
-			# player had nothing to do with -- but it does mean the value of
-			# this family is mostly the QUIETING of other people's war goals,
-			# not the elevation of your own.
-			limit = {
-				OR = {
-					scope:target ?= { is_player = yes }
-					any_scope_play_involved = {
-						is_diplomatic_play_participant_with = scope:actor
-						is_player = yes
+			limit = { NOT = { has_variable = smart_notifications_wargoal_removed_notified_recently } }
+			set_variable = { name = smart_notifications_wargoal_removed_notified_recently value = yes days = 1 }
+			if = {
+				# Same two-way test as the diplo-play families use
+				# (03_smart_notifications_relational_notifications.txt): neither
+				# check alone is reliable, so either matching is enough. Applied
+				# here 2026-09-10 for consistency -- it had been fixed in 03 and
+				# missed here, which is exactly the kind of drift between two
+				# copies of one idea that this project keeps producing.
+				#
+				# Note this branch may legitimately be rare: a play's OPENING war
+				# goal appears to be created with the play rather than "added", so
+				# on_wargoal_added seems to fire only for goals added later. In a
+				# session with three player wars it never fired once, while firing
+				# 22 times for other people's wars. That is not evidence of a bug
+				# -- every one of those 22 was a South American or Persian war the
+				# player had nothing to do with -- but it does mean the value of
+				# this family is mostly the QUIETING of other people's war goals,
+				# not the elevation of your own.
+				limit = {
+					OR = {
+						scope:target ?= { is_player = yes }
+						any_scope_play_involved = {
+							is_diplomatic_play_participant_with = scope:actor
+							is_player = yes
+						}
 					}
 				}
+				post_notification = smart_notifications_wargoal_removed_player
+				debug_log = "SNW_FILTER|wargoal|removed|posted_key=smart_notifications_wargoal_removed_player|actor=[SCOPE.sCountry('actor').GetNameNoFormatting]|PLAYER_INVOLVED"
 			}
-			post_notification = smart_notifications_wargoal_removed_player
-			debug_log = "SNW_FILTER|wargoal|removed|posted_key=smart_notifications_wargoal_removed_player|actor=[SCOPE.sCountry('actor').GetNameNoFormatting]|PLAYER_INVOLVED"
-		}
-		else = {
-			post_notification = smart_notifications_wargoal_removed_other
-			debug_log = "SNW_FILTER|wargoal|removed|posted_key=smart_notifications_wargoal_removed_other|actor=[SCOPE.sCountry('actor').GetNameNoFormatting]|ELSEWHERE"
+			else = {
+				post_notification = smart_notifications_wargoal_removed_other
+				debug_log = "SNW_FILTER|wargoal|removed|posted_key=smart_notifications_wargoal_removed_other|actor=[SCOPE.sCountry('actor').GetNameNoFormatting]|ELSEWHERE"
+			}
 		}
 	}
 }
