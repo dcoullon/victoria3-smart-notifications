@@ -140,10 +140,6 @@
  notification_smart_notifications_diplo_play_join_side_player_tooltip:0 "#header $notification_smart_notifications_diplo_play_join_side_player_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_join_side_player_desc$"
  notification_smart_notifications_diplo_play_join_side_player_name:0 "[SCOPE.sC('actor').GetNameNoFormatting] picks a side against us"
  notification_smart_notifications_diplo_play_join_side_player_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] sided with [SCOPE.sC('target').GetNameNoFormatting] in a [concept_diplomatic_play] involving us."
- smart_notifications_diplo_play_war_start_player_group:0 "(SN) Diplo Play War Start, Involving You"
- notification_smart_notifications_diplo_play_war_start_player_tooltip:0 "#header $notification_smart_notifications_diplo_play_war_start_player_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_war_start_player_desc$"
- notification_smart_notifications_diplo_play_war_start_player_name:0 "War Erupts"
- notification_smart_notifications_diplo_play_war_start_player_desc:0 "The [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] between [SCOPE.sC('actor').GetNameNoFormatting] and [SCOPE.sC('target').GetNameNoFormatting] has escalated into open [concept_war]."
 
  smart_notifications_diplo_play_start_watched_group:0 "(SN) Diplo Play Started, Watched Country"
  notification_smart_notifications_diplo_play_start_watched_tooltip:0 "#header $notification_smart_notifications_diplo_play_start_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_start_watched_desc$"

@@ -97,7 +97,7 @@ right, and muting it is then a player setting rather than a release.
 | situation | tier |
 |---|---|
 | play start / join side involving **you** | toast |
-| **war start** involving **you** | popup |
+| **war start** involving **you** | *(vanilla's own, untouched)* |
 | play start / join side / war start involving a **watched** country | toast |
 | involving neither | feed |
 
@@ -107,6 +107,15 @@ leaves play start and join side as plain toasts, and the mod's popup rows
 carried `popup_name = war_started` — a war layout on a play that is not yet a
 war, which vanilla never does. The escalation the player wants is still there:
 a play aimed at you toasts when it opens and pops up if it becomes a war.
+
+**War starts involving the player are handed back to vanilla (2026-09-10).**
+This mod no longer posts anything for them; `diplo_play_war_start_notification`
+is un-muted and does the job it always did. The user's principle, and it is
+right: do not replace base-game behaviour that already works unless the
+Watchlist actually requires it. Replacing this one cost vanilla's default
+`pause_game = yes` on that group -- which a new group cannot inherit and no
+script can set -- so every player silently lost pause-on-war. Third-party war
+starts are still filtered by this mod, since that is the part vanilla cannot do.
 
 **Pausing is not ours to set.** Vanilla messages accept exactly eight fields
 (`type`, `group`, `texture`, `notification_type`, `color`,

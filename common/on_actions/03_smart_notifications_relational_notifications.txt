@@ -389,8 +389,13 @@ smart_notifications_diplo_play_war_start = {
 						}
 					}
 				}
-				post_notification = smart_notifications_diplo_play_war_start_player
-				debug_log = "SNW_FILTER|war_start|posted_key=smart_notifications_diplo_play_war_start_player|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|PLAYER_INVOLVED"
+				# Deliberately posts NOTHING. Vanilla's own
+				# diplo_play_war_start_notification is un-muted again and
+				# handles every war involving the player -- its popup, its
+				# sound, and crucially its default pause, which a key of ours
+				# cannot have. Posting here as well is what produced the
+				# double popup of 2026-09-08.
+				debug_log = "SNW_FILTER|war_start|posted_key=NONE_VANILLA_HANDLES_IT|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|PLAYER_INVOLVED"
 			}
 			else_if = {
 				limit = {

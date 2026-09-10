@@ -95,30 +95,30 @@ diplo_play_war_start_notification = {
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
-	# Muted 2026-09-07 (Phase 4, see TODO.md): replaced by
-	# smart_notifications_diplo_play_war_start_watched/_quiet, posted
-	# instead of this key by
-	# common/on_actions/03_smart_notifications_relational_notifications.txt
-	# based on whether a watched country (or the player) is involved --
-	# see that file's header comment for the full architecture note.
+	# RESTORED TO VANILLA 2026-09-10, in full, including popup_name and the
+	# sound this mod had stripped.
 	#
-	# `popup_name`/`on_created_soundeffect` REMOVED 2026-09-08: the user
-	# confirmed a real, reproducible double full-screen popup when a war
-	# starts involving them -- exact same screen twice in a row. Our own
-	# script (03_smart_notifications_relational_notifications.txt) only
-	# ever calls post_notification once (confirmed via a single SNW_FILTER
-	# decision line, no DUPLICATE_SUPPRESSED nearby), and no other message
-	# key shares `popup_name = war_started` besides this one and our
-	# replacement -- so the leading hypothesis is that this muted key's
-	# own popup_name/sound references were still being processed at some
-	# layer independent of notification_type's toast/feed/popup gating,
-	# stacking with our replacement's own popup. This was also the ONLY
-	# muted key anywhere in this file still carrying leftover presentation
-	# properties (confirmed via a full scan) -- every other muted key
-	# cleanly has just notification_type/color, matching what's restored
-	# here. UNCONFIRMED until the user sees another war start involving
-	# them.
-	notification_type = none
+	# The user's point, and it is the right one: a war breaking out that
+	# involves YOU is something the base game already handles well, and this
+	# mod only ever needed to filter what happens to OTHER countries. Replacing
+	# it cost more than it bought -- most of all vanilla's default
+	# `pause_game=yes` on this group, which a replacement group cannot inherit
+	# and which no script can set, so every player silently lost pause-on-war
+	# unless they found the checkbox themselves.
+	#
+	# The double full-screen popup that caused popup_name to be stripped on
+	# 2026-09-08 came from this key AND smart_notifications_diplo_play_war_start_player
+	# both producing a popup for one war. That replacement key is now deleted,
+	# so there is only one popup source again and the original reason to strip
+	# these lines is gone with it.
+	#
+	# 03_smart_notifications_relational_notifications.txt now posts NOTHING
+	# when the player is involved in a war start, deliberately leaving this
+	# key to do its job. It still filters the third-party cases.
+	notification_type = popup
+	popup_name = war_started
+
+	on_created_soundeffect = "event:/SFX/UI/Military/to_war_popup_notification"
 }
 
 acquired_technology_notification = {

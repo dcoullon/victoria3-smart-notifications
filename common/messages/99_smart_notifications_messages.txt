@@ -254,22 +254,6 @@ smart_notifications_diplo_play_join_side_watched = {
 }
 
 
-smart_notifications_diplo_play_war_start_player = {
-	type = diplomatic_play
-	group = "smart_notifications_diplo_play_war_start_player_group"
-
-	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
-
-	# The popup+auto-pause escalation (vanilla's own war_started popup
-	# layout, confirmed real -- the only popup_name used anywhere with
-	# type = diplomatic_play in vanilla) now belongs to the PLAYER tier
-	# only. A war involving you is the one thing in this mod that is
-	# allowed to stop the game.
-	notification_type = popup
-	popup_name = war_started
-
-	on_created_soundeffect = "event:/SFX/UI/Military/to_war_popup_notification"
-}
 
 smart_notifications_diplo_play_war_start_watched = {
 	type = diplomatic_play

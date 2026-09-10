@@ -372,12 +372,7 @@ FULL_OVERRIDE_FILES = [
 # the same two lines, so the vanilla ones never registered as missing. Moving
 # the mod's keys into 99_smart_notifications_messages.txt removed that
 # coincidence and exposed it.
-ALLOWED_VANILLA_OMISSIONS = {
-    "common/messages/00_messages.txt": {
-        "popup_name = war_started",
-        'on_created_soundeffect = "event:/SFX/UI/Military/to_war_popup_notification"',
-    },
-}
+ALLOWED_VANILLA_OMISSIONS: dict[str, set[str]] = {}
 
 
 def check_full_overrides_match_installed_vanilla(root: Path) -> list[str]:
@@ -492,7 +487,6 @@ WATCHLIST_SPEC_CELLS = {
     "smart_notifications_diplo_play_join_side_player": "toast",
     "smart_notifications_diplo_play_join_side_watched": "toast",
     "smart_notifications_diplo_play_join_side_quiet": "feed",
-    "smart_notifications_diplo_play_war_start_player": "popup",
     "smart_notifications_diplo_play_war_start_watched": "toast",
     "smart_notifications_diplo_play_war_start_quiet": "feed",
     # F7 -- subject released, unchanged by the spec but pinned so it cannot
