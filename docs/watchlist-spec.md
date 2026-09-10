@@ -96,10 +96,26 @@ right, and muting it is then a player setting rather than a release.
 
 | situation | tier |
 |---|---|
-| play involving **you** | popup |
-| play start / join side involving a **watched** country | toast |
-| war start involving a **watched** country | toast |
+| play start / join side involving **you** | toast |
+| **war start** involving **you** | popup |
+| play start / join side / war start involving a **watched** country | toast |
 | involving neither | feed |
+
+**Revised 2026-09-10 to match vanilla.** The player rows first shipped as
+popups across all three families; vanilla makes only the war start a popup and
+leaves play start and join side as plain toasts, and the mod's popup rows
+carried `popup_name = war_started` — a war layout on a play that is not yet a
+war, which vanilla never does. The escalation the player wants is still there:
+a play aimed at you toasts when it opens and pops up if it becomes a war.
+
+**Pausing is not ours to set.** Vanilla messages accept exactly eight fields
+(`type`, `group`, `texture`, `notification_type`, `color`,
+`on_created_soundeffect`, `popup_name`, `days`) and **none of them is
+`pause_game`** — checked across every vanilla message. Whether a notification
+pauses is the player's own "Pause?" checkbox, stored per group in
+`messagetypes_custom.txt`. So "war start should pause" is a setting the player
+ticks once, not something this mod can ship, and the same applies in reverse to
+un-pausing capitulation.
 
 Plays **you start yourself** keep today's behaviour and are explicitly not
 a concern — the user confirms this works fine now. The popup row means a

@@ -460,10 +460,10 @@ WATCHLIST_SPEC_CELLS = {
     "smart_notifications_diplomatic_action_break_at_watched_by_watched": "toast",
     "smart_notifications_diplomatic_action_break_other": "feed",
     # F2 -- diplomatic plays, three tiers per family.
-    "smart_notifications_diplo_play_start_player": "popup",
+    "smart_notifications_diplo_play_start_player": "toast",
     "smart_notifications_diplo_play_start_watched": "toast",
     "smart_notifications_diplo_play_start_quiet": "feed",
-    "smart_notifications_diplo_play_join_side_player": "popup",
+    "smart_notifications_diplo_play_join_side_player": "toast",
     "smart_notifications_diplo_play_join_side_watched": "toast",
     "smart_notifications_diplo_play_join_side_quiet": "feed",
     "smart_notifications_diplo_play_war_start_player": "popup",

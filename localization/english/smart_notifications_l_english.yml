@@ -2,6 +2,14 @@
  notification_smart_notifications_mod_loaded_tooltip:0 "#header $notification_smart_notifications_mod_loaded_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_mod_loaded_desc$"
  notification_smart_notifications_mod_loaded_name:0 "Smart Notifications active"
  notification_smart_notifications_mod_loaded_desc:0 "Great powers and neighbors are already on your Watchlist. Adjust it anytime in Message Settings (bell icon) > Watchlist."
+ smart_notifications_mod_updated_group:0 "(SN) Mod Updated"
+ notification_smart_notifications_mod_updated_tooltip:0 "#header $notification_smart_notifications_mod_updated_name$#!
+$TOOLTIP_DELIMITER$
+$notification_smart_notifications_mod_updated_desc$"
+ notification_smart_notifications_mod_updated_name:0 "Smart Notifications Updated"
+ notification_smart_notifications_mod_updated_desc:0 "This version changes which notifications are toasts and which go to the feed.
+
+Any notification type you have changed yourself keeps your setting and will NOT pick up the new defaults. To adopt them, open Message Settings and use #v Reset to Default Settings#!. That clears every custom notification setting, including ones you set for the base game."
  smart_notifications_mod_loaded_group:0 "(SN) Mod Loaded"
 
  # New Message Settings categories created by splitting a vanilla group so

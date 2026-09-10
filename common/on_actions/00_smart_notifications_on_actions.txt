@@ -93,3 +93,38 @@ smart_notifications_on_game_started = {
 		}
 	}
 }
+
+# "The mod changed its defaults" notice -- see smart_notifications_mod_updated
+# in common/messages/00_messages.txt for why this exists at all.
+#
+# Deliberately NOT on a load hook: nothing fires when a save is loaded
+# (on_game_started_after_lobby is documented "for the first time for each
+# campaign"), and a variable set in a previous session is still set when that
+# save reopens, so there is no way to detect "the player just loaded". The
+# monthly pulse plus a per-version variable gets the behaviour that actually
+# matters -- the notice appears once in each campaign after the mod is
+# updated, which is precisely when the stored settings have gone stale.
+#
+# BUMP THE VARIABLE NAME on any release that retunes a notification tier. A
+# release that changes no tiers should leave it alone, so returning players
+# are not nagged for nothing. The name, not a number, so no numeric variable
+# comparison is involved.
+on_monthly_pulse_country = {
+	on_actions = {
+		smart_notifications_version_notice
+	}
+}
+
+smart_notifications_version_notice = {
+	effect = {
+		if = {
+			limit = {
+				is_player = yes
+				NOT = { has_variable = snw_greeted_v0_38 }
+			}
+			set_variable = { name = snw_greeted_v0_38 value = yes }
+			post_notification = smart_notifications_mod_updated
+			debug_log = "SNW_VERSION_NOTICE|posted|country=[THIS.GetCountry.GetNameNoFormatting]"
+		}
+	}
+}

@@ -2303,10 +2303,19 @@ smart_notifications_diplo_play_start_player = {
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
-	notification_type = popup
-	popup_name = war_started
-
-	on_created_soundeffect = "event:/SFX/UI/Military/to_war_popup_notification"
+	# CORRECTED to toast 2026-09-10, matching vanilla exactly: vanilla's own
+	# diplo_play_start_notification (the "X started a play against us" key) is
+	# a plain `toast`, and only diplo_play_war_start_notification escalates to
+	# a popup. This key shipped as a popup carrying `popup_name = war_started`
+	# -- a WAR layout on a play that has not become a war, which vanilla never
+	# does. The user reported seeing a toast rather than a popup here, which is
+	# consistent with that mismatched layout not rendering.
+	#
+	# The escalation the player actually wants still happens: if the play does
+	# turn into a war involving them, smart_notifications_diplo_play_war_start_player
+	# fires as a popup, exactly as vanilla does.
+	notification_type = toast
+	color = neutral
 }
 
 smart_notifications_diplo_play_start_watched = {
@@ -2326,10 +2335,19 @@ smart_notifications_diplo_play_join_side_player = {
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
-	notification_type = popup
-	popup_name = war_started
-
-	on_created_soundeffect = "event:/SFX/UI/Military/to_war_popup_notification"
+	# CORRECTED to toast 2026-09-10, matching vanilla exactly: vanilla's own
+	# diplo_play_start_notification (the "X started a play against us" key) is
+	# a plain `toast`, and only diplo_play_war_start_notification escalates to
+	# a popup. This key shipped as a popup carrying `popup_name = war_started`
+	# -- a WAR layout on a play that has not become a war, which vanilla never
+	# does. The user reported seeing a toast rather than a popup here, which is
+	# consistent with that mismatched layout not rendering.
+	#
+	# The escalation the player actually wants still happens: if the play does
+	# turn into a war involving them, smart_notifications_diplo_play_war_start_player
+	# fires as a popup, exactly as vanilla does.
+	notification_type = toast
+	color = neutral
 }
 
 smart_notifications_diplo_play_join_side_watched = {
@@ -4081,5 +4099,28 @@ smart_notifications_diplomatic_action_break_other = {
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
 	notification_type = feed
+	color = neutral
+}
+
+# ADDED 2026-09-10 per the user. The problem it solves: this mod's message
+# tiers are only DEFAULTS, and a stored player setting beats a default at load
+# time (docs/engine-notes.md, "stored values DO win"). So every time a release
+# retunes a tier, anyone who has played before keeps the old behaviour --
+# silently, with no way for the mod to detect or fix it, because
+# messagetypes_custom.txt is not readable or writable from script.
+#
+# The only lever left is telling the player. Fired once per campaign per mod
+# version, from the monthly pulse rather than on load: no on_action fires when
+# a save is loaded (on_game_started_after_lobby is documented "for the first
+# time for each campaign"), and variables persist inside the save, so
+# "notify on every load" is not reachable. Once per version is the useful
+# signal anyway -- it is exactly the moment the defaults changed.
+smart_notifications_mod_updated = {
+	type = country
+	group = "smart_notifications_mod_updated_group"
+
+	texture = "gfx/interface/icons/notification_icons/influence.dds"
+
+	notification_type = toast
 	color = neutral
 }

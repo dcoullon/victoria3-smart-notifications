@@ -1386,14 +1386,19 @@ types message_settings {
 		# great-power badge is visibly wider than the minor-power one), so a
 		# tight box let the wider ones crowd the flag to their left. The extra
 		# room is padding, not icon -- the badge inside stays 40x40.
-		size = { 62 44 }
+		size = { 60 44 }
 		alwaystransparent = no
 		datacontext = "[InterestingCountryItem.GetCountry]"
 		tooltip = "[Country.GetRankTooltip]"
 
 		rank_badge = {
 			size = { 40 40 }
-			parentanchor = vcenter
+			# Centred on BOTH axes, not just vertically: the rank icons are
+			# different widths, so a left-anchored badge sat hard against the
+			# flag for wide ranks and left a gap for narrow ones. Centring
+			# splits the difference evenly whatever the icon, which is what
+			# makes the column read as a column.
+			parentanchor = center
 
 			blockoverride "rank_text" {
 				raw_text = "#BOLD [Country.GetCountryScorePositionDesc]"
@@ -1432,8 +1437,8 @@ types message_settings {
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 528 -1 }
-                margin_left = 10
+                maximumsize = { 536 -1 }
+                margin_left = 4
                 elide = right
             }
 
@@ -1482,8 +1487,8 @@ types message_settings {
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 528 -1 }
-                margin_left = 10
+                maximumsize = { 536 -1 }
+                margin_left = 4
                 elide = right
             }
 
@@ -1533,8 +1538,8 @@ types message_settings {
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 528 -1 }
-                margin_left = 10
+                maximumsize = { 536 -1 }
+                margin_left = 4
                 elide = right
             }
 
@@ -1579,8 +1584,8 @@ types message_settings {
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 528 -1 }
-                margin_left = 10
+                maximumsize = { 536 -1 }
+                margin_left = 4
                 elide = right
             }
 
@@ -1625,8 +1630,8 @@ types message_settings {
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 528 -1 }
-                margin_left = 10
+                maximumsize = { 536 -1 }
+                margin_left = 4
                 elide = right
             }
 
@@ -1671,8 +1676,8 @@ types message_settings {
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 528 -1 }
-                margin_left = 10
+                maximumsize = { 536 -1 }
+                margin_left = 4
                 elide = right
             }
 
@@ -1717,8 +1722,8 @@ types message_settings {
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 528 -1 }
-                margin_left = 10
+                maximumsize = { 536 -1 }
+                margin_left = 4
                 elide = right
             }
 
@@ -1767,8 +1772,8 @@ types message_settings {
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 528 -1 }
-                margin_left = 10
+                maximumsize = { 536 -1 }
+                margin_left = 4
                 elide = right
             }
 
