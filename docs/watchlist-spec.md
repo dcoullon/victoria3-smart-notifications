@@ -1,8 +1,7 @@
 ﻿# Watchlist Notification Spec — DRAFT, not yet locked
 
-**Status: DRAFT.** Nothing here is built against until the user says "OK"
-explicitly. Open questions are collected at the end; everything above them
-is settled.
+**Status: COMPLETE, awaiting sign-off.** Every question is resolved (§8).
+Nothing is built against this until the user says "OK" explicitly.
 
 This is the behavioural spec for what the Watchlist does to notifications.
 It is the reference the code answers to — where the code and this file
@@ -220,7 +219,9 @@ leaving the whole family at `feed` — the user's explicit second choice.
    the same event and would double up; post from exactly one.
 4. **Anything involving you or a watched country floors at `feed`.**
 5. **Your own actions are never news.** Nothing the player initiates gets
-   promoted — you already know what you just did. See Q4.
+   promoted, in any family — you already know what you just did. Concretely:
+   every elevation rule tests the *actor* is not the player before firing
+   (Q4).
 
 ## 6. The one engine constraint that shapes this spec
 
@@ -283,30 +284,118 @@ a wish in TODO.md.
 Feasible via `on_wargoal_added`; falls back to leaving the family at `feed`
 if it proves awkward.
 
-**Q4 — the player as actor. OPEN — the last one.**
+**Q4 — the player as actor. LOCKED** as (a): the player-as-actor is
+excluded everywhere. Nothing you initiate is ever promoted, in any family.
+Safe whether or not the engine even reports your own actions back to you
+(across a 271-action session `on_diplomatic_action` fired zero times with
+the player as actor, but that is not proof), and consistent with plays you
+start yourself keeping today's behaviour.
 
-`smart_notifications_is_watched` counts the player as watched, so read
-literally, F1 row 3 toasts when *you* improve relations with a watched
-country, and F2 would popup a play you started yourself. Neither is news.
+**No open questions remain.**
 
-This may already be moot: across a 271-action session `on_diplomatic_action`
-fired **zero** times with the player as actor, so the engine may simply
-never report your own actions back to you. But that is unproven — the
-player may just not have taken any — and the rule is one trigger to state
-explicitly either way.
+## 9. Implementation plan
 
-- **(a)** Exclude the player-as-actor everywhere: never promote an action
-  or play you initiated. *(Recommended — safe whether or not the engine
-  fires these, and consistent with the answer already given for plays you
-  start yourself.)*
-- **(b)** Leave it implicit and find out in testing.
+Designed around one constraint: **the user's time in-game is the scarce
+resource.** Everything that can be proven without a playtest is proven
+without one, and the playtests that remain are passive — play normally,
+and the log is read afterwards rather than the user watching for toasts.
 
-## 9. Implementation sequencing (once locked)
+### What each change actually risks
 
-1. **F1 + F2** — same file, ship together, highest value.
-2. **F5 + F6** — small, independent, low risk (pure tier changes plus one
-   split).
-3. **F9** — trivial once Q3 is answered.
-4. **F3** — last. New family, and reusing vanilla's outcome wording in our
-   own key is the same pattern that once rendered a raw loc key on screen,
-   so it needs verifying in a live run before it is trusted.
+Sorting by risk is what makes the testing cheap, because the three classes
+need very different evidence:
+
+| class | what it is | how it's verified |
+|---|---|---|
+| **Config-only** | a `notification_type` value change on an existing key (F4, F5, F6, F8, and F2's war-start row) | static + one glance at Message Settings. **No playtest.** |
+| **Routing** | which key gets posted (F1, F2, F9) | the `SNW_FILTER` debug lines already log every decision — read from the log, no user observation |
+| **New text** | a new message key whose loc must render (F1's new keys, F3) | needs the event to actually happen in-game; this is the only class that truly costs a session |
+
+The known failure mode for the third class is the raw-loc-key-on-screen bug
+(engine-notes.md § Two separate function tables) — it fails silently and
+only `error.log` shows it, so every new key's first live firing must be
+checked in the log, not on screen.
+
+### Step 0 — extend the static checker first (no game)
+
+Before writing any behaviour, teach `tools/check_references.py` to assert
+this spec mechanically, so a violation fails the build rather than a
+playtest:
+
+- every F1 cell has a key, and every such key sits **alone** in its group
+  (D11), so Message Settings can retune each independently;
+- every mod-created group has an `(SN) `-prefixed loc label;
+- no group mixes notification types (already an engine warning, worth
+  catching statically);
+- each new key has all four loc keys present (`_group`, `_name`, `_desc`,
+  `_tooltip`) — the missing-loc bug class this project has hit repeatedly.
+
+This is the highest-leverage step: it converts most of what would otherwise
+be "check it in-game" into `python tools/validate_syntax.py`.
+
+### Step 1 — F1 + F2 (one build, one passive session)
+
+The big one, and the only step needing real play. F1 becomes five keys and
+five groups per D11; F2 changes the watched war-start tier and adds the
+player-as-actor exclusion (Q4).
+
+Both are in files that already log every decision, so the verification is:
+the user plays a normal session, then the log is checked for (a) each F1
+cell firing with the right key, (b) zero `error.log` loc failures from the
+five new keys.
+
+**Coverage is the risk, not correctness.** From the last session's numbers,
+four of the five F1 cells fire freely (220 elsewhere, 26 at a watched
+country, 6 at the player). The fifth — *aimed at you, actor watched* —
+depends on a watched country happening to act on the player. To avoid
+waiting on chance: before playing, add to the Watchlist two or three
+countries that acted on the player recently (Sulu, Kokand, Nawanagar,
+Luang Prabang, Burma and Banjar all did last session). That turns the rare
+cell into a near-certain one.
+
+Note F2 may well produce **no** diplo play events at all — the last
+session had zero. That is fine and expected: F2's changes are config-only
+plus one trigger, and are not blocked on observing a play.
+
+### Step 2 — F5 + F6 + F8 (no session of its own)
+
+Pure tier changes on existing vanilla keys, no routing, no new text:
+
+- F5 obligations → `toast`
+- F6 attitude → `feed` (un-mute)
+- F8 truce expiry → unchanged, confirm only
+
+Ship these **in the same build as Step 1** so they ride along on the same
+session. Verification is a single look at the Message Settings screen to
+confirm the groups read as intended.
+
+### Step 3 — F9 war goals
+
+New hook (`on_wargoal_added`), so scope availability is unproven. Build it
+with the decision logged the same way F1 does, and let it ride on whatever
+session comes next — no dedicated test. If war goals do not occur, nothing
+is lost; the fallback (leave at `feed`) is one line.
+
+### Step 4 — F3 war outcomes, last
+
+New family and new keys, and it reuses vanilla's outcome wording
+(`GetWarOutcomeString`) in our own key — the exact pattern that once
+rendered a raw loc key on screen. Needs its own confirmation in `error.log`
+on first firing, and third-party peace deals are not frequent. Lowest
+priority per the user; do not let it hold up Steps 1–3.
+
+### Release
+
+Version bump only once a step is confirmed working, per CLAUDE.md — not
+per build. Then `python tools/package_release.py` and upload from
+`smart_notifications_release`, never the dev junction. **Note the live
+Workshop build is already behind:** v0.37 shipped before the actor/recipient
+split, so it still mutes actions aimed at watched countries.
+
+### Summary of what the user actually has to do
+
+1. Add a few likely-active countries to the Watchlist (30 seconds).
+2. Play one normal session.
+3. Glance at Message Settings once to confirm the group labels.
+
+Everything else is read from `debug.log` and `error.log` afterwards.
