@@ -19,6 +19,57 @@ instrumentation and doc-only changes get a commit but **no** version bump
 unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.38] — 2026-09-10
+
+**If you played an earlier version, open Message Settings and press
+"Reset to Default Settings" once.** This release retunes a lot of notification
+priorities, and any setting you changed by hand overrides the mod until you
+reset. The game will remind you in-game once per campaign.
+
+### Added
+
+- **A diplomatic play declared on you now reaches you.** Previously it could
+  produce no notification at all -- the single worst thing a notification mod
+  can do, and it is fixed. A play aimed at you toasts when it opens and shows
+  a full-screen popup if it turns into a war.
+- **Pact endings are filtered like pact beginnings.** A watched country ending
+  an arrangement with you (or with another country you watch) now toasts
+  instead of being buried in the feed with everything else.
+- **War goals** added to a play you are actually in are called out separately
+  from war goals in plays you are only watching.
+- **The Watchlist shows each country's power rank and world ranking**, laid
+  out like the game's own at-peace ledger, so you can tell a great power from
+  an obscure minor at a glance while choosing who to follow.
+
+### Changed
+
+- **Diplomatic actions aimed at you are now sorted by who did them.** An
+  action from a country you watch toasts; the same action from a country you
+  do not watch goes to the feed. This is what finally quiets the constant
+  "someone improved relations with you" traffic without hiding anything that
+  matters.
+- **A watched country acting on a stranger no longer toasts.** Only actions
+  aimed AT you or AT a country you watch do. One session had 51 of the former;
+  they were the bulk of the noise.
+- Obligations you are owed or owe now toast, rather than sitting in the feed.
+- Attitude changes towards you are visible in the feed again, instead of being
+  muted outright.
+- Sway offers, war-participant defaults, harvest conditions and resource
+  discoveries all moved to the feed after a session showed them firing 93, 69
+  and dozens of times respectively.
+- Every notification this mod adds now appears together at the end of the
+  Message Settings list, grouped by family, so its rows are findable.
+
+### Fixed
+
+- Notification tooltips that rendered as raw text instead of a description.
+- A double full-screen popup when a war started involving you.
+
+### Removed
+
+- The permanently-silent "Subject Released, Non Watched" row, which existed
+  only to be switched on and never was.
+
 ## [0.37] — 2026-09-09
 
 ### Changed

@@ -960,10 +960,6 @@
  # Watched-tab provenance tags (added 2026-09-07) -- short abbreviations,
  # full category name shown on hover via the tag's own tooltip (reuses
  # the section nav labels above).
- SMART_NOTIFICATIONS_WATCHLIST_TAG_GREAT_POWER:0 "#bold GP#!"
- SMART_NOTIFICATIONS_WATCHLIST_TAG_NEIGHBOR:0 "#bold NB#!"
- SMART_NOTIFICATIONS_WATCHLIST_TAG_RIVAL:0 "#bold RV#!"
- SMART_NOTIFICATIONS_WATCHLIST_TAG_MANUAL:0 "#bold MA#!"
 
  # One-time toast for taxation deficit, one shared message (not per-type)
  # since state identity is tracked via a variable list, not a static

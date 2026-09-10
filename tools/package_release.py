@@ -50,6 +50,25 @@ DEFAULT_OUT = Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3" /
 SHIP_DIRS = [".metadata", "common", "events", "gui", "localization"]
 SHIP_FILES = ["thumbnail.png"]  # copied only if present
 
+# Files that exist ONLY to diagnose this mod during development. Every one of
+# them posts zero notifications -- they exist to write debug_log lines -- so
+# once logging is stripped from a release they would ship as on_action handlers
+# with empty bodies. Between them that is 70 vanilla on_actions this mod would
+# hook, and the game would call every one of them, forever, to do nothing.
+#
+# Counted 2026-09-10 while reviewing for the first public release:
+#   01_smart_notifications_logger.txt          32 hooks, 0 post_notification
+#   04_smart_notifications_probes.txt          10 hooks, 0 post_notification
+#   05_smart_notifications_toast_popup_audit.txt  28 hooks, 0 post_notification
+#
+# They stay in the repo -- they are how this mod gets diagnosed without asking
+# the user to watch for toasts -- and are simply not copied into a release.
+DEV_ONLY_FILES = [
+    "common/on_actions/01_smart_notifications_logger.txt",
+    "common/on_actions/04_smart_notifications_probes.txt",
+    "common/on_actions/05_smart_notifications_toast_popup_audit.txt",
+]
+
 # The dev/test mod entry's metadata.json intentionally carries a
 # " - Dev" suffix on its name (2026-09-09 per the user: the two entries
 # looked confusingly identical in the launcher's upload flow). Since the
@@ -85,6 +104,19 @@ def strip_dev_name_suffix(metadata_path: Path):
         with open(metadata_path, "w", encoding="utf-8") as f:
             json.dump(meta, f, indent=2)
             f.write("\n")
+
+
+def drop_dev_only_files(staging: Path) -> list[str]:
+    """Remove the diagnostic-only files from the packaged copy entirely.
+    Stripping their debug_log lines is not enough -- what would remain is a
+    pile of empty on_action handlers the game still calls."""
+    dropped = []
+    for rel in DEV_ONLY_FILES:
+        p = staging / rel
+        if p.is_file():
+            p.unlink()
+            dropped.append(rel)
+    return dropped
 
 
 def strip_debug_logging(staging: Path) -> int:
@@ -170,6 +202,10 @@ def package(out_dir: Path):
 
         strip_dev_name_suffix(staging / ".metadata" / "metadata.json")
 
+        dropped = drop_dev_only_files(staging)
+        for rel in dropped:
+            print(f"Excluded dev-only file: {rel}")
+
         stripped = strip_debug_logging(staging)
         print(f"Stripped {stripped} debug logging line(s) from the packaged copy.")
         if not validate_staging(staging):
@@ -210,16 +246,32 @@ def package(out_dir: Path):
                 # the freshly staged src (best-effort; a locked stale item
                 # left behind harmlessly doesn't affect what the game
                 # loads, so this never raises).
-                src_names = {p.name for p in src.iterdir()}
-                for existing in dst.iterdir():
-                    if existing.name not in src_names:
-                        try:
-                            if existing.is_dir():
-                                shutil.rmtree(existing)
-                            else:
-                                existing.unlink()
-                        except PermissionError:
-                            pass
+                #
+                # RECURSIVE since 2026-09-10. This used to compare only the
+                # top level of each shipped directory, so a file removed from
+                # the mod at any depth below that kept shipping forever --
+                # found when three diagnostic-only files were excluded from the
+                # release and reappeared in the output regardless, because they
+                # live at common/on_actions/ rather than directly under
+                # common/. A stale on_action file the game still loads is
+                # exactly the kind of thing nobody would think to look for.
+                stale = []
+                for existing in dst.rglob("*"):
+                    counterpart = src / existing.relative_to(dst)
+                    if not counterpart.exists():
+                        stale.append(existing)
+                # Deepest first, so a directory is emptied before it is removed.
+                for existing in sorted(stale, key=lambda p: len(p.parts), reverse=True):
+                    try:
+                        if existing.is_dir():
+                            shutil.rmtree(existing)
+                        elif existing.exists():
+                            existing.unlink()
+                    except PermissionError:
+                        pass
+                if stale:
+                    print(f"  Removed {len(stale)} stale item(s) from {name}/ "
+                          f"left over from a previous package.")
                 shutil.rmtree(src, ignore_errors=True)
             else:
                 dst.unlink()

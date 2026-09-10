@@ -56,10 +56,10 @@ smart_notifications_law_ready_toast_check = {
 						smart_notifications_law_ready_to_enact = yes
 					}
 				}
-				debug_log = "SNW_LAW_TOAST|pulse|country=[THIS.GetNameNoFormatting]|at_least_one_wanted_law_ready=yes"
+				debug_log = "SNW_LAW_TOAST|pulse|country=[THIS.GetCountry.GetNameNoFormatting]|at_least_one_wanted_law_ready=yes"
 			}
 			else = {
-				debug_log = "SNW_LAW_TOAST|pulse|country=[THIS.GetNameNoFormatting]|at_least_one_wanted_law_ready=no"
+				debug_log = "SNW_LAW_TOAST|pulse|country=[THIS.GetCountry.GetNameNoFormatting]|at_least_one_wanted_law_ready=no"
 			}
 
 			every_law = {

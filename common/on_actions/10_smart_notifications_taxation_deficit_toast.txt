@@ -98,7 +98,7 @@ smart_notifications_taxation_deficit_toast_check = {
 					prev = {
 						post_notification = smart_notifications_taxation_deficit_toast
 					}
-					debug_log = "SNW_TAX_TOAST|fired|state=[prev.GetState.GetName]|date=[TimeKeeper.GetCurrentDate.GetString]"
+					debug_log = "SNW_TAX_TOAST|fired|date=[TimeKeeper.GetCurrentDate.GetString]"
 				}
 			}
 
@@ -124,7 +124,7 @@ smart_notifications_taxation_deficit_toast_check = {
 						name = smart_notifications_notified_deficit_states
 						target = prev
 					}
-					debug_log = "SNW_TAX_TOAST|marked_silently|state=[prev.GetState.GetName]|date=[TimeKeeper.GetCurrentDate.GetString]"
+					debug_log = "SNW_TAX_TOAST|marked_silently|date=[TimeKeeper.GetCurrentDate.GetString]"
 				}
 			}
 
@@ -152,7 +152,7 @@ smart_notifications_taxation_deficit_toast_check = {
 							name = smart_notifications_notified_deficit_states
 							target = prev
 						}
-						debug_log = "SNW_TAX_TOAST|reset|state=[prev.GetState.GetName]|date=[TimeKeeper.GetCurrentDate.GetString]"
+						debug_log = "SNW_TAX_TOAST|reset|date=[TimeKeeper.GetCurrentDate.GetString]"
 					}
 				}
 			}
