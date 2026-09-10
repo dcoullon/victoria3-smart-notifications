@@ -343,24 +343,6 @@ smart_notifications_diplo_play_subject_released_watched = {
 }
 
 
-# F9 -- war goals (docs/watchlist-spec.md). A war goal added to a play YOU
-# are in is something to act on; one added to a play you are merely
-# watching is not, which is why this splits where vanilla does not --
-# vanilla's own text is not player-scoped ("X has been added for Y"), so a
-# single global tier cannot express the rule.
-#
-# Four keys on TWO groups. The keys stay separate because "added" and
-# "removed" need different wording, but they share a group per tier so the
-# player sees two rows rather than four -- the user's call 2026-09-09
-# ("not even sure how to remove a war goal"), and the same
-# many-keys-one-group shape the 138 law-ready toasts already use. Legal
-# because keys sharing a group agree on notification_type, which is what
-# the engine's mixed-types rule actually requires.
-#
-# Posted from on_wargoal_added / on_wargoal_removed, whose root is the
-# diplomatic play itself -- see 12_smart_notifications_wargoal_filtering.txt.
-
-
 smart_notifications_truce_expired = {
 	type = country
 	group = "smart_notifications_truce_expired_group"
