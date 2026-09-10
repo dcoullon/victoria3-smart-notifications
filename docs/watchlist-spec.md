@@ -235,8 +235,13 @@ surfaces.
 
 ### F7 — Subject released
 
-**Unchanged:** toast for watched, silent otherwise. Already matches the
-spirit.
+Toast when a watched country's subject is released; **no notification at all**
+otherwise.
+
+Revised 2026-09-10: the unwatched case used to post a key pinned at `none`,
+which cost a row in Message Settings purely so the player could switch on
+something silent by default. Nobody asked to hear it, so the key is gone and
+that branch now posts nothing. The on_action still logs the decision.
 
 ### F8 — Truce expiry
 

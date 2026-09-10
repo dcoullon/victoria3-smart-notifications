@@ -498,7 +498,6 @@ WATCHLIST_SPEC_CELLS = {
     # F7 -- subject released, unchanged by the spec but pinned so it cannot
     # drift silently.
     "smart_notifications_diplo_play_subject_released_watched": "toast",
-    "smart_notifications_diplo_play_subject_released_quiet": "none",
     # F9 -- war goals.
     "smart_notifications_wargoal_added_player": "toast",
     "smart_notifications_wargoal_added_other": "feed",
@@ -525,6 +524,12 @@ WATCHLIST_SPEC_SHARED_GROUPS = {
     # nobody the player follows in it), three keys only because each family
     # words it differently. Subject Released is NOT in here -- it is `none`
     # rather than `feed`, and sharers must agree on notification_type.
+    # Mod Loaded and Mod Updated: two one-off housekeeping notices the player
+    # would never want to tune apart, merged to one row 2026-09-10.
+    "smart_notifications_mod_notices_group": {
+        "smart_notifications_mod_loaded",
+        "smart_notifications_mod_updated",
+    },
     "smart_notifications_diplo_play_quiet_group": {
         "smart_notifications_diplo_play_start_quiet",
         "smart_notifications_diplo_play_join_side_quiet",

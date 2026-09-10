@@ -338,6 +338,11 @@ smart_notifications_diplo_play_war_start_quiet = {
 # for the full story. Only diplo_play_subject_released (below) genuinely
 # has no primary-key sibling, so it keeps its own watched/quiet pair.
 
+# REMOVED 2026-09-10: this key used to have a `_quiet` sibling pinned at
+# `none`, which existed only so the player COULD switch it on. A row that is
+# silent by default and that nobody asked to hear is a row spent on nothing,
+# so an unwatched country releasing a subject now posts no notification at all
+# rather than a muted one. The on_action logs the decision either way.
 smart_notifications_diplo_play_subject_released_watched = {
 	type = diplomatic_play
 	group = "smart_notifications_diplo_play_subject_released_watched_group"
@@ -354,15 +359,6 @@ smart_notifications_diplo_play_subject_released_watched = {
 	color = neutral
 }
 
-smart_notifications_diplo_play_subject_released_quiet = {
-	type = diplomatic_play
-	group = "smart_notifications_diplo_play_subject_released_quiet_group"
-
-	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
-
-	notification_type = none
-	color = neutral
-}
 
 # F9 -- war goals (docs/watchlist-spec.md). A war goal added to a play YOU
 # are in is something to act on; one added to a play you are merely
@@ -483,7 +479,7 @@ smart_notifications_watchlist_empty_prompt = {
 
 smart_notifications_mod_loaded = {
 	type = country
-	group = "smart_notifications_mod_loaded_group"
+	group = "smart_notifications_mod_notices_group"
 
 	texture = "gfx/interface/icons/notification_icons/technology.dds"
 
@@ -511,7 +507,7 @@ smart_notifications_mod_loaded = {
 # signal anyway -- it is exactly the moment the defaults changed.
 smart_notifications_mod_updated = {
 	type = country
-	group = "smart_notifications_mod_updated_group"
+	group = "smart_notifications_mod_notices_group"
 
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 

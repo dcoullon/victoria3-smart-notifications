@@ -418,8 +418,11 @@ smart_notifications_diplo_play_subject_released = {
 				debug_log = "SNW_FILTER|subject_released|posted_key=smart_notifications_diplo_play_subject_released_watched|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
 			}
 			else = {
-				post_notification = smart_notifications_diplo_play_subject_released_quiet
-				debug_log = "SNW_FILTER|subject_released|posted_key=smart_notifications_diplo_play_subject_released_quiet|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
+				# No notification at all. The muted `_quiet` key this used to
+				# post was removed 2026-09-10 -- it was silent by default and
+				# only cost a row in Message Settings. The log line stays, so
+				# the decision is still visible when diagnosing.
+				debug_log = "SNW_FILTER|subject_released|posted_key=NONE|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
 			}
 		}
 		else = {

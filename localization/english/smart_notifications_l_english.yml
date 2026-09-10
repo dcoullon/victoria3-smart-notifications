@@ -2,11 +2,10 @@
  notification_smart_notifications_mod_loaded_tooltip:0 "#header $notification_smart_notifications_mod_loaded_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_mod_loaded_desc$"
  notification_smart_notifications_mod_loaded_name:0 "Smart Notifications active"
  notification_smart_notifications_mod_loaded_desc:0 "Your Watchlist is pre-filled with great powers and neighbors - edit it in Message Settings (bell icon).\n\nPlayed Victoria 3 before? Press #v Reset to Default Settings#! there once, or your saved settings will override this mod."
- smart_notifications_mod_updated_group:0 "(SN) Mod Updated"
  notification_smart_notifications_mod_updated_tooltip:0 "#header $notification_smart_notifications_mod_updated_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_mod_updated_desc$"
  notification_smart_notifications_mod_updated_name:0 "Smart Notifications Updated"
  notification_smart_notifications_mod_updated_desc:0 "Notification priorities changed in this version.\n\nPress #v Reset to Default Settings#! in Message Settings to apply them - until then your own saved settings override this mod."
- smart_notifications_mod_loaded_group:0 "(SN) Mod Loaded"
+ smart_notifications_mod_notices_group:0 "(SN) Mod Notices"
 
  # New Message Settings categories created by splitting a vanilla group so
  # two siblings can have different priority (see 00_messages.txt comments).
@@ -189,10 +188,6 @@
  notification_smart_notifications_diplo_play_subject_released_watched_name:0 "[SCOPE.sC('target').GetNameNoFormatting] breaks free"
  notification_smart_notifications_diplo_play_subject_released_watched_desc:0 "Due to the failure of [SCOPE.sC('actor').GetNameNoFormatting] to protect their subject [SCOPE.sC('target').GetNameNoFormatting] their pact is now null and void."
 
- smart_notifications_diplo_play_subject_released_quiet_group:0 "(SN) Subject Released, Non Watched"
- notification_smart_notifications_diplo_play_subject_released_quiet_tooltip:0 "#header $notification_smart_notifications_diplo_play_subject_released_quiet_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_subject_released_quiet_desc$"
- notification_smart_notifications_diplo_play_subject_released_quiet_name:0 "[SCOPE.sC('target').GetNameNoFormatting] breaks free"
- notification_smart_notifications_diplo_play_subject_released_quiet_desc:0 "Due to the failure of [SCOPE.sC('actor').GetNameNoFormatting] to protect their subject [SCOPE.sC('target').GetNameNoFormatting] their pact is now null and void."
 
  # Generic diplomatic action filtering (see TODO.md and
  # 06_smart_notifications_diplomatic_action_filtering.txt).
