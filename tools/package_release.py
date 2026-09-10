@@ -87,6 +87,57 @@ def strip_dev_name_suffix(metadata_path: Path):
             f.write("\n")
 
 
+def strip_debug_logging(staging: Path) -> int:
+    """Remove every `debug_log` / `debug_log_scopes` line from the packaged
+    copy. The dev tree keeps them -- they are how this mod gets diagnosed
+    without asking the user to watch for toasts -- but players should not pay
+    for them.
+
+    Why it matters, measured rather than assumed: one session with the
+    per-participant taps still in place emitted 10,822 log lines and rotated
+    through five 512KB debug.log files, and the user reported the game slowing
+    noticeably during a large diplomatic play. Every one of those lines is a
+    string built and formatted at runtime, several with dynamic-text lookups
+    (`[SCOPE.sC('actor').GetNameNoFormatting]`), inside on_actions that fire
+    once per involved country.
+
+    Line-based on purpose. Every debug_log in this mod occupies exactly one
+    line, so removing whole lines cannot unbalance braces -- and the packaged
+    output is re-validated afterwards, which is what actually proves it. A
+    block left empty by the removal (`else = { }`) is valid script and simply
+    does nothing, which is the intent.
+    """
+    removed = 0
+    for path in sorted(staging.rglob("*.txt")):
+        raw = path.read_bytes()
+        had_bom = raw.startswith(b"\xef\xbb\xbf")
+        text = raw.decode("utf-8-sig")
+        kept = [l for l in text.split("\n")
+                if not l.lstrip().startswith(("debug_log =", "debug_log=",
+                                              "debug_log_scopes =", "debug_log_scopes="))]
+        n = len(text.split("\n")) - len(kept)
+        if not n:
+            continue
+        out = "\n".join(kept)
+        path.write_bytes((b"\xef\xbb\xbf" if had_bom else b"") + out.encode("utf-8"))
+        removed += n
+    return removed
+
+
+def validate_staging(staging: Path) -> bool:
+    """Re-run the validator against the STAGED copy, after stripping. Catches
+    the one way stripping could go wrong -- a removal that leaves something
+    the game will not parse -- before it reaches the output folder, while the
+    previous good release is still untouched."""
+    result = subprocess.run(
+        [sys.executable, str(REPO_ROOT / "tools" / "validate_syntax.py"), str(staging)],
+        capture_output=True, text=True)
+    if result.returncode != 0:
+        print(result.stdout)
+        print(result.stderr)
+    return result.returncode == 0
+
+
 def package(out_dir: Path):
     """Stage the full copy in a sibling temp directory first, and only
     swap it into place once every folder has copied successfully --
@@ -118,6 +169,16 @@ def package(out_dir: Path):
                 copied.append(name)
 
         strip_dev_name_suffix(staging / ".metadata" / "metadata.json")
+
+        stripped = strip_debug_logging(staging)
+        print(f"Stripped {stripped} debug logging line(s) from the packaged copy.")
+        if not validate_staging(staging):
+            print("\nABORTED: the packaged copy failed validation AFTER debug "
+                  "logging was stripped. The existing output was NOT touched. "
+                  "This means a removed line was load-bearing -- fix it in the "
+                  "source repo before packaging again.")
+            shutil.rmtree(staging, ignore_errors=True)
+            sys.exit(1)
     except PermissionError as e:
         print(f"\nABORTED while staging: {e.filename} is locked by another "
               f"process. The existing output at {out_dir} was NOT touched. "

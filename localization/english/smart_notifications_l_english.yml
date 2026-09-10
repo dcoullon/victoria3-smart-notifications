@@ -1,11 +1,11 @@
 ﻿l_english:
  notification_smart_notifications_mod_loaded_tooltip:0 "#header $notification_smart_notifications_mod_loaded_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_mod_loaded_desc$"
  notification_smart_notifications_mod_loaded_name:0 "Smart Notifications active"
- notification_smart_notifications_mod_loaded_desc:0 "Great powers and neighbors are already on your Watchlist. Adjust it anytime in Message Settings (bell icon) > Watchlist.\n\n#v If you have played Victoria 3 before#!, open Message Settings and use #v Reset to Default Settings#! once. Any notification you have ever changed by hand keeps your old setting and will ignore this mod's defaults until you do. Resetting clears every custom notification setting, base game ones included."
+ notification_smart_notifications_mod_loaded_desc:0 "Your Watchlist is pre-filled with great powers and neighbors - edit it in Message Settings (bell icon).\n\nPlayed Victoria 3 before? Press #v Reset to Default Settings#! there once, or your saved settings will override this mod."
  smart_notifications_mod_updated_group:0 "(SN) Mod Updated"
  notification_smart_notifications_mod_updated_tooltip:0 "#header $notification_smart_notifications_mod_updated_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_mod_updated_desc$"
  notification_smart_notifications_mod_updated_name:0 "Smart Notifications Updated"
- notification_smart_notifications_mod_updated_desc:0 "This version changes which notifications interrupt you and which go quietly to the feed.\n\n#v To get those changes:#! open Message Settings (bell icon), scroll to the bottom and press #v Reset to Default Settings#!. That is all that is needed — no restart.\n\n#v Why:#! any notification you have changed by hand keeps your own setting forever and ignores this mod entirely, so without the reset the new defaults never reach you. Resetting clears every custom notification setting, base game ones included, so re-apply any you want to keep afterwards."
+ notification_smart_notifications_mod_updated_desc:0 "Notification priorities changed in this version.\n\nPress #v Reset to Default Settings#! in Message Settings to apply them - until then your own saved settings override this mod."
  smart_notifications_mod_loaded_group:0 "(SN) Mod Loaded"
 
  # New Message Settings categories created by splitting a vanilla group so

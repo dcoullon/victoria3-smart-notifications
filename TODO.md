@@ -180,6 +180,55 @@ a fresh `script_docs` dump after any major update), or another event that
 reliably coincides with an attitude shift turns out to be hookable and
 carries the country in scope.
 
+## TODO: put this mod's rows last in the Message Settings list
+
+Asked for by the user 2026-09-10: all `(SN)` rows grouped at the end of the
+Notification Types list, ordered so related ones sit together. Attempted the
+same day, backed out, worth doing properly as its own focused change.
+
+### What was learned
+
+**The order is filename order, then definition order within the file.** The
+game reads `common/messages/*.txt` in filename order and lists rows in the
+order it read the definitions. This mod's keys are already last *within*
+`00_messages.txt`, but vanilla's own `01_event_messages.txt` through
+`05_japan_messages.txt` and `unification_notifcations.txt` are read after it,
+which is why vanilla rows (Law Imposed, Colonial Claim Granted, ...) still
+appear below ours.
+
+**So the fix is a filename**, not a reordering: move every key this mod
+invents into `common/messages/99_smart_notifications_messages.txt`. A 99_
+prefix sorts after every vanilla message file.
+
+**Sort within the file by the group's `(SN) ...` loc label, not by key name.**
+What sits together on screen is decided by the label, and several keys
+deliberately share a group. Keys sharing a group must keep their relative
+order, because a shared row renders at whichever of its keys the game reads
+first (this is why the three "Non Watched" diplo-play keys are defined after
+the per-family rows -- see `common/messages/00_messages.txt`).
+
+### Why the first attempt failed -- read before retrying
+
+`00_messages.txt` is a **full override of vanilla's file**, and
+`check_references.py` enforces that every line present in the installed
+vanilla file is also present in ours. The extraction script assumed this mod's
+blocks were a contiguous tail and cut from the first one to EOF; they are not
+quite, and the cut removed vanilla content. The checker caught it immediately
+and the file was restored from a backup taken before the run.
+
+Retry with: extract blocks **by name** (`smart_notifications_*` only), never
+by offset; carry each block's leading comment with it; assert the count of
+extracted blocks matches the count of `smart_notifications_*` definitions
+before writing anything; and run `validate_syntax.py` before committing. Take
+a copy of `00_messages.txt` first -- that copy is the only reason the failed
+attempt cost nothing.
+
+### Worth knowing
+
+This is cosmetic. It changes nothing about behaviour, and it touches the file
+with the highest blast radius in the mod, so it should not ride along with
+functional changes.
+
 ## KNOWN GAP: a watched country that becomes a NEW country loses its watch
 
 Raised by the user 2026-09-10 ("what happens when a country in our watchlist
