@@ -23,77 +23,134 @@ of what actually shipped in each version, see [CHANGELOG.md](CHANGELOG.md).
 
 ---
 
-## THE TOAST RULE: what's built, what the engine refuses, what's left (2026-09-09)
+## START HERE — the Watchlist: expectations, state, gaps (as of 2026-09-09 evening)
 
-Kept at the top of this file: it's the mod's core rule, and the half that
-can't be built has now been attempted three different ways.
+Written as the starting point for the next session, at the user's
+request. Three questions in order: what is the Watchlist *for*, what does
+it actually do today, and what stands between the two.
 
-### The rule, in the user's own words
+---
+
+### 1. Expectations — what the country selector is for
+
+The user's own formulation, which is the spec:
 
 > The spirit of the country selector is that toasts should contain all
 > important actions towards you or involving a watched country, and only
 > that.
 
+Two axes, and a notification needs **both** to earn a toast:
+
 | | aimed at you / a watched country | aimed at anyone else |
 |---|---|---|
 | **important action** | **toast** | feed |
-| **routine action** (relations changes) | feed | feed |
+| **routine action** (e.g. relations changes) | feed | feed |
 
-Plus one exception the user confirmed: a **watched** country's relations
-change *toward you* still toasts — being watched outranks the action
-being routine.
+One confirmed exception: a **watched** country's *routine* action toward
+you still toasts. Being watched outranks the action being routine — you
+are tracking that country specifically.
 
-### DONE: the aimed-at axis
+Implied but worth stating, since it has been violated twice by accident:
 
-`06_smart_notifications_diplomatic_action_filtering.txt` no longer ORs
-actor and recipient together. A watched country *acting on* an unrelated
-minor and a watched country *being acted on* were previously identical;
-under the rule they're opposites. Now:
+- **Never silently drop something aimed at the player.** Over-notifying
+  is the safe direction to fail in.
+- **"Involving" is not symmetric.** A watched country *acting on* a
+  stranger is not the same event as a watched country *being acted on*.
+  Only the second is aimed at something you care about.
+- The three tiers are `popup` > `toast` > `feed`, plus `none`. The feed
+  is not deletion — it's the log you can skim on purpose.
 
-- recipient is you → toast
-- recipient is a watched country → toast
-- neither → feed, **even if the actor is watched**
+---
 
-This is also the honest fix for the v0.37 spam report: all 13 sampled
-fires were a watched actor hitting an unwatched minor — the branch that
-should never have toasted. v0.37 muted the whole watched path instead,
-which also silenced actions aimed *at* watched countries. That demotion
-is reversed.
+### 2. What actually works today
 
-Measured against one real session (271 diplomatic actions): 233 fall to
-the quiet branch, 38 reach a toast.
+**The Watchlist itself** — selection UI, persistence, `is_player = yes`
+baked into `smart_notifications_is_watched` so anything about the player
+counts as watched automatically. Confirmed working live, Phase 3.
 
-### CANNOT BE BUILT: the importance axis
+**Diplomatic plays** (`03_smart_notifications_relational_notifications.txt`),
+four families, each split watched/unwatched:
 
-Three mechanisms tried, each ruled out by direct evidence:
+| event | watched | unwatched |
+|---|---|---|
+| play start (third party) | toast | feed |
+| join side | toast | feed |
+| war start | **popup** | toast |
+| subject released | toast | none |
 
-1. **Query the pact the action creates.** The pact isn't in gamestate yet
-   at that instant — three countries proved it by showing up in a later
-   monthly sweep. `docs/engine-notes.md` § *The pact for a diplomatic
-   action does not exist yet*.
-2. **Ask the action object.** `script_docs` supports zero triggers and
-   zero effects on `diplomatic_action` scope; no event target leads out
-   of it.
-3. **Have the action flag its target from its own definition**, via the
-   `effect = {}` block that `diplomatic_action.md` documents. The parser
-   rejects the key: `Unexpected token: effect`. The schema doc describes
-   a field this version doesn't accept, and zero vanilla actions use one.
-   `docs/engine-notes.md` § *A `.md` schema doc is not proof a key
-   parses*.
+**Diplomatic actions** (`06_..._diplomatic_action_filtering.txt`) — the
+aimed-at axis, rebuilt 2026-09-09 evening:
 
-So every action aimed at you or a watched country toasts, routine or not.
+- aimed at you → toast
+- aimed at a watched country → toast
+- aimed at anyone else → feed, **even when the actor is watched**
 
-### THE ONE OPTION LEFT — needs a product call from the user
+Measured on one real session of 271 diplomatic actions: 233 quiet, 38
+reaching a toast.
 
-Filter on the **actor** instead of the action: rank,
-`has_diplomatic_relevance`, `is_country_type`. All readable at the right
-instant, no override, no new engine behaviour. "An unwatched, minor,
-diplomatically irrelevant country did something to you" → feed.
+**Not watchlist-gated at all** (deliberately — they're about *your* own
+country, so the Watchlist has no bearing): the law-ready alert family
+(138 generated per-law keys), the taxation deficit toast, truce expiry.
 
-**The catch, stated honestly:** it judges the sender, not the message, so
-a small country declaring a *rivalry* on you would be quieted too. That
-is a different rule from the one above, not an implementation of it —
-which is why it hasn't been built.
+---
+
+### 3. What's missing
+
+**(a) The importance axis does not exist.** This is the big one. Every
+action aimed at you or a watched country toasts, routine or not, so a
+minor nudging relations with you interrupts exactly like a subjugation
+demand. Three mechanisms tried on 2026-09-09, each ruled out by direct
+evidence, not by inference:
+
+1. Query the pact the action creates — it isn't in gamestate yet at that
+   instant (three countries proved it via a later monthly sweep).
+2. Ask the action object — zero triggers and zero effects support
+   `diplomatic_action` scope; no event target leads out of it.
+3. Have the action flag its target from its own definition, via the
+   `effect = {}` block the game's own schema doc documents — the parser
+   rejects the key (`Unexpected token: effect`).
+
+Both write-ups: `docs/engine-notes.md` §§ *The pact for a diplomatic
+action does not exist yet* and *A `.md` schema doc is not proof a key
+parses*. **Do not re-attempt these three without new information.**
+
+The only untried axis is a property of the **actor** (rank,
+`has_diplomatic_relevance`, `is_country_type`), all readable at the right
+instant. It approximates the rule rather than implementing it — it judges
+the sender, not the message, so a small country declaring a *rivalry* on
+you would be quieted along with the relations nudges. **Needs a product
+call from the user before anyone builds it.**
+
+**(b) Only two event families are watchlist-aware.** Diplomatic plays and
+diplomatic actions. Everything else in the game either always fires or is
+muted globally. Whether that's a gap or the right scope is an open
+question — worth listing which other families *could* be watchlist-gated
+before deciding.
+
+**(c) The live Workshop build is behind, and differs in behaviour.**
+v0.37 was packaged and uploaded *before* the actor/recipient split, so
+what players have right now still mutes actions aimed **at** watched
+countries — the exact case the rule says must toast. Repo HEAD fixes it
+but is **untested**. First job of the next session: verify the split in
+a live run, then ship it.
+
+**(d) One piece of instrumentation is blind.** `SNW_TAX_TOAST`'s two
+`debug_log` lines in `10_smart_notifications_taxation_deficit_toast.txt`
+fail with "Data error in loc string" on `[prev.GetState.GetName]` —
+lowercase `prev` is effect syntax, invalid in dynamic text, and
+`.GetName` is the wrong accessor. Anything diagnosed with those lines is
+currently being diagnosed blind.
+
+---
+
+### 4. Suggested order for the next session
+
+1. Live-test the actor/recipient split already in HEAD (untested).
+2. Get the product call on actor-based filtering (§3a) — it's the only
+   route left to the importance axis.
+3. Ship whichever of those lands, as 0.38, and re-upload (the live build
+   is behind either way).
+4. Fix the blind tax-toast logging (§3d) — small, unrelated, cheap.
 
 ## Phase 0 — Bootstrap Verification (target: v0.1.0)
 
