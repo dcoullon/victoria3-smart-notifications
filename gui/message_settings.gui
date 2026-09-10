@@ -1360,6 +1360,48 @@ types message_settings {
 	# across all five: every row's checkbox always means "watched or not,
 	# period" (see watchlist_toggle_sgui's own header comment), regardless
 	# of which section it's shown in.
+	# Rank badge for a watchlist row -- the game's own power-rank icon with
+	# the country's world score position printed inside it, so the list can be
+	# skimmed for "does this country actually matter" without opening anything.
+	#
+	# This is vanilla's `rank_badge` (gui/shared/flags.gui) reused wholesale,
+	# not a reimplementation: it already picks the right power_rank_0N texture
+	# off Country.GetRankIconIndex AND renders GetCountryScorePositionDesc in
+	# the middle, which is exactly the icon-plus-number the user asked for.
+	#
+	# The wrapper widget, the 40x40 size and both blockoverrides are copied
+	# from vanilla's own smallest instantiation (gui/diplomatic_overview.gui
+	# around line 1735), which shrinks the badge from its default 70x70 for a
+	# list row just like this one. The overrides matter: at full size the badge
+	# swaps to a LARGER font for positions under 100 (`rank_text_2`), which
+	# overflows a shrunk badge -- vanilla's fix is to force the small variant
+	# for every position and hide the large one, so that is what we do too.
+	# Sizing it down without those overrides is the part that looks broken.
+	#
+	# Needs its own datacontext because the row widget itself has none -- each
+	# child in these rows sets InterestingCountryItem.GetCountry individually
+	# (see the small_flag and textbox siblings).
+	type smart_notifications_watchlist_rank_badge = widget {
+		size = { 50 44 }
+		alwaystransparent = no
+		datacontext = "[InterestingCountryItem.GetCountry]"
+		tooltip = "[Country.GetRankTooltip]"
+
+		rank_badge = {
+			size = { 40 40 }
+			parentanchor = vcenter
+
+			blockoverride "rank_text" {
+				raw_text = "#BOLD [Country.GetCountryScorePositionDesc]"
+			}
+
+			blockoverride "rank_text_2" {
+				raw_text = "#BOLD [Country.GetCountryScorePositionDesc]"
+				visible = no
+			}
+		}
+	}
+
 	type smart_notifications_watchlist_watched_row = widget {
         size = { 660 44 }
         visible = "[GetScriptedGui('watchlist_is_watched_check_sgui').IsValid(GuiScope.SetRoot(InterestingCountryItem.GetCountry.MakeScope).End)]"
@@ -1378,13 +1420,15 @@ types message_settings {
                 datacontext = "[InterestingCountryItem.GetCountry]"
             }
 
+            smart_notifications_watchlist_rank_badge = {}
+
             textbox = {
                 datacontext = "[InterestingCountryItem.GetCountry]"
                 text = "[Country.GetNameNoFlag]"
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 590 -1 }
+                maximumsize = { 540 -1 }
                 margin_left = 10
                 elide = right
             }
@@ -1426,13 +1470,15 @@ types message_settings {
                 datacontext = "[InterestingCountryItem.GetCountry]"
             }
 
+            smart_notifications_watchlist_rank_badge = {}
+
             textbox = {
                 datacontext = "[InterestingCountryItem.GetCountry]"
                 text = "[Country.GetNameNoFlag]"
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 590 -1 }
+                maximumsize = { 540 -1 }
                 margin_left = 10
                 elide = right
             }
@@ -1475,13 +1521,15 @@ types message_settings {
                 datacontext = "[InterestingCountryItem.GetCountry]"
             }
 
+            smart_notifications_watchlist_rank_badge = {}
+
             textbox = {
                 datacontext = "[InterestingCountryItem.GetCountry]"
                 text = "[Country.GetNameNoFlag]"
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 590 -1 }
+                maximumsize = { 540 -1 }
                 margin_left = 10
                 elide = right
             }
@@ -1519,13 +1567,15 @@ types message_settings {
                 datacontext = "[InterestingCountryItem.GetCountry]"
             }
 
+            smart_notifications_watchlist_rank_badge = {}
+
             textbox = {
                 datacontext = "[InterestingCountryItem.GetCountry]"
                 text = "[Country.GetNameNoFlag]"
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 590 -1 }
+                maximumsize = { 540 -1 }
                 margin_left = 10
                 elide = right
             }
@@ -1563,13 +1613,15 @@ types message_settings {
                 datacontext = "[InterestingCountryItem.GetCountry]"
             }
 
+            smart_notifications_watchlist_rank_badge = {}
+
             textbox = {
                 datacontext = "[InterestingCountryItem.GetCountry]"
                 text = "[Country.GetNameNoFlag]"
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 590 -1 }
+                maximumsize = { 540 -1 }
                 margin_left = 10
                 elide = right
             }
@@ -1607,13 +1659,15 @@ types message_settings {
                 datacontext = "[InterestingCountryItem.GetCountry]"
             }
 
+            smart_notifications_watchlist_rank_badge = {}
+
             textbox = {
                 datacontext = "[InterestingCountryItem.GetCountry]"
                 text = "[Country.GetNameNoFlag]"
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 590 -1 }
+                maximumsize = { 540 -1 }
                 margin_left = 10
                 elide = right
             }
@@ -1651,13 +1705,15 @@ types message_settings {
                 datacontext = "[InterestingCountryItem.GetCountry]"
             }
 
+            smart_notifications_watchlist_rank_badge = {}
+
             textbox = {
                 datacontext = "[InterestingCountryItem.GetCountry]"
                 text = "[Country.GetNameNoFlag]"
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 590 -1 }
+                maximumsize = { 540 -1 }
                 margin_left = 10
                 elide = right
             }
@@ -1699,13 +1755,15 @@ types message_settings {
                 datacontext = "[InterestingCountryItem.GetCountry]"
             }
 
+            smart_notifications_watchlist_rank_badge = {}
+
             textbox = {
                 datacontext = "[InterestingCountryItem.GetCountry]"
                 text = "[Country.GetNameNoFlag]"
                 align = nobaseline
                 layoutpolicy_vertical = preferred
                 layoutpolicy_horizontal = preferred
-                maximumsize = { 590 -1 }
+                maximumsize = { 540 -1 }
                 margin_left = 10
                 elide = right
             }
