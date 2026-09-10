@@ -42,10 +42,29 @@ on_wargoal_removed = {
 smart_notifications_wargoal_added = {
 	effect = {
 		if = {
+			# Same two-way test as the diplo-play families use
+			# (03_smart_notifications_relational_notifications.txt): neither
+			# check alone is reliable, so either matching is enough. Applied
+			# here 2026-09-10 for consistency -- it had been fixed in 03 and
+			# missed here, which is exactly the kind of drift between two
+			# copies of one idea that this project keeps producing.
+			#
+			# Note this branch may legitimately be rare: a play's OPENING war
+			# goal appears to be created with the play rather than "added", so
+			# on_wargoal_added seems to fire only for goals added later. In a
+			# session with three player wars it never fired once, while firing
+			# 22 times for other people's wars. That is not evidence of a bug
+			# -- every one of those 22 was a South American or Persian war the
+			# player had nothing to do with -- but it does mean the value of
+			# this family is mostly the QUIETING of other people's war goals,
+			# not the elevation of your own.
 			limit = {
-				any_scope_play_involved = {
-					is_diplomatic_play_participant_with = scope:actor
-					is_player = yes
+				OR = {
+					scope:target ?= { is_player = yes }
+					any_scope_play_involved = {
+						is_diplomatic_play_participant_with = scope:actor
+						is_player = yes
+					}
 				}
 			}
 			post_notification = smart_notifications_wargoal_added_player
@@ -61,10 +80,29 @@ smart_notifications_wargoal_added = {
 smart_notifications_wargoal_removed = {
 	effect = {
 		if = {
+			# Same two-way test as the diplo-play families use
+			# (03_smart_notifications_relational_notifications.txt): neither
+			# check alone is reliable, so either matching is enough. Applied
+			# here 2026-09-10 for consistency -- it had been fixed in 03 and
+			# missed here, which is exactly the kind of drift between two
+			# copies of one idea that this project keeps producing.
+			#
+			# Note this branch may legitimately be rare: a play's OPENING war
+			# goal appears to be created with the play rather than "added", so
+			# on_wargoal_added seems to fire only for goals added later. In a
+			# session with three player wars it never fired once, while firing
+			# 22 times for other people's wars. That is not evidence of a bug
+			# -- every one of those 22 was a South American or Persian war the
+			# player had nothing to do with -- but it does mean the value of
+			# this family is mostly the QUIETING of other people's war goals,
+			# not the elevation of your own.
 			limit = {
-				any_scope_play_involved = {
-					is_diplomatic_play_participant_with = scope:actor
-					is_player = yes
+				OR = {
+					scope:target ?= { is_player = yes }
+					any_scope_play_involved = {
+						is_diplomatic_play_participant_with = scope:actor
+						is_player = yes
+					}
 				}
 			}
 			post_notification = smart_notifications_wargoal_removed_player
