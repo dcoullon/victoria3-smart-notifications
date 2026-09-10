@@ -1254,7 +1254,17 @@ diplomatic_proposal_third_party_notification = {
 
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
-	notification_type = feed
+	# MUTED 2026-09-10 per the user, from feed. All six keys in
+	# diplomatic_proposal_third_party_notification_group are "two other
+	# countries proposed, accepted, declined or broke something between
+	# themselves" -- the definition of third-party noise this mod exists to
+	# remove, and none of it is ever actionable by the player. They share one
+	# group, so they mute together whether we like it or not; here we do.
+	#
+	# Vanilla's default for all six is feed. This is a mute, not a demotion,
+	# so a returning player who has touched this group keeps feed until they
+	# reset.
+	notification_type = none
 	color = neutral
 }
 
@@ -1264,7 +1274,17 @@ diplomatic_proposal_third_party_accepted = {
 
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
-	notification_type = feed
+	# MUTED 2026-09-10 per the user, from feed. All six keys in
+	# diplomatic_proposal_third_party_notification_group are "two other
+	# countries proposed, accepted, declined or broke something between
+	# themselves" -- the definition of third-party noise this mod exists to
+	# remove, and none of it is ever actionable by the player. They share one
+	# group, so they mute together whether we like it or not; here we do.
+	#
+	# Vanilla's default for all six is feed. This is a mute, not a demotion,
+	# so a returning player who has touched this group keeps feed until they
+	# reset.
+	notification_type = none
 	color = neutral
 }
 
@@ -1274,7 +1294,17 @@ diplomatic_proposal_third_party_break_notification = {
 
 	texture = "gfx/interface/icons/notification_icons/influence_bad.dds"
 
-	notification_type = feed
+	# MUTED 2026-09-10 per the user, from feed. All six keys in
+	# diplomatic_proposal_third_party_notification_group are "two other
+	# countries proposed, accepted, declined or broke something between
+	# themselves" -- the definition of third-party noise this mod exists to
+	# remove, and none of it is ever actionable by the player. They share one
+	# group, so they mute together whether we like it or not; here we do.
+	#
+	# Vanilla's default for all six is feed. This is a mute, not a demotion,
+	# so a returning player who has touched this group keeps feed until they
+	# reset.
+	notification_type = none
 	color = neutral
 }
 
@@ -1284,7 +1314,17 @@ diplomatic_proposal_third_party_break_accepted = {
 
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
-	notification_type = feed
+	# MUTED 2026-09-10 per the user, from feed. All six keys in
+	# diplomatic_proposal_third_party_notification_group are "two other
+	# countries proposed, accepted, declined or broke something between
+	# themselves" -- the definition of third-party noise this mod exists to
+	# remove, and none of it is ever actionable by the player. They share one
+	# group, so they mute together whether we like it or not; here we do.
+	#
+	# Vanilla's default for all six is feed. This is a mute, not a demotion,
+	# so a returning player who has touched this group keeps feed until they
+	# reset.
+	notification_type = none
 	color = neutral
 }
 
@@ -1294,7 +1334,17 @@ diplomatic_proposal_third_party_declined = {
 
 	texture = "gfx/interface/icons/notification_icons/influence_bad.dds"
 
-	notification_type = feed
+	# MUTED 2026-09-10 per the user, from feed. All six keys in
+	# diplomatic_proposal_third_party_notification_group are "two other
+	# countries proposed, accepted, declined or broke something between
+	# themselves" -- the definition of third-party noise this mod exists to
+	# remove, and none of it is ever actionable by the player. They share one
+	# group, so they mute together whether we like it or not; here we do.
+	#
+	# Vanilla's default for all six is feed. This is a mute, not a demotion,
+	# so a returning player who has touched this group keeps feed until they
+	# reset.
+	notification_type = none
 	color = neutral
 }
 
@@ -1304,7 +1354,17 @@ diplomatic_proposal_third_party_break_declined = {
 
 	texture = "gfx/interface/icons/notification_icons/influence_bad.dds"
 
-	notification_type = feed
+	# MUTED 2026-09-10 per the user, from feed. All six keys in
+	# diplomatic_proposal_third_party_notification_group are "two other
+	# countries proposed, accepted, declined or broke something between
+	# themselves" -- the definition of third-party noise this mod exists to
+	# remove, and none of it is ever actionable by the player. They share one
+	# group, so they mute together whether we like it or not; here we do.
+	#
+	# Vanilla's default for all six is feed. This is a mute, not a demotion,
+	# so a returning player who has touched this group keeps feed until they
+	# reset.
+	notification_type = none
 	color = neutral
 }
 
