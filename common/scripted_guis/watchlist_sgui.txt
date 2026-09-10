@@ -410,61 +410,7 @@ watchlist_is_watchable_check_sgui = {
 	ai_chance = { base = 0 }
 }
 
-watchlist_is_flagged_manual_check_sgui = {
-	scope = country
 
-	is_valid = {
-		has_variable = watched_manually
-	}
-
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-# --- Watched-tab provenance tags (added 2026-09-07) ---
-# The Watched row never showed WHY a country was watched, per the
-# original spec ("small tags showing which category(ies) currently
-# apply, e.g. 'Prussia — Great Power, Neighbor'") -- that part of the v1
-# spec was never actually built. Adding it now since it directly explains
-# a real point of user confusion: a category's Deselect All only clears
-# that category's own flag by design (TODO.md "Data model"), so a
-# country also watched via a different provenance correctly stays
-# checked -- without a visible reason, that looks like a bug rather than
-# the intended multi-flag behavior. Flag-only checks (not the live
-# adjacency/rivalry checks used for section filtering above), so the tag
-# reflects what's actually driving "watched", not current live status.
-watchlist_is_flagged_great_power_check_sgui = {
-	scope = country
-
-	is_valid = {
-		has_variable = watched_via_great_power
-	}
-
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-watchlist_is_flagged_neighbor_check_sgui = {
-	scope = country
-
-	is_valid = {
-		has_variable = watched_via_neighbor
-	}
-
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-watchlist_is_flagged_rival_check_sgui = {
-	scope = country
-
-	is_valid = {
-		has_variable = watched_via_rival
-	}
-
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
 # --- Category bulk select/deselect -- REWRITTEN 2026-09-07 (third and
 # final approach, after the root probes came back) ---
 #
