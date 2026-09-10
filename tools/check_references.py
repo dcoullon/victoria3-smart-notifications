@@ -690,6 +690,42 @@ def check_notification_loc_completeness(root: Path, defined_loc: set[str]) -> li
     return errs
 
 
+def check_loc_lines_are_well_formed(root: Path) -> list[str]:
+    """A localization value must live entirely on ONE line. A real newline
+    inside it truncates the value at the break and leaves the remainder as junk
+    the parser cannot place -- and, like most loc breakage in this game, it says
+    nothing at load time and only shows up as a raw key or missing text on
+    screen.
+
+    Added 2026-09-10 after writing 17 of them at once: a generator emitted real
+    newlines where it meant the two-character sequence backslash-n, and every
+    tooltip added that day was silently malformed. Cheap to check, invisible
+    otherwise."""
+    errs = []
+    key_open = re.compile(r'^([A-Za-z0-9_]+):\d*\s*"')
+    key_full = re.compile(r'^[A-Za-z0-9_]+:\d*\s*".*"\s*$')
+    loc_dir = root / "localization"
+    if not loc_dir.is_dir():
+        return errs
+    for path in sorted(loc_dir.rglob("*.yml")):
+        for n, line in enumerate(_read(path).split("\n"), 1):
+            st = line.strip()
+            if not st or st.startswith("#") or st.endswith(":"):
+                continue
+            if key_open.match(st):
+                if not key_full.match(st):
+                    errs.append(
+                        f"{path}:{n}: loc value is not closed on its own line -- "
+                        f"a real newline inside a value truncates it; use a literal \\n"
+                    )
+            elif not re.match(r'[A-Za-z0-9_]+:\d*\s', st):
+                errs.append(
+                    f"{path}:{n}: line is neither a key nor a comment -- "
+                    f"probably the tail of a value broken across lines"
+                )
+    return errs
+
+
 def run_all(root: Path) -> list[str]:
     defined_loc = load_defined_loc_keys(root)
     errs = []
@@ -707,6 +743,7 @@ def run_all(root: Path) -> list[str]:
     errs += check_watchlist_spec_group_isolation(root)
     errs += check_mod_group_labels_are_tagged(root)
     errs += check_notification_loc_completeness(root, defined_loc)
+    errs += check_loc_lines_are_well_formed(root)
     return errs
 
 

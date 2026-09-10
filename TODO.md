@@ -180,6 +180,32 @@ a fresh `script_docs` dump after any major update), or another event that
 reliably coincides with an attitude shift turns out to be hookable and
 carries the country in scope.
 
+## KNOWN GAP: a watched country that becomes a NEW country loses its watch
+
+Raised by the user 2026-09-10 ("what happens when a country in our watchlist
+changes names, e.g. after a revolution").
+
+**What happens today.** The Watchlist is stored as variables on the country
+object itself (`watched_manually`, `watched_via_great_power`,
+`watched_via_neighbor`, `watched_via_rival` — see
+`common/scripted_triggers/00_smart_notifications_triggers.txt`). So:
+
+- A country that merely **changes name** keeps the same object and stays
+  watched. Fine.
+- A revolution or formation that produces a **genuinely new country** (a new
+  tag) produces a new object with no variables, so **the watch is silently
+  lost**. Nothing warns the player; the country simply stops appearing in the
+  Watched list and its events go quiet.
+
+**Not yet fixed.** The shape of a fix: hook whatever on_action fires when a
+country is formed or a revolution succeeds, and carry the four flags across
+from the predecessor. Needs checking whether such a hook exposes both the old
+and new country in scope at once -- if it only gives one side, this is not
+buildable, the same way several other things in this mod turned out not to be.
+
+Worth doing before release: a Watchlist that quietly forgets countries is a
+trust problem, not just a missing feature.
+
 ## Phase 0 — Bootstrap Verification (target: v0.1.0)
 
 Confirm the simplest possible mod actually loads in-game before anything else.

@@ -1,15 +1,11 @@
 ﻿l_english:
  notification_smart_notifications_mod_loaded_tooltip:0 "#header $notification_smart_notifications_mod_loaded_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_mod_loaded_desc$"
  notification_smart_notifications_mod_loaded_name:0 "Smart Notifications active"
- notification_smart_notifications_mod_loaded_desc:0 "Great powers and neighbors are already on your Watchlist. Adjust it anytime in Message Settings (bell icon) > Watchlist."
+ notification_smart_notifications_mod_loaded_desc:0 "Great powers and neighbors are already on your Watchlist. Adjust it anytime in Message Settings (bell icon) > Watchlist.\n\n#v If you have played Victoria 3 before#!, open Message Settings and use #v Reset to Default Settings#! once. Any notification you have ever changed by hand keeps your old setting and will ignore this mod's defaults until you do. Resetting clears every custom notification setting, base game ones included."
  smart_notifications_mod_updated_group:0 "(SN) Mod Updated"
- notification_smart_notifications_mod_updated_tooltip:0 "#header $notification_smart_notifications_mod_updated_name$#!
-$TOOLTIP_DELIMITER$
-$notification_smart_notifications_mod_updated_desc$"
+ notification_smart_notifications_mod_updated_tooltip:0 "#header $notification_smart_notifications_mod_updated_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_mod_updated_desc$"
  notification_smart_notifications_mod_updated_name:0 "Smart Notifications Updated"
- notification_smart_notifications_mod_updated_desc:0 "This version changes which notifications are toasts and which go to the feed.
-
-Any notification type you have changed yourself keeps your setting and will NOT pick up the new defaults. To adopt them, open Message Settings and use #v Reset to Default Settings#!. That clears every custom notification setting, including ones you set for the base game."
+ notification_smart_notifications_mod_updated_desc:0 "This version changes which notifications interrupt you and which go quietly to the feed.\n\n#v To get those changes:#! open Message Settings (bell icon), scroll to the bottom and press #v Reset to Default Settings#!. That is all that is needed — no restart.\n\n#v Why:#! any notification you have changed by hand keeps your own setting forever and ignores this mod entirely, so without the reset the new defaults never reach you. Resetting clears every custom notification setting, base game ones included, so re-apply any you want to keep afterwards."
  smart_notifications_mod_loaded_group:0 "(SN) Mod Loaded"
 
  # New Message Settings categories created by splitting a vanilla group so
@@ -73,24 +69,16 @@ Any notification type you have changed yourself keeps your setting and will NOT 
  # context (docs/engine-notes.md on precedent).
  smart_notifications_wargoal_player_group:0 "(SN) War Goal, In a Play Involving You"
  smart_notifications_wargoal_other_group:0 "(SN) War Goal, Other Plays"
- notification_smart_notifications_wargoal_added_player_tooltip:0 "#header $notification_smart_notifications_wargoal_added_player_name$#!
-$TOOLTIP_DELIMITER$
-$notification_smart_notifications_wargoal_added_player_desc$"
+ notification_smart_notifications_wargoal_added_player_tooltip:0 "#header $notification_smart_notifications_wargoal_added_player_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_wargoal_added_player_desc$"
  notification_smart_notifications_wargoal_added_player_name:0 "[SCOPE.sWarGoal('war_goal').GetType.GetName] [concept_war_goal] Added!"
  notification_smart_notifications_wargoal_added_player_desc:0 "[SCOPE.sWarGoal('war_goal').GetName] has been added for [SCOPE.sCountry('actor').GetName], in a [concept_diplomatic_play] involving us."
- notification_smart_notifications_wargoal_added_other_tooltip:0 "#header $notification_smart_notifications_wargoal_added_other_name$#!
-$TOOLTIP_DELIMITER$
-$notification_smart_notifications_wargoal_added_other_desc$"
+ notification_smart_notifications_wargoal_added_other_tooltip:0 "#header $notification_smart_notifications_wargoal_added_other_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_wargoal_added_other_desc$"
  notification_smart_notifications_wargoal_added_other_name:0 "[SCOPE.sWarGoal('war_goal').GetType.GetName] [concept_war_goal] Added!"
  notification_smart_notifications_wargoal_added_other_desc:0 "[SCOPE.sWarGoal('war_goal').GetName] has been added for [SCOPE.sCountry('actor').GetName]."
- notification_smart_notifications_wargoal_removed_player_tooltip:0 "#header $notification_smart_notifications_wargoal_removed_player_name$#!
-$TOOLTIP_DELIMITER$
-$notification_smart_notifications_wargoal_removed_player_desc$"
+ notification_smart_notifications_wargoal_removed_player_tooltip:0 "#header $notification_smart_notifications_wargoal_removed_player_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_wargoal_removed_player_desc$"
  notification_smart_notifications_wargoal_removed_player_name:0 "[concept_war_goal] Removed!"
  notification_smart_notifications_wargoal_removed_player_desc:0 "A [concept_war_goal] for [SCOPE.sCountry('actor').GetName] has been removed, in a [concept_diplomatic_play] involving us."
- notification_smart_notifications_wargoal_removed_other_tooltip:0 "#header $notification_smart_notifications_wargoal_removed_other_name$#!
-$TOOLTIP_DELIMITER$
-$notification_smart_notifications_wargoal_removed_other_desc$"
+ notification_smart_notifications_wargoal_removed_other_tooltip:0 "#header $notification_smart_notifications_wargoal_removed_other_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_wargoal_removed_other_desc$"
  notification_smart_notifications_wargoal_removed_other_name:0 "[concept_war_goal] Removed!"
  notification_smart_notifications_wargoal_removed_other_desc:0 "A [concept_war_goal] for [SCOPE.sCountry('actor').GetName] has been removed."
 
@@ -121,33 +109,23 @@ $notification_smart_notifications_wargoal_removed_other_desc$"
  # Each key owns its own group so Message Settings can retune the cells
  # independently (spec D11).
  smart_notifications_diplomatic_action_at_player_by_watched_group:0 "(SN) Diplo Action: Watched -> You"
- notification_smart_notifications_diplomatic_action_at_player_by_watched_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_at_player_by_watched_name$#!
-$TOOLTIP_DELIMITER$
-$notification_smart_notifications_diplomatic_action_at_player_by_watched_desc$"
+ notification_smart_notifications_diplomatic_action_at_player_by_watched_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_at_player_by_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplomatic_action_at_player_by_watched_desc$"
  notification_smart_notifications_diplomatic_action_at_player_by_watched_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
  notification_smart_notifications_diplomatic_action_at_player_by_watched_desc:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationDesc]"
  smart_notifications_diplomatic_action_at_player_by_other_group:0 "(SN) Diplo Action: Non Watched -> You"
- notification_smart_notifications_diplomatic_action_at_player_by_other_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_at_player_by_other_name$#!
-$TOOLTIP_DELIMITER$
-$notification_smart_notifications_diplomatic_action_at_player_by_other_desc$"
+ notification_smart_notifications_diplomatic_action_at_player_by_other_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_at_player_by_other_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplomatic_action_at_player_by_other_desc$"
  notification_smart_notifications_diplomatic_action_at_player_by_other_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
  notification_smart_notifications_diplomatic_action_at_player_by_other_desc:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationDesc]"
  smart_notifications_diplomatic_action_at_watched_by_watched_group:0 "(SN) Diplo Action: Watched -> Watched"
- notification_smart_notifications_diplomatic_action_at_watched_by_watched_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_at_watched_by_watched_name$#!
-$TOOLTIP_DELIMITER$
-$notification_smart_notifications_diplomatic_action_at_watched_by_watched_desc$"
+ notification_smart_notifications_diplomatic_action_at_watched_by_watched_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_at_watched_by_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplomatic_action_at_watched_by_watched_desc$"
  notification_smart_notifications_diplomatic_action_at_watched_by_watched_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
  notification_smart_notifications_diplomatic_action_at_watched_by_watched_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] has taken a diplomatic action involving [SCOPE.sC('recipient').GetNameNoFormatting]. Open the Diplomacy screen for details."
  smart_notifications_diplomatic_action_at_watched_by_other_group:0 "(SN) Diplo Action: Non Watched -> Watched"
- notification_smart_notifications_diplomatic_action_at_watched_by_other_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_at_watched_by_other_name$#!
-$TOOLTIP_DELIMITER$
-$notification_smart_notifications_diplomatic_action_at_watched_by_other_desc$"
+ notification_smart_notifications_diplomatic_action_at_watched_by_other_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_at_watched_by_other_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplomatic_action_at_watched_by_other_desc$"
  notification_smart_notifications_diplomatic_action_at_watched_by_other_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
  notification_smart_notifications_diplomatic_action_at_watched_by_other_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] has taken a diplomatic action involving [SCOPE.sC('recipient').GetNameNoFormatting]. Open the Diplomacy screen for details."
  smart_notifications_diplomatic_action_elsewhere_group:0 "(SN) Diplo Action: Neither Watched"
- notification_smart_notifications_diplomatic_action_elsewhere_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_elsewhere_name$#!
-$TOOLTIP_DELIMITER$
-$notification_smart_notifications_diplomatic_action_elsewhere_desc$"
+ notification_smart_notifications_diplomatic_action_elsewhere_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_elsewhere_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplomatic_action_elsewhere_desc$"
  notification_smart_notifications_diplomatic_action_elsewhere_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
  notification_smart_notifications_diplomatic_action_elsewhere_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] has taken a diplomatic action involving [SCOPE.sC('recipient').GetNameNoFormatting]. Open the Diplomacy screen for details."
 
@@ -156,21 +134,15 @@ $notification_smart_notifications_diplomatic_action_elsewhere_desc$"
  # bracket expression here is one already proven in this file.
  smart_notifications_diplo_play_quiet_group:0 "(SN) Diplo Play, Non Watched"
  smart_notifications_diplo_play_start_player_group:0 "(SN) Diplo Play Started, Involving You"
- notification_smart_notifications_diplo_play_start_player_tooltip:0 "#header $notification_smart_notifications_diplo_play_start_player_name$#!
-$TOOLTIP_DELIMITER$
-$notification_smart_notifications_diplo_play_start_player_desc$"
+ notification_smart_notifications_diplo_play_start_player_tooltip:0 "#header $notification_smart_notifications_diplo_play_start_player_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_start_player_desc$"
  notification_smart_notifications_diplo_play_start_player_name:0 "[SCOPE.sC('actor').GetFlagTextIcon] [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b]"
  notification_smart_notifications_diplo_play_start_player_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] started a [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] involving us."
  smart_notifications_diplo_play_join_side_player_group:0 "(SN) Diplo Play Join Side, Involving You"
- notification_smart_notifications_diplo_play_join_side_player_tooltip:0 "#header $notification_smart_notifications_diplo_play_join_side_player_name$#!
-$TOOLTIP_DELIMITER$
-$notification_smart_notifications_diplo_play_join_side_player_desc$"
+ notification_smart_notifications_diplo_play_join_side_player_tooltip:0 "#header $notification_smart_notifications_diplo_play_join_side_player_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_join_side_player_desc$"
  notification_smart_notifications_diplo_play_join_side_player_name:0 "[SCOPE.sC('actor').GetNameNoFormatting] picks a side against us"
  notification_smart_notifications_diplo_play_join_side_player_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] sided with [SCOPE.sC('target').GetNameNoFormatting] in a [concept_diplomatic_play] involving us."
  smart_notifications_diplo_play_war_start_player_group:0 "(SN) Diplo Play War Start, Involving You"
- notification_smart_notifications_diplo_play_war_start_player_tooltip:0 "#header $notification_smart_notifications_diplo_play_war_start_player_name$#!
-$TOOLTIP_DELIMITER$
-$notification_smart_notifications_diplo_play_war_start_player_desc$"
+ notification_smart_notifications_diplo_play_war_start_player_tooltip:0 "#header $notification_smart_notifications_diplo_play_war_start_player_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_war_start_player_desc$"
  notification_smart_notifications_diplo_play_war_start_player_name:0 "War Erupts"
  notification_smart_notifications_diplo_play_war_start_player_desc:0 "The [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] between [SCOPE.sC('actor').GetNameNoFormatting] and [SCOPE.sC('target').GetNameNoFormatting] has escalated into open [concept_war]."
 
@@ -1002,18 +974,14 @@ $notification_smart_notifications_diplo_play_war_start_player_desc$"
  # since state identity is tracked via a variable list, not a static
  # dispatch -- see common/on_actions/10_smart_notifications_taxation_deficit_toast.txt.
  smart_notifications_taxation_deficit_toast_group:0 "(SN) Taxation Deficit"
- notification_smart_notifications_taxation_deficit_toast_tooltip:0 "#header $notification_smart_notifications_taxation_deficit_toast_name$#!
-$TOOLTIP_DELIMITER$
-$notification_smart_notifications_taxation_deficit_toast_desc$"
+ notification_smart_notifications_taxation_deficit_toast_tooltip:0 "#header $notification_smart_notifications_taxation_deficit_toast_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_taxation_deficit_toast_desc$"
  notification_smart_notifications_taxation_deficit_toast_name:0 "[SCOPE.GetRootScope.GetState.GetName] has a Taxation Deficit"
  notification_smart_notifications_taxation_deficit_toast_desc:0 "[SCOPE.GetRootScope.GetState.GetName] has insufficient Taxation Capacity for its population, reducing the efficiency of all forms of taxation there."
 
  # One-time toast prompting Watchlist setup when it's found empty -- see
  # common/on_actions/11_smart_notifications_watchlist_empty_prompt.txt.
  smart_notifications_watchlist_empty_prompt_group:0 "(SN) Watchlist Setup Reminder"
- notification_smart_notifications_watchlist_empty_prompt_tooltip:0 "#header $notification_smart_notifications_watchlist_empty_prompt_name$#!
-$TOOLTIP_DELIMITER$
-$notification_smart_notifications_watchlist_empty_prompt_desc$"
+ notification_smart_notifications_watchlist_empty_prompt_tooltip:0 "#header $notification_smart_notifications_watchlist_empty_prompt_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_watchlist_empty_prompt_desc$"
  notification_smart_notifications_watchlist_empty_prompt_name:0 "Your Watchlist is Empty"
  notification_smart_notifications_watchlist_empty_prompt_desc:0 "You have no countries flagged as watched, so diplomatic plays and wars involving other countries will stay quiet in the feed. Open Message Settings (bell icon) and go to the Watchlist tab to flag the ones you care about."
 
