@@ -266,6 +266,14 @@ rather than *what* they did.
   the play involves you, with no watched dimension at all, so its second
   row reads "Other Plays" rather than "Non Watched", which would name a
   rule that does not exist.
+
+  F1's five rows use arrow notation -- `Watched -> You`,
+  `Non Watched -> Watched`, `Neither Watched` -- rather than "X from Y".
+  The arrow points at whoever the action lands on, which is the thing the
+  tier actually depends on; "X from Y" left the direction ambiguous (the
+  user's question, 2026-09-09: "Watched from Non Watched, what does that
+  mean concretely?"). It is also shorter, so every row clears the
+  truncation point with room to spare.
 - **D11 — one message key and one group per rule cell**, unless two cells
   are deliberately merged (see below). Player Message
   Settings overrides apply per *group*, not per key (CLAUDE.md § Engine &
@@ -282,7 +290,16 @@ rather than *what* they did.
   when the sharers agree on `notification_type`. The one case today is F9's
   war goals: "added" and "removed" keep separate keys for their wording but
   share one group per tier, so the family shows two rows instead of four
-  (user's call — "not even sure how to remove a war goal"). Declared in
+  (user's call — "not even sure how to remove a war goal"). The second is
+  F2's three "Non Watched" cells (start / join side / war start), merged to
+  one row for the same reason: a play with nobody you follow in it is one
+  concept, not three. Subject Released stays out of that merge because it
+  is `none` rather than `feed`.
+
+  Where a merged group's row appears in the settings list is decided by
+  which of its keys is defined FIRST, since the list follows definition
+  order. Keep merged keys defined after the per-family rows they sit under,
+  or the shared row renders in the middle of an unrelated family. Declared in
   `WATCHLIST_SPEC_SHARED_GROUPS` in `tools/check_references.py`; anything
   sharing a group without being declared there is still an error, which is
   the accident the check exists to catch.

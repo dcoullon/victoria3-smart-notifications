@@ -2222,6 +2222,15 @@ smart_notifications_truce_expired = {
 # Phase 1's invasion/subject group splits.
 
 # F2 -- diplomatic plays. Three tiers per event now (spec F2), not two:
+#
+# MERGED 2026-09-09: the three "Non Watched" keys (start / join side / war
+# start) keep their own wording but share one group, so the player sees a
+# single "(SN) Diplo Play, Non Watched" row instead of three. The user's
+# call -- a play with nobody they follow in it is one concept, not three,
+# and every group costs a row in an already-long settings list. Subject
+# Released stays out of the merge: it is `none`, not `feed`, and keys
+# sharing a group must agree on notification_type.
+#
 # a play involving YOU is a popup, one involving a watched country is a
 # toast, anything else is feed. The player tier is new as of 2026-09-09;
 # previously the player fell into the `_watched` keys because
@@ -2253,15 +2262,6 @@ smart_notifications_diplo_play_start_watched = {
 	color = neutral
 }
 
-smart_notifications_diplo_play_start_quiet = {
-	type = diplomatic_play
-	group = "smart_notifications_diplo_play_start_quiet_group"
-
-	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
-
-	notification_type = feed
-	color = neutral
-}
 
 smart_notifications_diplo_play_join_side_player = {
 	type = diplomatic_play
@@ -2285,15 +2285,6 @@ smart_notifications_diplo_play_join_side_watched = {
 	color = neutral
 }
 
-smart_notifications_diplo_play_join_side_quiet = {
-	type = diplomatic_play
-	group = "smart_notifications_diplo_play_join_side_quiet_group"
-
-	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
-
-	notification_type = feed
-	color = neutral
-}
 
 smart_notifications_diplo_play_war_start_player = {
 	type = diplomatic_play
@@ -2326,9 +2317,34 @@ smart_notifications_diplo_play_war_start_watched = {
 	color = neutral
 }
 
+# The three "Non Watched" keys, kept together and defined AFTER every
+# per-family row above. Message Settings lists rows in definition order and
+# a shared group renders at its first key, so their single merged row
+# ("(SN) Diplo Play, Non Watched") lands below all three families it covers
+# instead of inside whichever one happened to be defined first.
+smart_notifications_diplo_play_start_quiet = {
+	type = diplomatic_play
+	group = "smart_notifications_diplo_play_quiet_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = feed
+	color = neutral
+}
+
+smart_notifications_diplo_play_join_side_quiet = {
+	type = diplomatic_play
+	group = "smart_notifications_diplo_play_quiet_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = feed
+	color = neutral
+}
+
 smart_notifications_diplo_play_war_start_quiet = {
 	type = diplomatic_play
-	group = "smart_notifications_diplo_play_war_start_quiet_group"
+	group = "smart_notifications_diplo_play_quiet_group"
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
@@ -2340,6 +2356,7 @@ smart_notifications_diplo_play_war_start_quiet = {
 	notification_type = feed
 	color = neutral
 }
+
 
 # Third-party notification filtering (see TODO.md's "Third-party
 # notification filtering" item). REMOVED 2026-09-07 (same day, real
@@ -2472,7 +2489,6 @@ smart_notifications_diplomatic_action_elsewhere = {
 	notification_type = feed
 	color = neutral
 }
-
 
 
 # Smart Notifications mod: one-time toast when a law becomes ready, fired

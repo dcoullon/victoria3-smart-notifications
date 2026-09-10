@@ -491,6 +491,15 @@ WATCHLIST_SPEC_CELLS = {
 # Anything NOT listed here that shares a group is still an error -- that is the
 # accident this check exists to catch.
 WATCHLIST_SPEC_SHARED_GROUPS = {
+    # The three diplo-play "Non Watched" cells: one concept (a play with
+    # nobody the player follows in it), three keys only because each family
+    # words it differently. Subject Released is NOT in here -- it is `none`
+    # rather than `feed`, and sharers must agree on notification_type.
+    "smart_notifications_diplo_play_quiet_group": {
+        "smart_notifications_diplo_play_start_quiet",
+        "smart_notifications_diplo_play_join_side_quiet",
+        "smart_notifications_diplo_play_war_start_quiet",
+    },
     "smart_notifications_wargoal_player_group": {
         "smart_notifications_wargoal_added_player",
         "smart_notifications_wargoal_removed_player",
