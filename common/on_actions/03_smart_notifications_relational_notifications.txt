@@ -238,6 +238,26 @@ smart_notifications_diplo_play_start_third_party = {
 				debug_log = "SNW_FILTER|start|channel=third_party|posted_key=NONE_PLAYER_IS_ACTOR|actor=[SCOPE.sC('actor').GetNameNoFormatting]|SELF_INITIATED"
 			}
 			else_if = {
+				# The player is the TARGET, so the at_player channel above has
+				# already told them and this one must not tell them again.
+				#
+				# This is the duplicate the old shared dedup guard was really
+				# preventing -- a play declared on the player reaches them on
+				# BOTH channels, which is what the 2026-09-07 note observed as
+				# "two near-identical entries for one event". Splitting the
+				# handlers without this branch would have brought it straight
+				# back.
+				#
+				# Keyed on scope:target specifically, not on the player merely
+				# being involved: a player who is a participant but not the
+				# target is not reached by the at_player channel at all, so
+				# this channel is the only one that can tell them and must.
+				# scope:target IS reliably bound here, unlike on the sibling
+				# channel -- see this file's 2026-09-07 header note.
+				limit = { scope:target ?= { is_player = yes } }
+				debug_log = "SNW_FILTER|start|channel=third_party|posted_key=NONE_ALREADY_TOLD|actor=[SCOPE.sC('actor').GetNameNoFormatting]|PLAYER_IS_TARGET"
+			}
+			else_if = {
 				limit = {
 					any_scope_play_involved = {
 						is_diplomatic_play_participant_with = scope:actor
