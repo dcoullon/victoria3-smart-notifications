@@ -57,6 +57,52 @@ Consequences:
   `check_mixed_group_notification_types` now catches this statically —
   confirmed by re-injecting the exact original bug and seeing it fail.
 
+### Refined 2026-09-09 evening: defaults DO propagate to untouched groups
+
+The bullet above ("any returning player who's ever touched Message Settings
+won't see our new defaults") is right about explicitly-overridden groups but
+was over-applied to the file as a whole. Two things confirmed by reading the
+file directly, and by diffing it against a same-day backup the game had left
+alongside it (`messagetypes_custom.backup-<date>.txt`):
+
+1. **The file records EVERY group's effective value, not just deviations.**
+   134 entries, vanilla and mod alike, each `<group>={ notification=X }`
+   plus an optional `pause_game=yes`. There is no "this one is overridden"
+   marker in the file.
+2. **Values track script-default changes.** Diffing the 15:24 backup against
+   the 21:43 file showed 20 changed values, and **every one of them matched a
+   script change made that day** -- obligations `feed`->`toast` (F5), the
+   diplo-play mutes, `war_start_watched` `popup`->`toast`, `war_start_quiet`
+   `toast`->`feed`, `subject_released_watched` `feed`->`toast`,
+   `wargoal` `feed`->`none`. Twelve new mod groups appeared and three retired
+   ones disappeared, in step with the keys being added and removed. A sticky
+   override list would have kept the old values.
+
+So a player who has never explicitly changed a given row picks up our new
+default for it on the next launch. Only a row they actually changed stays
+pinned until they reset -- that half of the original note stands, and is
+still worth a line in release notes.
+
+**Scope of the file: global, not per playset and not per save.** One file per
+Victoria 3 user profile, holding vanilla and mod groups together. Switching
+playsets does not give you a separate set of message settings, and a group
+belonging to a disabled mod simply sits unused.
+
+**Diagnostic worth reusing:** to check whether any row is actually overridden,
+compare this file's values against the mod's own script defaults
+(group -> notification_type from `common/messages/*.txt`). A mismatch is a
+real override; zero mismatches means everything is following script, whatever
+the settings UI appears to show. Done 2026-09-09 across 128 shared groups:
+zero mismatches.
+
+**Unexplained, recorded rather than guessed at:** in a screenshot taken
+mid-session that day, two rows rendered with a blank second dropdown where
+every other row read "Default", and one of them showed a value (`None`) that
+matched neither the old nor the new script default. The file written minutes
+later had both rows in agreement with script. No explanation confirmed; if it
+recurs, screenshot it *and* copy the file at the same moment, since the two
+disagreeing is the only interesting part.
+
 ## BOM required on every modded file, not just `.yml`
 
 The game's lexer logs `should be in utf8-bom encoding` for any modded
