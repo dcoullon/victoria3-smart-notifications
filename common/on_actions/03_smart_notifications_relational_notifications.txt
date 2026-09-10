@@ -259,6 +259,29 @@ smart_notifications_diplo_play_start_third_party = {
 			}
 			else_if = {
 				limit = {
+					# A decentralized ACTOR does not earn a toast when the
+					# player is not involved. Added 2026-09-10 per the user:
+					# native uprisings fire constantly against colonial powers,
+					# and two in a row against Great Britain (Tswana, then
+					# Ndebele) read as one duplicated notification rather than
+					# two real events -- which is how the user reported it.
+					#
+					# Deliberately the actor only, NOT the target. A watched
+					# country attacking a decentralized one is still worth
+					# knowing about, and the user confirmed that case is
+					# wanted: the German Empire opening on Kazembe toasted and
+					# they called it correct.
+					#
+					# Note smart_notifications_is_watched already excludes
+					# decentralized countries from ever being watched -- that
+					# is not enough here, because the watched country is the
+					# one being ATTACKED, so the check passes on them while the
+					# actor is the decentralized one.
+					#
+					# The player is unaffected: an uprising against YOU is
+					# handled by the at_player channel, which never reaches
+					# this branch.
+					scope:actor ?= { NOT = { is_country_type = decentralized } }
 					any_scope_play_involved = {
 						is_diplomatic_play_participant_with = scope:actor
 						smart_notifications_is_watched = yes
@@ -334,6 +357,29 @@ smart_notifications_diplo_play_join_side = {
 			}
 			else_if = {
 				limit = {
+					# A decentralized ACTOR does not earn a toast when the
+					# player is not involved. Added 2026-09-10 per the user:
+					# native uprisings fire constantly against colonial powers,
+					# and two in a row against Great Britain (Tswana, then
+					# Ndebele) read as one duplicated notification rather than
+					# two real events -- which is how the user reported it.
+					#
+					# Deliberately the actor only, NOT the target. A watched
+					# country attacking a decentralized one is still worth
+					# knowing about, and the user confirmed that case is
+					# wanted: the German Empire opening on Kazembe toasted and
+					# they called it correct.
+					#
+					# Note smart_notifications_is_watched already excludes
+					# decentralized countries from ever being watched -- that
+					# is not enough here, because the watched country is the
+					# one being ATTACKED, so the check passes on them while the
+					# actor is the decentralized one.
+					#
+					# The player is unaffected: an uprising against YOU is
+					# handled by the at_player channel, which never reaches
+					# this branch.
+					scope:actor ?= { NOT = { is_country_type = decentralized } }
 					any_scope_play_involved = {
 						is_diplomatic_play_participant_with = scope:actor
 						smart_notifications_is_watched = yes
@@ -428,6 +474,29 @@ smart_notifications_diplo_play_war_start = {
 			}
 			else_if = {
 				limit = {
+					# A decentralized ACTOR does not earn a toast when the
+					# player is not involved. Added 2026-09-10 per the user:
+					# native uprisings fire constantly against colonial powers,
+					# and two in a row against Great Britain (Tswana, then
+					# Ndebele) read as one duplicated notification rather than
+					# two real events -- which is how the user reported it.
+					#
+					# Deliberately the actor only, NOT the target. A watched
+					# country attacking a decentralized one is still worth
+					# knowing about, and the user confirmed that case is
+					# wanted: the German Empire opening on Kazembe toasted and
+					# they called it correct.
+					#
+					# Note smart_notifications_is_watched already excludes
+					# decentralized countries from ever being watched -- that
+					# is not enough here, because the watched country is the
+					# one being ATTACKED, so the check passes on them while the
+					# actor is the decentralized one.
+					#
+					# The player is unaffected: an uprising against YOU is
+					# handled by the at_player channel, which never reaches
+					# this branch.
+					scope:actor ?= { NOT = { is_country_type = decentralized } }
 					any_scope_play_involved = {
 						is_diplomatic_play_participant_with = scope:actor
 						smart_notifications_is_watched = yes
@@ -458,6 +527,29 @@ smart_notifications_diplo_play_subject_released = {
 			set_variable = { name = smart_notifications_subject_released_notified_recently value = yes days = 1 }
 			if = {
 				limit = {
+					# A decentralized ACTOR does not earn a toast when the
+					# player is not involved. Added 2026-09-10 per the user:
+					# native uprisings fire constantly against colonial powers,
+					# and two in a row against Great Britain (Tswana, then
+					# Ndebele) read as one duplicated notification rather than
+					# two real events -- which is how the user reported it.
+					#
+					# Deliberately the actor only, NOT the target. A watched
+					# country attacking a decentralized one is still worth
+					# knowing about, and the user confirmed that case is
+					# wanted: the German Empire opening on Kazembe toasted and
+					# they called it correct.
+					#
+					# Note smart_notifications_is_watched already excludes
+					# decentralized countries from ever being watched -- that
+					# is not enough here, because the watched country is the
+					# one being ATTACKED, so the check passes on them while the
+					# actor is the decentralized one.
+					#
+					# The player is unaffected: an uprising against YOU is
+					# handled by the at_player channel, which never reaches
+					# this branch.
+					scope:actor ?= { NOT = { is_country_type = decentralized } }
 					any_scope_play_involved = {
 						is_diplomatic_play_participant_with = scope:actor
 						smart_notifications_is_watched = yes
