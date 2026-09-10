@@ -255,7 +255,19 @@ rather than *what* they did.
   few places needing three tiers check `is_player` explicitly first, which
   is how the diplomatic-action file already works. No migration, no trigger
   surgery.
-- **D11 — one message key and one group per rule cell.** Player Message
+- **D12 — label vocabulary.** One word per concept across every family:
+  **Involving You** / **Watched** / **Non Watched**. "Ambient" and
+  "Elsewhere" are retired (user's call, 2026-09-09). Labels are kept short
+  because Message Settings truncates at roughly 44 characters, and two
+  cells whose labels differ only after the cut are indistinguishable in the
+  list — which is what the first build shipped for the two "At a Watched
+  Country, From ..." rows. The distinguishing half must land before the
+  truncation point. F9 is the deliberate exception: it splits on whether
+  the play involves you, with no watched dimension at all, so its second
+  row reads "Other Plays" rather than "Non Watched", which would name a
+  rule that does not exist.
+- **D11 — one message key and one group per rule cell**, unless two cells
+  are deliberately merged (see below). Player Message
   Settings overrides apply per *group*, not per key (CLAUDE.md § Engine &
   Syntax Rules), so a cell only stays player-adjustable if it owns its
   group outright. This also satisfies the engine's "no mixed notification
@@ -263,6 +275,17 @@ rather than *what* they did.
   player's Message Settings list, each carrying the `(SN) ` prefix. The
   benefit is that any future retune — especially muting feed noise —
   becomes a setting the player changes, not a release we ship.
+
+  **Deliberate exceptions are allowed and must be declared.** Two cells the
+  player would never want to adjust separately are better merged, because
+  every group costs a row in an already-long list. Sharing is legal only
+  when the sharers agree on `notification_type`. The one case today is F9's
+  war goals: "added" and "removed" keep separate keys for their wording but
+  share one group per tier, so the family shows two rows instead of four
+  (user's call — "not even sure how to remove a war goal"). Declared in
+  `WATCHLIST_SPEC_SHARED_GROUPS` in `tools/check_references.py`; anything
+  sharing a group without being declared there is still an error, which is
+  the accident the check exists to catch.
 - **Muting `diplo_play_start_notification` is safe** despite its text
   meaning "X started a play against us". Checked 2026-09-09: in
   single-player both it and `on_diplo_play_start_third_party` fire for the

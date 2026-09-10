@@ -3917,14 +3917,20 @@ smart_notifications_watchlist_empty_prompt = {
 # vanilla's own text is not player-scoped ("X has been added for Y"), so a
 # single global tier cannot express the rule.
 #
-# Four keys, not two: added and removed need different wording, and each
-# tier owns its group per spec D11. Posted from on_wargoal_added /
-# on_wargoal_removed, whose root is the diplomatic play itself -- see
-# 12_smart_notifications_wargoal_filtering.txt.
+# Four keys on TWO groups. The keys stay separate because "added" and
+# "removed" need different wording, but they share a group per tier so the
+# player sees two rows rather than four -- the user's call 2026-09-09
+# ("not even sure how to remove a war goal"), and the same
+# many-keys-one-group shape the 138 law-ready toasts already use. Legal
+# because keys sharing a group agree on notification_type, which is what
+# the engine's mixed-types rule actually requires.
+#
+# Posted from on_wargoal_added / on_wargoal_removed, whose root is the
+# diplomatic play itself -- see 12_smart_notifications_wargoal_filtering.txt.
 
 smart_notifications_wargoal_added_player = {
 	type = diplomatic_play
-	group = "smart_notifications_wargoal_added_player_group"
+	group = "smart_notifications_wargoal_player_group"
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
@@ -3934,7 +3940,7 @@ smart_notifications_wargoal_added_player = {
 
 smart_notifications_wargoal_added_other = {
 	type = diplomatic_play
-	group = "smart_notifications_wargoal_added_other_group"
+	group = "smart_notifications_wargoal_other_group"
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
@@ -3944,7 +3950,7 @@ smart_notifications_wargoal_added_other = {
 
 smart_notifications_wargoal_removed_player = {
 	type = diplomatic_play
-	group = "smart_notifications_wargoal_removed_player_group"
+	group = "smart_notifications_wargoal_player_group"
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
@@ -3954,7 +3960,7 @@ smart_notifications_wargoal_removed_player = {
 
 smart_notifications_wargoal_removed_other = {
 	type = diplomatic_play
-	group = "smart_notifications_wargoal_removed_other_group"
+	group = "smart_notifications_wargoal_other_group"
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 

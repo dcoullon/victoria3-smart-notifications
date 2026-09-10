@@ -63,25 +63,23 @@
  # vanilla uses here, NOT the sC('actor') form this mod proved for the
  # diplo-play keys. New family, so the precedent has to come from the same
  # context (docs/engine-notes.md on precedent).
- smart_notifications_wargoal_added_player_group:0 "(SN) War Goal Added, In a Play Involving You"
+ smart_notifications_wargoal_player_group:0 "(SN) War Goal, In a Play Involving You"
+ smart_notifications_wargoal_other_group:0 "(SN) War Goal, Other Plays"
  notification_smart_notifications_wargoal_added_player_tooltip:0 "#header $notification_smart_notifications_wargoal_added_player_name$#!
 $TOOLTIP_DELIMITER$
 $notification_smart_notifications_wargoal_added_player_desc$"
  notification_smart_notifications_wargoal_added_player_name:0 "[SCOPE.sWarGoal('war_goal').GetType.GetName] [concept_war_goal] Added!"
  notification_smart_notifications_wargoal_added_player_desc:0 "[SCOPE.sWarGoal('war_goal').GetName] has been added for [SCOPE.sCountry('actor').GetName], in a [concept_diplomatic_play] involving us."
- smart_notifications_wargoal_added_other_group:0 "(SN) War Goal Added, Elsewhere"
  notification_smart_notifications_wargoal_added_other_tooltip:0 "#header $notification_smart_notifications_wargoal_added_other_name$#!
 $TOOLTIP_DELIMITER$
 $notification_smart_notifications_wargoal_added_other_desc$"
  notification_smart_notifications_wargoal_added_other_name:0 "[SCOPE.sWarGoal('war_goal').GetType.GetName] [concept_war_goal] Added!"
  notification_smart_notifications_wargoal_added_other_desc:0 "[SCOPE.sWarGoal('war_goal').GetName] has been added for [SCOPE.sCountry('actor').GetName]."
- smart_notifications_wargoal_removed_player_group:0 "(SN) War Goal Removed, In a Play Involving You"
  notification_smart_notifications_wargoal_removed_player_tooltip:0 "#header $notification_smart_notifications_wargoal_removed_player_name$#!
 $TOOLTIP_DELIMITER$
 $notification_smart_notifications_wargoal_removed_player_desc$"
  notification_smart_notifications_wargoal_removed_player_name:0 "[concept_war_goal] Removed!"
  notification_smart_notifications_wargoal_removed_player_desc:0 "A [concept_war_goal] for [SCOPE.sCountry('actor').GetName] has been removed, in a [concept_diplomatic_play] involving us."
- smart_notifications_wargoal_removed_other_group:0 "(SN) War Goal Removed, Elsewhere"
  notification_smart_notifications_wargoal_removed_other_tooltip:0 "#header $notification_smart_notifications_wargoal_removed_other_name$#!
 $TOOLTIP_DELIMITER$
 $notification_smart_notifications_wargoal_removed_other_desc$"
@@ -96,31 +94,31 @@ $notification_smart_notifications_wargoal_removed_other_desc$"
  # per-action TITLE, which is safe in every case.
  # Each key owns its own group so Message Settings can retune the cells
  # independently (spec D11).
- smart_notifications_diplomatic_action_at_player_by_watched_group:0 "(SN) Diplomatic Action, At You, From a Watched Country"
+ smart_notifications_diplomatic_action_at_player_by_watched_group:0 "(SN) Diplo Action: You from Watched"
  notification_smart_notifications_diplomatic_action_at_player_by_watched_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_at_player_by_watched_name$#!
 $TOOLTIP_DELIMITER$
 $notification_smart_notifications_diplomatic_action_at_player_by_watched_desc$"
  notification_smart_notifications_diplomatic_action_at_player_by_watched_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
  notification_smart_notifications_diplomatic_action_at_player_by_watched_desc:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationDesc]"
- smart_notifications_diplomatic_action_at_player_by_other_group:0 "(SN) Diplomatic Action, At You, From Others"
+ smart_notifications_diplomatic_action_at_player_by_other_group:0 "(SN) Diplo Action: You from Non Watched"
  notification_smart_notifications_diplomatic_action_at_player_by_other_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_at_player_by_other_name$#!
 $TOOLTIP_DELIMITER$
 $notification_smart_notifications_diplomatic_action_at_player_by_other_desc$"
  notification_smart_notifications_diplomatic_action_at_player_by_other_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
  notification_smart_notifications_diplomatic_action_at_player_by_other_desc:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationDesc]"
- smart_notifications_diplomatic_action_at_watched_by_watched_group:0 "(SN) Diplomatic Action, At a Watched Country, From a Watched Country"
+ smart_notifications_diplomatic_action_at_watched_by_watched_group:0 "(SN) Diplo Action: Watched from Watched"
  notification_smart_notifications_diplomatic_action_at_watched_by_watched_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_at_watched_by_watched_name$#!
 $TOOLTIP_DELIMITER$
 $notification_smart_notifications_diplomatic_action_at_watched_by_watched_desc$"
  notification_smart_notifications_diplomatic_action_at_watched_by_watched_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
  notification_smart_notifications_diplomatic_action_at_watched_by_watched_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] has taken a diplomatic action involving [SCOPE.sC('recipient').GetNameNoFormatting]. Open the Diplomacy screen for details."
- smart_notifications_diplomatic_action_at_watched_by_other_group:0 "(SN) Diplomatic Action, At a Watched Country, From Others"
+ smart_notifications_diplomatic_action_at_watched_by_other_group:0 "(SN) Diplo Action: Watched from Non Watched"
  notification_smart_notifications_diplomatic_action_at_watched_by_other_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_at_watched_by_other_name$#!
 $TOOLTIP_DELIMITER$
 $notification_smart_notifications_diplomatic_action_at_watched_by_other_desc$"
  notification_smart_notifications_diplomatic_action_at_watched_by_other_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
  notification_smart_notifications_diplomatic_action_at_watched_by_other_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] has taken a diplomatic action involving [SCOPE.sC('recipient').GetNameNoFormatting]. Open the Diplomacy screen for details."
- smart_notifications_diplomatic_action_elsewhere_group:0 "(SN) Diplomatic Action, Elsewhere"
+ smart_notifications_diplomatic_action_elsewhere_group:0 "(SN) Diplo Action: Non Watched"
  notification_smart_notifications_diplomatic_action_elsewhere_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_elsewhere_name$#!
 $TOOLTIP_DELIMITER$
 $notification_smart_notifications_diplomatic_action_elsewhere_desc$"
@@ -130,51 +128,51 @@ $notification_smart_notifications_diplomatic_action_elsewhere_desc$"
  # F2 -- the player tier for diplomatic plays. Wording mirrors the
  # _watched siblings above, reworded from your own point of view; every
  # bracket expression here is one already proven in this file.
- smart_notifications_diplo_play_start_player_group:0 "(SN) Diplomatic Play Started, Involving You"
+ smart_notifications_diplo_play_start_player_group:0 "(SN) Diplo Play Started, Involving You"
  notification_smart_notifications_diplo_play_start_player_tooltip:0 "#header $notification_smart_notifications_diplo_play_start_player_name$#!
 $TOOLTIP_DELIMITER$
 $notification_smart_notifications_diplo_play_start_player_desc$"
  notification_smart_notifications_diplo_play_start_player_name:0 "[SCOPE.sC('actor').GetFlagTextIcon] [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b]"
  notification_smart_notifications_diplo_play_start_player_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] started a [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] involving us."
- smart_notifications_diplo_play_join_side_player_group:0 "(SN) Diplomatic Play Join Side, Involving You"
+ smart_notifications_diplo_play_join_side_player_group:0 "(SN) Diplo Play Join Side, Involving You"
  notification_smart_notifications_diplo_play_join_side_player_tooltip:0 "#header $notification_smart_notifications_diplo_play_join_side_player_name$#!
 $TOOLTIP_DELIMITER$
 $notification_smart_notifications_diplo_play_join_side_player_desc$"
  notification_smart_notifications_diplo_play_join_side_player_name:0 "[SCOPE.sC('actor').GetNameNoFormatting] picks a side against us"
  notification_smart_notifications_diplo_play_join_side_player_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] sided with [SCOPE.sC('target').GetNameNoFormatting] in a [concept_diplomatic_play] involving us."
- smart_notifications_diplo_play_war_start_player_group:0 "(SN) Diplomatic Play War Start, Involving You"
+ smart_notifications_diplo_play_war_start_player_group:0 "(SN) Diplo Play War Start, Involving You"
  notification_smart_notifications_diplo_play_war_start_player_tooltip:0 "#header $notification_smart_notifications_diplo_play_war_start_player_name$#!
 $TOOLTIP_DELIMITER$
 $notification_smart_notifications_diplo_play_war_start_player_desc$"
  notification_smart_notifications_diplo_play_war_start_player_name:0 "War Erupts"
  notification_smart_notifications_diplo_play_war_start_player_desc:0 "The [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] between [SCOPE.sC('actor').GetNameNoFormatting] and [SCOPE.sC('target').GetNameNoFormatting] has escalated into open [concept_war]."
 
- smart_notifications_diplo_play_start_watched_group:0 "(SN) Diplomatic Play Started, Watched Country Involved"
+ smart_notifications_diplo_play_start_watched_group:0 "(SN) Diplo Play Started, Watched Country"
  notification_smart_notifications_diplo_play_start_watched_tooltip:0 "#header $notification_smart_notifications_diplo_play_start_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_start_watched_desc$"
  notification_smart_notifications_diplo_play_start_watched_name:0 "[SCOPE.sC('actor').GetFlagTextIcon] [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b]"
  notification_smart_notifications_diplo_play_start_watched_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] started a [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] against [SCOPE.sC('target').GetNameNoFormatting]."
 
- smart_notifications_diplo_play_start_quiet_group:0 "(SN) Diplomatic Play Started, Ambient"
+ smart_notifications_diplo_play_start_quiet_group:0 "(SN) Diplo Play Started, Non Watched"
  notification_smart_notifications_diplo_play_start_quiet_tooltip:0 "#header $notification_smart_notifications_diplo_play_start_quiet_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_start_quiet_desc$"
  notification_smart_notifications_diplo_play_start_quiet_name:0 "[SCOPE.sC('actor').GetFlagTextIcon] [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b]"
  notification_smart_notifications_diplo_play_start_quiet_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] started a [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] against [SCOPE.sC('target').GetNameNoFormatting]."
 
- smart_notifications_diplo_play_join_side_watched_group:0 "(SN) Diplomatic Play Join Side, Watched Country Involved"
+ smart_notifications_diplo_play_join_side_watched_group:0 "(SN) Diplo Play Join Side, Watched Country"
  notification_smart_notifications_diplo_play_join_side_watched_tooltip:0 "#header $notification_smart_notifications_diplo_play_join_side_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_join_side_watched_desc$"
  notification_smart_notifications_diplo_play_join_side_watched_name:0 "[SCOPE.sC('actor').GetNameNoFormatting] sides with [SCOPE.sC('target').GetNameNoFormatting]"
  notification_smart_notifications_diplo_play_join_side_watched_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] sided with [SCOPE.sC('target').GetNameNoFormatting] in the [concept_diplomatic_play] against [SCOPE.sC('recipient').GetNameNoFormatting]."
 
- smart_notifications_diplo_play_join_side_quiet_group:0 "(SN) Diplomatic Play Join Side, Ambient"
+ smart_notifications_diplo_play_join_side_quiet_group:0 "(SN) Diplo Play Join Side, Non Watched"
  notification_smart_notifications_diplo_play_join_side_quiet_tooltip:0 "#header $notification_smart_notifications_diplo_play_join_side_quiet_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_join_side_quiet_desc$"
  notification_smart_notifications_diplo_play_join_side_quiet_name:0 "[SCOPE.sC('actor').GetNameNoFormatting] sides with [SCOPE.sC('target').GetNameNoFormatting]"
  notification_smart_notifications_diplo_play_join_side_quiet_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] sided with [SCOPE.sC('target').GetNameNoFormatting] in the [concept_diplomatic_play] against [SCOPE.sC('recipient').GetNameNoFormatting]."
 
- smart_notifications_diplo_play_war_start_watched_group:0 "(SN) Diplomatic Play War Start, Watched Country Involved"
+ smart_notifications_diplo_play_war_start_watched_group:0 "(SN) Diplo Play War Start, Watched Country"
  notification_smart_notifications_diplo_play_war_start_watched_tooltip:0 "#header $notification_smart_notifications_diplo_play_war_start_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_war_start_watched_desc$"
  notification_smart_notifications_diplo_play_war_start_watched_name:0 "War Erupts"
  notification_smart_notifications_diplo_play_war_start_watched_desc:0 "The [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] between [SCOPE.sC('actor').GetNameNoFormatting] and [SCOPE.sC('target').GetNameNoFormatting] has escalated into open [concept_war]."
 
- smart_notifications_diplo_play_war_start_quiet_group:0 "(SN) Diplomatic Play War Start, Ambient"
+ smart_notifications_diplo_play_war_start_quiet_group:0 "(SN) Diplo Play War Start, Non Watched"
  notification_smart_notifications_diplo_play_war_start_quiet_tooltip:0 "#header $notification_smart_notifications_diplo_play_war_start_quiet_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_war_start_quiet_desc$"
  notification_smart_notifications_diplo_play_war_start_quiet_name:0 "War Erupts"
  notification_smart_notifications_diplo_play_war_start_quiet_desc:0 "The [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] between [SCOPE.sC('actor').GetNameNoFormatting] and [SCOPE.sC('target').GetNameNoFormatting] has escalated into open [concept_war]."
@@ -190,12 +188,12 @@ $notification_smart_notifications_diplo_play_war_start_player_desc$"
  # diplo_play_subject_released (below) genuinely has no primary-key
  # sibling, so it keeps its own watched/quiet pair and loc.
 
- smart_notifications_diplo_play_subject_released_watched_group:0 "(SN) Diplomatic Play Subject Released, Watched Country Involved"
+ smart_notifications_diplo_play_subject_released_watched_group:0 "(SN) Subject Released, Watched"
  notification_smart_notifications_diplo_play_subject_released_watched_tooltip:0 "#header $notification_smart_notifications_diplo_play_subject_released_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_subject_released_watched_desc$"
  notification_smart_notifications_diplo_play_subject_released_watched_name:0 "[SCOPE.sC('target').GetNameNoFormatting] breaks free"
  notification_smart_notifications_diplo_play_subject_released_watched_desc:0 "Due to the failure of [SCOPE.sC('actor').GetNameNoFormatting] to protect their subject [SCOPE.sC('target').GetNameNoFormatting] their pact is now null and void."
 
- smart_notifications_diplo_play_subject_released_quiet_group:0 "(SN) Diplomatic Play Subject Released, Ambient"
+ smart_notifications_diplo_play_subject_released_quiet_group:0 "(SN) Subject Released, Non Watched"
  notification_smart_notifications_diplo_play_subject_released_quiet_tooltip:0 "#header $notification_smart_notifications_diplo_play_subject_released_quiet_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_subject_released_quiet_desc$"
  notification_smart_notifications_diplo_play_subject_released_quiet_name:0 "[SCOPE.sC('target').GetNameNoFormatting] breaks free"
  notification_smart_notifications_diplo_play_subject_released_quiet_desc:0 "Due to the failure of [SCOPE.sC('actor').GetNameNoFormatting] to protect their subject [SCOPE.sC('target').GetNameNoFormatting] their pact is now null and void."

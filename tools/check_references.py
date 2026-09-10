@@ -476,6 +476,31 @@ WATCHLIST_SPEC_CELLS = {
     "smart_notifications_wargoal_removed_other": "feed",
 }
 
+# Cells that deliberately SHARE a group, and the group they share. D11 wants
+# one group per independently-adjustable cell -- but two cells that the user
+# never wants to adjust separately are better merged, because every group costs
+# a row in the player's Message Settings list.
+#
+# War goals are the case: "added" and "removed" need different wording, so they
+# stay separate message keys, but the user asked for one control per tier
+# rather than two ("not even sure how to remove a war goal", 2026-09-09). Same
+# shape the 138 law-ready toasts already use. Sharing is only legal when the
+# sharers agree on notification_type, which check_mixed_group_notification_types
+# enforces independently.
+#
+# Anything NOT listed here that shares a group is still an error -- that is the
+# accident this check exists to catch.
+WATCHLIST_SPEC_SHARED_GROUPS = {
+    "smart_notifications_wargoal_player_group": {
+        "smart_notifications_wargoal_added_player",
+        "smart_notifications_wargoal_removed_player",
+    },
+    "smart_notifications_wargoal_other_group": {
+        "smart_notifications_wargoal_added_other",
+        "smart_notifications_wargoal_removed_other",
+    },
+}
+
 # Vanilla keys whose tier the spec pins directly (F5, F6, and the two the F9
 # split replaces). Same reasoning: deliberate decisions, not defaults, so an
 # accidental revert should fail loudly.
@@ -560,10 +585,24 @@ def check_watchlist_spec_group_isolation(root: Path) -> list[str]:
                 f"watchlist spec: '{key}' has no group -- D11 requires one group per cell"
             )
             continue
-        sharers = [k for k in group_owners.get(gm.group(1), []) if k != key]
+        group = gm.group(1)
+        sharers = [k for k in group_owners.get(group, []) if k != key]
+        declared = WATCHLIST_SPEC_SHARED_GROUPS.get(group)
+        if declared is not None:
+            # Deliberate sharing: every occupant must be one of the declared
+            # ones, so adding a third key by accident still fails.
+            unexpected = sorted(set(sharers + [key]) - declared)
+            if unexpected:
+                errs.append(
+                    f"watchlist spec (D11): group '{group}' is declared shared by "
+                    f"{', '.join(sorted(declared))}, but also holds "
+                    f"{', '.join(unexpected)} -- update WATCHLIST_SPEC_SHARED_GROUPS "
+                    f"if that is intended"
+                )
+            continue
         if sharers:
             errs.append(
-                f"watchlist spec (D11): '{key}' shares group '{gm.group(1)}' with "
+                f"watchlist spec (D11): '{key}' shares group '{group}' with "
                 f"{', '.join(sorted(sharers))} -- each cell needs its own group to stay "
                 f"independently adjustable in Message Settings"
             )
