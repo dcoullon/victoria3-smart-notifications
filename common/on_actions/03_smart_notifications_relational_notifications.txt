@@ -365,8 +365,23 @@ smart_notifications_diplo_play_war_start = {
 				# direction costs a toast instead of a popup; getting it wrong
 				# the other way is the silence bug this file just had.
 				limit = {
-					scope:actor ?= { NOT = { is_player = yes } }
+					# NO actor exclusion here, unlike the start and join-side
+					# families above. Invariant 5 says your own ACTIONS are
+					# never news -- you clicked the button, you know. A war
+					# actually breaking out is not that: it arrives later, as
+					# a consequence, and vanilla pops it up regardless of who
+					# started the play. Confirmed the hard way 2026-09-10 --
+					# the user declared war on Russia and got a toast instead
+					# of the popup, because this branch skipped them for being
+					# the actor.
 					OR = {
+						# The player started it. Tested directly, because
+						# is_diplomatic_play_participant_with = scope:actor
+						# asks about participants WITH the actor and may well
+						# not count the actor itself -- so removing the
+						# exclusion above is not on its own enough to detect
+						# a war the player declared.
+						scope:actor ?= { is_player = yes }
 						scope:target ?= { is_player = yes }
 						any_scope_play_involved = {
 							is_diplomatic_play_participant_with = scope:actor
