@@ -523,6 +523,7 @@ WATCHLIST_SPEC_VANILLA_TIERS = {
     "country_attitude_changed": "feed",
     "country_attitude_improved": "feed",
     "country_attitude_worsened": "feed",
+    "harvest_condition_started_in_country_important": "feed",
     "wargoal_added": "none",
     "wargoal_removed": "none",
 }
