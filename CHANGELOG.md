@@ -19,6 +19,25 @@ instrumentation and doc-only changes get a commit but **no** version bump
 unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.39] — 2026-09-10
+
+Notification fixes only. **No settings reset needed for this one** — nothing
+about which tier a notification uses has changed, only which notifications
+reach you at all.
+
+### Fixed
+
+- **Diplomatic plays involving countries on your Watchlist were mostly not
+  reaching you.** If a watched country opened a play against somebody else —
+  the single thing the Watchlist exists to surface — you would usually see
+  nothing. Plays declared directly on you always worked, which is why this took
+  a while to spot. Anyone running v0.38 has been missing most of them.
+- **A native uprising against a watched country no longer interrupts you.**
+  These fire constantly against colonial powers, and two arriving together read
+  as the same notification twice. An uprising against *you* still toasts, and a
+  watched country attacking a decentralized one still toasts — only the
+  uprisings themselves are quieted.
+
 ## [0.38] — 2026-09-10
 
 **If you played an earlier version, open Message Settings and press

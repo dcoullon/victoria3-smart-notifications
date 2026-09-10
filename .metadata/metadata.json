@@ -1,7 +1,7 @@
 {
   "name": "Smart Notifications - Dev",
   "id": "smart_notifications",
-  "version": "0.38",
+  "version": "0.39",
   "supported_game_version": "1.13.*",
   "short_description": "Less notification noise, a watchlist for the countries you actually care about, and new alerts — including one that names the exact law worth enacting.",
   "tags": ["User Interface", "Utilities", "Fixes"],
