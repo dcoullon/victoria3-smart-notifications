@@ -142,6 +142,53 @@ later had both rows in agreement with script. No explanation confirmed; if it
 recurs, screenshot it *and* copy the file at the same moment, since the two
 disagreeing is the only interesting part.
 
+## Demoting a key from `popup` SILENTLY MUTES it for existing players
+
+Confirmed 2026-09-10 from two separate occurrences, and it is the nastiest
+release hazard found in this mod so far.
+
+**What happens.** A player's stored setting beats the script default (see the
+section above). If a release changes a key from `notification_type = popup` to
+something quieter, the `popup_name` field goes away with it -- a popup needs a
+layout, a toast does not. The stored value still says `popup`, but the key it
+points at no longer has a popup layout to render. The game does not fall back
+to the new default, and it does not keep showing a popup either: it shows
+**None**, with a blank selector where every other row reads "Default".
+
+**None means muted.** The notification stops appearing entirely, for everyone
+who played the previous version, until they press Reset to Default Settings.
+Restarting the game does not help -- stored values are read at load.
+
+**The two occurrences, same shape:**
+
+- `smart_notifications_diplo_play_war_start_watched` went `popup` -> `toast`
+  (2026-09-09). Next session it displayed `None`, which was written off as
+  unexplained at the time.
+- `smart_notifications_diplo_play_start_player` and `..._join_side_player`
+  went `popup` -> `toast` (2026-09-10). Next session, after a full restart,
+  both displayed `None` with blank selectors -- i.e. a diplomatic play opened
+  against the player would have produced nothing at all.
+
+The second occurrence is what identified the cause, and it retroactively
+explains the first.
+
+**Rules that follow:**
+
+1. **Never demote a key out of `popup` without treating it as a breaking
+   change.** The release notes must tell players to reset, and the in-game
+   "(SN) Mod Updated" notice exists for exactly this.
+2. **Prefer retiring the key and adding a new one** over demoting a popup in
+   place, when the notification matters. A brand-new group has no stored value,
+   so it gets the script default immediately and cannot be silently muted.
+   Costs a row in Message Settings; buys correctness for existing players.
+3. **A blank selector in the settings UI is the tell.** Every healthy row shows
+   its value plus "Default". A row showing a bare value with no "Default" is
+   carrying a stored override, and if that value is `None` on a key that used
+   to be a popup, this is what happened.
+4. This is a further reason the diagnostic in the section above matters:
+   comparing `messagetypes_custom.txt` against the mod's script defaults finds
+   these before a player does.
+
 ## BOM required on every modded file, not just `.yml`
 
 The game's lexer logs `should be in utf8-bom encoding` for any modded
