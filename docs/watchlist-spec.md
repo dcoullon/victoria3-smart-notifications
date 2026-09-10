@@ -101,9 +101,11 @@ right, and muting it is then a player setting rather than a release.
 | involving neither | feed |
 
 Plays **you start yourself** keep today's behaviour and are explicitly not
-a concern — the user confirms this works fine now.
+a concern — the user confirms this works fine now. The popup row means a
+play *someone else* brings to you; see Q4.
 
-Note the war-start row is a deliberate downgrade from today's `popup`.
+Note the watched war-start row is a deliberate downgrade from today's
+`popup`. Plays involving you stay `popup`.
 
 ### F3 — War outcomes
 
@@ -118,6 +120,11 @@ The wording must name what was won or lost. Vanilla's own text already
 does this, via
 `[SCOPE.sDiplomaticPlay('diplomatic_play').GetWarOutcomeString]`, so reuse
 vanilla's phrasing rather than writing our own.
+
+Scope note: this concerns only `peace_agreement_signed_non_participant`,
+the third-party key. Wars **you** are party to already fire
+`peace_agreement_signed_war_leader` / `_war_participant` as popups, and
+those stay untouched.
 
 **Lower priority than F1/F2** per the user. Note this reopens Phase 2,
 which was closed on the grounds that vanilla already covered the peace
@@ -151,18 +158,29 @@ this is a pure tier change.
 ### F6 — Attitude changes
 
 `country_attitude_changed` / `_improved` / `_worsened`. Currently muted
-outright (`none`); **vanilla's own default is `feed`**, and this mod
-demoted them as "recurring AI opinion-drift spam".
+outright (`none`); vanilla's own default is `feed`, and this mod demoted
+them as "recurring AI opinion-drift spam".
 
 These are inherently player-directed — vanilla's text reads "The attitude
 of X towards us has worsened" — but **they cannot be filtered by the
-Watchlist.** No on_action posts them: they are fired by engine code with
-no moddable hook (confirmed 2026-09-09 — nothing anywhere in vanilla
+Watchlist.** No on_action posts them: they are fired by engine code with no
+moddable hook (confirmed 2026-09-09 — nothing anywhere in vanilla
 `common/` references these keys except the message definitions
 themselves). The only lever is the global tier, all countries at once.
 
-So the choice is between three global settings, not a watched/unwatched
-split. *(Open — see Q2.)*
+| situation | tier |
+|---|---|
+| every country's attitude toward you | **feed** (un-mute, back to vanilla's default) |
+
+Decided: `feed`. Toasting them would mean interrupting for every country
+on the map, two tiers above vanilla's own judgement, on a family already
+muted once for being spam — which would break §5's rule that nothing
+un-important should toast.
+
+**Wanted later:** toast for *watched* countries only. Blocked purely on the
+missing hook, not on the design. Tracked in TODO.md — revisit if a patch
+ever adds an on_action for these, or if another route to the same event
+surfaces.
 
 ### F7 — Subject released
 
@@ -201,6 +219,8 @@ leaving the whole family at `feed` — the user's explicit second choice.
 3. **One notification per event.** Several vanilla on_action pairs fire for
    the same event and would double up; post from exactly one.
 4. **Anything involving you or a watched country floors at `feed`.**
+5. **Your own actions are never news.** Nothing the player initiates gets
+   promoted — you already know what you just did. See Q4.
 
 ## 6. The one engine constraint that shapes this spec
 
@@ -247,28 +267,39 @@ rather than *what* they did.
   from the latter — so a play declared on the player still reaches them,
   as a popup, since `is_player` counts as watched.
 
-## 8. Open questions
+## 8. Question log
 
-**Q1 — F1. LOCKED.** Table confirmed by the user after reviewing the real
-events, with the per-cell key/group requirement added as D11.
+**Q1 — F1 table. LOCKED.** Confirmed after the user reviewed the real
+events from a live session; the per-cell key/group requirement went in as
+D11.
 
-**Q2 — F6 tier. STILL OPEN, and the previous answer was based on a wrong
-premise.** The user answered "toast for now", understanding it as *toast
-for watched countries*. That is not available: attitude notifications have
-no moddable hook, so the tier applies to **every country at once**. The
-real options are:
+**Q2 — F6 tier. LOCKED as `feed`** (un-muted from `none`). The user's
+first answer was `toast`, given on the understanding it meant *toast for
+watched countries* — which the missing hook makes impossible, since the
+tier is global across every country. Watched-only toasting is recorded as
+a wish in TODO.md.
 
-- **(a)** `feed` — vanilla's own default. Restores visibility without
-  interruption; you would see attitude shifts when you go looking.
-  *(Recommended.)*
-- **(b)** `toast` — every country's attitude shift toward you interrupts.
-  Two tiers above vanilla's own judgement of the event, and this mod muted
-  it as spam once already.
-- **(c)** stay muted.
+**Q3 — F9. LOCKED** as toast when the play involves you, feed otherwise.
+Feasible via `on_wargoal_added`; falls back to leaving the family at `feed`
+if it proves awkward.
 
-**Q3 — F9. LOCKED** as option (b): toast when the play involves you, feed
-otherwise. Confirmed feasible via `on_wargoal_added`. Falls back to leaving
-the family at `feed` if implementation proves awkward.
+**Q4 — the player as actor. OPEN — the last one.**
+
+`smart_notifications_is_watched` counts the player as watched, so read
+literally, F1 row 3 toasts when *you* improve relations with a watched
+country, and F2 would popup a play you started yourself. Neither is news.
+
+This may already be moot: across a 271-action session `on_diplomatic_action`
+fired **zero** times with the player as actor, so the engine may simply
+never report your own actions back to you. But that is unproven — the
+player may just not have taken any — and the rule is one trigger to state
+explicitly either way.
+
+- **(a)** Exclude the player-as-actor everywhere: never promote an action
+  or play you initiated. *(Recommended — safe whether or not the engine
+  fires these, and consistent with the answer already given for plays you
+  start yourself.)*
+- **(b)** Leave it implicit and find out in testing.
 
 ## 9. Implementation sequencing (once locked)
 

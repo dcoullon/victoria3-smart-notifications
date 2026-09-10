@@ -160,6 +160,26 @@ currently being diagnosed blind.
    is behind either way).
 4. Fix the blind tax-toast logging (§3d) — small, unrelated, cheap.
 
+## WANTED, blocked on the engine: attitude changes for watched countries only
+
+Per the user, 2026-09-09. Attitude changes toward the player
+(`country_attitude_changed` / `_improved` / `_worsened`) are going to
+`feed` (see [docs/watchlist-spec.md](docs/watchlist-spec.md) F6), but what
+the user actually wants is a **toast when a *watched* country's attitude
+toward them shifts**, and nothing for anyone else.
+
+**Blocked purely on a missing hook, not on the design.** No on_action posts
+these notifications — they are engine-fired, confirmed by finding zero
+references to the keys anywhere in vanilla `common/` outside the message
+definitions themselves. With no hook there is no place to test
+`smart_notifications_is_watched`, so the tier is global across every
+country and toasting it would interrupt for the whole map.
+
+**Revisit if:** a game patch adds an on_action for attitude changes (check
+a fresh `script_docs` dump after any major update), or another event that
+reliably coincides with an attitude shift turns out to be hookable and
+carries the country in scope.
+
 ## Phase 0 — Bootstrap Verification (target: v0.1.0)
 
 Confirm the simplest possible mod actually loads in-game before anything else.
