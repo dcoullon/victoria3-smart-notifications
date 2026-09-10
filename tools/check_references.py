@@ -438,6 +438,190 @@ def check_mixed_group_notification_types(root: Path) -> list[str]:
     return errs
 
 
+# --- Watchlist spec conformance ---------------------------------------------
+# docs/watchlist-spec.md is the locked behavioural spec. These checks make it
+# executable rather than aspirational: the tables below ARE the spec's tiers,
+# and a mismatch fails the build instead of surfacing as a surprise toast three
+# playtests later.
+#
+# Keep these tables and the spec in sync BY HAND and deliberately -- that is
+# the point. Changing a tier here without changing the spec (or vice versa)
+# should feel like editing two things, because it is a behavioural change
+# either way.
+WATCHLIST_SPEC_CELLS = {
+    # F1 -- generic diplomatic actions, five cells.
+    "smart_notifications_diplomatic_action_at_player_by_watched": "toast",
+    "smart_notifications_diplomatic_action_at_player_by_other": "feed",
+    "smart_notifications_diplomatic_action_at_watched_by_watched": "toast",
+    "smart_notifications_diplomatic_action_at_watched_by_other": "feed",
+    "smart_notifications_diplomatic_action_elsewhere": "feed",
+    # F2 -- diplomatic plays, three tiers per family.
+    "smart_notifications_diplo_play_start_player": "popup",
+    "smart_notifications_diplo_play_start_watched": "toast",
+    "smart_notifications_diplo_play_start_quiet": "feed",
+    "smart_notifications_diplo_play_join_side_player": "popup",
+    "smart_notifications_diplo_play_join_side_watched": "toast",
+    "smart_notifications_diplo_play_join_side_quiet": "feed",
+    "smart_notifications_diplo_play_war_start_player": "popup",
+    "smart_notifications_diplo_play_war_start_watched": "toast",
+    "smart_notifications_diplo_play_war_start_quiet": "feed",
+    # F7 -- subject released, unchanged by the spec but pinned so it cannot
+    # drift silently.
+    "smart_notifications_diplo_play_subject_released_watched": "toast",
+    "smart_notifications_diplo_play_subject_released_quiet": "none",
+    # F9 -- war goals.
+    "smart_notifications_wargoal_added_player": "toast",
+    "smart_notifications_wargoal_added_other": "feed",
+    "smart_notifications_wargoal_removed_player": "toast",
+    "smart_notifications_wargoal_removed_other": "feed",
+}
+
+# Vanilla keys whose tier the spec pins directly (F5, F6, and the two the F9
+# split replaces). Same reasoning: deliberate decisions, not defaults, so an
+# accidental revert should fail loudly.
+WATCHLIST_SPEC_VANILLA_TIERS = {
+    "country_owes_obligation": "toast",
+    "country_owed_obligation": "toast",
+    "country_owes_obligation_removed": "toast",
+    "country_owed_obligation_removed": "toast",
+    "obligation_owed_to_us_expired": "toast",
+    "obligation_owed_by_us_expired": "toast",
+    "country_attitude_changed": "feed",
+    "country_attitude_improved": "feed",
+    "country_attitude_worsened": "feed",
+    "wargoal_added": "none",
+    "wargoal_removed": "none",
+}
+
+
+def _message_blocks(root: Path) -> dict[str, str]:
+    blocks = {}
+    messages_dir = root / "common" / "messages"
+    if not messages_dir.is_dir():
+        return blocks
+    for path in sorted(messages_dir.glob("*.txt")):
+        text = _read(path)
+        for m in re.finditer(r"(?m)^([A-Za-z0-9_]+)\s*=\s*\{", text):
+            block = _brace_span(text, m.end())
+            if block is not None:
+                blocks[m.group(1)] = block
+    return blocks
+
+
+def check_watchlist_spec_tiers(root: Path) -> list[str]:
+    """Every message the spec names must exist with the tier the spec gives it.
+    Catches the failure mode this project keeps hitting: a tier changed for a
+    good reason in the moment, quietly contradicting a decision made
+    deliberately earlier, noticed only when a playtest feels wrong."""
+    errs = []
+    blocks = _message_blocks(root)
+    for key, want in {**WATCHLIST_SPEC_CELLS, **WATCHLIST_SPEC_VANILLA_TIERS}.items():
+        block = blocks.get(key)
+        if block is None:
+            errs.append(
+                f"watchlist spec: message '{key}' is missing -- docs/watchlist-spec.md requires it"
+            )
+            continue
+        m = re.search(r"notification_type\s*=\s*(\w+)", block)
+        got = m.group(1) if m else "<none>"
+        if got != want:
+            errs.append(
+                f"watchlist spec: '{key}' is {got}, spec says {want} "
+                f"(docs/watchlist-spec.md) -- change the spec first if this is intended"
+            )
+    return errs
+
+
+def check_watchlist_spec_group_isolation(root: Path) -> list[str]:
+    """Spec D11: every cell owns its group outright. Player Message Settings
+    overrides apply per GROUP, not per key (CLAUDE.md), so two cells sharing a
+    group silently collapse into one control -- the player could no longer, for
+    instance, mute `elsewhere` without also muting what is aimed at them, which
+    is the entire reason the matrix is split into separate keys.
+
+    Deliberately NOT a blanket one-key-per-group rule: the 138 law-ready toasts
+    share a group on purpose, so they occupy one Message Settings row, not
+    138."""
+    errs = []
+    blocks = _message_blocks(root)
+    group_owners: dict[str, list[str]] = {}
+    for key, block in blocks.items():
+        gm = re.search(r'group\s*=\s*"([^"]+)"', block)
+        if gm:
+            group_owners.setdefault(gm.group(1), []).append(key)
+
+    for key in WATCHLIST_SPEC_CELLS:
+        block = blocks.get(key)
+        if block is None:
+            continue  # already reported by the tier check
+        gm = re.search(r'group\s*=\s*"([^"]+)"', block)
+        if not gm:
+            errs.append(
+                f"watchlist spec: '{key}' has no group -- D11 requires one group per cell"
+            )
+            continue
+        sharers = [k for k in group_owners.get(gm.group(1), []) if k != key]
+        if sharers:
+            errs.append(
+                f"watchlist spec (D11): '{key}' shares group '{gm.group(1)}' with "
+                f"{', '.join(sorted(sharers))} -- each cell needs its own group to stay "
+                f"independently adjustable in Message Settings"
+            )
+    return errs
+
+
+def check_mod_group_labels_are_tagged(root: Path) -> list[str]:
+    """Every group this mod creates needs an `(SN) `-prefixed label, and needs
+    that label to exist at all. CLAUDE.md requires the prefix on any
+    Message-Settings-visible label the mod introduces; a missing label shows the
+    raw key name in the settings list, the same silent-ugly failure class as a
+    missing notification loc key."""
+    errs = []
+    loc_values = {}
+    loc_dir = root / "localization"
+    if loc_dir.is_dir():
+        for path in sorted(loc_dir.rglob("*.yml")):
+            for line in _read(path).splitlines():
+                m = re.match(r'\s*([A-Za-z0-9_]+):\d*\s*"(.*)"\s*$', line)
+                if m:
+                    loc_values[m.group(1)] = m.group(2)
+
+    for key, block in _message_blocks(root).items():
+        if not key.startswith("smart_notifications_"):
+            continue
+        gm = re.search(r'group\s*=\s*"([^"]+)"', block)
+        if not gm:
+            continue
+        group = gm.group(1)
+        if group not in loc_values:
+            errs.append(
+                f"mod group '{group}' (from '{key}') has no loc label -- "
+                f"Message Settings would show the raw key"
+            )
+        elif not loc_values[group].startswith("(SN) "):
+            errs.append(
+                f"mod group '{group}' label is {loc_values[group]!r} -- CLAUDE.md requires "
+                f'the "(SN) " prefix on every Message-Settings-visible label this mod adds'
+            )
+    return errs
+
+
+def check_notification_loc_completeness(root: Path, defined_loc: set[str]) -> list[str]:
+    """A message needs all its loc keys, not just the _name/_desc pair
+    check_post_notification_targets already enforces for posted keys. A missing
+    `_tooltip` renders the raw key on hover. Both fail silently on screen and
+    never reach error.log."""
+    errs = []
+    for key in _message_blocks(root):
+        if not key.startswith("smart_notifications_"):
+            continue
+        for suffix, what in (("_tooltip", "tooltip"), ("_name", "name"), ("_desc", "desc")):
+            loc_key = f"notification_{key}{suffix}"
+            if loc_key not in defined_loc:
+                errs.append(f"message '{key}' missing its {what} loc key '{loc_key}'")
+    return errs
+
+
 def run_all(root: Path) -> list[str]:
     defined_loc = load_defined_loc_keys(root)
     errs = []
@@ -451,6 +635,10 @@ def run_all(root: Path) -> list[str]:
     errs += check_json_files_have_no_bom(root)
     errs += check_full_overrides_match_installed_vanilla(root)
     errs += check_mixed_group_notification_types(root)
+    errs += check_watchlist_spec_tiers(root)
+    errs += check_watchlist_spec_group_isolation(root)
+    errs += check_mod_group_labels_are_tagged(root)
+    errs += check_notification_loc_completeness(root, defined_loc)
     return errs
 
 
@@ -464,5 +652,6 @@ if __name__ == "__main__":
             print(f"  - {e}")
         sys.exit(1)
     print("PASS: all cross-reference checks (loc keys, scripted_gui folder, "
-          "alert_group registration, law-type dispatch consistency).")
+          "alert_group registration, law-type dispatch consistency, "
+          "watchlist spec tiers and group isolation).")
     sys.exit(0)

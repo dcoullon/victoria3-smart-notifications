@@ -1,104 +1,33 @@
-﻿# Phase 4 -- Relational Notification Engine (see TODO.md). Extends the
-# Watchlist filtering built for Diplomatic Play events to the generic
-# `diplomatic_action_notification` -- the notification any diplomatic
-# action (Increase/Decrease Relations, autonomy requests, ...) posts to
-# its recipient. Confirmed real complaint from the user (2026-09-07): a
-# decentralized rebel faction using Increase Relations popped a toast for
-# a country nobody cares about.
+﻿# F1 of docs/watchlist-spec.md -- generic diplomatic actions, routed into
+# five cells by who the action is aimed at and who took it.
 #
 # Root = Diplomatic Action (`on_diplomatic_action`, confirmed via vanilla's
 # own comment in common/on_actions/00_code_on_actions.txt). scope:actor and
 # scope:recipient are confirmed real and bound here -- unlike the sibling
-# `_third_party_` on_actions (on_diplomatic_action_third_party etc., see
-# 04_smart_notifications_probes.txt), which are still genuinely blocked:
-# a confirmed real error (`is_player trigger [ Wrong scope for trigger:
-# diplomatic_action, expected country ]`) already came from guessing at
-# THOSE, but a `04_smart_notifications_probes.txt` probe on this different,
-# plain on_action showed `scope:actor`/`scope:recipient` resolving to real
-# country names (e.g. "Siam" -> "Champasak") with no error. Same root type,
-# different on_action -- the earlier blocked finding does not automatically
-# generalize to this one, and didn't.
+# `_third_party_` on_actions, which stay blocked: a real error
+# (`is_player trigger [ Wrong scope for trigger: diplomatic_action,
+# expected country ]`) already came from guessing at those.
 #
-# CONFIRMED WRONG 2026-09-08 via the user's screenshot: our replacement
-# keys showed the RAW loc key name on screen
-# ("notification_smart_notifications_diplomatic_action_watched_name")
-# instead of real text -- the bet that `type = diplomatic_action` alone
-# would trigger the same native per-action-type text resolution vanilla's
-# own diplomatic_action_notification got was wrong. That resolution is
-# tied to the specific vanilla key name, not the `type` field generically.
-# Tried `[ROOT.GetName]` as a way to recover the specific action type
-# dynamically for our own text -- also confirmed wrong (a real, repeated
-# `error.log` "Data error in loc string" entry, same failure class as
-# every other wrong dynamic-text guess in this project). No known way to
-# tell Increase Relations apart from Decrease Relations etc. from our own
-# script/loc. Fixed by giving our replacement keys real, deliberately
-# GENERIC name/desc loc (see smart_notifications_l_english.yml) -- loses
-# the vanilla per-action-type wording, but renders correctly for every
-# action type instead of a broken key for all of them.
+# This file was rewritten on 2026-09-09 against the locked spec, replacing
+# a day's worth of accumulated ad-hoc rules. The history of how those rules
+# went wrong -- the double-notification hunt, the raw-loc-key bug, three
+# separate failed attempts to read the action's TYPE -- is in TODO.md and
+# docs/engine-notes.md, deliberately not repeated here. What matters for
+# reading the code below:
 #
-# SEPARATE bug, same screenshot investigation: the ELEVATED/QUIET
-# debug_log lines were ALSO silently failing (their own "Data error in
-# loc string" entries) from `SCOPE.sC('actor').GetCountry.GetNameNoFormatting`
-# -- chaining `.GetCountry` directly onto a `SCOPE.sC(...)` call is NOT
-# the same as `THIS.GetCountry` inside an actual re-scoped
-# `scope:actor ?= { ... }` block (which the probe confirmed safe, and the
-# per-role diagnostic below still uses). Fixed by dropping `.GetCountry`
-# from the two decision-line debug_logs, matching the exhaustively-proven
-# `SCOPE.sC('actor').GetNameNoFormatting` pattern (no `.GetCountry`) used
-# everywhere else in this mod for the diplomatic_play root -- evidently
-# also correct here, once written the same way.
-#
-# REVISED 2026-09-09 per the user: reported "two notifications about the
-# same thing" plus "our own content is useless" for a Junagadh -> Great
-# Qing diplomatic action. Root-caused via error.log/debug.log rather than
-# guessing: confirmed `smart_notifications_diplomatic_action_watched`
-# fired exactly once (no duplicate bug in OUR code), and (WRONGLY)
-# concluded the second popup was vanilla's own per-action-type
-# notification fired by a separate, hardcoded, unfilterable mechanism --
-# so suppressed our own notification whenever `scope:recipient` was the
-# player, on the assumption vanilla's own popup would stand alone.
-#
-# CORRECTED, same day, later (2026-09-09): that "hardcoded/unfilterable"
-# claim was wrong. The vanilla per-action-type popup
-# (`increase_relations_action_notification_name`/_desc etc.) is resolved
-# via `GetDiplomaticAction.GetActionNotificationName`, the SAME dynamic-
-# text call behind `notification_diplomatic_action_notification_name` --
-# i.e. it IS `diplomatic_action_notification`, a real common/messages/
-# key this mod already mutes (notification_type = none, see
-# common/messages/00_messages.txt). At the time this suppression was
-# added (12:20), that mute was ALSO silently broken by the (then still
-# unnoticed) mixed-notification-types bug -- diplomatic_action_notification
-# shared a group with 3 `toast` siblings, and per the exact game.log
-# timestamp evidence, that mismatch caused the "muted" message to render
-# as a toast anyway. That's what was actually showing up as the
-# "duplicate" here at the time. Once the mixed-group bug was fixed later
-# the same day (see common/messages/00_messages.txt's own comment,
-# committed 14:28), vanilla's mute started actually working -- so THIS
-# suppression branch and that now-effective mute combined into total
-# silence for the exact case that matters most (someone's diplomatic
-# action targeting the player directly). Removed the player-recipient
-# suppression branch entirely: it's also redundant, not just wrong --
-# `smart_notifications_is_watched` already includes `is_player = yes`
-# (00_smart_notifications_triggers.txt), so the normal watched-check
-# below already elevates this case on its own, with no special-casing
-# needed to just GET a toast.
-#
-# REFINED AGAIN 2026-09-09, same day: user pushed back that the toast's
-# own text was "weirdly unspecific" ("X has taken a diplomatic action
-# involving Y") even after the title fix above. Re-added a player-
-# recipient special case, but as its OWN dedicated message key this
-# time (`smart_notifications_diplomatic_action_targeting_player`, see
-# common/messages/00_messages.txt) rather than suppression -- the
-# player-is-recipient case is the one situation where vanilla's own
-# full `_desc` text is actually accurate to reuse (it's written assuming
-# the player is a party to the action), so this key's desc uses
-# `GetActionNotificationDesc` directly instead of our own generic
-# fallback. Must be checked BEFORE the watched-check below since it's a
-# strict subset of it. The genuinely-third-party-watched case still
-# goes through `smart_notifications_diplomatic_action_watched` with the
-# safe generic desc, since vanilla's desc text would misrepresent that
-# case (assumes the player is involved when they're not). NOT YET
-# LIVE-TESTED.
+# 1. The action type is unknowable at this moment. Not "hard": three
+#    mechanisms were tried and all three are closed (engine-notes.md
+#    § The pact for a diplomatic action does not exist yet, § A .md schema
+#    doc is not proof a key parses). Do not add a fourth attempt without
+#    genuinely new information.
+# 2. The rule therefore keys off WHO, not WHAT. Routine relations traffic
+#    is demoted by proxy -- an unwatched actor -- rather than by name.
+# 3. Vanilla's per-action `_desc` text assumes the reader is a party to the
+#    action, so only the at_player_* keys may reuse it. The other three use
+#    generic wording. See common/messages/00_messages.txt.
+# 4. `smart_notifications_is_watched` counts the player as watched, so
+#    is_player is always tested first, and actor-side tests use
+#    smart_notifications_is_watched_not_player.
 
 on_diplomatic_action = {
 	on_actions = {
@@ -117,88 +46,86 @@ on_diplomatic_action = {
 # elevates regardless of watchlist.
 smart_notifications_diplomatic_action = {
 	effect = {
-		# REBUILT 2026-09-09 (evening) to the user's own stated rule, which
-		# is tighter than what this file had grown into:
+		# F1 of docs/watchlist-spec.md, implemented exactly. Two questions,
+		# asked in this order:
 		#
-		#   A toast should mean "an important action, aimed at you or at a
-		#   country you're watching". Nothing else.
+		#   1. WHO is it aimed at?  you > a watched country > nobody
+		#      you care about
+		#   2. WHO did it?          a watched country other than you, or
+		#      anyone else
 		#
-		# Two axes, and the old code collapsed them into one. It OR'd actor
-		# and recipient together, so a watched great power ACTING on some
-		# unrelated minor was treated exactly like a watched country BEING
-		# acted on. Those are opposite cases under the rule above: the
-		# first isn't aimed at anyone you care about (no toast), the second
-		# is (toast). Splitting them is free -- both sides are plain
-		# country scopes right here. That split is also the honest fix for
-		# the v0.37 spam report: all 13 sampled cases were a watched actor
-		# hitting an unwatched minor, i.e. exactly the branch that should
-		# never have toasted, rather than a reason to mute the whole
-		# watched path as v0.37 did.
+		# and the five combinations map one-to-one onto five message keys,
+		# each in its own group so the player can retune any single cell
+		# from Message Settings (spec D11).
 		#
-		# The SECOND axis of the user's rule -- importance, i.e. demoting a
-		# routine relations change -- is NOT implemented, because the
-		# engine does not permit it. Three separate mechanisms have now
-		# been tried and each failed on direct evidence, not on a guess:
+		# The action TYPE never appears, because it cannot: at the moment
+		# this on_action runs there is no way to tell Increase Relations
+		# from a rivalry declaration. Three mechanisms were tried and all
+		# three are closed -- see docs/engine-notes.md. That is why the
+		# rule keys off who acted rather than what they did, and why the
+		# routine relations traffic is demoted by proxy (an unwatched
+		# actor) rather than by name.
 		#
-		#  1. Query the pact the action creates (`has_diplomatic_pact`
-		#     from scope:actor). Fails: the pact is not in gamestate yet
-		#     at this instant. Proven with three countries appearing in a
-		#     later monthly sweep -- docs/engine-notes.md § The pact for a
-		#     diplomatic action does not exist yet.
-		#  2. Ask the action object itself. Impossible: script_docs lists
-		#     zero triggers and zero effects supporting `diplomatic_action`
-		#     scope, and no event target leads out of it.
-		#  3. Have the action flag its own target from inside its
-		#     definition, via the `effect = {}` block that
-		#     common/diplomatic_actions/diplomatic_action.md documents.
-		#     Fails: the 1.13.11 parser rejects the key outright --
-		#     `Error: "Unexpected token: effect"` in error.log, at exactly
-		#     the nesting the schema doc prescribes. The doc describes a
-		#     field this parser does not accept. Zero vanilla diplomatic
-		#     actions use one, which was the warning sign.
+		# `is_player` is checked BEFORE `smart_notifications_is_watched`
+		# throughout, because the latter deliberately returns yes for the
+		# player (00_smart_notifications_triggers.txt) -- without that
+		# ordering every player-aimed action would fall into the watched
+		# branch instead of its own.
 		#
-		# So every action aimed at you or at a watched country toasts,
-		# routine or not. If the relations-change volume needs cutting
-		# again, the only axis left is a property of the ACTOR (rank,
-		# has_diplomatic_relevance, country type), which approximates the
-		# rule rather than implementing it -- a product call, see TODO.md.
-		#
-		# Resulting matrix (smart_notifications_is_watched has
-		# is_player = yes baked in):
-		#
-		#   recipient = player            -> toast
-		#   recipient = watched           -> toast
-		#   recipient = neither           -> feed (quiet), even if the
-		#                                    ACTOR is watched
+		# Actor-side tests use smart_notifications_is_watched_not_player,
+		# never the plain trigger: spec invariant 5, your own actions are
+		# never news. Without it, improving relations with a watched
+		# country would toast your own diplomacy back at you.
 		if = {
 			limit = { scope:recipient ?= { is_player = yes } }
 
-			post_notification = smart_notifications_diplomatic_action_targeting_player
-			debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_targeting_player|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|PLAYER_TARGETED"
+			if = {
+				limit = { scope:actor ?= { smart_notifications_is_watched_not_player = yes } }
+				post_notification = smart_notifications_diplomatic_action_at_player_by_watched
+				debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_at_player_by_watched|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|AT_PLAYER_BY_WATCHED"
+			}
+			else = {
+				post_notification = smart_notifications_diplomatic_action_at_player_by_other
+				debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_at_player_by_other|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|AT_PLAYER_BY_OTHER"
+			}
 		}
 		else_if = {
-			# Aimed AT a watched country (the player is not involved).
-			# Note this deliberately does NOT test scope:actor -- a watched
-			# country doing something to a stranger falls through to the
-			# quiet branch below.
+			# Aimed AT a watched country. Deliberately does not test the
+			# actor here -- a watched country acting on a stranger is not
+			# an event aimed at anything you care about, and falls through
+			# to the `elsewhere` branch below. That distinction is the
+			# whole point of spec definition "aimed at", and getting it
+			# wrong is what produced the 13-toast spam report of v0.37.
 			limit = { scope:recipient ?= { smart_notifications_is_watched = yes } }
 
-			post_notification = smart_notifications_diplomatic_action_watched
-			debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_watched|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|WATCHED_TARGETED"
+			if = {
+				limit = { scope:actor ?= { smart_notifications_is_watched_not_player = yes } }
+				post_notification = smart_notifications_diplomatic_action_at_watched_by_watched
+				debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_at_watched_by_watched|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|AT_WATCHED_BY_WATCHED"
+			}
+			else = {
+				post_notification = smart_notifications_diplomatic_action_at_watched_by_other
+				debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_at_watched_by_other|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|AT_WATCHED_BY_OTHER"
+			}
 		}
 		else = {
-			post_notification = smart_notifications_diplomatic_action_quiet
-			debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_quiet|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|QUIET"
+			post_notification = smart_notifications_diplomatic_action_elsewhere
+			debug_log = "SNW_FILTER|diplomatic_action|posted_key=smart_notifications_diplomatic_action_elsewhere|actor=[SCOPE.sC('actor').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|ELSEWHERE"
 		}
 
-		# TEMPORARY instrumentation (2026-09-08) -- explicit watched status
-		# for both sides alongside the decision above. Delete once the
-		# routing is confirmed tuned correctly. Grep debug.log for
-		# SNW_FILTER.
+		# Per-side watched status, logged alongside every decision. This is
+		# how the matrix gets verified without the user watching for
+		# toasts: each event prints its own cell plus the two inputs that
+		# chose it, so a whole session's routing can be checked from
+		# debug.log afterwards. Keep until the matrix is confirmed live.
 		scope:actor ?= {
 			if = {
-				limit = { smart_notifications_is_watched = yes }
+				limit = { smart_notifications_is_watched_not_player = yes }
 				debug_log = "SNW_FILTER|diplomatic_action|involved|country=[THIS.GetCountry.GetNameNoFormatting]|role=actor|watched=yes"
+			}
+			else_if = {
+				limit = { is_player = yes }
+				debug_log = "SNW_FILTER|diplomatic_action|involved|country=[THIS.GetCountry.GetNameNoFormatting]|role=actor|watched=self"
 			}
 			else = {
 				debug_log = "SNW_FILTER|diplomatic_action|involved|country=[THIS.GetCountry.GetNameNoFormatting]|role=actor|watched=no"
@@ -206,6 +133,10 @@ smart_notifications_diplomatic_action = {
 		}
 		scope:recipient ?= {
 			if = {
+				limit = { is_player = yes }
+				debug_log = "SNW_FILTER|diplomatic_action|involved|country=[THIS.GetCountry.GetNameNoFormatting]|role=recipient|watched=self"
+			}
+			else_if = {
 				limit = { smart_notifications_is_watched = yes }
 				debug_log = "SNW_FILTER|diplomatic_action|involved|country=[THIS.GetCountry.GetNameNoFormatting]|role=recipient|watched=yes"
 			}

@@ -1,7 +1,9 @@
-﻿# Watchlist Notification Spec — DRAFT, not yet locked
+﻿# Watchlist Notification Spec
 
-**Status: COMPLETE, awaiting sign-off.** Every question is resolved (§8).
-Nothing is built against this until the user says "OK" explicitly.
+**Status: LOCKED** (2026-09-09, explicit sign-off from the user). Every
+question in §8 is resolved. Changes to this file from here need the same
+kind of agreement that produced it -- the code answers to this spec, not
+the other way round.
 
 This is the behavioural spec for what the Watchlist does to notifications.
 It is the reference the code answers to — where the code and this file

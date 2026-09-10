@@ -29,3 +29,23 @@ smart_notifications_is_watched = {
 		has_variable = watched_manually
 	}
 }
+
+# "Is this country watched, but NOT the player" -- the companion to the
+# trigger above, for the one place the distinction matters: deciding
+# whether an ACTOR's identity should elevate a notification.
+#
+# Invariant 5 of docs/watchlist-spec.md ("your own actions are never
+# news"): nothing the player initiates is ever promoted, because you
+# already know what you just did. Since smart_notifications_is_watched
+# deliberately counts the player as watched, an elevation rule written
+# with it alone would toast your own diplomacy back at you. Every rule
+# that keys off the actor uses THIS trigger instead; every rule that keys
+# off the recipient keeps using the plain one.
+#
+# Kept as its own trigger rather than inlined because it appears in every
+# branch of the diplomatic-action matrix and in three diplo-play families
+# -- inlining it is how the two get mixed up.
+smart_notifications_is_watched_not_player = {
+	smart_notifications_is_watched = yes
+	NOT = { is_player = yes }
+}

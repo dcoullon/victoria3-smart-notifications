@@ -310,7 +310,7 @@ diplomatic_action_notification = {
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
 	# Muted 2026-09-08 (Phase 4, see TODO.md): replaced by
-	# smart_notifications_diplomatic_action_watched/_quiet, posted instead
+	# the five smart_notifications_diplomatic_action_* keys, posted instead
 	# of this key by
 	# common/on_actions/06_smart_notifications_diplomatic_action_filtering.txt
 	# based on whether a watched country (or the player) is the actor or
@@ -858,7 +858,13 @@ country_attitude_improved = {
 
 	# Project 1 (Smart Notification Defaults): demoted from feed to none, removes
 	# recurring AI opinion-drift spam. Was: feed.
-	notification_type = none
+	# F6 (docs/watchlist-spec.md): un-muted to feed 2026-09-09, which is
+	# vanilla's own default for these. What the user actually wants is a
+	# toast for WATCHED countries only -- not possible: nothing in vanilla
+	# posts these from script, they are engine-fired with no on_action, so
+	# the tier is global across every country and toasting it would
+	# interrupt for the whole map. Tracked in TODO.md as wanted-but-blocked.
+	notification_type = feed
 	color = neutral
 }
 
@@ -870,7 +876,13 @@ country_attitude_changed = {
 
 	# Project 1 (Smart Notification Defaults): demoted from feed to none, removes
 	# recurring AI opinion-drift spam. Was: feed.
-	notification_type = none
+	# F6 (docs/watchlist-spec.md): un-muted to feed 2026-09-09, which is
+	# vanilla's own default for these. What the user actually wants is a
+	# toast for WATCHED countries only -- not possible: nothing in vanilla
+	# posts these from script, they are engine-fired with no on_action, so
+	# the tier is global across every country and toasting it would
+	# interrupt for the whole map. Tracked in TODO.md as wanted-but-blocked.
+	notification_type = feed
 	color = neutral
 }
 
@@ -882,7 +894,13 @@ country_attitude_worsened = {
 
 	# Project 1 (Smart Notification Defaults): demoted from feed to none, removes
 	# recurring AI opinion-drift spam. Was: feed.
-	notification_type = none
+	# F6 (docs/watchlist-spec.md): un-muted to feed 2026-09-09, which is
+	# vanilla's own default for these. What the user actually wants is a
+	# toast for WATCHED countries only -- not possible: nothing in vanilla
+	# posts these from script, they are engine-fired with no on_action, so
+	# the tier is global across every country and toasting it would
+	# interrupt for the whole map. Tracked in TODO.md as wanted-but-blocked.
+	notification_type = feed
 	color = neutral
 }
 
@@ -1625,7 +1643,12 @@ wargoal_added = {
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
-	notification_type = feed
+	# F9 (docs/watchlist-spec.md): muted 2026-09-09 in favour of the two
+	# smart_notifications_wargoal_* keys below, which split this by
+	# whether the play involves you. Vanilla's own text is not
+	# player-scoped ("X has been added for Y") -- it fires for plays you
+	# are merely observing, so a single global tier can't express the rule.
+	notification_type = none
 	color = neutral
 }
 
@@ -1635,7 +1658,12 @@ wargoal_removed = {
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
-	notification_type = feed
+	# F9 (docs/watchlist-spec.md): muted 2026-09-09 in favour of the two
+	# smart_notifications_wargoal_* keys below, which split this by
+	# whether the play involves you. Vanilla's own text is not
+	# player-scoped ("X has been added for Y") -- it fires for plays you
+	# are merely observing, so a single global tier can't express the rule.
+	notification_type = none
 	color = neutral
 }
 
@@ -1791,7 +1819,12 @@ country_owes_obligation = {
 
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
-	notification_type = feed
+	# F5 (docs/watchlist-spec.md): promoted from feed 2026-09-09. These
+	# need no Watchlist filtering at all -- vanilla's own text proves they
+	# are already player-scoped ("We now owe an obligation to X", "X now
+	# owes us an obligation"), so every one of them involves you by
+	# definition, and an obligation is something you can act on.
+	notification_type = toast
 	color = neutral
 }
 
@@ -1801,7 +1834,12 @@ country_owed_obligation = {
 
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
-	notification_type = feed
+	# F5 (docs/watchlist-spec.md): promoted from feed 2026-09-09. These
+	# need no Watchlist filtering at all -- vanilla's own text proves they
+	# are already player-scoped ("We now owe an obligation to X", "X now
+	# owes us an obligation"), so every one of them involves you by
+	# definition, and an obligation is something you can act on.
+	notification_type = toast
 	color = neutral
 }
 
@@ -1811,7 +1849,12 @@ country_owes_obligation_removed = {
 
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
-	notification_type = feed
+	# F5 (docs/watchlist-spec.md): promoted from feed 2026-09-09. These
+	# need no Watchlist filtering at all -- vanilla's own text proves they
+	# are already player-scoped ("We now owe an obligation to X", "X now
+	# owes us an obligation"), so every one of them involves you by
+	# definition, and an obligation is something you can act on.
+	notification_type = toast
 	color = neutral
 }
 
@@ -1821,7 +1864,12 @@ country_owed_obligation_removed = {
 
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
-	notification_type = feed
+	# F5 (docs/watchlist-spec.md): promoted from feed 2026-09-09. These
+	# need no Watchlist filtering at all -- vanilla's own text proves they
+	# are already player-scoped ("We now owe an obligation to X", "X now
+	# owes us an obligation"), so every one of them involves you by
+	# definition, and an obligation is something you can act on.
+	notification_type = toast
 	color = neutral
 }
 
@@ -1831,7 +1879,12 @@ obligation_owed_to_us_expired = {
 
 	texture = "gfx/interface/icons/notification_icons/influence_bad.dds"
 
-	notification_type = feed
+	# F5 (docs/watchlist-spec.md): promoted from feed 2026-09-09. These
+	# need no Watchlist filtering at all -- vanilla's own text proves they
+	# are already player-scoped ("We now owe an obligation to X", "X now
+	# owes us an obligation"), so every one of them involves you by
+	# definition, and an obligation is something you can act on.
+	notification_type = toast
 	color = neutral
 }
 
@@ -1841,7 +1894,12 @@ obligation_owed_by_us_expired = {
 
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
-	notification_type = feed
+	# F5 (docs/watchlist-spec.md): promoted from feed 2026-09-09. These
+	# need no Watchlist filtering at all -- vanilla's own text proves they
+	# are already player-scoped ("We now owe an obligation to X", "X now
+	# owes us an obligation"), so every one of them involves you by
+	# definition, and an obligation is something you can act on.
+	notification_type = toast
 	color = neutral
 }
 
@@ -2163,6 +2221,28 @@ smart_notifications_truce_expired = {
 # reconfigure each urgency tier in Message Settings, same reasoning as
 # Phase 1's invasion/subject group splits.
 
+# F2 -- diplomatic plays. Three tiers per event now (spec F2), not two:
+# a play involving YOU is a popup, one involving a watched country is a
+# toast, anything else is feed. The player tier is new as of 2026-09-09;
+# previously the player fell into the `_watched` keys because
+# smart_notifications_is_watched counts them as watched, which conflated
+# "someone brought a war to me" with "a country I follow joined one".
+#
+# Spec invariant 5 applies to all three families: a play YOU started is
+# never promoted -- see 03_smart_notifications_relational_notifications.txt.
+
+smart_notifications_diplo_play_start_player = {
+	type = diplomatic_play
+	group = "smart_notifications_diplo_play_start_player_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = popup
+	popup_name = war_started
+
+	on_created_soundeffect = "event:/SFX/UI/Military/to_war_popup_notification"
+}
+
 smart_notifications_diplo_play_start_watched = {
 	type = diplomatic_play
 	group = "smart_notifications_diplo_play_start_watched_group"
@@ -2181,6 +2261,18 @@ smart_notifications_diplo_play_start_quiet = {
 
 	notification_type = feed
 	color = neutral
+}
+
+smart_notifications_diplo_play_join_side_player = {
+	type = diplomatic_play
+	group = "smart_notifications_diplo_play_join_side_player_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = popup
+	popup_name = war_started
+
+	on_created_soundeffect = "event:/SFX/UI/Military/to_war_popup_notification"
 }
 
 smart_notifications_diplo_play_join_side_watched = {
@@ -2203,21 +2295,35 @@ smart_notifications_diplo_play_join_side_quiet = {
 	color = neutral
 }
 
+smart_notifications_diplo_play_war_start_player = {
+	type = diplomatic_play
+	group = "smart_notifications_diplo_play_war_start_player_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	# The popup+auto-pause escalation (vanilla's own war_started popup
+	# layout, confirmed real -- the only popup_name used anywhere with
+	# type = diplomatic_play in vanilla) now belongs to the PLAYER tier
+	# only. A war involving you is the one thing in this mod that is
+	# allowed to stop the game.
+	notification_type = popup
+	popup_name = war_started
+
+	on_created_soundeffect = "event:/SFX/UI/Military/to_war_popup_notification"
+}
+
 smart_notifications_diplo_play_war_start_watched = {
 	type = diplomatic_play
 	group = "smart_notifications_diplo_play_war_start_watched_group"
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
-	# Preserves today's popup+auto-pause escalation (vanilla's own
-	# war_started popup layout, confirmed real -- the only popup_name used
-	# anywhere with type = diplomatic_play in vanilla) for war-starts that
-	# actually involve someone worth caring about; unwatched ones are
-	# demoted to the quiet variant below instead of always popping up.
-	notification_type = popup
-	popup_name = war_started
-
-	on_created_soundeffect = "event:/SFX/UI/Military/to_war_popup_notification"
+	# DOWNGRADED from popup 2026-09-09 per spec F2. A war involving a
+	# country you follow is worth a toast, but stopping the game for it
+	# conflates "worth knowing" with "act now", which is the player tier
+	# above.
+	notification_type = toast
+	color = neutral
 }
 
 smart_notifications_diplo_play_war_start_quiet = {
@@ -2226,10 +2332,12 @@ smart_notifications_diplo_play_war_start_quiet = {
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
-	# Toast, not feed -- a war starting somewhere is still more notable
-	# than an ordinary diplomatic play starting, even when nobody on the
-	# watchlist is involved.
-	notification_type = toast
+	# DOWNGRADED from toast 2026-09-09 per spec F2 ("involving neither ->
+	# feed"). The old reasoning -- a war anywhere is notable -- is exactly
+	# the instinct the spec exists to overrule: a war between two
+	# countries you never chose to follow is not aimed at you or at
+	# anything you watch, so it belongs in the log, not on screen.
+	notification_type = feed
 	color = neutral
 }
 
@@ -2271,62 +2379,56 @@ smart_notifications_diplo_play_subject_released_quiet = {
 	color = neutral
 }
 
-# Generic diplomatic action filtering (see TODO.md and
-# 06_smart_notifications_diplomatic_action_filtering.txt). This one key
-# covers many different diplomatic action types (Increase/Decrease
-# Relations, autonomy requests, ...), each with genuinely different
-# vanilla wording, and no diplomatic_actions/*.txt file wires that text in
-# script anywhere (confirmed via an exhaustive grep) -- it's resolved
-# natively for vanilla's own key.
+# F1 -- generic diplomatic actions. Five keys, one per cell of the matrix
+# in docs/watchlist-spec.md F1. Rebuilt 2026-09-09 (evening) from the
+# locked spec; the previous three keys (_watched / _quiet /
+# _targeting_player) encoded a different, superseded rule.
 #
-# CORRECTED 2026-09-08: originally shipped with no `_name`/`_desc` of our
-# own, betting `type = diplomatic_action` alone would trigger that same
-# native resolution for our replacement keys too. Confirmed wrong via the
-# user's screenshot -- showed the raw loc key name on screen instead of
-# real text. Shipped deliberately generic `_name`/`_desc` loc as a
-# fallback.
+# WHY FIVE KEYS AND FIVE GROUPS. Two independent reasons, both binding:
 #
-# CORRECTED AGAIN 2026-09-09: the generic fallback turned out to be an
-# unnecessary loss of detail -- see smart_notifications_l_english.yml's
-# own comment for the confirmed real function
-# ([SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName])
-# that recovers the real per-action title (e.g. "Kokand improving
-# Relations") for both of the keys below. The DESC still can't safely
-# reuse vanilla's own -- every `_action_notification_desc` in
-# diplomacy_l_english.yml is written assuming the player IS a party to
-# the action ("our mutual relations", "we", GetPlayer) -- wrong if a
-# genuinely third-party watched country's action is what fired this.
-# That's exactly what these two keys are for (the player-IS-the-
-# recipient case now gets its own key below,
-# smart_notifications_diplomatic_action_targeting_player, which CAN
-# safely reuse vanilla's full desc).
-smart_notifications_diplomatic_action_watched = {
+# 1. TEXT. The `_desc` differs by whether the player is a party. Every
+#    `_action_notification_desc` in vanilla's diplomacy_l_english.yml is
+#    written assuming the reader IS involved ("our mutual relations",
+#    "we", GetPlayer), so the at_player_* keys can reuse vanilla's full
+#    specific desc verbatim, and the at_watched_*/elsewhere keys must not
+#    -- they get the generic wording instead. The `_name` (the real
+#    per-action title, e.g. "Kokand improving Relations") is safe for all
+#    five via GetActionNotificationName.
+# 2. TUNABILITY (spec D11). Player Message Settings overrides apply per
+#    GROUP, not per key (CLAUDE.md), so a cell is only independently
+#    adjustable if it owns its group outright. That is what lets the
+#    player mute, say, the `elsewhere` row to thin the feed without
+#    touching anything aimed at them -- the user's stated next goal after
+#    the toast tiers are right. It also satisfies the engine's
+#    no-mixed-types-per-group rule for free.
+#
+# The tiers below are the spec's, not a judgement call made here: an
+# action earns a toast only when it is aimed at you or a watched country
+# AND the actor is a watched country other than yourself. The action TYPE
+# is deliberately absent from all of this -- it is unknowable at the
+# moment the notification posts (docs/engine-notes.md, three separate
+# ruled-out mechanisms), which is why the rule keys off WHO acted.
+
+# Aimed at YOU, by a watched country. The loudest cell in the matrix.
+smart_notifications_diplomatic_action_at_player_by_watched = {
 	type = diplomatic_action
-	group = "smart_notifications_diplomatic_action_watched_group"
+	group = "smart_notifications_diplomatic_action_at_player_by_watched_group"
 
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
-	# RESTORED to `toast` 2026-09-09 (evening). This was demoted to `feed`
-	# earlier the same day over a spam report (13 fires in one session --
-	# Spain -> Philippines, Ottoman Empire -> Fezzan, Portugal -> Gaza).
-	# Every one of those samples was a watched country ACTING on an
-	# unwatched minor, which under the user's rule -- a toast means an
-	# important action aimed at you or at a country you watch -- should
-	# never have toasted in the first place. The demotion treated the
-	# symptom by muting the whole watched path, including actions aimed AT
-	# a watched country, which the rule says are exactly what this mod
-	# exists to surface. The actual fix is the actor/recipient split now
-	# in 06_smart_notifications_diplomatic_action_filtering.txt; this key
-	# now only ever fires for a non-routine action aimed at a watched
-	# country, so it can be a toast again.
 	notification_type = toast
 	color = neutral
 }
 
-
-smart_notifications_diplomatic_action_quiet = {
+# Aimed at YOU, by a country you are not watching. Feed, because this is
+# where the routine relations traffic lands -- and because the action type
+# cannot be read, this necessarily also catches a rivalry or embargo from
+# an unwatched country. Accepted knowingly: war reaches you via F2 and
+# subjugation/alliance via the proposal system, so nothing existential is
+# demoted here.
+smart_notifications_diplomatic_action_at_player_by_other = {
 	type = diplomatic_action
-	group = "smart_notifications_diplomatic_action_quiet_group"
+	group = "smart_notifications_diplomatic_action_at_player_by_other_group"
 
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
@@ -2334,25 +2436,40 @@ smart_notifications_diplomatic_action_quiet = {
 	color = neutral
 }
 
-# ADDED 2026-09-09 per the user ("why do we have to have this super
-# unspecific message"): a diplomatic action where the player is the
-# DIRECT recipient is the single most important case this mod handles,
-# and it's the one case where vanilla's own full, specific `_desc` text
-# (relation values, attitude, obligations, everything) is actually
-# accurate to reuse verbatim -- it was written for exactly this
-# situation. Split out from smart_notifications_diplomatic_action_watched
-# (which still covers the genuinely-third-party-watched case, where
-# vanilla's player-centric wording would be wrong) so this one case can
-# get the full detail without risking wrong text elsewhere. See
-# 06_smart_notifications_diplomatic_action_filtering.txt for the
-# dispatch logic.
-smart_notifications_diplomatic_action_targeting_player = {
+# Aimed at a WATCHED country, by another watched country.
+smart_notifications_diplomatic_action_at_watched_by_watched = {
 	type = diplomatic_action
-	group = "smart_notifications_diplomatic_action_targeting_player_group"
+	group = "smart_notifications_diplomatic_action_at_watched_by_watched_group"
 
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
 	notification_type = toast
+	color = neutral
+}
+
+# Aimed at a WATCHED country, by anyone else. This is the cell that
+# produced 26 of last session's events -- minor-on-minor traffic like
+# Kafiristan -> Chitral.
+smart_notifications_diplomatic_action_at_watched_by_other = {
+	type = diplomatic_action
+	group = "smart_notifications_diplomatic_action_at_watched_by_other_group"
+
+	texture = "gfx/interface/icons/notification_icons/influence.dds"
+
+	notification_type = feed
+	color = neutral
+}
+
+# Involving nobody you care about -- 220 of last session's 271 events.
+# Kept at feed rather than muted so the log stays complete; this is the
+# row to mute from Message Settings if the feed itself needs thinning.
+smart_notifications_diplomatic_action_elsewhere = {
+	type = diplomatic_action
+	group = "smart_notifications_diplomatic_action_elsewhere_group"
+
+	texture = "gfx/interface/icons/notification_icons/influence.dds"
+
+	notification_type = feed
 	color = neutral
 }
 
@@ -3791,5 +3908,56 @@ smart_notifications_watchlist_empty_prompt = {
 	texture = "gfx/interface/icons/notification_icons/influence.dds"
 
 	notification_type = toast
+	color = neutral
+}
+
+# F9 -- war goals (docs/watchlist-spec.md). A war goal added to a play YOU
+# are in is something to act on; one added to a play you are merely
+# watching is not, which is why this splits where vanilla does not --
+# vanilla's own text is not player-scoped ("X has been added for Y"), so a
+# single global tier cannot express the rule.
+#
+# Four keys, not two: added and removed need different wording, and each
+# tier owns its group per spec D11. Posted from on_wargoal_added /
+# on_wargoal_removed, whose root is the diplomatic play itself -- see
+# 12_smart_notifications_wargoal_filtering.txt.
+
+smart_notifications_wargoal_added_player = {
+	type = diplomatic_play
+	group = "smart_notifications_wargoal_added_player_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = toast
+	color = neutral
+}
+
+smart_notifications_wargoal_added_other = {
+	type = diplomatic_play
+	group = "smart_notifications_wargoal_added_other_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = feed
+	color = neutral
+}
+
+smart_notifications_wargoal_removed_player = {
+	type = diplomatic_play
+	group = "smart_notifications_wargoal_removed_player_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = toast
+	color = neutral
+}
+
+smart_notifications_wargoal_removed_other = {
+	type = diplomatic_play
+	group = "smart_notifications_wargoal_removed_other_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = feed
 	color = neutral
 }

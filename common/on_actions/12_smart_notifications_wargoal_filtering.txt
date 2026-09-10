@@ -1,0 +1,78 @@
+﻿# F9 of docs/watchlist-spec.md -- war goals, split by whether the play
+# involves the player.
+#
+# Vanilla posts one notification for everyone: `wargoal_added` reads "X has
+# been added for Y", with no reference to the player at all, so it fires
+# just as loudly for a play you are merely observing as for one you are
+# fighting. That makes a single global tier unable to express the rule --
+# hence this split, and hence both vanilla keys being muted in
+# common/messages/00_messages.txt in favour of the four
+# smart_notifications_wargoal_* keys.
+#
+# Root = Diplomatic Play, scope:actor = the war goal owner -- confirmed
+# from vanilla's own comment above on_wargoal_added in
+# common/on_actions/00_code_on_actions.txt, which is the only source
+# CLAUDE.md accepts for an on_action's runtime root.
+#
+# "Involves you" is tested with the same
+# `any_scope_play_involved = { is_diplomatic_play_participant_with = ... }`
+# shape the diplo-play families use (03_smart_notifications_relational_notifications.txt),
+# NOT the bare `any_scope_play_involved` -- that broader form counts every
+# great power eligible to intervene in anything, which is what produced the
+# "super painful" Bali/Sulu toasts of 2026-09-08.
+#
+# NOT YET LIVE-TESTED: scope availability on these two on_actions is
+# unverified, so both branches log their decision. If `SNW_FILTER|wargoal`
+# lines never appear despite war goals being added, or appear with empty
+# country names, the fallback is to drop this file and return both vanilla
+# keys to `feed` -- one line each, and explicitly the user's second choice.
+
+on_wargoal_added = {
+	on_actions = {
+		smart_notifications_wargoal_added
+	}
+}
+
+on_wargoal_removed = {
+	on_actions = {
+		smart_notifications_wargoal_removed
+	}
+}
+
+smart_notifications_wargoal_added = {
+	effect = {
+		if = {
+			limit = {
+				any_scope_play_involved = {
+					is_diplomatic_play_participant_with = scope:actor
+					is_player = yes
+				}
+			}
+			post_notification = smart_notifications_wargoal_added_player
+			debug_log = "SNW_FILTER|wargoal|added|posted_key=smart_notifications_wargoal_added_player|actor=[SCOPE.sCountry('actor').GetNameNoFormatting]|PLAYER_INVOLVED"
+		}
+		else = {
+			post_notification = smart_notifications_wargoal_added_other
+			debug_log = "SNW_FILTER|wargoal|added|posted_key=smart_notifications_wargoal_added_other|actor=[SCOPE.sCountry('actor').GetNameNoFormatting]|ELSEWHERE"
+		}
+	}
+}
+
+smart_notifications_wargoal_removed = {
+	effect = {
+		if = {
+			limit = {
+				any_scope_play_involved = {
+					is_diplomatic_play_participant_with = scope:actor
+					is_player = yes
+				}
+			}
+			post_notification = smart_notifications_wargoal_removed_player
+			debug_log = "SNW_FILTER|wargoal|removed|posted_key=smart_notifications_wargoal_removed_player|actor=[SCOPE.sCountry('actor').GetNameNoFormatting]|PLAYER_INVOLVED"
+		}
+		else = {
+			post_notification = smart_notifications_wargoal_removed_other
+			debug_log = "SNW_FILTER|wargoal|removed|posted_key=smart_notifications_wargoal_removed_other|actor=[SCOPE.sCountry('actor').GetNameNoFormatting]|ELSEWHERE"
+		}
+	}
+}

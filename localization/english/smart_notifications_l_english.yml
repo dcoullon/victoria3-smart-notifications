@@ -2,7 +2,7 @@
  notification_smart_notifications_mod_loaded_tooltip:0 "#header $notification_smart_notifications_mod_loaded_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_mod_loaded_desc$"
  notification_smart_notifications_mod_loaded_name:0 "Smart Notifications active"
  notification_smart_notifications_mod_loaded_desc:0 "Great powers and neighbors are already on your Watchlist. Adjust it anytime in Message Settings (bell icon) > Watchlist."
- smart_notifications_mod_loaded_group:0 "Smart Notifications Mod"
+ smart_notifications_mod_loaded_group:0 "(SN) Mod Loaded"
 
  # New Message Settings categories created by splitting a vanilla group so
  # two siblings can have different priority (see 00_messages.txt comments).
@@ -56,6 +56,99 @@
  # SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName
  # pattern for the play's type name), substituting .GetNameNoFormatting
  # for .GetName per this mod's own established convention.
+
+ # F9 -- war goals. Every bracket expression below is copied verbatim from
+ # vanilla's own notification_wargoal_added/_removed loc in
+ # interfaces_l_english.yml -- including sCountry('actor'), which is what
+ # vanilla uses here, NOT the sC('actor') form this mod proved for the
+ # diplo-play keys. New family, so the precedent has to come from the same
+ # context (docs/engine-notes.md on precedent).
+ smart_notifications_wargoal_added_player_group:0 "(SN) War Goal Added, In a Play Involving You"
+ notification_smart_notifications_wargoal_added_player_tooltip:0 "#header $notification_smart_notifications_wargoal_added_player_name$#!
+$TOOLTIP_DELIMITER$
+$notification_smart_notifications_wargoal_added_player_desc$"
+ notification_smart_notifications_wargoal_added_player_name:0 "[SCOPE.sWarGoal('war_goal').GetType.GetName] [concept_war_goal] Added!"
+ notification_smart_notifications_wargoal_added_player_desc:0 "[SCOPE.sWarGoal('war_goal').GetName] has been added for [SCOPE.sCountry('actor').GetName], in a [concept_diplomatic_play] involving us."
+ smart_notifications_wargoal_added_other_group:0 "(SN) War Goal Added, Elsewhere"
+ notification_smart_notifications_wargoal_added_other_tooltip:0 "#header $notification_smart_notifications_wargoal_added_other_name$#!
+$TOOLTIP_DELIMITER$
+$notification_smart_notifications_wargoal_added_other_desc$"
+ notification_smart_notifications_wargoal_added_other_name:0 "[SCOPE.sWarGoal('war_goal').GetType.GetName] [concept_war_goal] Added!"
+ notification_smart_notifications_wargoal_added_other_desc:0 "[SCOPE.sWarGoal('war_goal').GetName] has been added for [SCOPE.sCountry('actor').GetName]."
+ smart_notifications_wargoal_removed_player_group:0 "(SN) War Goal Removed, In a Play Involving You"
+ notification_smart_notifications_wargoal_removed_player_tooltip:0 "#header $notification_smart_notifications_wargoal_removed_player_name$#!
+$TOOLTIP_DELIMITER$
+$notification_smart_notifications_wargoal_removed_player_desc$"
+ notification_smart_notifications_wargoal_removed_player_name:0 "[concept_war_goal] Removed!"
+ notification_smart_notifications_wargoal_removed_player_desc:0 "A [concept_war_goal] for [SCOPE.sCountry('actor').GetName] has been removed, in a [concept_diplomatic_play] involving us."
+ smart_notifications_wargoal_removed_other_group:0 "(SN) War Goal Removed, Elsewhere"
+ notification_smart_notifications_wargoal_removed_other_tooltip:0 "#header $notification_smart_notifications_wargoal_removed_other_name$#!
+$TOOLTIP_DELIMITER$
+$notification_smart_notifications_wargoal_removed_other_desc$"
+ notification_smart_notifications_wargoal_removed_other_name:0 "[concept_war_goal] Removed!"
+ notification_smart_notifications_wargoal_removed_other_desc:0 "A [concept_war_goal] for [SCOPE.sCountry('actor').GetName] has been removed."
+
+ # F1 -- the five diplomatic-action cells (docs/watchlist-spec.md F1).
+ # The at_player_* pair reuses vanilla's own full per-action desc, which is
+ # written assuming the reader is a party to the action -- accurate here and
+ # nowhere else. The other three use the generic wording, because vanilla's
+ # would claim involvement the player doesn't have. All five share the real
+ # per-action TITLE, which is safe in every case.
+ # Each key owns its own group so Message Settings can retune the cells
+ # independently (spec D11).
+ smart_notifications_diplomatic_action_at_player_by_watched_group:0 "(SN) Diplomatic Action, At You, From a Watched Country"
+ notification_smart_notifications_diplomatic_action_at_player_by_watched_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_at_player_by_watched_name$#!
+$TOOLTIP_DELIMITER$
+$notification_smart_notifications_diplomatic_action_at_player_by_watched_desc$"
+ notification_smart_notifications_diplomatic_action_at_player_by_watched_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
+ notification_smart_notifications_diplomatic_action_at_player_by_watched_desc:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationDesc]"
+ smart_notifications_diplomatic_action_at_player_by_other_group:0 "(SN) Diplomatic Action, At You, From Others"
+ notification_smart_notifications_diplomatic_action_at_player_by_other_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_at_player_by_other_name$#!
+$TOOLTIP_DELIMITER$
+$notification_smart_notifications_diplomatic_action_at_player_by_other_desc$"
+ notification_smart_notifications_diplomatic_action_at_player_by_other_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
+ notification_smart_notifications_diplomatic_action_at_player_by_other_desc:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationDesc]"
+ smart_notifications_diplomatic_action_at_watched_by_watched_group:0 "(SN) Diplomatic Action, At a Watched Country, From a Watched Country"
+ notification_smart_notifications_diplomatic_action_at_watched_by_watched_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_at_watched_by_watched_name$#!
+$TOOLTIP_DELIMITER$
+$notification_smart_notifications_diplomatic_action_at_watched_by_watched_desc$"
+ notification_smart_notifications_diplomatic_action_at_watched_by_watched_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
+ notification_smart_notifications_diplomatic_action_at_watched_by_watched_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] has taken a diplomatic action involving [SCOPE.sC('recipient').GetNameNoFormatting]. Open the Diplomacy screen for details."
+ smart_notifications_diplomatic_action_at_watched_by_other_group:0 "(SN) Diplomatic Action, At a Watched Country, From Others"
+ notification_smart_notifications_diplomatic_action_at_watched_by_other_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_at_watched_by_other_name$#!
+$TOOLTIP_DELIMITER$
+$notification_smart_notifications_diplomatic_action_at_watched_by_other_desc$"
+ notification_smart_notifications_diplomatic_action_at_watched_by_other_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
+ notification_smart_notifications_diplomatic_action_at_watched_by_other_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] has taken a diplomatic action involving [SCOPE.sC('recipient').GetNameNoFormatting]. Open the Diplomacy screen for details."
+ smart_notifications_diplomatic_action_elsewhere_group:0 "(SN) Diplomatic Action, Elsewhere"
+ notification_smart_notifications_diplomatic_action_elsewhere_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_elsewhere_name$#!
+$TOOLTIP_DELIMITER$
+$notification_smart_notifications_diplomatic_action_elsewhere_desc$"
+ notification_smart_notifications_diplomatic_action_elsewhere_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
+ notification_smart_notifications_diplomatic_action_elsewhere_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] has taken a diplomatic action involving [SCOPE.sC('recipient').GetNameNoFormatting]. Open the Diplomacy screen for details."
+
+ # F2 -- the player tier for diplomatic plays. Wording mirrors the
+ # _watched siblings above, reworded from your own point of view; every
+ # bracket expression here is one already proven in this file.
+ smart_notifications_diplo_play_start_player_group:0 "(SN) Diplomatic Play Started, Involving You"
+ notification_smart_notifications_diplo_play_start_player_tooltip:0 "#header $notification_smart_notifications_diplo_play_start_player_name$#!
+$TOOLTIP_DELIMITER$
+$notification_smart_notifications_diplo_play_start_player_desc$"
+ notification_smart_notifications_diplo_play_start_player_name:0 "[SCOPE.sC('actor').GetFlagTextIcon] [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b]"
+ notification_smart_notifications_diplo_play_start_player_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] started a [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] involving us."
+ smart_notifications_diplo_play_join_side_player_group:0 "(SN) Diplomatic Play Join Side, Involving You"
+ notification_smart_notifications_diplo_play_join_side_player_tooltip:0 "#header $notification_smart_notifications_diplo_play_join_side_player_name$#!
+$TOOLTIP_DELIMITER$
+$notification_smart_notifications_diplo_play_join_side_player_desc$"
+ notification_smart_notifications_diplo_play_join_side_player_name:0 "[SCOPE.sC('actor').GetNameNoFormatting] picks a side against us"
+ notification_smart_notifications_diplo_play_join_side_player_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] sided with [SCOPE.sC('target').GetNameNoFormatting] in a [concept_diplomatic_play] involving us."
+ smart_notifications_diplo_play_war_start_player_group:0 "(SN) Diplomatic Play War Start, Involving You"
+ notification_smart_notifications_diplo_play_war_start_player_tooltip:0 "#header $notification_smart_notifications_diplo_play_war_start_player_name$#!
+$TOOLTIP_DELIMITER$
+$notification_smart_notifications_diplo_play_war_start_player_desc$"
+ notification_smart_notifications_diplo_play_war_start_player_name:0 "War Erupts"
+ notification_smart_notifications_diplo_play_war_start_player_desc:0 "The [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b] [concept_diplomatic_play] between [SCOPE.sC('actor').GetNameNoFormatting] and [SCOPE.sC('target').GetNameNoFormatting] has escalated into open [concept_war]."
+
  smart_notifications_diplo_play_start_watched_group:0 "(SN) Diplomatic Play Started, Watched Country Involved"
  notification_smart_notifications_diplo_play_start_watched_tooltip:0 "#header $notification_smart_notifications_diplo_play_start_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_start_watched_desc$"
  notification_smart_notifications_diplo_play_start_watched_name:0 "[SCOPE.sC('actor').GetFlagTextIcon] [SCOPE.GetRootScope.GetDiplomaticPlay.GetDiplomaticPlayType.GetName|b]"
@@ -147,15 +240,7 @@
  # OUR independence") -- accepted as a known minor wording inaccuracy
  # for the narrow case of a third-party watched country hit by one of
  # those specific action types, not worth blocking this fix over.
- smart_notifications_diplomatic_action_watched_group:0 "(SN) Diplomatic Action, Watched Country Involved"
- notification_smart_notifications_diplomatic_action_watched_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplomatic_action_watched_desc$"
- notification_smart_notifications_diplomatic_action_watched_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
- notification_smart_notifications_diplomatic_action_watched_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] has taken a diplomatic action involving [SCOPE.sC('recipient').GetNameNoFormatting]. Open the Diplomacy screen for details."
 
- smart_notifications_diplomatic_action_quiet_group:0 "(SN) Diplomatic Action, Ambient"
- notification_smart_notifications_diplomatic_action_quiet_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_quiet_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplomatic_action_quiet_desc$"
- notification_smart_notifications_diplomatic_action_quiet_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
- notification_smart_notifications_diplomatic_action_quiet_desc:0 "[SCOPE.sC('actor').GetNameNoFormatting] has taken a diplomatic action involving [SCOPE.sC('recipient').GetNameNoFormatting]. Open the Diplomacy screen for details."
 
  # ADDED 2026-09-09: player-as-recipient case, split out from
  # _watched above so its desc can safely reuse vanilla's own full
@@ -163,10 +248,6 @@
  # and 00_messages.txt for why this one case is safe where the
  # generic _watched/_quiet cases are not -- vanilla's desc assumes the
  # player is a party to the action, which is true here specifically).
- smart_notifications_diplomatic_action_targeting_player_group:0 "(SN) Diplomatic Action, Targeting You"
- notification_smart_notifications_diplomatic_action_targeting_player_tooltip:0 "#header $notification_smart_notifications_diplomatic_action_targeting_player_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplomatic_action_targeting_player_desc$"
- notification_smart_notifications_diplomatic_action_targeting_player_name:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationName]"
- notification_smart_notifications_diplomatic_action_targeting_player_desc:0 "[SCOPE.GetRootScope.GetDiplomaticAction.GetActionNotificationDesc]"
 
  # Amendment-repealable alert (see 01_smart_notifications_alerts.txt).
  #

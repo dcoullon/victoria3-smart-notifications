@@ -159,7 +159,29 @@ smart_notifications_diplo_play_start = {
 		if = {
 			limit = { NOT = { has_variable = smart_notifications_start_notified_recently } }
 			set_variable = { name = smart_notifications_start_notified_recently value = yes days = 1 }
+			# F2 player tier (docs/watchlist-spec.md), added 2026-09-09.
+			# Checked BEFORE the watched branch because the player counts
+			# as watched (00_smart_notifications_triggers.txt) and would
+			# otherwise be swallowed by it -- which is exactly what used to
+			# happen, conflating "someone brought a play to me" with "a
+			# country I follow joined one somewhere".
+			#
+			# `scope:actor` excluded explicitly: spec invariant 5, a play
+			# YOU started is never promoted. It still falls through to the
+			# watched branch below, which is today's behaviour and what the
+			# user asked to keep.
 			if = {
+				limit = {
+					scope:actor ?= { NOT = { is_player = yes } }
+					any_scope_play_involved = {
+						is_diplomatic_play_participant_with = scope:actor
+						is_player = yes
+					}
+				}
+				post_notification = smart_notifications_diplo_play_start_player
+				debug_log = "SNW_FILTER|start|posted_key=smart_notifications_diplo_play_start_player|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|PLAYER_INVOLVED"
+			}
+			else_if = {
 				limit = {
 					any_scope_play_involved = {
 						is_diplomatic_play_participant_with = scope:actor
@@ -220,7 +242,29 @@ smart_notifications_diplo_play_join_side = {
 		if = {
 			limit = { NOT = { has_variable = smart_notifications_join_side_notified_recently } }
 			set_variable = { name = smart_notifications_join_side_notified_recently value = yes days = 1 }
+			# F2 player tier (docs/watchlist-spec.md), added 2026-09-09.
+			# Checked BEFORE the watched branch because the player counts
+			# as watched (00_smart_notifications_triggers.txt) and would
+			# otherwise be swallowed by it -- which is exactly what used to
+			# happen, conflating "someone brought a play to me" with "a
+			# country I follow joined one somewhere".
+			#
+			# `scope:actor` excluded explicitly: spec invariant 5, a play
+			# YOU started is never promoted. It still falls through to the
+			# watched branch below, which is today's behaviour and what the
+			# user asked to keep.
 			if = {
+				limit = {
+					scope:actor ?= { NOT = { is_player = yes } }
+					any_scope_play_involved = {
+						is_diplomatic_play_participant_with = scope:actor
+						is_player = yes
+					}
+				}
+				post_notification = smart_notifications_diplo_play_join_side_player
+				debug_log = "SNW_FILTER|join_side|posted_key=smart_notifications_diplo_play_join_side_player|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|PLAYER_INVOLVED"
+			}
+			else_if = {
 				limit = {
 					any_scope_play_involved = {
 						is_diplomatic_play_participant_with = scope:actor
@@ -276,7 +320,29 @@ smart_notifications_diplo_play_war_start = {
 		if = {
 			limit = { NOT = { has_variable = smart_notifications_war_start_notified_recently } }
 			set_variable = { name = smart_notifications_war_start_notified_recently value = yes days = 1 }
+			# F2 player tier (docs/watchlist-spec.md), added 2026-09-09.
+			# Checked BEFORE the watched branch because the player counts
+			# as watched (00_smart_notifications_triggers.txt) and would
+			# otherwise be swallowed by it -- which is exactly what used to
+			# happen, conflating "someone brought a play to me" with "a
+			# country I follow joined one somewhere".
+			#
+			# `scope:actor` excluded explicitly: spec invariant 5, a play
+			# YOU started is never promoted. It still falls through to the
+			# watched branch below, which is today's behaviour and what the
+			# user asked to keep.
 			if = {
+				limit = {
+					scope:actor ?= { NOT = { is_player = yes } }
+					any_scope_play_involved = {
+						is_diplomatic_play_participant_with = scope:actor
+						is_player = yes
+					}
+				}
+				post_notification = smart_notifications_diplo_play_war_start_player
+				debug_log = "SNW_FILTER|war_start|posted_key=smart_notifications_diplo_play_war_start_player|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|PLAYER_INVOLVED"
+			}
+			else_if = {
 				limit = {
 					any_scope_play_involved = {
 						is_diplomatic_play_participant_with = scope:actor
