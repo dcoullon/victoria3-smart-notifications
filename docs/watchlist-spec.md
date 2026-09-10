@@ -84,6 +84,13 @@ Rationale: nothing existential lives in this bucket. War arrives via F2;
 subjugation and alliances via proposals (§2). The worst thing lost to the
 feed is a rivalry or embargo declared by a country you are not watching.
 
+**Every row above gets its own message key and its own group** (see D11) so
+each can be retuned, including muted outright, from the in-game Message
+Settings without a code change. That is the mechanism for the user's
+follow-on goal of thinning the *feed* later: the bottom row ("aimed at
+anyone else") is the obvious mute candidate once the toast tiers are
+right, and muting it is then a player setting rather than a release.
+
 ### F2 — Diplomatic plays
 
 | situation | tier |
@@ -144,17 +151,18 @@ this is a pure tier change.
 ### F6 — Attitude changes
 
 `country_attitude_changed` / `_improved` / `_worsened`. Currently muted
-outright (`none`).
+outright (`none`); **vanilla's own default is `feed`**, and this mod
+demoted them as "recurring AI opinion-drift spam".
 
-**Also inherently player-directed** — root scope is the country whose
-attitude changed, and vanilla's text reads "The attitude of X towards us
-has worsened". So "attitude changes of watched countries towards me" needs
-only a watched/unwatched split, no new logic.
+These are inherently player-directed — vanilla's text reads "The attitude
+of X towards us has worsened" — but **they cannot be filtered by the
+Watchlist.** No on_action posts them: they are fired by engine code with
+no moddable hook (confirmed 2026-09-09 — nothing anywhere in vanilla
+`common/` references these keys except the message definitions
+themselves). The only lever is the global tier, all countries at once.
 
-| situation | tier |
-|---|---|
-| a **watched** country's attitude toward you | *(open — see Q2)* |
-| anyone else's | none (stay muted) |
+So the choice is between three global settings, not a watched/unwatched
+split. *(Open — see Q2.)*
 
 ### F7 — Subject released
 
@@ -169,10 +177,20 @@ spirit.
 
 `wargoal_added` / `wargoal_removed`. Currently `feed`.
 
-Unlike F5 and F6 these are **not** player-scoped — vanilla's text is
-"[war goal] has been added for [actor]", which fires for plays you are
-merely observing. Promoting them wholesale would be noisy. *(Open — see
-Q3.)*
+Unlike F5 these are **not** player-scoped — vanilla's text is "[war goal]
+has been added for [actor]", which fires for plays you are merely
+observing, so promoting them wholesale would be noisy.
+
+| situation | tier |
+|---|---|
+| the play involves **you** | toast |
+| any other play | feed |
+
+Feasible: `on_wargoal_added` exists (Root = Diplomatic Play,
+`scope:actor` = war goal owner), so the play's participants can be tested
+with the same `is_diplomatic_play_participant_with` pattern F2 already
+uses. If it turns out more awkward than that in practice, fall back to
+leaving the whole family at `feed` — the user's explicit second choice.
 
 ## 5. Invariants
 
@@ -214,6 +232,14 @@ rather than *what* they did.
   few places needing three tiers check `is_player` explicitly first, which
   is how the diplomatic-action file already works. No migration, no trigger
   surgery.
+- **D11 — one message key and one group per rule cell.** Player Message
+  Settings overrides apply per *group*, not per key (CLAUDE.md § Engine &
+  Syntax Rules), so a cell only stays player-adjustable if it owns its
+  group outright. This also satisfies the engine's "no mixed notification
+  types in one group" rule for free. Cost: one extra entry per cell in the
+  player's Message Settings list, each carrying the `(SN) ` prefix. The
+  benefit is that any future retune — especially muting feed noise —
+  becomes a setting the player changes, not a release we ship.
 - **Muting `diplo_play_start_notification` is safe** despite its text
   meaning "X started a play against us". Checked 2026-09-09: in
   single-player both it and `on_diplo_play_start_third_party` fire for the
@@ -223,17 +249,26 @@ rather than *what* they did.
 
 ## 8. Open questions
 
-**Q1 — F1, final confirmation.** The user leaned toward the table above
-after seeing the real events. Confirm and it locks.
+**Q1 — F1. LOCKED.** Table confirmed by the user after reviewing the real
+events, with the per-cell key/group requirement added as D11.
 
-**Q2 — F6 tier.** A watched country's attitude toward you worsening:
-`toast` or `feed`? (Recommendation: `feed` — attitude drifts often and is
-rarely actionable on the day it happens.)
+**Q2 — F6 tier. STILL OPEN, and the previous answer was based on a wrong
+premise.** The user answered "toast for now", understanding it as *toast
+for watched countries*. That is not available: attitude notifications have
+no moddable hook, so the tier applies to **every country at once**. The
+real options are:
 
-**Q3 — F9.** War goals are not player-scoped. Options: **(a)** leave at
-`feed`; **(b)** toast only when the play involves you; **(c)** toast when
-it involves you or a watched country. (Recommendation: **(b)** — a war
-goal against you is actionable; one in a play you are watching is not.)
+- **(a)** `feed` — vanilla's own default. Restores visibility without
+  interruption; you would see attitude shifts when you go looking.
+  *(Recommended.)*
+- **(b)** `toast` — every country's attitude shift toward you interrupts.
+  Two tiers above vanilla's own judgement of the event, and this mod muted
+  it as spam once already.
+- **(c)** stay muted.
+
+**Q3 — F9. LOCKED** as option (b): toast when the play involves you, feed
+otherwise. Confirmed feasible via `on_wargoal_added`. Falls back to leaving
+the family at `feed` if implementation proves awkward.
 
 ## 9. Implementation sequencing (once locked)
 
