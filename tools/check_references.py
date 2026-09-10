@@ -492,11 +492,6 @@ WATCHLIST_SPEC_CELLS = {
     # F7 -- subject released, unchanged by the spec but pinned so it cannot
     # drift silently.
     "smart_notifications_diplo_play_subject_released_watched": "toast",
-    # F9 -- war goals.
-    "smart_notifications_wargoal_added_player": "toast",
-    "smart_notifications_wargoal_added_other": "feed",
-    "smart_notifications_wargoal_removed_player": "toast",
-    "smart_notifications_wargoal_removed_other": "feed",
 }
 
 # Cells that deliberately SHARE a group, and the group they share. D11 wants
@@ -533,14 +528,6 @@ WATCHLIST_SPEC_SHARED_GROUPS = {
         "smart_notifications_diplomatic_action_break_at_player_by_watched",
         "smart_notifications_diplomatic_action_break_at_watched_by_watched",
     },
-    "smart_notifications_wargoal_player_group": {
-        "smart_notifications_wargoal_added_player",
-        "smart_notifications_wargoal_removed_player",
-    },
-    "smart_notifications_wargoal_other_group": {
-        "smart_notifications_wargoal_added_other",
-        "smart_notifications_wargoal_removed_other",
-    },
 }
 
 # Vanilla keys whose tier the spec pins directly (F5, F6, and the two the F9
@@ -574,8 +561,8 @@ WATCHLIST_SPEC_VANILLA_TIERS = {
     "diplomatic_proposal_third_party_break_accepted": "none",
     "diplomatic_proposal_third_party_break_declined": "none",
     "diplomatic_action_break_notification": "none",
-    "wargoal_added": "none",
-    "wargoal_removed": "none",
+    "wargoal_added": "feed",
+    "wargoal_removed": "feed",
 }
 
 

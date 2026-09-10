@@ -1772,12 +1772,19 @@ wargoal_added = {
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
-	# F9 (docs/watchlist-spec.md): muted 2026-09-09 in favour of the two
-	# smart_notifications_wargoal_* keys below, which split this by
-	# whether the play involves you. Vanilla's own text is not
-	# player-scoped ("X has been added for Y") -- it fires for plays you
-	# are merely observing, so a single global tier can't express the rule.
-	notification_type = none
+	# RESTORED TO VANILLA 2026-09-10. This mod briefly replaced the war goal
+	# notifications with its own filtered pair, so a goal in a play involving
+	# the player could toast. That whole family is deleted, because the user
+	# pointed out the fact it rested on: war goals can only be added during a
+	# diplomatic play's first two phases, never once the war has started.
+	#
+	# So the only goals that exist are a play's DEMANDS, arriving one after
+	# another as it opens -- which is exactly what the user saw toasting, in
+	# both directions, and did not want. There is no "added later during the
+	# war" case to elevate; it does not exist. With nothing left worth
+	# raising, vanilla's own feed tier is already right, and the mod's rule
+	# against diverging from base-game behaviour that works applies.
+	notification_type = feed
 	color = neutral
 }
 
@@ -1787,12 +1794,19 @@ wargoal_removed = {
 
 	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
 
-	# F9 (docs/watchlist-spec.md): muted 2026-09-09 in favour of the two
-	# smart_notifications_wargoal_* keys below, which split this by
-	# whether the play involves you. Vanilla's own text is not
-	# player-scoped ("X has been added for Y") -- it fires for plays you
-	# are merely observing, so a single global tier can't express the rule.
-	notification_type = none
+	# RESTORED TO VANILLA 2026-09-10. This mod briefly replaced the war goal
+	# notifications with its own filtered pair, so a goal in a play involving
+	# the player could toast. That whole family is deleted, because the user
+	# pointed out the fact it rested on: war goals can only be added during a
+	# diplomatic play's first two phases, never once the war has started.
+	#
+	# So the only goals that exist are a play's DEMANDS, arriving one after
+	# another as it opens -- which is exactly what the user saw toasting, in
+	# both directions, and did not want. There is no "added later during the
+	# war" case to elevate; it does not exist. With nothing left worth
+	# raising, vanilla's own feed tier is already right, and the mod's rule
+	# against diverging from base-game behaviour that works applies.
+	notification_type = feed
 	color = neutral
 }
 

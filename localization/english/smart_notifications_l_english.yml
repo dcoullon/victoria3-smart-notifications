@@ -66,20 +66,6 @@
  # vanilla uses here, NOT the sC('actor') form this mod proved for the
  # diplo-play keys. New family, so the precedent has to come from the same
  # context (docs/engine-notes.md on precedent).
- smart_notifications_wargoal_player_group:0 "(SN) War Goal, In a Play Involving You"
- smart_notifications_wargoal_other_group:0 "(SN) War Goal, Other Plays"
- notification_smart_notifications_wargoal_added_player_tooltip:0 "#header $notification_smart_notifications_wargoal_added_player_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_wargoal_added_player_desc$"
- notification_smart_notifications_wargoal_added_player_name:0 "[SCOPE.sWarGoal('war_goal').GetType.GetName] [concept_war_goal] Added!"
- notification_smart_notifications_wargoal_added_player_desc:0 "[SCOPE.sWarGoal('war_goal').GetName] has been added for [SCOPE.sCountry('actor').GetName], in a [concept_diplomatic_play] involving us."
- notification_smart_notifications_wargoal_added_other_tooltip:0 "#header $notification_smart_notifications_wargoal_added_other_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_wargoal_added_other_desc$"
- notification_smart_notifications_wargoal_added_other_name:0 "[SCOPE.sWarGoal('war_goal').GetType.GetName] [concept_war_goal] Added!"
- notification_smart_notifications_wargoal_added_other_desc:0 "[SCOPE.sWarGoal('war_goal').GetName] has been added for [SCOPE.sCountry('actor').GetName]."
- notification_smart_notifications_wargoal_removed_player_tooltip:0 "#header $notification_smart_notifications_wargoal_removed_player_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_wargoal_removed_player_desc$"
- notification_smart_notifications_wargoal_removed_player_name:0 "[concept_war_goal] Removed!"
- notification_smart_notifications_wargoal_removed_player_desc:0 "A [concept_war_goal] for [SCOPE.sCountry('actor').GetName] has been removed, in a [concept_diplomatic_play] involving us."
- notification_smart_notifications_wargoal_removed_other_tooltip:0 "#header $notification_smart_notifications_wargoal_removed_other_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_wargoal_removed_other_desc$"
- notification_smart_notifications_wargoal_removed_other_name:0 "[concept_war_goal] Removed!"
- notification_smart_notifications_wargoal_removed_other_desc:0 "A [concept_war_goal] for [SCOPE.sCountry('actor').GetName] has been removed."
 
  # F10 -- pact breaks. Same split as the F1 cells above: vanilla's own break
  # wording is reused verbatim for the case where the player was a party to the

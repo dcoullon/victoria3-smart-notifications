@@ -254,7 +254,6 @@ smart_notifications_diplo_play_join_side_watched = {
 }
 
 
-
 smart_notifications_diplo_play_war_start_watched = {
 	type = diplomatic_play
 	group = "smart_notifications_diplo_play_war_start_watched_group"
@@ -361,45 +360,6 @@ smart_notifications_diplo_play_subject_released_watched = {
 # Posted from on_wargoal_added / on_wargoal_removed, whose root is the
 # diplomatic play itself -- see 12_smart_notifications_wargoal_filtering.txt.
 
-smart_notifications_wargoal_added_player = {
-	type = diplomatic_play
-	group = "smart_notifications_wargoal_player_group"
-
-	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
-
-	notification_type = toast
-	color = neutral
-}
-
-smart_notifications_wargoal_removed_player = {
-	type = diplomatic_play
-	group = "smart_notifications_wargoal_player_group"
-
-	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
-
-	notification_type = toast
-	color = neutral
-}
-
-smart_notifications_wargoal_added_other = {
-	type = diplomatic_play
-	group = "smart_notifications_wargoal_other_group"
-
-	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
-
-	notification_type = feed
-	color = neutral
-}
-
-smart_notifications_wargoal_removed_other = {
-	type = diplomatic_play
-	group = "smart_notifications_wargoal_other_group"
-
-	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
-
-	notification_type = feed
-	color = neutral
-}
 
 smart_notifications_truce_expired = {
 	type = country

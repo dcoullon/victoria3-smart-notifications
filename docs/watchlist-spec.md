@@ -261,33 +261,23 @@ that branch now posts nothing. The on_action still logs the decision.
 
 **Unchanged:** toast regardless of the other country.
 
-### F9 — War goals
+### F9 — War goals — REMOVED, reverted to vanilla (2026-09-10)
 
-`wargoal_added` / `wargoal_removed`. Currently `feed`.
+`wargoal_added` / `wargoal_removed` are back at vanilla's `feed`, and this mod
+no longer touches them at all.
 
-Unlike F5 these are **not** player-scoped — vanilla's text is "[war goal]
-has been added for [actor]", which fires for plays you are merely
-observing, so promoting them wholesale would be noisy.
+The family existed to elevate a war goal added to a play involving the player.
+It rested on an assumption the user corrected: **war goals can only be added
+during a diplomatic play's first two phases, never after the war has started.**
+So the only goals that exist are a play's *demands*, arriving one after another
+as it opens — which is precisely what was toasting, in both directions, and
+precisely what the user did not want. There is no "added later, mid-war" case
+to elevate, because there is no such case.
 
-| situation | tier |
-|---|---|
-| the play **is already a war**, involves **you**, and someone else added the goal | toast |
-| anything else | feed |
-
-**Tightened 2026-09-10, after watching it in practice.** The original rule
-toasted any goal in a play involving the player, on the belief that a play's
-opening goals are created with the play and never reach the hook. They do reach
-it — so each *demand* toasted as a play opened, in both directions. War goals
-added while a play is still a play are its demands; only a goal added after the
-war has actually started is an escalation worth interrupting for. Goals the
-player adds themselves never toast, for the same reason a play you started
-doesn't.
-
-Feasible: `on_wargoal_added` exists (Root = Diplomatic Play,
-`scope:actor` = war goal owner), so the play's participants can be tested
-with the same `is_diplomatic_play_participant_with` pattern F2 already
-uses. If it turns out more awkward than that in practice, fall back to
-leaving the whole family at `feed` — the user's explicit second choice.
+With nothing left worth raising above vanilla's tier, the rule against
+diverging from base-game behaviour that already works settles it. Deleted: four
+message keys, two Message Settings rows, their localization, and
+`12_smart_notifications_wargoal_filtering.txt` with its two on_action hooks.
 
 ## 5. Invariants
 
