@@ -412,6 +412,72 @@ Impossible to weigh "20% of upper loyal, 5% of middle and lower radical"
 against "5% of everyone" without the three strata sizes — all three of which
 are directly available.
 
+### REVISED 2026-09-11 (second pass): it CAN be dynamic — 8 loc keys, not 2,227 events
+
+Measured distribution across **all 1,376** `add_radicals`/`add_loyalists`
+blocks in vanilla (so this supersedes any impression from a handful of
+screenshots — strata is real but it is not the majority):
+
+| filter | share |
+|---|---|
+| `pop_type` | 26.2% |
+| `culture` | 24.6% |
+| `strata` | 17.9% |
+| *(no filter — all pops)* | 15.8% |
+| `interest_group` | 11.8% |
+| `religion` | 9.3% |
+
+Scope: **country 59%, state 41%** — and **nothing else**. `add_radicals`
+supports only country scope and `add_radicals_in_state` only state scope, so
+**the strategic-region blocker does not apply to these effects at all.** Any
+"region" phrasing the player sees comes from the event's own prose, not the
+effect. That earlier blocker is closed.
+
+**The mechanism.** The effect tooltip is not hand-written per event — the
+engine renders it from **eight overridable loc keys**
+(`interfaces_l_english.yml:584-593`):
+
+```
+ADD_RADICALS:3        "$VALUE|-=1%$ of $FILTER_DESC$ become more [concept_radical]"
+ADD_RADICALS_FIRST:3  "$VALUE|-=1%$ of $FILTER_DESC$ in [COUNTRY.GetNameNoFlag] become more [concept_radical]"
+ADD_RADICALS_THIRD:3  "$VALUE|-=1%$ of $FILTER_DESC$ in [COUNTRY.GetName] become more [concept_radical]"
+ADD_RADICALS_IN_STATE_THIRD: "$VALUE|-=1%$ of $FILTER_DESC$ in [STATE.GetName] become more [concept_radical]"
+(+ the four ADD_LOYALISTS equivalents)
+```
+
+A mod can override a loc key. Overriding these eight changes the tooltip for
+**every one of the 1,376 effect blocks at once** — no per-event work, no event
+file overrides, and it keeps working for events added in future patches.
+
+**What is in scope inside the template:** `$VALUE$` (the percentage),
+`$FILTER_DESC$`, and `[COUNTRY]` / `[STATE]`.
+
+**The hard limit:** `$FILTER_DESC$` arrives **pre-rendered as a string**. The
+engine does not hand us the strata / pop type / culture / interest group as an
+object, and there is no sub-template for it (searched: no `FILTER_DESC`-style
+loc key exists — it is built natively). So we can resolve the **scope's**
+population, never the filtered subgroup's.
+
+**What that makes buildable, for 100% of events, from eight keys:**
+
+- country-scoped effects → append the country's three strata head-counts and
+  total, via `[GetTrendValue(COUNTRY.GetLowerStrataPopulationTrend)|vD]` etc.
+  This gives an exact denominator for the 17.9% strata case and a usable frame
+  for the rest.
+- state-scoped effects → append `[STATE.GetPopulationSize|Kv]`.
+
+For `pop_type`, `culture`, `religion` and `interest_group` filters (72% of
+blocks) we cannot name the subgroup's size, because we cannot tell which
+subgroup the filter picked. Those get the scope total only.
+
+**To verify first:** that a mod's `ADD_RADICALS` override actually wins over
+vanilla's (Paradox loc keys carry a `:3` version suffix; confirm whether load
+order or the version number decides, and match it).
+
+**Consequence for the event-window strip below:** largely redundant if the
+tooltip override lands, since the numbers arrive exactly where the player is
+already looking. Build the loc override first and re-evaluate the strip after.
+
 ### What the cheap version is, concretely
 
 **A population context strip in the event window.** One `eventwindow.gui`
