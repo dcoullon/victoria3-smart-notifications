@@ -16,11 +16,39 @@ standalone: `python tools/check_references.py`.
 Each `check_*` function returns a list of human-readable error strings
 (empty list = pass) and never raises for a normal missing-reference case.
 """
+import json
 import re
 from pathlib import Path
 
 TEXT_SUFFIXES = {".txt", ".gui"}
 VANILLA_ROOT = Path(r"C:\Program Files (x86)\Steam\steamapps\common\Victoria 3\game")
+
+# This repo builds more than one mod (see smart_ui/README.md for why the split
+# exists). Checks that assert Smart Notifications' OWN required content is
+# present are meaningless against a sibling mod, so they are gated on the mod
+# id below rather than skipped by folder name -- a rename cannot then silently
+# disable them.
+SMART_NOTIFICATIONS_ID = "smart_notifications"
+
+
+def read_mod_id(root: Path) -> str:
+    """The `id` from a mod root's .metadata/metadata.json, or "" if this
+    directory isn't a mod root (or its metadata is unreadable)."""
+    meta = root / ".metadata" / "metadata.json"
+    if not meta.is_file():
+        return ""
+    try:
+        return json.loads(meta.read_text(encoding="utf-8")).get("id", "")
+    except (json.JSONDecodeError, OSError):
+        return ""
+
+
+def nested_mod_roots(root: Path) -> list[Path]:
+    """Other mods developed inside this repo, each identified by its own
+    .metadata/metadata.json. Their files are not this mod's files, so every
+    whole-tree scan has to exclude them -- otherwise the parent mod's checks
+    would judge a sibling mod's `.gui` overrides as its own."""
+    return [meta.parent.parent for meta in root.glob("*/.metadata/metadata.json")]
 
 
 def _strip_comments(content: str) -> str:
@@ -55,12 +83,14 @@ def _iter_mod_files(root: Path):
     e.g. vanilla's own untouched `popup`-type message getting compared
     against our deliberately-muted override of the same key as if they
     were two messages sharing one group)."""
+    siblings = nested_mod_roots(root)
     for path in root.rglob("*.*"):
         if (
             path.suffix in TEXT_SUFFIXES
             and "tools" not in path.parts
             and ".git" not in path.parts
             and "reference" not in path.parts
+            and not any(sib in path.parents for sib in siblings)
         ):
             yield path
 
@@ -747,21 +777,30 @@ def check_loc_lines_are_well_formed(root: Path) -> list[str]:
 def run_all(root: Path) -> list[str]:
     defined_loc = load_defined_loc_keys(root)
     errs = []
+
+    # Mod-agnostic: these either apply to any mod in this repo, or no-op
+    # cleanly when the directory they inspect doesn't exist.
     errs += check_custom_tooltip_keys(root, defined_loc)
     errs += check_scripted_gui_references(root)
     errs += check_alert_loc_completeness(root, defined_loc)
     errs += check_alert_group_registration(root, defined_loc)
     errs += check_post_notification_targets(root, defined_loc)
-    errs += check_law_type_dispatch_consistency(root)
     errs += check_law_types_exist_in_vanilla(root)
     errs += check_json_files_have_no_bom(root)
-    errs += check_full_overrides_match_installed_vanilla(root)
     errs += check_mixed_group_notification_types(root)
-    errs += check_watchlist_spec_tiers(root)
-    errs += check_watchlist_spec_group_isolation(root)
-    errs += check_mod_group_labels_are_tagged(root)
     errs += check_notification_loc_completeness(root, defined_loc)
     errs += check_loc_lines_are_well_formed(root)
+
+    # Smart-Notifications-only: each asserts that specific files or message
+    # keys THIS mod owns are present, so against a sibling mod every one of
+    # them reports the whole mod as missing. See SMART_NOTIFICATIONS_ID above.
+    if read_mod_id(root) == SMART_NOTIFICATIONS_ID:
+        errs += check_law_type_dispatch_consistency(root)
+        errs += check_full_overrides_match_installed_vanilla(root)
+        errs += check_watchlist_spec_tiers(root)
+        errs += check_watchlist_spec_group_isolation(root)
+        errs += check_mod_group_labels_are_tagged(root)
+
     return errs
 
 

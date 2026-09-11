@@ -1,0 +1,12 @@
+{
+	"name": "Smart UI - Dev",
+	"id": "smart_ui",
+	"version": "0.01",
+	"supported_game_version": "1.13.*",
+	"short_description": "Surfaces information the game already knows but buries: who is allied to whom, who is likely to join a diplomatic play, and how many people an event choice actually affects.",
+	"tags": ["User Interface", "Utilities"],
+	"relationships": [],
+	"game_custom_data": {
+		"multiplayer_synchronized": false
+	}
+}
