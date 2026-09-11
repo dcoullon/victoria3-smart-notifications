@@ -4,11 +4,6 @@
 # dev tooling, not treated as personal/local config.
 .claude/settings.json
 
-# Unrelated personal script that ended up in this working directory --
-# not part of the Victoria 3 mod, never intended for this repo.
-tools/dmv_checker/
-__pycache__/
-
 # OS cache/metadata files -- never intentional content.
 .DS_Store
 Thumbs.db
