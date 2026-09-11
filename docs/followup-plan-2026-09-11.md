@@ -452,23 +452,57 @@ file overrides, and it keeps working for events added in future patches.
 **What is in scope inside the template:** `$VALUE$` (the percentage),
 `$FILTER_DESC$`, and `[COUNTRY]` / `[STATE]`.
 
-**The hard limit:** `$FILTER_DESC$` arrives **pre-rendered as a string**. The
-engine does not hand us the strata / pop type / culture / interest group as an
-object, and there is no sub-template for it (searched: no `FILTER_DESC`-style
-loc key exists — it is built natively). So we can resolve the **scope's**
-population, never the filtered subgroup's.
+**CORRECTION — an earlier pass claimed `$FILTER_DESC$` was engine-rendered and
+the subgroup therefore unknowable. That was wrong.** `$FILTER_DESC$` resolves
+to `POP_EFFECT_FILTER`, itself an overridable loc key, and it proves the filter
+objects are live scopes in this context (`effects_l_english.yml:577-582`):
 
-**What that makes buildable, for 100% of events, from eight keys:**
+```
+POP_EFFECT_FILTER: "[AddLocalizationIf(InterestGroup.IsValid, 'POP_EFFECT_FILTER_INTEREST_GROUP')]
+                    [AddLocalizationIf(Culture.IsValid,       'POP_EFFECT_FILTER_CULTURE')]
+                    [AddLocalizationIf(Religion.IsValid,      'POP_EFFECT_FILTER_RELIGION')]
+                    [AddLocalizationIf(PopType.IsValid,       'POP_EFFECT_FILTER_POP_TYPE')]
+                    [AddTextIf(Not(EqualTo_string('none', '$STRATA$')), Concatenate(Localize('$STRATA$'), ' '))]
+                    [Concept('concept_pop', '$concept_pops$')]"
+POP_EFFECT_FILTER_INTEREST_GROUP: "[InterestGroup.GetName] members of "
+POP_EFFECT_FILTER_CULTURE:        "[Culture.GetName] "
+POP_EFFECT_FILTER_RELIGION:       "[Religion.GetName] "
+POP_EFFECT_FILTER_POP_TYPE:       "[PopType.GetName] "
+```
 
-- country-scoped effects → append the country's three strata head-counts and
-  total, via `[GetTrendValue(COUNTRY.GetLowerStrataPopulationTrend)|vD]` etc.
-  This gives an exact denominator for the 17.9% strata case and a usable frame
-  for the rest.
-- state-scoped effects → append `[STATE.GetPopulationSize|Kv]`.
+So `InterestGroup`, `Culture`, `Religion` and `PopType` are all bound objects
+(each with `.IsValid` to test which one applies), `$STRATA$` is a string
+(`'none'` when unset), and the parent template adds `COUNTRY` / `STATE`.
 
-For `pop_type`, `culture`, `religion` and `interest_group` filters (72% of
-blocks) we cannot name the subgroup's size, because we cannot tell which
-subgroup the filter picked. Those get the scope total only.
+**Every one of the six filter shapes therefore has a population accessor** —
+all confirmed present in vanilla loc:
+
+| filter | share | accessor |
+|---|---|---|
+| `pop_type` | 26.2% | `PopType.GetPopulation(COUNTRY)` / `PopType.GetStatePopulation(STATE)` |
+| `culture` | 24.6% | `Culture.GetPopulation` / `Culture.GetStatePopulation` |
+| `strata` | 17.9% | `COUNTRY.Get{Lower,Middle,Upper}StrataPopulationTrend`, selected off `$STRATA$` |
+| *(none)* | 15.8% | `COUNTRY.GetTotalPopulation` / `STATE.GetPopulationSize` |
+| `interest_group` | 11.8% | `InterestGroup.GetPopulation` |
+| `religion` | 9.3% | `Religion.GetPopulation` / `Religion.GetStatePopulation` |
+
+**A literal "≈ XXk people affected" is computable in 100% of cases**, since
+`$VALUE$` is the fraction and vanilla already does loc-side arithmetic with
+`Multiply_CFixedPoint`. One override of `POP_EFFECT_FILTER` (or of the four
+sub-keys) reaches every event, journal entry and decision that uses these
+effects — and `KILL_POPULATION*` shares the same `$FILTER_DESC$`, so war and
+disaster tooltips improve for free.
+
+**Three things to test before building:**
+
+1. Is `$VALUE$` reachable inside `POP_EFFECT_FILTER`? `$STRATA$` is, so
+   parameters do pass through — but if not, do the append in the eight parent
+   templates instead, where `$VALUE$` certainly exists and the filter scopes
+   should still be bound.
+2. Can `STATE.Self` / `COUNTRY.Self` be passed as a function argument
+   (`PopType.GetStatePopulation(STATE.Self)`)? Same open question as before.
+3. Does a mod's `ADD_RADICALS` override beat vanilla's? The keys carry a `:3`
+   version suffix — confirm whether load order or that number decides.
 
 **To verify first:** that a mod's `ADD_RADICALS` override actually wins over
 vanilla's (Paradox loc keys carry a `:3` version suffix; confirm whether load
