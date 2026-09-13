@@ -69,7 +69,32 @@
  # one needs STATE.Self passed as a function ARGUMENT, which does not --
  # hence the (s3) tag staying on until it is seen working.
  # ---------------------------------------------------------------------
- BDI_AFFECTED_IN_STATE:0 "\n$TAB$#indent_newline:3 (s3 v=$VALUE$) [STATE.GetName] has [STATE.GetPopulationSize|K] people[AddLocalizationIf(Culture.IsValid, 'BDI_AFF_S_CULTURE')][AddLocalizationIf(Religion.IsValid, 'BDI_AFF_S_RELIGION')][AddLocalizationIf(PopType.IsValid, 'BDI_AFF_S_POPTYPE')]#!"
+ BDI_AFFECTED_IN_STATE:0 "\n$TAB$#indent_newline:3 (s3 v=$VALUE$) [STATE.GetName] has [STATE.GetPopulationSize|K] people[AddLocalizationIf(Culture.IsValid, 'BDI_AFF_S_CULTURE')][AddLocalizationIf(Religion.IsValid, 'BDI_AFF_S_RELIGION')][AddLocalizationIf(PopType.IsValid, 'BDI_AFF_S_POPTYPE')][AddTextIf(EqualTo_string('lower', '$STRATA$'), Localize('BDI_AFF_S_STRATA_LOWER'))][AddTextIf(EqualTo_string('middle', '$STRATA$'), Localize('BDI_AFF_S_STRATA_MIDDLE'))][AddTextIf(EqualTo_string('upper', '$STRATA$'), Localize('BDI_AFF_S_STRATA_UPPER'))] (s4 add=[Add_CFixedPoint('(CFixedPoint)2', '(CFixedPoint)3')])#!"
+
+ # Strata in a STATE, by national share.
+ #
+ # The user's suggestion -- decompose a strata into its professions and sum
+ # PopType.GetStatePopulation for each -- is right in principle but does not
+ # survive contact with the data: strata membership is NOT fixed, it is set
+ # per social hierarchy in common/social_classes/, and professions move
+ # between strata. farmers are middle by default but LOWER under the Edo
+ # system; capitalists are upper by default, MIDDLE under the Indian caste
+ # system and LOWER under Edo; academics are middle by default but UPPER in
+ # both others. A hardcoded profession list would therefore be silently
+ # wrong for India and Japan. There is also no confirmed addition function
+ # in loc (vanilla uses only Multiply/Divide/Subtract_CFixedPoint), so a
+ # 6-term sum has nothing to build on -- which (s4) above is testing.
+ #
+ # So this estimates instead, using only confirmed arithmetic: take the
+ # strata's share of the national population and apply it to the state.
+ # The engine computes those national strata totals correctly for whatever
+ # hierarchy the country uses, so this stays right across all three.
+ # The assumption -- that the state's strata mix matches the national mix --
+ # is wrong for colonial states specifically, so the wording says "roughly"
+ # and shows the share it used rather than hiding the estimate.
+ BDI_AFF_S_STRATA_LOWER:0 " -- roughly #b [Multiply_CFixedPoint('$VALUE$', Multiply_CFixedPoint(STATE.GetPopulationSize, Divide_CFixedPoint(GetTrendValue(COUNTRY.GetLowerStrataPopulationTrend), COUNTRY.GetTotalPopulation)))|K]#! of them, at [Divide_CFixedPoint(GetTrendValue(COUNTRY.GetLowerStrataPopulationTrend), COUNTRY.GetTotalPopulation)|%0] lower strata nationally"
+ BDI_AFF_S_STRATA_MIDDLE:0 " -- roughly #b [Multiply_CFixedPoint('$VALUE$', Multiply_CFixedPoint(STATE.GetPopulationSize, Divide_CFixedPoint(GetTrendValue(COUNTRY.GetMiddleStrataPopulationTrend), COUNTRY.GetTotalPopulation)))|K]#! of them, at [Divide_CFixedPoint(GetTrendValue(COUNTRY.GetMiddleStrataPopulationTrend), COUNTRY.GetTotalPopulation)|%0] middle strata nationally"
+ BDI_AFF_S_STRATA_UPPER:0 " -- roughly #b [Multiply_CFixedPoint('$VALUE$', Multiply_CFixedPoint(STATE.GetPopulationSize, Divide_CFixedPoint(GetTrendValue(COUNTRY.GetUpperStrataPopulationTrend), COUNTRY.GetTotalPopulation)))|K]#! of them, at [Divide_CFixedPoint(GetTrendValue(COUNTRY.GetUpperStrataPopulationTrend), COUNTRY.GetTotalPopulation)|%0] upper strata nationally"
 
  BDI_AFF_S_CULTURE:0 " -- about #b [Multiply_CFixedPoint('$VALUE$', STATE.GetPopulationForCulture(Culture.Self))|K]#! of [STATE.GetPopulationForCulture(Culture.Self)|K] [Culture.GetName] there"
  BDI_AFF_S_RELIGION:0 " -- about #b [Multiply_CFixedPoint('$VALUE$', Religion.GetStatePopulation(STATE.Self))|K]#! of [Religion.GetStatePopulation(STATE.Self)|K] [Religion.GetName] there"
