@@ -648,6 +648,61 @@ the console rather than waiting for them —
 
 Hover each option; the effect lines are in the option tooltip.
 
+## Status at end of 2026-09-12 — pick up here
+
+Branch `better-decision-info`. The whole event feature lives in one file:
+`better_decision_info/localization/replace/english/bdi_replace_probe_l_english.yml`.
+
+**Confirmed working in game, values cross-checked against the game's own
+panels (not just "it rendered"):**
+
+| line | example | verified against |
+|---|---|---|
+| subgroup size on a pop effect | `+2.0% of Rural Folk members of Pops (1.23M strong) in Portugal` | Rural Folk panel: 1.2M |
+| interest-group standing on a modifier | `-5 Interest Group Approval (Currently +2 with 6% clout)` | sidebar: +2 / 6.6% |
+| state scale on a modifier | `North Angola (703K people, 1% of the country) gets...` | — |
+
+**Settled negatives — do not re-attempt without new evidence:**
+
+- **The multiplied "about 24K" figure is impossible.** `$VALUE$` lives in the
+  parent template; the filter objects live in `POP_EFFECT_FILTER`; neither
+  context sees the other's half. Five candidate parameter names were tried
+  for the magnitude inside `POP_EFFECT_FILTER` and all echoed their own
+  names. `$STRATA$` does not reach the parent either.
+- **`interest_group_approval_add` cannot see its interest group** — modifier
+  labels render in a `Container` context (error.log, verbatim).
+- **Multi-filter effects (68 of 1376, 4.9%) must show nothing.** The affected
+  group is an intersection no accessor exposes; `And4` guards now suppress
+  the size line for them.
+- **Strata membership is hierarchy-dependent**, so a hardcoded profession sum
+  would be wrong for Japan (Edo) and British India (caste), and decisions can
+  switch a country mid-game. No accessor detects the active hierarchy.
+
+**Open, in priority order:**
+
+1. `(s11 state=… laborers=…)` on a strata modifier label — is `State` in
+   scope there? Expected to fail for the same reason `interest_group_approval_add`
+   did. If it fails, the "lower strata in this state" idea is closed.
+2. `(s9 … strong)` — no strata-filtered *pop* effect has been seen in game
+   yet. Uses `GetPlayer`, which the event audit showed is safe (0 of 246
+   strata effects apply to a foreign country).
+3. **Culture case, the original motivating example** — a culture in your
+   country takes a hit and you cannot tell how big that culture is. 294
+   culture-only effects exist, so the size line should fire. Good targets:
+   `acceptance_events.1`, `algeria_events.1`, `agitator_legal_events.23`;
+   richest files are `00_ip3_hungary_events.txt` (25), `poland_events.txt`
+   (24), `algeria_events.txt` (17).
+4. **Longer log run.** The interest-group guard writes a `FetchData failed`
+   line whenever a modifier's subject is not an interest group — 1275 in one
+   earlier session, 0 in a short one. Play long enough to see whether it
+   accumulates. It matters because `scan_logs.py` is how we judge Smart
+   Notifications' health, and this could bury real errors. Must be resolved
+   before ship.
+
+**Before ship, regardless:** strip every `(s#)` tag, rename the probe file to
+something non-throwaway, and decide the `(SN)`-equivalent tagging convention
+for this mod (CLAUDE.md's rule is written for Smart Notifications).
+
 ## Suggested order
 
 1. **Item 1 logging** — `audit_notification_coverage.py` first (pure analysis,
