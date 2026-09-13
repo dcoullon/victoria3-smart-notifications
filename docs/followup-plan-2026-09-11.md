@@ -556,9 +556,9 @@ All three are one short playthrough with a scratch loc key, not three sessions.
 
 ## Repo structure — decided and built 2026-09-11
 
-Everything in items 2a and 2b ships as a **second mod**, `smart_ui/`, developed
-in this repo on branch `smart-ui`. Full rationale in
-[smart_ui/README.md](../smart_ui/README.md); the short version:
+Everything in items 2a and 2b ships as a **second mod**, `better_decision_info/`, developed
+in this repo on branch `better-decision-info`. Full rationale in
+[better_decision_info/README.md](../better_decision_info/README.md); the short version:
 
 - **The split line is risk profile, not theme.** Script and small
   self-contained `.gui` stay in Smart Notifications. Overrides of large vanilla
@@ -574,9 +574,9 @@ in this repo on branch `smart-ui`. Full rationale in
   subscribers costs a new Workshop item, the subscriber count, and every
   player's stored settings. Starting separate keeps both options open.
 
-Built: branch `smart-ui`, `smart_ui/.metadata/metadata.json` (no BOM, verified),
+Built: branch `better-decision-info`, `better_decision_info/.metadata/metadata.json` (no BOM, verified),
 a placeholder loc file (BOM, verified), and an NTFS junction at
-`Documents/Paradox Interactive/Victoria 3/mod/smart_ui`. Still needs adding to
+`Documents/Paradox Interactive/Victoria 3/mod/better_decision_info`. Still needs adding to
 the active Playset in the launcher before it will load.
 
 **Tooling is now mod-aware.** `tools/check_references.py` gained
@@ -589,17 +589,17 @@ roots so the parent's checks never judge the sibling's files.
 
 Verified after gating: both roots pass; `check_known_good` and
 `check_watchlist_spec_tiers` still execute for Smart Notifications; called
-directly against `smart_ui` the watchlist check still produces its 46 errors,
+directly against `better_decision_info` the watchlist check still produces its 46 errors,
 proving it is gated rather than broken; the parent scan sees 0 sibling files.
 
 `SHIP_DIRS` in `package_release.py` is an allowlist resolved from the repo
-root, so `smart_ui/` cannot leak into a Smart Notifications release. Packaging
+root, so `better_decision_info/` cannot leak into a Smart Notifications release. Packaging
 the second mod needs its own target — not wired up, not needed until there is
 something to upload.
 
 ## Probe run — how to test 2b's mechanics (built 2026-09-12)
 
-`smart_ui/localization/english/smart_ui_probe_l_english.yml` answers all five
+`better_decision_info/localization/english/better_decision_info_probe_l_english.yml` answers all five
 open mechanics questions in **one** playthrough. Throwaway file; delete before
 anything ships.
 

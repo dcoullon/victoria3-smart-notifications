@@ -23,7 +23,7 @@ from pathlib import Path
 TEXT_SUFFIXES = {".txt", ".gui"}
 VANILLA_ROOT = Path(r"C:\Program Files (x86)\Steam\steamapps\common\Victoria 3\game")
 
-# This repo builds more than one mod (see smart_ui/README.md for why the split
+# This repo builds more than one mod (see better_decision_info/README.md for why the split
 # exists). Checks that assert Smart Notifications' OWN required content is
 # present are meaningless against a sibling mod, so they are gated on the mod
 # id below rather than skipped by folder name -- a rename cannot then silently

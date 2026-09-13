@@ -1,4 +1,4 @@
-# Smart UI (working title) — second mod in this repo
+# Better Decision Info — second mod in this repo
 
 A **separate Victoria 3 mod**, developed in this repo alongside Smart
 Notifications but shipped as its own Workshop item.
@@ -10,7 +10,7 @@ The split line is **risk profile, not theme**:
 - **Smart Notifications** (repo root) — script under `common/` and `events/`,
   plus small self-contained `.gui` files. Live on the Workshop with real
   subscribers. Low conflict risk.
-- **Smart UI** (this folder) — overrides of **large vanilla `.gui` files**
+- **Better Decision Info** (this folder) — overrides of **large vanilla `.gui` files**
   (`country_panel.gui` is 4,420 lines, `popups.gui` 5,156). High conflict risk
   with other UI mods, and needs re-diffing against vanilla after every game
   patch.
@@ -46,7 +46,7 @@ Everything here comes from `docs/followup-plan-2026-09-11.md`:
 Shared with the parent mod, not duplicated:
 
 ```
-python tools/validate_syntax.py smart_ui
+python tools/validate_syntax.py better_decision_info
 ```
 
 `SHIP_DIRS` in `tools/package_release.py` is an allowlist
@@ -60,7 +60,7 @@ until there is something to upload.
 Junctioned into the game's mod folder the same way the parent mod is:
 
 ```
-mklink /J "%USERPROFILE%\Documents\Paradox Interactive\Victoria 3\mod\smart_ui" "<repo>\smart_ui"
+mklink /J "%USERPROFILE%\Documents\Paradox Interactive\Victoria 3\modetter_decision_info" "<repo>etter_decision_info"
 ```
 
 Then add it to the active Playset in the Paradox Launcher — Mod Library alone

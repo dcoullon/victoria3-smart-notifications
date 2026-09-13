@@ -26,21 +26,21 @@
  # Country-scoped radicals. Look for "(T1)" at the start of the line.
  # Also tests: COUNTRY scope bound, strata accessors, loc-side arithmetic.
  # ---------------------------------------------------------------------
- ADD_RADICALS_THIRD:3 "(T1) $VALUE|-=1%$ of $FILTER_DESC$ in [COUNTRY.GetName] become more [concept_radical]$SNUI_T1_COUNTRY_PROBE$"
+ ADD_RADICALS_THIRD:3 "(T1) $VALUE|-=1%$ of $FILTER_DESC$ in [COUNTRY.GetName] become more [concept_radical]$BDI_T1_COUNTRY_PROBE$"
 
- SNUI_T1_COUNTRY_PROBE:0 "\n$TAB$(T1a total=[COUNTRY.GetTotalPopulation|K]) (T1b lower=[GetTrendValue(COUNTRY.GetLowerStrataPopulationTrend)|K]) (T1c middle=[GetTrendValue(COUNTRY.GetMiddleStrataPopulationTrend)|K]) (T1d upper=[GetTrendValue(COUNTRY.GetUpperStrataPopulationTrend)|K]) (T1e strata_param=$STRATA$)"
+ BDI_T1_COUNTRY_PROBE:0 "\n$TAB$(T1a total=[COUNTRY.GetTotalPopulation|K]) (T1b lower=[GetTrendValue(COUNTRY.GetLowerStrataPopulationTrend)|K]) (T1c middle=[GetTrendValue(COUNTRY.GetMiddleStrataPopulationTrend)|K]) (T1d upper=[GetTrendValue(COUNTRY.GetUpperStrataPopulationTrend)|K]) (T1e strata_param=$STRATA$)"
 
  # ---------------------------------------------------------------------
  # T2 -- Are the FILTER objects live scopes here, and is $VALUE$ reachable
  # inside POP_EFFECT_FILTER? Vanilla body is preserved verbatim, probes
  # appended. If a group's marker appears, that scope is bound and usable.
  # ---------------------------------------------------------------------
- POP_EFFECT_FILTER:0 "[AddLocalizationIf(InterestGroup.IsValid, 'POP_EFFECT_FILTER_INTEREST_GROUP')][AddLocalizationIf(Culture.IsValid, 'POP_EFFECT_FILTER_CULTURE')][AddLocalizationIf(Religion.IsValid, 'POP_EFFECT_FILTER_RELIGION')][AddLocalizationIf(PopType.IsValid, 'POP_EFFECT_FILTER_POP_TYPE')][AddTextIf(Not(EqualTo_string('none', '$STRATA$')), Concatenate(Localize('$STRATA$'), ' '))][Concept('concept_pop', '$concept_pops$')][AddLocalizationIf(PopType.IsValid, 'SNUI_T2_POPTYPE')][AddLocalizationIf(InterestGroup.IsValid, 'SNUI_T2_IG')][AddLocalizationIf(Culture.IsValid, 'SNUI_T2_CULTURE')][AddLocalizationIf(Religion.IsValid, 'SNUI_T2_RELIGION')]"
+ POP_EFFECT_FILTER:0 "[AddLocalizationIf(InterestGroup.IsValid, 'POP_EFFECT_FILTER_INTEREST_GROUP')][AddLocalizationIf(Culture.IsValid, 'POP_EFFECT_FILTER_CULTURE')][AddLocalizationIf(Religion.IsValid, 'POP_EFFECT_FILTER_RELIGION')][AddLocalizationIf(PopType.IsValid, 'POP_EFFECT_FILTER_POP_TYPE')][AddTextIf(Not(EqualTo_string('none', '$STRATA$')), Concatenate(Localize('$STRATA$'), ' '))][Concept('concept_pop', '$concept_pops$')][AddLocalizationIf(PopType.IsValid, 'BDI_T2_POPTYPE')][AddLocalizationIf(InterestGroup.IsValid, 'BDI_T2_IG')][AddLocalizationIf(Culture.IsValid, 'BDI_T2_CULTURE')][AddLocalizationIf(Religion.IsValid, 'BDI_T2_RELIGION')]"
 
- SNUI_T2_POPTYPE:0 " (T2a poptype=[PopType.GetPopulation(GetPlayer)|K])"
- SNUI_T2_IG:0 " (T2b ig=[InterestGroup.GetPopulation|K] approval=[InterestGroup.GetApprovalValue] clout=[InterestGroup.GetClout|%1])"
- SNUI_T2_CULTURE:0 " (T2c culture=[Culture.GetPopulation|K])"
- SNUI_T2_RELIGION:0 " (T2d religion=[Religion.GetPopulation|K])"
+ BDI_T2_POPTYPE:0 " (T2a poptype=[PopType.GetPopulation(GetPlayer)|K])"
+ BDI_T2_IG:0 " (T2b ig=[InterestGroup.GetPopulation|K] approval=[InterestGroup.GetApprovalValue] clout=[InterestGroup.GetClout|%1])"
+ BDI_T2_CULTURE:0 " (T2c culture=[Culture.GetPopulation|K])"
+ BDI_T2_RELIGION:0 " (T2d religion=[Religion.GetPopulation|K])"
 
  # ---------------------------------------------------------------------
  # T3 -- State scope. Does STATE bind, and can STATE.Self be passed as a
@@ -48,12 +48,12 @@
  # whole state-scoped half of the feature (41% of all pop effects).
  # T3b failing while T3a works = arg-passing is the problem, not the scope.
  # ---------------------------------------------------------------------
- ADD_RADICALS_IN_STATE_THIRD:0 "(T3) $VALUE|-=1%$ of $FILTER_DESC$ in [STATE.GetName] become more [concept_radical]$SNUI_T3_STATE_PROBE$"
+ ADD_RADICALS_IN_STATE_THIRD:0 "(T3) $VALUE|-=1%$ of $FILTER_DESC$ in [STATE.GetName] become more [concept_radical]$BDI_T3_STATE_PROBE$"
 
- SNUI_T3_STATE_PROBE:0 "\n$TAB$(T3a statepop=[STATE.GetPopulationSize|K])[AddLocalizationIf(PopType.IsValid, 'SNUI_T3_POPTYPE_IN_STATE')][AddLocalizationIf(Culture.IsValid, 'SNUI_T3_CULTURE_IN_STATE')]"
+ BDI_T3_STATE_PROBE:0 "\n$TAB$(T3a statepop=[STATE.GetPopulationSize|K])[AddLocalizationIf(PopType.IsValid, 'BDI_T3_POPTYPE_IN_STATE')][AddLocalizationIf(Culture.IsValid, 'BDI_T3_CULTURE_IN_STATE')]"
 
- SNUI_T3_POPTYPE_IN_STATE:0 " (T3b poptype_in_state=[PopType.GetStatePopulation(STATE.Self)|K])"
- SNUI_T3_CULTURE_IN_STATE:0 " (T3c culture_in_state=[STATE.GetPopulationForCulture(Culture.Self)|K])"
+ BDI_T3_POPTYPE_IN_STATE:0 " (T3b poptype_in_state=[PopType.GetStatePopulation(STATE.Self)|K])"
+ BDI_T3_CULTURE_IN_STATE:0 " (T3c culture_in_state=[STATE.GetPopulationForCulture(Culture.Self)|K])"
 
  # ---------------------------------------------------------------------
  # T4 -- Loc-side arithmetic, so "5% of 12.4M" can become "about 620k".
@@ -77,6 +77,6 @@
  # Large blast radius: this template renders for every add_modifier in the
  # game. Watch for breakage on non-IG modifiers.
  # ---------------------------------------------------------------------
- ADD_MODIFIER_THIRD:0 "$SUBJECT_NAME$ gets #tooltippable #tooltip:[GetRawTextTooltipTag('$ADD_MODIFIER_BREAKDOWN$')] $MODIFIER_NAME$#!#! $MAYBE_DECAYING_WITH_SPACE_AFTER$$DURATION$\n$TAB$#indent_newline:3 $MODIFIER_DESC$#![AddLocalizationIf(InterestGroup.IsValid, 'SNUI_T5_IG_CONTEXT')]"
+ ADD_MODIFIER_THIRD:0 "$SUBJECT_NAME$ gets #tooltippable #tooltip:[GetRawTextTooltipTag('$ADD_MODIFIER_BREAKDOWN$')] $MODIFIER_NAME$#!#! $MAYBE_DECAYING_WITH_SPACE_AFTER$$DURATION$\n$TAB$#indent_newline:3 $MODIFIER_DESC$#![AddLocalizationIf(InterestGroup.IsValid, 'BDI_T5_IG_CONTEXT')]"
 
- SNUI_T5_IG_CONTEXT:0 "\n$TAB$(T5 ig_approval_now=[InterestGroup.GetApprovalValue] clout=[InterestGroup.GetClout|%1] pop=[InterestGroup.GetPopulation|K])"
+ BDI_T5_IG_CONTEXT:0 "\n$TAB$(T5 ig_approval_now=[InterestGroup.GetApprovalValue] clout=[InterestGroup.GetClout|%1] pop=[InterestGroup.GetPopulation|K])"
