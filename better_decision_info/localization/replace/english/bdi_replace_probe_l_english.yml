@@ -73,12 +73,35 @@
 
  BDI_IG_STANDING:0 " (Currently #b [InterestGroup.GetApprovalValue|+=]#! with #b [InterestGroup.GetClout|%0]#! clout)"
 
- # (s10) is the requested "x% of the country". The earlier attempt with
- # Divide_CFixedPoint came back empty because population accessors return
- # int64, and vanilla carries parallel _int32/_int64/_CFixedPoint families.
- # This multiplies by 100 first so an integer division still yields whole
- # percent, and uses the '(int64)100' literal-cast form that vanilla uses
- # for CFixedPoint literals.
- # The "of 46.6M" fallback stays alongside it this round -- if (s10) renders
- # a number, the fallback comes out and the percentage replaces it.
- BDI_STATE_STANDING:0 " (#b [State.GetPopulationSize|K]#! people, s10=[Divide_int64(Multiply_int64(State.GetPopulationSize, '(int64)100'), State.GetCountry.GetTotalPopulation)]% of [State.GetCountry.GetTotalPopulation|K])"
+ # CONFIRMED WORKING. The percentage needed int64 arithmetic: population
+ # accessors return int64 while Divide_CFixedPoint wants CFixedPoint, so the
+ # first attempt silently produced nothing. Multiplying by 100 before an
+ # integer divide gives whole percent. Fallback text dropped now that the
+ # percentage renders.
+ BDI_STATE_STANDING:0 " (#b [State.GetPopulationSize|K]#! people, [Divide_int64(Multiply_int64(State.GetPopulationSize, '(int64)100'), State.GetCountry.GetTotalPopulation)]% of the country)"
+
+ # ---------------------------------------------------------------------
+ # (s11) -- probing the "+1.0 Standard of Living for the Lower Strata" line.
+ #
+ # That line is NOT a pop effect, so nothing in POP_EFFECT_FILTER can reach
+ # it: it is a MODIFIER label, rendered from
+ # modifiers_l_english.yml:435 (state_lower_strata_standard_of_living_add).
+ # Different mechanism entirely, which is why the strata branch never fired
+ # on it.
+ #
+ # EXPECT THIS TO FAIL. interest_group_approval_add -- the same kind of key
+ # -- renders in a 'Container' context with no scope bound, confirmed from
+ # error.log ("wanted context of type 'InterestGroup' ... got context
+ # 'Container'"). If modifier labels universally lack scope, State will be
+ # empty here too and this whole idea is closed.
+ #
+ # So this probes the cheap question first (is State even in scope?) rather
+ # than building the expensive thing (a six-profession sum) on top of an
+ # assumption. If state= comes back with a name, the sum becomes worth
+ # doing -- Add_CFixedPoint exists and GetPopType('x') is confirmed vanilla
+ # usage -- but it would still need the social-hierarchy problem solved:
+ # lower strata is clerks/laborers/machinists/peasants/slaves/soldiers by
+ # default, and a different set under the Edo and Indian caste systems,
+ # which Japan and British India use and which decisions can change mid-game.
+ # ---------------------------------------------------------------------
+ state_lower_strata_standard_of_living_add:0 "[concept_sol] for the [concept_lower_strata] (s11 state=[State.GetName] laborers=[GetPopType('laborers').GetStatePopulation(State.Self)|K])"
