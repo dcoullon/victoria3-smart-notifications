@@ -68,6 +68,26 @@
  # mismatch. |%1 would show 6.7% and agree with the panel; flagged rather
  # than changed, since whole percent was the explicit request.
  # ---------------------------------------------------------------------
- ADD_MODIFIER_THIRD:0 "$SUBJECT_NAME$ gets #tooltippable #tooltip:[GetRawTextTooltipTag('$ADD_MODIFIER_BREAKDOWN$')] $MODIFIER_NAME$#!#! $MAYBE_DECAYING_WITH_SPACE_AFTER$$DURATION$\n$TAB$#indent_newline:3 $MODIFIER_DESC$#![AddLocalizationIf(InterestGroup.IsValid, 'BDI_IG_STANDING')]"
+ ADD_MODIFIER_THIRD:0 "$SUBJECT_NAME$ gets #tooltippable #tooltip:[GetRawTextTooltipTag('$ADD_MODIFIER_BREAKDOWN$')] $MODIFIER_NAME$#!#! $MAYBE_DECAYING_WITH_SPACE_AFTER$$DURATION$\n$TAB$#indent_newline:3 $MODIFIER_DESC$#![AddLocalizationIf(InterestGroup.IsValid, 'BDI_IG_STANDING')][AddLocalizationIf(State.IsValid, 'BDI_STATE_STANDING')]"
 
  BDI_IG_STANDING:0 " (Currently #b [InterestGroup.GetApprovalValue|+=]#! with #b [InterestGroup.GetClout|%0]#! clout)"
+
+ # ---------------------------------------------------------------------
+ # NEW: state context on a modifier line -- "does this state even matter?"
+ #
+ # The North Angola event is the case that needs it. Its option carries no
+ # pop effect at all, only two add_modifiers, so POP_EFFECT_FILTER is never
+ # invoked and nothing we put there can ever appear. That is why (s5) was
+ # absent twice: not broken, never called. State scale therefore has to ride
+ # on the modifier line instead, exactly parallel to the interest-group one.
+ #
+ # State.GetCountry is used rather than the COUNTRY scope, since COUNTRY is
+ # not known to bind in this template and State.GetCountry has vanilla
+ # precedent. The share is what actually answers "should I care" -- 450K
+ # people means little until you know it is 0.4% of Portugal.
+ #
+ # (s6) stays until this is seen working; the binding name is the unknown
+ # (PascalCase `State` here, versus the uppercase STATE used in the
+ # ADD_RADICALS_* family). If (s6) never appears, try STATE.IsValid instead.
+ # ---------------------------------------------------------------------
+ BDI_STATE_STANDING:0 " (s6 [State.GetName]: #b [State.GetPopulationSize|K]#! people, [Divide_CFixedPoint(State.GetPopulationSize, State.GetCountry.GetTotalPopulation)|%1] of the country)"
