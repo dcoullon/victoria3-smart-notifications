@@ -1,78 +1,89 @@
 ﻿l_english:
  # =====================================================================
- # THROWAWAY PROBE, ROUND 2 -- delete before anything ships.
+ # THROWAWAY PROBE, ROUND 3 -- delete before anything ships.
  #
- # WHY ROUND 1 FAILED (confirmed from error.log, 2026-09-12 21:45:44 --
- # NOT a guess, and not a failure of the mechanism we care about):
+ # SETTLED IN ROUND 2 (2026-09-12, observed in-game + error.log):
  #
- #   "Duplicate localization key. Key 'ADD_RADICALS_THIRD' is defined in both
- #    'localization/english/effects_l_english.yml' and
- #    'localization/english/smart_ui_probe_l_english.yml'."
+ # 1. `localization/replace/english/` IS the override mechanism. Zero
+ #    "Duplicate localization key" warnings this run, versus five in round 1
+ #    from the plain `localization/english/` folder.
  #
- # The engine loaded and parsed our file correctly. It simply resolved the
- # collision in VANILLA's favour. So round 1 proved nothing about scopes,
- # functions or version suffixes -- only that a plain `localization/english/`
- # file does not win a key that vanilla already defines.
+ # 2. The interest-group data works and is CORRECT. Exile Dissident rendered
+ #    "Rural Folk (R1 pop=1.23M appr=4 clout=6.8%)", and the game's own
+ #    Interest Groups sidebar independently showed Rural Folk at +4 / 6.8%.
+ #    So GetPopulation, GetApprovalValue and GetClout are all usable here.
  #
- # This file sits in `localization/replace/english/` instead, which is the
- # Paradox convention for deliberately overriding an existing key. Whether
- # Victoria 3 honours it is exactly what this run tests -- there is no
- # evidence for it on this machine (vanilla ships no `replace` folder and
- # only one Workshop mod is installed), so it is a hypothesis, not a fact.
+ # 3. `interest_group_approval_add` CANNOT see the interest group. The marker
+ #    rendered but both values were empty, and error.log says exactly why:
+ #      "Wrong context supplied, wanted context of type 'InterestGroup' for
+ #       'InterestGroup.GetApprovalValue', got context 'Container'"
+ #    That hook is dead -- a modifier label renders in a Container context.
+ #    Removed below; R8 tests the alternative route.
  #
- # TWO INDEPENDENT SIGNALS, so this is cheap to read:
- #   1. error.log -- if `replace/` works, the "Duplicate localization key"
- #      warnings for these keys should be GONE. Checkable without playing.
- #   2. the (R1)/(R2)/(R3) markers below appearing in-game.
- # If the warnings persist AND no marker shows, `replace/` is not the
- # mechanism and overriding engine templates may not be possible at all.
+ # 4. UNEXPLAINED: R1 applied but R2 (ADD_RADICALS_THIRD:3) did not, from the
+ #    same file. The add_radicals line rendered with R1 inline but no (R2)
+ #    prefix. Two candidate causes, separated below rather than guessed at:
+ #      (a) the version suffix -- the two keys that worked were ':0' and
+ #          no-suffix; the one that failed was ':3'. A tie may resolve to
+ #          vanilla, meaning an override must out-number it.
+ #      (b) wrong key -- the line may render from ADD_RADICALS_FIRST rather
+ #          than _THIRD, since Portugal is the player.
+ #
+ # ROUND 3 DESIGN: R5 and R6 hold the suffix constant at :4 and vary only the
+ # variant; R7 holds the variant constant and uses no suffix. So:
+ #   R5 shows  -> _THIRD is the key AND a higher suffix wins (cause a)
+ #   R6 shows  -> _FIRST is the key (cause b)
+ #   R7 only   -> suffix is the discriminator, :4 is not high enough
+ #   none      -> neither cause; something else governs these keys
  #
  # NEVER use literal square brackets as decoration -- they parse as dynamic
  # text. All markers use parentheses.
  # =====================================================================
 
  # ---------------------------------------------------------------------
- # R1 -- CONTROL *and* the real feature, in one line.
- # This key is CONFIRMED to render: the Exile Dissident tooltip showed
- # "Trade Unions members of Pops in Portugal", and "members of " is
- # precisely this key. So if (R1 appears, the override mechanism works; if
- # it does not, nothing else here matters.
- # Vanilla body preserved exactly, probe appended.
- # Also answers whether InterestGroup carries usable data in this context --
- # which is the whole interest-group feature.
+ # R1 -- CONFIRMED WORKING, kept as the run-to-run control. If this ever
+ # stops rendering, something about the setup regressed and no other result
+ # in this file can be trusted.
+ # This is also the real feature: interest-group size, current approval and
+ # clout, inline where the effect is described.
  # ---------------------------------------------------------------------
  POP_EFFECT_FILTER_INTEREST_GROUP: "[InterestGroup.GetName] (R1 pop=[InterestGroup.GetPopulation|K] appr=[InterestGroup.GetApprovalValue] clout=[InterestGroup.GetClout|%1]) members of "
 
  # ---------------------------------------------------------------------
- # R2 -- the country-scoped radicals template, plus COUNTRY accessors and
- # the strata numbers. Renders in the same Exile Dissident tooltip
- # ("+2.0% of Trade Unions members of Pops in Portugal become more Radical"),
- # so R1 and R2 are observable in a single hover.
+ # R5 / R6 -- same suffix (:4, one above vanilla's :3), different variant.
+ # Exactly one of these should claim the add_radicals line.
  # ---------------------------------------------------------------------
- ADD_RADICALS_THIRD:3 "(R2) $VALUE|-=1%$ of $FILTER_DESC$ in [COUNTRY.GetName] become more [concept_radical]\n$TAB$(R2a total=[COUNTRY.GetTotalPopulation|K]) (R2b middle=[GetTrendValue(COUNTRY.GetMiddleStrataPopulationTrend)|K]) (R2c strata_param=$STRATA$)"
+ ADD_RADICALS_THIRD:4 "(R5) $VALUE|-=1%$ of $FILTER_DESC$ in [COUNTRY.GetName] become more [concept_radical]\n$TAB$(R5a total=[COUNTRY.GetTotalPopulation|K]) (R5b middle=[GetTrendValue(COUNTRY.GetMiddleStrataPopulationTrend)|K]) (R5c strata=$STRATA$)"
+
+ ADD_RADICALS_FIRST:4 "(R6) $VALUE|-=1%$ of $FILTER_DESC$ in [COUNTRY.GetNameNoFlag] become more [concept_radical]\n$TAB$(R6a total=[COUNTRY.GetTotalPopulation|K])"
 
  # ---------------------------------------------------------------------
- # R3 -- the user's request: "any place where we show +xx interest group
- # approval, show inline (currently XX, xx% clout)".
+ # R7 -- variant held constant, NO suffix (matching vanilla, which ships this
+ # key without one). Needs a state-scoped effect to observe.
+ # Also still carries the one mechanic with no vanilla precedent: passing
+ # STATE.Self as a FUNCTION ARGUMENT, which gates the 41% of pop effects
+ # that are state-scoped. R7a filled but R7b empty isolates argument-passing.
+ # ---------------------------------------------------------------------
+ ADD_RADICALS_IN_STATE_THIRD: "(R7) $VALUE|-=1%$ of $FILTER_DESC$ in [STATE.GetName] become more [concept_radical]\n$TAB$(R7a statepop=[STATE.GetPopulationSize|K])[AddLocalizationIf(PopType.IsValid, 'BDI_R7_POPTYPE_IN_STATE')]"
+
+ BDI_R7_POPTYPE_IN_STATE:0 " (R7b poptype_in_state=[PopType.GetStatePopulation(STATE.Self)|K])"
+
+ # ---------------------------------------------------------------------
+ # R8 -- the replacement for the dead R3 hook, and the answer to "show
+ # current approval and clout anywhere +XX Interest Group Approval appears".
  #
- # This is a MODIFIER label, not an effect template -- a different and much
- # better hook, because it renders EVERYWHERE that modifier value is shown
- # (events, character interactions, decisions, the IG panel), not just in
- # event options. Confirmed source: modifiers_l_english.yml:356.
+ # `interest_group_approval_add` renders in a Container context (proven
+ # above), but ADD_MODIFIER_THIRD may not -- it is the line that names the
+ # subject ("Rural Folk gets Exiled Leader for 5 years"), so the interest
+ # group might genuinely be in scope there.
  #
- # Open question this tests: whether InterestGroup is in scope when a
- # modifier label renders. It may not be -- the same modifier can apply to
- # non-IG subjects -- in which case (R3 appears with empty values and the
- # feature needs a different hook.
+ # The IsValid guard is what keeps this safe: this template renders for EVERY
+ # add_modifier in the game -- countries, states, characters, buildings --
+ # and the marker must appear ONLY on interest-group ones. In the round-2
+ # screenshots, "Portugal gets Unresponsive Governance" must stay unmarked.
+ # If (R8 appears on a country modifier, the guard does not scope and this
+ # route is dead too.
  # ---------------------------------------------------------------------
- interest_group_approval_add:0 "Interest Group Approval (R3 now=[InterestGroup.GetApprovalValue] clout=[InterestGroup.GetClout|%1])"
+ ADD_MODIFIER_THIRD:0 "$SUBJECT_NAME$ gets #tooltippable #tooltip:[GetRawTextTooltipTag('$ADD_MODIFIER_BREAKDOWN$')] $MODIFIER_NAME$#!#! $MAYBE_DECAYING_WITH_SPACE_AFTER$$DURATION$\n$TAB$#indent_newline:3 $MODIFIER_DESC$#![AddLocalizationIf(InterestGroup.IsValid, 'BDI_R8_IG_CONTEXT')]"
 
- # ---------------------------------------------------------------------
- # R4 -- state scope, and the one mechanic with no vanilla precedent:
- # can STATE.Self be passed as a FUNCTION ARGUMENT? Gates the 41% of pop
- # effects that are state-scoped. R4a working while R4b is blank isolates
- # argument-passing as the cause rather than the scope being absent.
- # ---------------------------------------------------------------------
- ADD_RADICALS_IN_STATE_THIRD: "(R4) $VALUE|-=1%$ of $FILTER_DESC$ in [STATE.GetName] become more [concept_radical]\n$TAB$(R4a statepop=[STATE.GetPopulationSize|K])[AddLocalizationIf(PopType.IsValid, 'BDI_R4_POPTYPE_IN_STATE')]"
-
- BDI_R4_POPTYPE_IN_STATE:0 " (R4b poptype_in_state=[PopType.GetStatePopulation(STATE.Self)|K])"
+ BDI_R8_IG_CONTEXT:0 "\n$TAB$(R8 now=[InterestGroup.GetApprovalValue] clout=[InterestGroup.GetClout|%1] pop=[InterestGroup.GetPopulation|K])"
