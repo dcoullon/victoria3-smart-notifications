@@ -1,0 +1,78 @@
+﻿l_english:
+ # =====================================================================
+ # THROWAWAY PROBE, ROUND 2 -- delete before anything ships.
+ #
+ # WHY ROUND 1 FAILED (confirmed from error.log, 2026-09-12 21:45:44 --
+ # NOT a guess, and not a failure of the mechanism we care about):
+ #
+ #   "Duplicate localization key. Key 'ADD_RADICALS_THIRD' is defined in both
+ #    'localization/english/effects_l_english.yml' and
+ #    'localization/english/smart_ui_probe_l_english.yml'."
+ #
+ # The engine loaded and parsed our file correctly. It simply resolved the
+ # collision in VANILLA's favour. So round 1 proved nothing about scopes,
+ # functions or version suffixes -- only that a plain `localization/english/`
+ # file does not win a key that vanilla already defines.
+ #
+ # This file sits in `localization/replace/english/` instead, which is the
+ # Paradox convention for deliberately overriding an existing key. Whether
+ # Victoria 3 honours it is exactly what this run tests -- there is no
+ # evidence for it on this machine (vanilla ships no `replace` folder and
+ # only one Workshop mod is installed), so it is a hypothesis, not a fact.
+ #
+ # TWO INDEPENDENT SIGNALS, so this is cheap to read:
+ #   1. error.log -- if `replace/` works, the "Duplicate localization key"
+ #      warnings for these keys should be GONE. Checkable without playing.
+ #   2. the (R1)/(R2)/(R3) markers below appearing in-game.
+ # If the warnings persist AND no marker shows, `replace/` is not the
+ # mechanism and overriding engine templates may not be possible at all.
+ #
+ # NEVER use literal square brackets as decoration -- they parse as dynamic
+ # text. All markers use parentheses.
+ # =====================================================================
+
+ # ---------------------------------------------------------------------
+ # R1 -- CONTROL *and* the real feature, in one line.
+ # This key is CONFIRMED to render: the Exile Dissident tooltip showed
+ # "Trade Unions members of Pops in Portugal", and "members of " is
+ # precisely this key. So if (R1 appears, the override mechanism works; if
+ # it does not, nothing else here matters.
+ # Vanilla body preserved exactly, probe appended.
+ # Also answers whether InterestGroup carries usable data in this context --
+ # which is the whole interest-group feature.
+ # ---------------------------------------------------------------------
+ POP_EFFECT_FILTER_INTEREST_GROUP: "[InterestGroup.GetName] (R1 pop=[InterestGroup.GetPopulation|K] appr=[InterestGroup.GetApprovalValue] clout=[InterestGroup.GetClout|%1]) members of "
+
+ # ---------------------------------------------------------------------
+ # R2 -- the country-scoped radicals template, plus COUNTRY accessors and
+ # the strata numbers. Renders in the same Exile Dissident tooltip
+ # ("+2.0% of Trade Unions members of Pops in Portugal become more Radical"),
+ # so R1 and R2 are observable in a single hover.
+ # ---------------------------------------------------------------------
+ ADD_RADICALS_THIRD:3 "(R2) $VALUE|-=1%$ of $FILTER_DESC$ in [COUNTRY.GetName] become more [concept_radical]\n$TAB$(R2a total=[COUNTRY.GetTotalPopulation|K]) (R2b middle=[GetTrendValue(COUNTRY.GetMiddleStrataPopulationTrend)|K]) (R2c strata_param=$STRATA$)"
+
+ # ---------------------------------------------------------------------
+ # R3 -- the user's request: "any place where we show +xx interest group
+ # approval, show inline (currently XX, xx% clout)".
+ #
+ # This is a MODIFIER label, not an effect template -- a different and much
+ # better hook, because it renders EVERYWHERE that modifier value is shown
+ # (events, character interactions, decisions, the IG panel), not just in
+ # event options. Confirmed source: modifiers_l_english.yml:356.
+ #
+ # Open question this tests: whether InterestGroup is in scope when a
+ # modifier label renders. It may not be -- the same modifier can apply to
+ # non-IG subjects -- in which case (R3 appears with empty values and the
+ # feature needs a different hook.
+ # ---------------------------------------------------------------------
+ interest_group_approval_add:0 "Interest Group Approval (R3 now=[InterestGroup.GetApprovalValue] clout=[InterestGroup.GetClout|%1])"
+
+ # ---------------------------------------------------------------------
+ # R4 -- state scope, and the one mechanic with no vanilla precedent:
+ # can STATE.Self be passed as a FUNCTION ARGUMENT? Gates the 41% of pop
+ # effects that are state-scoped. R4a working while R4b is blank isolates
+ # argument-passing as the cause rather than the scope being absent.
+ # ---------------------------------------------------------------------
+ ADD_RADICALS_IN_STATE_THIRD: "(R4) $VALUE|-=1%$ of $FILTER_DESC$ in [STATE.GetName] become more [concept_radical]\n$TAB$(R4a statepop=[STATE.GetPopulationSize|K])[AddLocalizationIf(PopType.IsValid, 'BDI_R4_POPTYPE_IN_STATE')]"
+
+ BDI_R4_POPTYPE_IN_STATE:0 " (R4b poptype_in_state=[PopType.GetStatePopulation(STATE.Self)|K])"
