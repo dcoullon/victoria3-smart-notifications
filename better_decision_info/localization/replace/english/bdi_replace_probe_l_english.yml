@@ -1,76 +1,60 @@
 ﻿l_english:
  # =====================================================================
- # ROUND 9 -- close to final. What rounds 6-8 established, in game:
+ # ROUND 10 -- intended as the last test round.
  #
- # CONTEXT SPLIT (the governing constraint, now fully mapped):
- #   parent ADD_RADICALS_*   has $VALUE$, COUNTRY, STATE
- #                           lacks the filter objects AND $STRATA$
- #                           (proven: "(s8 strata=STRATA)" echoed the name)
- #   POP_EFFECT_FILTER       has InterestGroup/Culture/Religion/PopType and
- #                           $STRATA$
- #                           lacks $VALUE$, COUNTRY, STATE
- #                           (proven: "(s5 v=VALUE ... country= state=)")
+ # THE STRATA/GetPlayer CAVEAT IS RESOLVED, by measurement rather than
+ # assumption. Of 246 strata-filtered pop effects in vanilla, ZERO genuinely
+ # apply to a country other than the event's own. 160 sit directly on the
+ # event's country; the other 86 are inside STATE scopes
+ # (scope:capital_scope, scope:famine_state, ...) which still belong to that
+ # same country. The only two that looked like country switches
+ # (paralegal_discrimination_events.txt:90 and :152, inside `owner = {`)
+ # snap straight back with `root = {` before applying the effect. So
+ # GetPlayer is safe here and the strata branch stays.
  #
- # (s7) tried $VAL$ $AMOUNT$ $PERCENT$ $NUM$ $QUANTITY$ inside
- # POP_EFFECT_FILTER. All echoed their own names. The magnitude does not
- # arrive there under any name tried.
+ # THE BUG THAT AUDIT FOUND: 68 of 1376 pop effects (4.9%) carry MORE THAN
+ # ONE filter -- culture+pop_type 16, culture+strata 15, pop_type+religion
+ # 14, and a long tail up to four at once. The previous version rendered one
+ # size figure PER valid filter, so those would print two to four numbers in
+ # a row -- and none of them would be right, because the affected group is
+ # the INTERSECTION (Jewish AND laborers), which no accessor exposes.
  #
- # CONSEQUENCE: "about 24K" -- VALUE x subgroup -- is NOT COMPUTABLE. The
- # two operands never share a context. This is a real engine limit, not a
- # syntax problem, and three rounds of attempts have now bounded it.
- #
- # WHAT WE SHIP INSTEAD: the subgroup's SIZE next to vanilla's own
- # percentage. The reader gets "+2.0%" and "1.23M strong" together and can
- # judge scale immediately, which was the actual goal -- "helps realize if
- # we should care". Only the multiplication is lost.
- #
- # ALSO FIXED THIS ROUND: the state share came back empty
- # ("North Angola: 703K people,  of the country"). Cause is a type
- # mismatch -- population accessors return int64 and Divide_CFixedPoint
- # wants CFixedPoint. Vanilla has parallel _int32/_int64/_CFixedPoint
- # families, so Divide_int64 likely exists. But division is not needed at
- # all here: "703K of 46.6M" answers "does this state matter" without any
- # arithmetic, so the division is simply dropped.
- #
- # Parent overrides are dropped again -- with $STRATA$ unavailable there,
- # they had nothing left to do. Back to two overridden vanilla keys.
+ # Fixed by showing a size only when EXACTLY ONE filter is active. The
+ # multi-filter cases now fall back to vanilla's unmodified text, which is
+ # the honest outcome: better to say nothing than to print a number that
+ # looks authoritative and is wrong. And/And4/Not are all confirmed present
+ # in vanilla loc.
  # =====================================================================
 
- # ---------------------------------------------------------------------
- # Subgroup size, inline. Every branch here is proven working except the
- # strata ones, which are new.
- #
- # STRATA CAVEAT: strata totals need a country, and COUNTRY does not bind
- # here -- so these use GetPlayer, which is a global accessor rather than a
- # bound scope. That is correct for effects on YOUR country (the common
- # case) and WRONG for effects on another country, where it would quietly
- # show your numbers instead of theirs. (s9) marks them as unconfirmed; if
- # they work, this caveat still has to be resolved before shipping, most
- # likely by dropping the strata branch rather than showing a wrong number.
- # ---------------------------------------------------------------------
- POP_EFFECT_FILTER: "[AddLocalizationIf(InterestGroup.IsValid, 'POP_EFFECT_FILTER_INTEREST_GROUP')][AddLocalizationIf(Culture.IsValid, 'POP_EFFECT_FILTER_CULTURE')][AddLocalizationIf(Religion.IsValid, 'POP_EFFECT_FILTER_RELIGION')][AddLocalizationIf(PopType.IsValid, 'POP_EFFECT_FILTER_POP_TYPE')][AddTextIf(Not(EqualTo_string('none', '$STRATA$')), Concatenate(Localize('$STRATA$'), ' '))][Concept('concept_pop', '$concept_pops$')][AddLocalizationIf(InterestGroup.IsValid, 'BDI_SIZE_IG')][AddLocalizationIf(Culture.IsValid, 'BDI_SIZE_CULTURE')][AddLocalizationIf(Religion.IsValid, 'BDI_SIZE_RELIGION')][AddLocalizationIf(PopType.IsValid, 'BDI_SIZE_POPTYPE')][AddTextIf(EqualTo_string('lower', '$STRATA$'), Localize('BDI_SIZE_STRATA_LOWER'))][AddTextIf(EqualTo_string('middle', '$STRATA$'), Localize('BDI_SIZE_STRATA_MIDDLE'))][AddTextIf(EqualTo_string('upper', '$STRATA$'), Localize('BDI_SIZE_STRATA_UPPER'))]"
+ POP_EFFECT_FILTER: "[AddLocalizationIf(InterestGroup.IsValid, 'POP_EFFECT_FILTER_INTEREST_GROUP')][AddLocalizationIf(Culture.IsValid, 'POP_EFFECT_FILTER_CULTURE')][AddLocalizationIf(Religion.IsValid, 'POP_EFFECT_FILTER_RELIGION')][AddLocalizationIf(PopType.IsValid, 'POP_EFFECT_FILTER_POP_TYPE')][AddTextIf(Not(EqualTo_string('none', '$STRATA$')), Concatenate(Localize('$STRATA$'), ' '))][Concept('concept_pop', '$concept_pops$')][AddLocalizationIf(And(And4(InterestGroup.IsValid, Not(Culture.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('none', '$STRATA$')), 'BDI_SIZE_IG')][AddLocalizationIf(And(And4(Culture.IsValid, Not(InterestGroup.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('none', '$STRATA$')), 'BDI_SIZE_CULTURE')][AddLocalizationIf(And(And4(Religion.IsValid, Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(PopType.IsValid)), EqualTo_string('none', '$STRATA$')), 'BDI_SIZE_RELIGION')][AddLocalizationIf(And(And4(PopType.IsValid, Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(Religion.IsValid)), EqualTo_string('none', '$STRATA$')), 'BDI_SIZE_POPTYPE')][AddTextIf(And(And4(Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('lower', '$STRATA$')), Localize('BDI_SIZE_STRATA_LOWER'))][AddTextIf(And(And4(Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('middle', '$STRATA$')), Localize('BDI_SIZE_STRATA_MIDDLE'))][AddTextIf(And(And4(Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('upper', '$STRATA$')), Localize('BDI_SIZE_STRATA_UPPER'))]"
 
  POP_EFFECT_FILTER_INTEREST_GROUP: "[InterestGroup.GetName] members of "
  POP_EFFECT_FILTER_CULTURE: "[Culture.GetName] "
  POP_EFFECT_FILTER_RELIGION: "[Religion.GetName] "
  POP_EFFECT_FILTER_POP_TYPE: "[PopType.GetName] "
 
+ # Confirmed working in game; values matched the game's own panels.
  BDI_SIZE_IG:0 " (#b [InterestGroup.GetPopulation|K]#! strong)"
  BDI_SIZE_CULTURE:0 " (#b [Culture.GetPopulation|K]#! strong)"
  BDI_SIZE_RELIGION:0 " (#b [Religion.GetPopulation|K]#! strong)"
  BDI_SIZE_POPTYPE:0 " (#b [PopType.GetPopulation(GetPlayer)|K]#! strong)"
 
+ # Still unconfirmed -- no strata-filtered effect has been seen in game yet.
+ # (s9) stays until one renders.
  BDI_SIZE_STRATA_LOWER:0 " (s9 #b [GetTrendValue(GetPlayer.GetLowerStrataPopulationTrend)|K]#! strong)"
  BDI_SIZE_STRATA_MIDDLE:0 " (s9 #b [GetTrendValue(GetPlayer.GetMiddleStrataPopulationTrend)|K]#! strong)"
  BDI_SIZE_STRATA_UPPER:0 " (s9 #b [GetTrendValue(GetPlayer.GetUpperStrataPopulationTrend)|K]#! strong)"
 
  # ---------------------------------------------------------------------
- # Modifier line.
- # Interest-group standing: CONFIRMED WORKING, values match the game's own
- # panels, inline, correctly absent on non-interest-group modifiers.
- # State scale: State.GetName and State.GetPopulationSize both CONFIRMED
- # ("North Angola: 703K people"); only the share was broken, and it is
- # replaced with the country total rather than a division.
+ # Modifier line. Both branches confirmed working in game.
+ #
+ # KNOWN COST, unresolved: when the modifier subject is NOT an interest
+ # group, InterestGroup is unbound rather than invalid, so evaluating the
+ # guard errors. Harmless on screen -- the guard still scopes correctly --
+ # but it writes a "FetchData failed" line each time, and those totalled
+ # 1275 in one session's error.log. That matters because scan_logs.py is
+ # how we tell whether Smart Notifications is healthy, and this could bury
+ # real errors. Must be settled before shipping, not before testing.
  # ---------------------------------------------------------------------
  ADD_MODIFIER_THIRD:0 "$SUBJECT_NAME$ gets #tooltippable #tooltip:[GetRawTextTooltipTag('$ADD_MODIFIER_BREAKDOWN$')] $MODIFIER_NAME$#!#! $MAYBE_DECAYING_WITH_SPACE_AFTER$$DURATION$\n$TAB$#indent_newline:3 $MODIFIER_DESC$#![AddLocalizationIf(InterestGroup.IsValid, 'BDI_IG_STANDING')][AddLocalizationIf(State.IsValid, 'BDI_STATE_STANDING')]"
 
