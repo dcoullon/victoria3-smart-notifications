@@ -56,8 +56,29 @@
  # how we tell whether Smart Notifications is healthy, and this could bury
  # real errors. Must be settled before shipping, not before testing.
  # ---------------------------------------------------------------------
- ADD_MODIFIER_THIRD:0 "$SUBJECT_NAME$ gets #tooltippable #tooltip:[GetRawTextTooltipTag('$ADD_MODIFIER_BREAKDOWN$')] $MODIFIER_NAME$#!#! $MAYBE_DECAYING_WITH_SPACE_AFTER$$DURATION$\n$TAB$#indent_newline:3 $MODIFIER_DESC$#![AddLocalizationIf(InterestGroup.IsValid, 'BDI_IG_STANDING')][AddLocalizationIf(State.IsValid, 'BDI_STATE_STANDING')]"
+ # PLACEMENT: the state line now hangs off $SUBJECT_NAME$, not off the end
+ # of $MODIFIER_DESC$. Previously it trailed the LAST modifier value, so on
+ # North Angola it read "...-20% Plantations Throughput (703K people...)",
+ # attaching the population to an unrelated throughput penalty. Anchoring it
+ # to the subject puts it where it belongs: "North Angola (703K people...)
+ # gets Improved Labor Conditions".
+ #
+ # The interest-group line deliberately STAYS after $MODIFIER_DESC$, because
+ # it contextualises the approval value it follows ("-5 Interest Group
+ # Approval (Currently +2...)"). Moving it to the subject would separate it
+ # from the number it explains. That works because interest-group modifiers
+ # carry a single value line; if one ever carries two, it will dangle the
+ # same way and need the same treatment.
+ ADD_MODIFIER_THIRD:0 "$SUBJECT_NAME$[AddLocalizationIf(State.IsValid, 'BDI_STATE_STANDING')] gets #tooltippable #tooltip:[GetRawTextTooltipTag('$ADD_MODIFIER_BREAKDOWN$')] $MODIFIER_NAME$#!#! $MAYBE_DECAYING_WITH_SPACE_AFTER$$DURATION$\n$TAB$#indent_newline:3 $MODIFIER_DESC$#![AddLocalizationIf(InterestGroup.IsValid, 'BDI_IG_STANDING')]"
 
  BDI_IG_STANDING:0 " (Currently #b [InterestGroup.GetApprovalValue|+=]#! with #b [InterestGroup.GetClout|%0]#! clout)"
 
- BDI_STATE_STANDING:0 " (#b [State.GetPopulationSize|K]#! people, of [State.GetCountry.GetTotalPopulation|K] in the country)"
+ # (s10) is the requested "x% of the country". The earlier attempt with
+ # Divide_CFixedPoint came back empty because population accessors return
+ # int64, and vanilla carries parallel _int32/_int64/_CFixedPoint families.
+ # This multiplies by 100 first so an integer division still yields whole
+ # percent, and uses the '(int64)100' literal-cast form that vanilla uses
+ # for CFixedPoint literals.
+ # The "of 46.6M" fallback stays alongside it this round -- if (s10) renders
+ # a number, the fallback comes out and the percentage replaces it.
+ BDI_STATE_STANDING:0 " (#b [State.GetPopulationSize|K]#! people, s10=[Divide_int64(Multiply_int64(State.GetPopulationSize, '(int64)100'), State.GetCountry.GetTotalPopulation)]% of [State.GetCountry.GetTotalPopulation|K])"
