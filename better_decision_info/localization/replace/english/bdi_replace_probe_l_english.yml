@@ -1,110 +1,73 @@
 ﻿l_english:
  # =====================================================================
- # ROUND 5 -- real wording and real decoration. (s#) tags remain ONLY on
- # branches that have never rendered yet; proven branches are clean.
+ # ROUND 6 -- and a structural simplification.
  #
- # DECORATION now copies vanilla's own convention, confirmed from vanilla
- # usage rather than invented: `[InterestGroup.GetApprovalValue|+=]` appears
- # 42 times in vanilla loc. `+` prints the sign, `=` colours by sign (green
- # positive / red negative) -- which is exactly what makes vanilla's own
- # "-2 Interest Group Approval" red. `#b ... #!` adds bold.
- # Clout is `|%0` (whole percent) per the user: 7%, not 6.6%.
+ # WHAT ROUND 5 SETTLED: the filter objects are NOT bound in the parent
+ # ADD_RADICALS_* template. "(s1 v=0.02)" rendered with nothing after it,
+ # and error.log logged NO failure for BDI_AFF_IG -- so InterestGroup.IsValid
+ # was simply false there, not broken. $VALUE$ propagates fine; the scopes
+ # do not. R1 already proved those same objects ARE live inside
+ # POP_EFFECT_FILTER.
  #
- # INTEREST GROUP LINE is trimmed to just standing, per the user -- the
- # group's population is not decision-relevant on a modifier line:
- #   "(Currently +3 with 7% clout)"
+ # CONSEQUENCE: everything moves into POP_EFFECT_FILTER, and the four
+ # ADD_RADICALS_*/ADD_LOYALISTS_* overrides are DROPPED entirely. That is
+ # strictly better:
+ #   - four fewer vanilla templates to keep in sync across patches
+ #   - it automatically covers every template that uses $FILTER_DESC$ --
+ #     ADD_RADICALS, _FIRST, _THIRD, _IN_STATE_THIRD, both ADD_LOYALISTS
+ #     families, and KILL_POPULATION* as well
+ #   - no more guessing which variant the engine picked (the _FIRST vs
+ #     _THIRD hunt becomes irrelevant)
+ # Two overridden keys total now, down from seven.
  #
- # STATE BRANCH: an honest asymmetry. Culture, religion and pop type all
- # have state-scoped accessors, so a real affected count is computable
- # there. STRATA DOES NOT -- vanilla exposes strata population only per
- # COUNTRY (Get{Lower,Middle,Upper}StrataPopulationTrend); SocialClass
- # .GetTotalPopulationIn has a country-only precedent and no SocialClass
- # object is in scope here anyway. So for a strata-filtered state effect we
- # must NOT print a product: 2% of the state's total is not 2% of its lower
- # strata, and a confidently wrong number is worse than none. Those cases
- # get the state's population as scale context, clearly labelled as the
- # state total.
+ # COST: the text lands mid-sentence, right after "Pops", because that is
+ # where $FILTER_DESC$ sits:
+ #   "+2.0% of Rural Folk members of Pops (about 24K of 1.23M) in Portugal
+ #    become more Radical"
+ # Judge that on this run. If it reads badly the fallback is to go back to
+ # per-template overrides and accept the maintenance cost.
+ #
+ # (s5) probes four unknowns at once, on every pop effect -- so unlike the
+ # round-5 (s4) probe, which was attached to the state branch and therefore
+ # never rendered at all, this one cannot hide:
+ #   v=        does $VALUE$ reach here (needed for the multiplication)
+ #   add=      does Add_CFixedPoint exist (2+3 should print 5) -- decides
+ #             whether the exact strata-by-profession decomposition is even
+ #             possible, per the user's suggestion
+ #   country=  is COUNTRY bound here (needed for the strata branch)
+ #   state=    is STATE bound here (needed for state-scoped effects)
  # =====================================================================
 
+ POP_EFFECT_FILTER: "[AddLocalizationIf(InterestGroup.IsValid, 'POP_EFFECT_FILTER_INTEREST_GROUP')][AddLocalizationIf(Culture.IsValid, 'POP_EFFECT_FILTER_CULTURE')][AddLocalizationIf(Religion.IsValid, 'POP_EFFECT_FILTER_RELIGION')][AddLocalizationIf(PopType.IsValid, 'POP_EFFECT_FILTER_POP_TYPE')][AddTextIf(Not(EqualTo_string('none', '$STRATA$')), Concatenate(Localize('$STRATA$'), ' '))][Concept('concept_pop', '$concept_pops$')] (s5 v=$VALUE$ add=[Add_CFixedPoint('(CFixedPoint)2', '(CFixedPoint)3')] country=[COUNTRY.GetNameNoFlag] state=[STATE.GetName])[AddLocalizationIf(InterestGroup.IsValid, 'BDI_AFF_IG')][AddLocalizationIf(Culture.IsValid, 'BDI_AFF_CULTURE')][AddLocalizationIf(Religion.IsValid, 'BDI_AFF_RELIGION')][AddLocalizationIf(PopType.IsValid, 'BDI_AFF_POPTYPE')]"
+
  POP_EFFECT_FILTER_INTEREST_GROUP: "[InterestGroup.GetName] members of "
+ POP_EFFECT_FILTER_CULTURE: "[Culture.GetName] "
+ POP_EFFECT_FILTER_RELIGION: "[Religion.GetName] "
+ POP_EFFECT_FILTER_POP_TYPE: "[PopType.GetName] "
 
  # ---------------------------------------------------------------------
- # Pop-effect templates. Vanilla text verbatim; our line appended.
- # _FIRST = the player's own country (confirmed the variant actually used),
- # _THIRD = every other country.
- # ---------------------------------------------------------------------
- ADD_RADICALS_FIRST:4 "$VALUE|-=1%$ of $FILTER_DESC$ in [COUNTRY.GetNameNoFlag] become more [concept_radical]$BDI_AFFECTED_IN_COUNTRY$"
- ADD_RADICALS_THIRD:4 "$VALUE|-=1%$ of $FILTER_DESC$ in [COUNTRY.GetName] become more [concept_radical]$BDI_AFFECTED_IN_COUNTRY$"
- ADD_LOYALISTS_FIRST:4 "$VALUE|+=1%$ of $FILTER_DESC$ in [COUNTRY.GetNameNoFlag] become more [concept_loyalist]$BDI_AFFECTED_IN_COUNTRY$"
- ADD_LOYALISTS_THIRD:4 "$VALUE|+=1%$ of $FILTER_DESC$ in [COUNTRY.GetName] become more [concept_loyalist]$BDI_AFFECTED_IN_COUNTRY$"
-
- ADD_RADICALS_IN_STATE_THIRD: "$VALUE|-=1%$ of $FILTER_DESC$ in [STATE.GetName] become more [concept_radical]$BDI_AFFECTED_IN_STATE$"
- ADD_LOYALISTS_IN_STATE_THIRD: "$VALUE|+=1%$ of $FILTER_DESC$ in [STATE.GetName] become more [concept_loyalist]$BDI_AFFECTED_IN_STATE$"
-
- # ---------------------------------------------------------------------
- # COUNTRY-SCOPED. Exactly one branch fires, chosen by the live filter.
- # (s1 v=$VALUE$) stays until the multiplication is seen working -- it
- # prints the raw fraction so a wrong product reads differently from an
- # absent one.
- # ---------------------------------------------------------------------
- BDI_AFFECTED_IN_COUNTRY:0 "\n$TAB$#indent_newline:3 (s1 v=$VALUE$) [AddLocalizationIf(InterestGroup.IsValid, 'BDI_AFF_IG')][AddLocalizationIf(Culture.IsValid, 'BDI_AFF_CULTURE')][AddLocalizationIf(Religion.IsValid, 'BDI_AFF_RELIGION')][AddLocalizationIf(PopType.IsValid, 'BDI_AFF_POPTYPE')][AddTextIf(EqualTo_string('lower', '$STRATA$'), Localize('BDI_AFF_STRATA_LOWER'))][AddTextIf(EqualTo_string('middle', '$STRATA$'), Localize('BDI_AFF_STRATA_MIDDLE'))][AddTextIf(EqualTo_string('upper', '$STRATA$'), Localize('BDI_AFF_STRATA_UPPER'))]#!"
-
- BDI_AFF_IG:0 "about #b [Multiply_CFixedPoint('$VALUE$', InterestGroup.GetPopulation)|K]#! of [InterestGroup.GetPopulation|K] [InterestGroup.GetName]"
- BDI_AFF_CULTURE:0 "about #b [Multiply_CFixedPoint('$VALUE$', Culture.GetPopulation)|K]#! of [Culture.GetPopulation|K] [Culture.GetName] pops"
- BDI_AFF_RELIGION:0 "about #b [Multiply_CFixedPoint('$VALUE$', Religion.GetPopulation)|K]#! of [Religion.GetPopulation|K] [Religion.GetName] pops"
- BDI_AFF_POPTYPE:0 "about #b [Multiply_CFixedPoint('$VALUE$', PopType.GetPopulation(GetPlayer))|K]#! of [PopType.GetPopulation(GetPlayer)|K] [PopType.GetName]"
-
- # Strata has no object in scope -- only the '$STRATA$' string -- so each
- # case is spelled out. Nested Multiply(GetTrendValue(...)) is the risky
- # part here and has no vanilla precedent.
- BDI_AFF_STRATA_LOWER:0 "about #b [Multiply_CFixedPoint('$VALUE$', GetTrendValue(COUNTRY.GetLowerStrataPopulationTrend))|K]#! of [GetTrendValue(COUNTRY.GetLowerStrataPopulationTrend)|K] lower strata"
- BDI_AFF_STRATA_MIDDLE:0 "about #b [Multiply_CFixedPoint('$VALUE$', GetTrendValue(COUNTRY.GetMiddleStrataPopulationTrend))|K]#! of [GetTrendValue(COUNTRY.GetMiddleStrataPopulationTrend)|K] middle strata"
- BDI_AFF_STRATA_UPPER:0 "about #b [Multiply_CFixedPoint('$VALUE$', GetTrendValue(COUNTRY.GetUpperStrataPopulationTrend))|K]#! of [GetTrendValue(COUNTRY.GetUpperStrataPopulationTrend)|K] upper strata"
-
- # ---------------------------------------------------------------------
- # STATE-SCOPED. Always prints the state's own population as scale context
- # (this is the "should I even care about North Angola" line), then adds a
- # real affected count when the filter has a state-scoped accessor.
- # STATE.GetPopulationForCulture has exact vanilla precedent; the PopType
- # one needs STATE.Self passed as a function ARGUMENT, which does not --
- # hence the (s3) tag staying on until it is seen working.
- # ---------------------------------------------------------------------
- BDI_AFFECTED_IN_STATE:0 "\n$TAB$#indent_newline:3 (s3 v=$VALUE$) [STATE.GetName] has [STATE.GetPopulationSize|K] people[AddLocalizationIf(Culture.IsValid, 'BDI_AFF_S_CULTURE')][AddLocalizationIf(Religion.IsValid, 'BDI_AFF_S_RELIGION')][AddLocalizationIf(PopType.IsValid, 'BDI_AFF_S_POPTYPE')][AddTextIf(EqualTo_string('lower', '$STRATA$'), Localize('BDI_AFF_S_STRATA_LOWER'))][AddTextIf(EqualTo_string('middle', '$STRATA$'), Localize('BDI_AFF_S_STRATA_MIDDLE'))][AddTextIf(EqualTo_string('upper', '$STRATA$'), Localize('BDI_AFF_S_STRATA_UPPER'))] (s4 add=[Add_CFixedPoint('(CFixedPoint)2', '(CFixedPoint)3')])#!"
-
- # Strata in a STATE, by national share.
+ # The affected count. These run in the context where the filter objects
+ # are proven live (R1 rendered "pop=1.23M appr=2 clout=6.6%" here and the
+ # numbers matched the game's own panels exactly).
  #
- # The user's suggestion -- decompose a strata into its professions and sum
- # PopType.GetStatePopulation for each -- is right in principle but does not
- # survive contact with the data: strata membership is NOT fixed, it is set
- # per social hierarchy in common/social_classes/, and professions move
- # between strata. farmers are middle by default but LOWER under the Edo
- # system; capitalists are upper by default, MIDDLE under the Indian caste
- # system and LOWER under Edo; academics are middle by default but UPPER in
- # both others. A hardcoded profession list would therefore be silently
- # wrong for India and Japan. There is also no confirmed addition function
- # in loc (vanilla uses only Multiply/Divide/Subtract_CFixedPoint), so a
- # 6-term sum has nothing to build on -- which (s4) above is testing.
- #
- # So this estimates instead, using only confirmed arithmetic: take the
- # strata's share of the national population and apply it to the state.
- # The engine computes those national strata totals correctly for whatever
- # hierarchy the country uses, so this stays right across all three.
- # The assumption -- that the state's strata mix matches the national mix --
- # is wrong for colonial states specifically, so the wording says "roughly"
- # and shows the share it used rather than hiding the estimate.
- BDI_AFF_S_STRATA_LOWER:0 " -- roughly #b [Multiply_CFixedPoint('$VALUE$', Multiply_CFixedPoint(STATE.GetPopulationSize, Divide_CFixedPoint(GetTrendValue(COUNTRY.GetLowerStrataPopulationTrend), COUNTRY.GetTotalPopulation)))|K]#! of them, at [Divide_CFixedPoint(GetTrendValue(COUNTRY.GetLowerStrataPopulationTrend), COUNTRY.GetTotalPopulation)|%0] lower strata nationally"
- BDI_AFF_S_STRATA_MIDDLE:0 " -- roughly #b [Multiply_CFixedPoint('$VALUE$', Multiply_CFixedPoint(STATE.GetPopulationSize, Divide_CFixedPoint(GetTrendValue(COUNTRY.GetMiddleStrataPopulationTrend), COUNTRY.GetTotalPopulation)))|K]#! of them, at [Divide_CFixedPoint(GetTrendValue(COUNTRY.GetMiddleStrataPopulationTrend), COUNTRY.GetTotalPopulation)|%0] middle strata nationally"
- BDI_AFF_S_STRATA_UPPER:0 " -- roughly #b [Multiply_CFixedPoint('$VALUE$', Multiply_CFixedPoint(STATE.GetPopulationSize, Divide_CFixedPoint(GetTrendValue(COUNTRY.GetUpperStrataPopulationTrend), COUNTRY.GetTotalPopulation)))|K]#! of them, at [Divide_CFixedPoint(GetTrendValue(COUNTRY.GetUpperStrataPopulationTrend), COUNTRY.GetTotalPopulation)|%0] upper strata nationally"
-
- BDI_AFF_S_CULTURE:0 " -- about #b [Multiply_CFixedPoint('$VALUE$', STATE.GetPopulationForCulture(Culture.Self))|K]#! of [STATE.GetPopulationForCulture(Culture.Self)|K] [Culture.GetName] there"
- BDI_AFF_S_RELIGION:0 " -- about #b [Multiply_CFixedPoint('$VALUE$', Religion.GetStatePopulation(STATE.Self))|K]#! of [Religion.GetStatePopulation(STATE.Self)|K] [Religion.GetName] there"
- BDI_AFF_S_POPTYPE:0 " -- about #b [Multiply_CFixedPoint('$VALUE$', PopType.GetStatePopulation(STATE.Self))|K]#! of [PopType.GetStatePopulation(STATE.Self)|K] [PopType.GetName] there"
+ # Each prints the product AND the subgroup total, so an implausible
+ # product is obvious rather than quietly trusted.
+ # ---------------------------------------------------------------------
+ BDI_AFF_IG:0 " (about #b [Multiply_CFixedPoint('$VALUE$', InterestGroup.GetPopulation)|K]#! of [InterestGroup.GetPopulation|K])"
+ BDI_AFF_CULTURE:0 " (about #b [Multiply_CFixedPoint('$VALUE$', Culture.GetPopulation)|K]#! of [Culture.GetPopulation|K])"
+ BDI_AFF_RELIGION:0 " (about #b [Multiply_CFixedPoint('$VALUE$', Religion.GetPopulation)|K]#! of [Religion.GetPopulation|K])"
+ BDI_AFF_POPTYPE:0 " (about #b [Multiply_CFixedPoint('$VALUE$', PopType.GetPopulation(GetPlayer))|K]#! of [PopType.GetPopulation(GetPlayer)|K])"
 
  # ---------------------------------------------------------------------
- # CONFIRMED WORKING, now at final wording. Renders on every interest-group
- # modifier anywhere in the game, and correctly does not render on country,
- # state, character or building modifiers.
+ # CONFIRMED WORKING. Now INLINE rather than on its own line, per the user --
+ # it follows straight after "-5 Interest Group Approval" instead of
+ # breaking to a new row.
+ #
+ # NOTE ON ROUNDING: |%0 truncates, so the Landowners line read "6% clout"
+ # while the sidebar showed 6.7%. A player cross-checking will spot the
+ # mismatch. |%1 would show 6.7% and agree with the panel; flagged rather
+ # than changed, since whole percent was the explicit request.
  # ---------------------------------------------------------------------
  ADD_MODIFIER_THIRD:0 "$SUBJECT_NAME$ gets #tooltippable #tooltip:[GetRawTextTooltipTag('$ADD_MODIFIER_BREAKDOWN$')] $MODIFIER_NAME$#!#! $MAYBE_DECAYING_WITH_SPACE_AFTER$$DURATION$\n$TAB$#indent_newline:3 $MODIFIER_DESC$#![AddLocalizationIf(InterestGroup.IsValid, 'BDI_IG_STANDING')]"
 
- BDI_IG_STANDING:0 "\n$TAB$#indent_newline:3 (Currently #b [InterestGroup.GetApprovalValue|+=]#! with #b [InterestGroup.GetClout|%0]#! clout)#!"
+ BDI_IG_STANDING:0 " (Currently #b [InterestGroup.GetApprovalValue|+=]#! with #b [InterestGroup.GetClout|%0]#! clout)"
