@@ -1,93 +1,77 @@
 ﻿l_english:
  # =====================================================================
- # ROUND 6 -- and a structural simplification.
+ # ROUND 8. Round 6 gave a clean, and awkward, result:
  #
- # WHAT ROUND 5 SETTLED: the filter objects are NOT bound in the parent
- # ADD_RADICALS_* template. "(s1 v=0.02)" rendered with nothing after it,
- # and error.log logged NO failure for BDI_AFF_IG -- so InterestGroup.IsValid
- # was simply false there, not broken. $VALUE$ propagates fine; the scopes
- # do not. R1 already proved those same objects ARE live inside
- # POP_EFFECT_FILTER.
+ #   "(s5 v=VALUE add=5 country= state=)"  and  "(about of 1.23M)"
  #
- # CONSEQUENCE: everything moves into POP_EFFECT_FILTER, and the four
- # ADD_RADICALS_*/ADD_LOYALISTS_* overrides are DROPPED entirely. That is
- # strictly better:
- #   - four fewer vanilla templates to keep in sync across patches
- #   - it automatically covers every template that uses $FILTER_DESC$ --
- #     ADD_RADICALS, _FIRST, _THIRD, _IN_STATE_THIRD, both ADD_LOYALISTS
- #     families, and KILL_POPULATION* as well
- #   - no more guessing which variant the engine picked (the _FIRST vs
- #     _THIRD hunt becomes irrelevant)
- # Two overridden keys total now, down from seven.
+ # 1. $VALUE$ does NOT reach POP_EFFECT_FILTER -- it printed the literal
+ #    word "VALUE", i.e. an unrecognised parameter renders as its own name.
+ #    In the PARENT it works ("(s1 v=0.02)" in round 5).
+ # 2. Add_CFixedPoint EXISTS -- "add=5" from 2+3. The user's
+ #    strata-by-profession decomposition is therefore arithmetically
+ #    possible after all; the blocker there is only the hierarchy-dependent
+ #    profession list, not the summation.
+ # 3. COUNTRY and STATE do NOT bind in POP_EFFECT_FILTER (both empty).
+ # 4. InterestGroup.GetPopulation works there (1.23M), but the product came
+ #    out blank because its operand was the string "VALUE".
  #
- # COST: the text lands mid-sentence, right after "Pops", because that is
- # where $FILTER_DESC$ sits:
- #   "+2.0% of Rural Folk members of Pops (about 24K of 1.23M) in Portugal
- #    become more Radical"
- # Judge that on this run. If it reads badly the fallback is to go back to
- # per-template overrides and accept the maintenance cost.
+ # SO THE TWO HALVES LIVE IN DIFFERENT CONTEXTS:
+ #   parent template      -> $VALUE$, $STRATA$(?), COUNTRY, STATE
+ #   POP_EFFECT_FILTER    -> InterestGroup, Culture, Religion, PopType
+ # and neither can see the other's half. That is the whole difficulty.
  #
- # (s5) probes four unknowns at once, on every pop effect -- so unlike the
- # round-5 (s4) probe, which was attached to the state branch and therefore
- # never rendered at all, this one cannot hide:
- #   v=        does $VALUE$ reach here (needed for the multiplication)
- #   add=      does Add_CFixedPoint exist (2+3 should print 5) -- decides
- #             whether the exact strata-by-profession decomposition is even
- #             possible, per the user's suggestion
- #   country=  is COUNTRY bound here (needed for the strata branch)
- #   state=    is STATE bound here (needed for state-scoped effects)
+ # THIS ROUND SPLITS THE WORK ACCORDINGLY:
+ #   - filter-object cases get the SUBGROUP TOTAL inline, which is proven to
+ #     work today and needs nothing unverified. Combined with vanilla's own
+ #     "+2.0%" the reader has both numbers even without the multiplication.
+ #   - the strata case moves to the PARENT, where COUNTRY and $VALUE$ are
+ #     both available, so there the full product IS computable.
+ #   - (s7) hunts for the parameter name the value arrives under inside
+ #     POP_EFFECT_FILTER. An unknown parameter renders as its own name, so
+ #     any of these coming back as a NUMBER instead of a word is the answer,
+ #     and would unlock the exact product for every filter case.
  # =====================================================================
 
- POP_EFFECT_FILTER: "[AddLocalizationIf(InterestGroup.IsValid, 'POP_EFFECT_FILTER_INTEREST_GROUP')][AddLocalizationIf(Culture.IsValid, 'POP_EFFECT_FILTER_CULTURE')][AddLocalizationIf(Religion.IsValid, 'POP_EFFECT_FILTER_RELIGION')][AddLocalizationIf(PopType.IsValid, 'POP_EFFECT_FILTER_POP_TYPE')][AddTextIf(Not(EqualTo_string('none', '$STRATA$')), Concatenate(Localize('$STRATA$'), ' '))][Concept('concept_pop', '$concept_pops$')] (s5 v=$VALUE$ add=[Add_CFixedPoint('(CFixedPoint)2', '(CFixedPoint)3')] country=[COUNTRY.GetNameNoFlag] state=[STATE.GetName])[AddLocalizationIf(InterestGroup.IsValid, 'BDI_AFF_IG')][AddLocalizationIf(Culture.IsValid, 'BDI_AFF_CULTURE')][AddLocalizationIf(Religion.IsValid, 'BDI_AFF_RELIGION')][AddLocalizationIf(PopType.IsValid, 'BDI_AFF_POPTYPE')]"
+ # ---------------------------------------------------------------------
+ # Subgroup total inline. Proven working: "1.23M" rendered correctly and
+ # matched the Rural Folk panel.
+ # (s7) probes candidate parameter names for the effect's magnitude.
+ # ---------------------------------------------------------------------
+ POP_EFFECT_FILTER: "[AddLocalizationIf(InterestGroup.IsValid, 'POP_EFFECT_FILTER_INTEREST_GROUP')][AddLocalizationIf(Culture.IsValid, 'POP_EFFECT_FILTER_CULTURE')][AddLocalizationIf(Religion.IsValid, 'POP_EFFECT_FILTER_RELIGION')][AddLocalizationIf(PopType.IsValid, 'POP_EFFECT_FILTER_POP_TYPE')][AddTextIf(Not(EqualTo_string('none', '$STRATA$')), Concatenate(Localize('$STRATA$'), ' '))][Concept('concept_pop', '$concept_pops$')] (s7 $VAL$ $AMOUNT$ $PERCENT$ $NUM$ $QUANTITY$)[AddLocalizationIf(InterestGroup.IsValid, 'BDI_SIZE_IG')][AddLocalizationIf(Culture.IsValid, 'BDI_SIZE_CULTURE')][AddLocalizationIf(Religion.IsValid, 'BDI_SIZE_RELIGION')][AddLocalizationIf(PopType.IsValid, 'BDI_SIZE_POPTYPE')]"
 
  POP_EFFECT_FILTER_INTEREST_GROUP: "[InterestGroup.GetName] members of "
  POP_EFFECT_FILTER_CULTURE: "[Culture.GetName] "
  POP_EFFECT_FILTER_RELIGION: "[Religion.GetName] "
  POP_EFFECT_FILTER_POP_TYPE: "[PopType.GetName] "
 
- # ---------------------------------------------------------------------
- # The affected count. These run in the context where the filter objects
- # are proven live (R1 rendered "pop=1.23M appr=2 clout=6.6%" here and the
- # numbers matched the game's own panels exactly).
- #
- # Each prints the product AND the subgroup total, so an implausible
- # product is obvious rather than quietly trusted.
- # ---------------------------------------------------------------------
- BDI_AFF_IG:0 " (about #b [Multiply_CFixedPoint('$VALUE$', InterestGroup.GetPopulation)|K]#! of [InterestGroup.GetPopulation|K])"
- BDI_AFF_CULTURE:0 " (about #b [Multiply_CFixedPoint('$VALUE$', Culture.GetPopulation)|K]#! of [Culture.GetPopulation|K])"
- BDI_AFF_RELIGION:0 " (about #b [Multiply_CFixedPoint('$VALUE$', Religion.GetPopulation)|K]#! of [Religion.GetPopulation|K])"
- BDI_AFF_POPTYPE:0 " (about #b [Multiply_CFixedPoint('$VALUE$', PopType.GetPopulation(GetPlayer))|K]#! of [PopType.GetPopulation(GetPlayer)|K])"
+ BDI_SIZE_IG:0 " (#b [InterestGroup.GetPopulation|K]#! strong)"
+ BDI_SIZE_CULTURE:0 " (#b [Culture.GetPopulation|K]#! strong)"
+ BDI_SIZE_RELIGION:0 " (#b [Religion.GetPopulation|K]#! strong)"
+ BDI_SIZE_POPTYPE:0 " (#b [PopType.GetPopulation(GetPlayer)|K]#! strong)"
 
  # ---------------------------------------------------------------------
- # CONFIRMED WORKING. Now INLINE rather than on its own line, per the user --
- # it follows straight after "-5 Interest Group Approval" instead of
- # breaking to a new row.
- #
- # NOTE ON ROUNDING: |%0 truncates, so the Landowners line read "6% clout"
- # while the sidebar showed 6.7%. A player cross-checking will spot the
- # mismatch. |%1 would show 6.7% and agree with the panel; flagged rather
- # than changed, since whole percent was the explicit request.
+ # Parent templates, back ONLY for the strata case -- the one place where
+ # both halves of the calculation are in the same context. (s8) confirms
+ # $STRATA$ actually reaches the parent; it is passed down to
+ # POP_EFFECT_FILTER, so it should, but that has not been observed directly.
+ # ---------------------------------------------------------------------
+ ADD_RADICALS_FIRST:4 "$VALUE|-=1%$ of $FILTER_DESC$ in [COUNTRY.GetNameNoFlag] become more [concept_radical]$BDI_STRATA_COUNT$"
+ ADD_RADICALS_THIRD:4 "$VALUE|-=1%$ of $FILTER_DESC$ in [COUNTRY.GetName] become more [concept_radical]$BDI_STRATA_COUNT$"
+ ADD_LOYALISTS_FIRST:4 "$VALUE|+=1%$ of $FILTER_DESC$ in [COUNTRY.GetNameNoFlag] become more [concept_loyalist]$BDI_STRATA_COUNT$"
+ ADD_LOYALISTS_THIRD:4 "$VALUE|+=1%$ of $FILTER_DESC$ in [COUNTRY.GetName] become more [concept_loyalist]$BDI_STRATA_COUNT$"
+
+ BDI_STRATA_COUNT:0 " (s8 strata=$STRATA$)[AddTextIf(EqualTo_string('lower', '$STRATA$'), Localize('BDI_STRATA_LOWER'))][AddTextIf(EqualTo_string('middle', '$STRATA$'), Localize('BDI_STRATA_MIDDLE'))][AddTextIf(EqualTo_string('upper', '$STRATA$'), Localize('BDI_STRATA_UPPER'))]"
+
+ BDI_STRATA_LOWER:0 " -- about #b [Multiply_CFixedPoint('$VALUE$', GetTrendValue(COUNTRY.GetLowerStrataPopulationTrend))|K]#! of [GetTrendValue(COUNTRY.GetLowerStrataPopulationTrend)|K]"
+ BDI_STRATA_MIDDLE:0 " -- about #b [Multiply_CFixedPoint('$VALUE$', GetTrendValue(COUNTRY.GetMiddleStrataPopulationTrend))|K]#! of [GetTrendValue(COUNTRY.GetMiddleStrataPopulationTrend)|K]"
+ BDI_STRATA_UPPER:0 " -- about #b [Multiply_CFixedPoint('$VALUE$', GetTrendValue(COUNTRY.GetUpperStrataPopulationTrend))|K]#! of [GetTrendValue(COUNTRY.GetUpperStrataPopulationTrend)|K]"
+
+ # ---------------------------------------------------------------------
+ # Modifier line. Interest-group standing is CONFIRMED WORKING and inline.
+ # State scale is new and untested -- (s6) marks the unknown binding name.
  # ---------------------------------------------------------------------
  ADD_MODIFIER_THIRD:0 "$SUBJECT_NAME$ gets #tooltippable #tooltip:[GetRawTextTooltipTag('$ADD_MODIFIER_BREAKDOWN$')] $MODIFIER_NAME$#!#! $MAYBE_DECAYING_WITH_SPACE_AFTER$$DURATION$\n$TAB$#indent_newline:3 $MODIFIER_DESC$#![AddLocalizationIf(InterestGroup.IsValid, 'BDI_IG_STANDING')][AddLocalizationIf(State.IsValid, 'BDI_STATE_STANDING')]"
 
  BDI_IG_STANDING:0 " (Currently #b [InterestGroup.GetApprovalValue|+=]#! with #b [InterestGroup.GetClout|%0]#! clout)"
 
- # ---------------------------------------------------------------------
- # NEW: state context on a modifier line -- "does this state even matter?"
- #
- # The North Angola event is the case that needs it. Its option carries no
- # pop effect at all, only two add_modifiers, so POP_EFFECT_FILTER is never
- # invoked and nothing we put there can ever appear. That is why (s5) was
- # absent twice: not broken, never called. State scale therefore has to ride
- # on the modifier line instead, exactly parallel to the interest-group one.
- #
- # State.GetCountry is used rather than the COUNTRY scope, since COUNTRY is
- # not known to bind in this template and State.GetCountry has vanilla
- # precedent. The share is what actually answers "should I care" -- 450K
- # people means little until you know it is 0.4% of Portugal.
- #
- # (s6) stays until this is seen working; the binding name is the unknown
- # (PascalCase `State` here, versus the uppercase STATE used in the
- # ADD_RADICALS_* family). If (s6) never appears, try STATE.IsValid instead.
- # ---------------------------------------------------------------------
  BDI_STATE_STANDING:0 " (s6 [State.GetName]: #b [State.GetPopulationSize|K]#! people, [Divide_CFixedPoint(State.GetPopulationSize, State.GetCountry.GetTotalPopulation)|%1] of the country)"
