@@ -597,6 +597,57 @@ root, so `smart_ui/` cannot leak into a Smart Notifications release. Packaging
 the second mod needs its own target — not wired up, not needed until there is
 something to upload.
 
+## Probe run — how to test 2b's mechanics (built 2026-09-12)
+
+`smart_ui/localization/english/smart_ui_probe_l_english.yml` answers all five
+open mechanics questions in **one** playthrough. Throwaway file; delete before
+anything ships.
+
+**Reading the output.** Every probe prints a static `(Tn…)` marker beside its
+dynamic value, because the two failure modes look identical otherwise:
+
+| what you see | what it means |
+|---|---|
+| `(T2a poptype=1.2M)` | works |
+| `(T2a poptype=)` — marker, no value | scope bound, **function** wrong |
+| no `(T2a` marker at all | the `AddLocalizationIf` guard was false, or the override lost |
+| no `(T1)` prefix anywhere | **mod loc cannot override engine templates** — stop, 2b is dead in this form |
+
+**What each probe settles:**
+
+- **T1 / T4** — override precedence. T1 matches vanilla's `:3`, T4 deliberately
+  uses `:4`. Both appear → load order decides, version suffix cosmetic. Only T4
+  → the number decides. Neither → overriding engine templates is impossible.
+- **T1a–T1e** — `COUNTRY` scope, the three strata accessors, and whether
+  `$STRATA$` passes through as a string.
+- **T2a–T2d** — whether `PopType` / `InterestGroup` / `Culture` / `Religion`
+  are live scopes inside `POP_EFFECT_FILTER`, and whether `$VALUE$` reaches it.
+- **T3a–T3c** — `STATE` scope, and **can `STATE.Self` be passed as a function
+  argument**. No vanilla precedent; gates the 41% of pop effects that are
+  state-scoped. T3a working while T3b fails isolates arg-passing as the cause.
+- **T4a / T4b** — loc-side arithmetic with `$VALUE$` as an operand, which is
+  what turns "5% of 12.4M" into "about 620k".
+- **T5** — `InterestGroup` bound in `ADD_MODIFIER_THIRD` behind an
+  `IsValid` guard: the answer to "−2 approval, but −2 from *what*?"
+
+**Blast radius warning.** T5 overrides `ADD_MODIFIER_THIRD`, which renders for
+**every** `add_modifier` in the game — countries, states, characters, buildings,
+not just interest groups. The `InterestGroup.IsValid` guard is what should keep
+the marker off non-IG modifiers. If modifier tooltips break generally, that
+guard is the cause; disable the mod and the game is unaffected.
+
+**Fastest route to the tooltips:** fire events with known filter shapes from
+the console rather than waiting for them —
+
+| event | filter shape | probes exercised |
+|---|---|---|
+| `1848.4` | strata (upper/middle/lower), country | T1, T1b–d, T4 |
+| `1848.5` | no filter, state (capital) | T3a |
+| `dreyfus_events` (religion, state) | religion, state | T2d, T3 |
+| `agitator_law_events_2` | interest_group, country | T2b, T5 |
+
+Hover each option; the effect lines are in the option tooltip.
+
 ## Suggested order
 
 1. **Item 1 logging** — `audit_notification_coverage.py` first (pure analysis,
