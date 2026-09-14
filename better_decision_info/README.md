@@ -1,67 +1,47 @@
 # Better Decision Info — second mod in this repo
 
-A **separate Victoria 3 mod**, developed in this repo alongside Smart
-Notifications but shipped as its own Workshop item.
+**Currently empty of content.** Its first feature (event tooltip enrichment)
+turned out to be localization-only and was merged into Smart Notifications on
+2026-09-14 — see `localization/replace/english/smart_notifications_event_context_l_english.yml`
+at the repo root.
 
-## Why it is separate
+## What this folder is still for
 
 The split line is **risk profile, not theme**:
 
-- **Smart Notifications** (repo root) — script under `common/` and `events/`,
-  plus small self-contained `.gui` files. Live on the Workshop with real
-  subscribers. Low conflict risk.
-- **Better Decision Info** (this folder) — overrides of **large vanilla `.gui` files**
-  (`country_panel.gui` is 4,420 lines, `popups.gui` 5,156). High conflict risk
-  with other UI mods, and needs re-diffing against vanilla after every game
-  patch.
+- **Smart Notifications** (repo root) — script, plus localization overrides.
+  Low patch-fragility. Live on the Workshop with real subscribers.
+- **Better Decision Info** (this folder) — overrides of **large vanilla `.gui`
+  files**. `country_panel.gui` is 4,420 lines and `popups.gui` 5,156; both must
+  be re-diffed against vanilla after every patch, and both collide with any
+  other mod touching the same screen.
 
-A `.gui` override must sit at the exact vanilla path (`gui/country_panel.gui`),
-so it **cannot** be isolated in a subfolder within one mod. The mod boundary is
-the only clean isolation boundary available — which is the whole reason this
-folder exists.
+A `.gui` override must sit at the exact vanilla path, so it cannot be isolated
+within one mod. The mod boundary is the only isolation boundary available.
 
-Shipping these overrides inside Smart Notifications would hand every existing
-subscriber a 4,420-line file override they never asked for, and any patch
-breakage in it would break the mod that is already live.
+The event feature moved because it never needed a `.gui` file at all — it is
+seven replaced loc keys and produces zero `error.log` output, so it does not
+carry the risk this folder exists to contain.
 
-## Merging back later
+## Planned content
 
-Deliberately kept easy, and it is the safe direction: copy `gui/`, `common/`
-and `localization/` into the parent mod, merge the two `metadata.json` files,
-done. **The reverse is not easy** — splitting a mod that already has
-subscribers means a new Workshop item, lost subscriber count, and stranded
-player settings. Starting separate preserves both options; starting merged
-forecloses one.
-
-## Scope
-
-Everything here comes from `docs/followup-plan-2026-09-11.md`:
+From `docs/followup-plan-2026-09-11.md`:
 
 - **2a(ii)** alliance / defensive pact / guarantee rows on the country panel
 - **2a(i)** predicted joiners on the diplomatic play start screen
-- **2b** population and interest-group context in the event window
+
+**Read before starting either:** the Community Mod Framework
+(Workshop `3385002128`, [GitHub](https://github.com/Victoria-3-Modding-Co-op/Community-Mod-Framework))
+exists specifically to deconflict mods that override GUI files, and warns that
+it "will collide with other mods that touch these files". Check which files it
+patches, and whether it offers an extension hook for the country panel —
+building on it would beat a full-file override.
 
 ## Tooling
-
-Shared with the parent mod, not duplicated:
 
 ```
 python tools/validate_syntax.py better_decision_info
 ```
 
-`SHIP_DIRS` in `tools/package_release.py` is an allowlist
-(`.metadata`, `common`, `events`, `gui`, `localization`) resolved from the repo
-root, so this folder is **not** picked up when packaging Smart Notifications.
-Packaging this mod needs its own target — not yet wired up, and not needed
-until there is something to upload.
-
-## Deployment
-
-Junctioned into the game's mod folder the same way the parent mod is:
-
-```
-mklink /J "%USERPROFILE%\Documents\Paradox Interactive\Victoria 3\modetter_decision_info" "<repo>etter_decision_info"
-```
-
-Then add it to the active Playset in the Paradox Launcher — Mod Library alone
-is not enough.
+Checks that assert Smart Notifications' own content are gated on the mod id,
+so they do not fire against this folder.

@@ -1,6 +1,6 @@
 ﻿l_english:
  # =====================================================================
- # BETTER DECISION INFO -- event tooltip enrichment.
+ # SMART NOTIFICATIONS -- event tooltip enrichment.
  #
  # Shows how large the group is that an event option actually affects, so
  # "+2.0% of Bedouin Pops become more Radical" stops being unreadable.
@@ -50,7 +50,7 @@
  #
  # THIS FILE PRODUCES NO ERROR.LOG OUTPUT AT ALL. POP_EFFECT_FILTER always
  # binds its filter scopes, so IsValid returns false instead of failing --
- # confirmed: zero BDI_SIZE_* lines across the same 2003-line sample.
+ # confirmed: zero SMART_NOTIFICATIONS_EVT_SIZE_* lines across the same 2003-line sample.
  # =====================================================================
 
  # Size shows only when EXACTLY ONE filter applies. 68 of 1376 vanilla pop
@@ -59,7 +59,7 @@
  # INTERSECTION that no accessor exposes. Printing either single size there
  # would be authoritative-looking and wrong, so those fall through to
  # vanilla's untouched text.
- POP_EFFECT_FILTER: "[AddLocalizationIf(InterestGroup.IsValid, 'POP_EFFECT_FILTER_INTEREST_GROUP')][AddLocalizationIf(Culture.IsValid, 'POP_EFFECT_FILTER_CULTURE')][AddLocalizationIf(Religion.IsValid, 'POP_EFFECT_FILTER_RELIGION')][AddLocalizationIf(PopType.IsValid, 'POP_EFFECT_FILTER_POP_TYPE')][AddTextIf(Not(EqualTo_string('none', '$STRATA$')), Concatenate(Localize('$STRATA$'), ' '))][Concept('concept_pop', '$concept_pops$')][AddLocalizationIf(And(And4(InterestGroup.IsValid, Not(Culture.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('none', '$STRATA$')), 'BDI_SIZE_IG')][AddLocalizationIf(And(And4(Culture.IsValid, Not(InterestGroup.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('none', '$STRATA$')), 'BDI_SIZE_CULTURE')][AddLocalizationIf(And(And4(Religion.IsValid, Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(PopType.IsValid)), EqualTo_string('none', '$STRATA$')), 'BDI_SIZE_RELIGION')][AddLocalizationIf(And(And4(PopType.IsValid, Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(Religion.IsValid)), EqualTo_string('none', '$STRATA$')), 'BDI_SIZE_POPTYPE')][AddTextIf(And(And4(Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('lower', '$STRATA$')), Localize('BDI_SIZE_STRATA_LOWER'))][AddTextIf(And(And4(Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('middle', '$STRATA$')), Localize('BDI_SIZE_STRATA_MIDDLE'))][AddTextIf(And(And4(Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('upper', '$STRATA$')), Localize('BDI_SIZE_STRATA_UPPER'))]"
+ POP_EFFECT_FILTER: "[AddLocalizationIf(InterestGroup.IsValid, 'POP_EFFECT_FILTER_INTEREST_GROUP')][AddLocalizationIf(Culture.IsValid, 'POP_EFFECT_FILTER_CULTURE')][AddLocalizationIf(Religion.IsValid, 'POP_EFFECT_FILTER_RELIGION')][AddLocalizationIf(PopType.IsValid, 'POP_EFFECT_FILTER_POP_TYPE')][AddTextIf(Not(EqualTo_string('none', '$STRATA$')), Concatenate(Localize('$STRATA$'), ' '))][Concept('concept_pop', '$concept_pops$')][AddLocalizationIf(And(And4(InterestGroup.IsValid, Not(Culture.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('none', '$STRATA$')), 'SMART_NOTIFICATIONS_EVT_SIZE_IG')][AddLocalizationIf(And(And4(Culture.IsValid, Not(InterestGroup.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('none', '$STRATA$')), 'SMART_NOTIFICATIONS_EVT_SIZE_CULTURE')][AddLocalizationIf(And(And4(Religion.IsValid, Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(PopType.IsValid)), EqualTo_string('none', '$STRATA$')), 'SMART_NOTIFICATIONS_EVT_SIZE_RELIGION')][AddLocalizationIf(And(And4(PopType.IsValid, Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(Religion.IsValid)), EqualTo_string('none', '$STRATA$')), 'SMART_NOTIFICATIONS_EVT_SIZE_POPTYPE')][AddTextIf(And(And4(Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('lower', '$STRATA$')), Localize('SMART_NOTIFICATIONS_EVT_SIZE_STRATA_LOWER'))][AddTextIf(And(And4(Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('middle', '$STRATA$')), Localize('SMART_NOTIFICATIONS_EVT_SIZE_STRATA_MIDDLE'))][AddTextIf(And(And4(Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('upper', '$STRATA$')), Localize('SMART_NOTIFICATIONS_EVT_SIZE_STRATA_UPPER'))]"
 
  # ---------------------------------------------------------------------
  # State-scoped effects also get the state's own size, because the figure
@@ -89,16 +89,19 @@
 
  # Confirmed in game against the game's own panels: Rural Folk rendered
  # 1.23M against a panel reading 1.2M.
- BDI_SIZE_IG:0 " (#b [InterestGroup.GetPopulation|K]#! nationwide)"
- BDI_SIZE_CULTURE:0 " (#b [Culture.GetPopulation(GetPlayer)|K]#! nationwide)"
- BDI_SIZE_RELIGION:0 " (#b [Religion.GetPopulation(GetPlayer)|K]#! nationwide)"
- BDI_SIZE_POPTYPE:0 " (#b [PopType.GetPopulation(GetPlayer)|K]#! nationwide)"
+ SMART_NOTIFICATIONS_EVT_SIZE_IG:0 " (#b [InterestGroup.GetPopulation|K]#! nationwide)"
+ SMART_NOTIFICATIONS_EVT_SIZE_CULTURE:0 " (#b [Culture.GetPopulation(GetPlayer)|K]#! nationwide)"
+ SMART_NOTIFICATIONS_EVT_SIZE_RELIGION:0 " (#b [Religion.GetPopulation(GetPlayer)|K]#! nationwide)"
+ SMART_NOTIFICATIONS_EVT_SIZE_POPTYPE:0 " (#b [PopType.GetPopulation(GetPlayer)|K]#! nationwide)"
 
  # Strata totals need a country and COUNTRY does not bind here, so these use
  # GetPlayer. An audit of all 246 strata-filtered pop effects in vanilla
  # found ZERO that apply to a country other than the event's own, so that is
- # safe. (s9) stays until one is actually seen rendering in game -- no
- # strata-filtered pop effect has turned up yet.
- BDI_SIZE_STRATA_LOWER:0 " (s9 #b [GetTrendValue(GetPlayer.GetLowerStrataPopulationTrend)|K]#! nationwide)"
- BDI_SIZE_STRATA_MIDDLE:0 " (s9 #b [GetTrendValue(GetPlayer.GetMiddleStrataPopulationTrend)|K]#! nationwide)"
- BDI_SIZE_STRATA_UPPER:0 " (s9 #b [GetTrendValue(GetPlayer.GetUpperStrataPopulationTrend)|K]#! nationwide)"
+ # safe.
+ #
+ # STILL UNVERIFIED IN GAME: no strata-filtered pop effect has been seen
+ # rendering yet, so these three lines have never been observed working.
+ # Confirm before the next release (see TODO.md).
+ SMART_NOTIFICATIONS_EVT_SIZE_STRATA_LOWER:0 " #b [GetTrendValue(GetPlayer.GetLowerStrataPopulationTrend)|K]#! nationwide)"
+ SMART_NOTIFICATIONS_EVT_SIZE_STRATA_MIDDLE:0 " #b [GetTrendValue(GetPlayer.GetMiddleStrataPopulationTrend)|K]#! nationwide)"
+ SMART_NOTIFICATIONS_EVT_SIZE_STRATA_UPPER:0 " #b [GetTrendValue(GetPlayer.GetUpperStrataPopulationTrend)|K]#! nationwide)"

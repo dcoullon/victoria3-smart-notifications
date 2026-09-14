@@ -1437,6 +1437,30 @@ own separate mod. No version target until that's decided.
       treaty terms, so the phase closed with no new content needed and
       these tools have nothing left to scope.
 
+## UNVERIFIED before the next release — event context feature
+
+Merged into Smart Notifications 2026-09-14 as
+`localization/replace/english/smart_notifications_event_context_l_english.yml`.
+**No version bump yet**: two of its branches have never been observed
+rendering in game, and the convention is to bump only for something new and
+*confirmed working*.
+
+Confirm both, then bump and tag:
+
+1. **State-scoped effects.** An event whose effect says "in <some state>"
+   rather than "in <your country>" -- 39% of pop effects, so common. Expect:
+   `+5.0% of Czech Pops (1.2M nationwide) in Bohemia (2.1M inhabitants)
+   become more Radical`. Neither `ADD_RADICALS_IN_STATE_THIRD` nor
+   `ADD_LOYALISTS_IN_STATE_THIRD` has been seen live.
+2. **Strata-filtered effects.** An effect reading "lower/middle/upper strata
+   Pops". Expect `(12.4M nationwide)`. These use `GetPlayer`, which an audit
+   of all 246 strata effects showed is safe (zero apply to a foreign
+   country), but the accessor chain
+   `GetTrendValue(GetPlayer.Get*StrataPopulationTrend)` has never rendered.
+
+Confirmed working: interest group, culture, religion, pop type; the
+single-filter guard; zero error.log output.
+
 ## Marketing idea (not scheduled — for when the mod is closer to release)
 
 ### Post hook backlog (user ideas, unscheduled)
