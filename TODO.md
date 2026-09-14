@@ -1518,13 +1518,33 @@ r/victoria3 on its own terms, not read as promo. The version that works
 gives the findings away — including the exact Message Settings players can
 change by hand — and mentions the mod only as the shortcut.
 
-Coverage reality for any census claim (measured 2026-09-14): of 463 message
-keys, **200 are cheap to instrument** (call sites in `common/`, safe
-append-only pattern) covering **120 of the 223 toast-tier keys**; 166 are
-event-only and would need vanilla event files overridden; **103 are
-engine-fired and can never be measured**. So every published number is a
-**lower bound** — which is defensible, and arguably a stronger hook than a
-false total.
+Coverage reality for any census claim. **CORRECTED 2026-09-14** -- an earlier
+version of this note said "200 cheap to instrument covering 120 toast keys".
+That was wrong: it counted everything under `common/`, but only
+`common/on_actions/` supports the safe append-only pattern. The real split of
+all 463 message keys:
+
+| where its `post_notification` call site lives | keys | of which toast |
+|---|---|---|
+| `common/on_actions/` -- **safe append, no vanilla file touched** | 100 | 38 |
+| other `common/` (journal entries, scripted effects, buttons) | 100 | 82 |
+| `events/` only | 166 | 62 |
+| **nowhere -- engine-fired, unmeasurable forever** | **103** | **41** |
+
+So the safe-append route alone reaches only 38 of 223 toast keys (17%),
+barely above the 33 already instrumented.
+
+**The way round it:** a *throwaway measurement build* may override vanilla
+files freely, because it never ships. A generator script can copy every
+vanilla file containing `post_notification` (~190 of them) and insert a
+`debug_log` beside each call, mechanically. That reaches everything except
+the 103 engine-fired keys -- and those include the original flagship
+offenders (attitude changes, conscription, mobilization, invasions,
+political lobbies), so **every published figure stays a lower bound**
+regardless. Defensible, and a stronger hook than a false total.
+
+Effort: roughly half a day for the harness, one long passive play session,
+an hour of analysis. Not days, as first estimated.
 
 ### Original idea
 
