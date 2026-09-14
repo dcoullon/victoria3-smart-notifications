@@ -703,6 +703,47 @@ panels (not just "it rendered"):**
 something non-throwaway, and decide the `(SN)`-equivalent tagging convention
 for this mod (CLAUDE.md's rule is written for Smart Notifications).
 
+### 2026-09-14: the log question is answered, and it blocks shipping
+
+A longer session settled it. `error.log` reached **1018 lines, ~1000 of them
+ours**. Every render of `ADD_MODIFIER_THIRD` for a subject that is not a State
+(or not an InterestGroup) writes four lines:
+
+```
+No context supplied (Use SetDataContext), wanted context of type 'State'
+for 'State.IsValid'
+FetchData failed for 'AddLocalizationIf(State.IsValid, 'BDI_STATE_STANDING')'
+```
+
+255 failed evaluations in one session — **204 State, 51 InterestGroup**. The
+guard is correct on screen; the scope is simply *absent* rather than invalid
+for other subject types, so it cannot be evaluated at all.
+
+**Why this blocks ship:** it would fill every player's `error.log`, and
+`scan_logs.py` is how we judge Smart Notifications' health — this could bury
+real errors in the mod that is already live.
+
+**Ruled out:** vanilla has no scope-existence guard (its only `Exists()` is
+`GetVariableSystem.Exists`, for GUI variables), and there are no
+subject-typed modifier templates — only `ADD_MODIFIER` / `_FIRST` / `_THIRD`.
+
+**(s12) is a guard-form bake-off**: `AddLocalizationIf` (the known-bad
+baseline), `AddTextIf`+`Localize`, and `SelectLocalization` with an empty
+else, each pointing at its own key so `error.log` names whichever still fail.
+A form passes only if it renders **and** its key is absent from the log
+afterwards.
+
+**If none passes, it is a product decision, not a technical one:**
+
+| option | keeps | costs |
+|---|---|---|
+| Drop the modifier-line features | the pop-effect size line, which has **no** spam (POP_EFFECT_FILTER always binds its scopes) | loses interest-group standing and state scale |
+| Keep them and accept the noise | everything | ~1000 log lines per session, in every player's install |
+| Keep only interest-group standing | the explicitly-requested feature | still ~51 failures per session |
+
+The first option is the only cleanly shippable one, and it still leaves a real
+feature — the size line was the original goal.
+
 ## Suggested order
 
 1. **Item 1 logging** — `audit_notification_coverage.py` first (pure analysis,

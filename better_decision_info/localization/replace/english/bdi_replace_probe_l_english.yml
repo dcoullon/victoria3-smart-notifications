@@ -69,7 +69,42 @@
  # from the number it explains. That works because interest-group modifiers
  # carry a single value line; if one ever carries two, it will dangle the
  # same way and need the same treatment.
- ADD_MODIFIER_THIRD:0 "$SUBJECT_NAME$[AddLocalizationIf(State.IsValid, 'BDI_STATE_STANDING')] gets #tooltippable #tooltip:[GetRawTextTooltipTag('$ADD_MODIFIER_BREAKDOWN$')] $MODIFIER_NAME$#!#! $MAYBE_DECAYING_WITH_SPACE_AFTER$$DURATION$\n$TAB$#indent_newline:3 $MODIFIER_DESC$#![AddLocalizationIf(InterestGroup.IsValid, 'BDI_IG_STANDING')]"
+ # =====================================================================
+ # (s12) -- THE SHIP-BLOCKER. Guard-form bake-off.
+ #
+ # A longer play session settled the log question and the answer is bad:
+ # 1018 lines in error.log, ~1000 of them ours. Every time this template
+ # renders for a subject that is NOT a State (or NOT an InterestGroup), the
+ # guard cannot even be evaluated and the engine writes FOUR lines:
+ #   "No context supplied (Use SetDataContext), wanted context of type
+ #    'State' for 'State.IsValid'"
+ # 255 failed evaluations in one session -- 204 State, 51 InterestGroup.
+ # Unshippable as is: it would pollute every player's log and could bury
+ # real Smart Notifications errors in scan_logs.py.
+ #
+ # Vanilla offers no scope-existence guard (its only Exists() is
+ # GetVariableSystem.Exists, for GUI variables), and there are no
+ # subject-typed ADD_MODIFIER variants -- only ADD_MODIFIER/_FIRST/_THIRD.
+ # So this tries three alternative guard forms against the one known-bad
+ # form, each pointing at its OWN key so error.log names whichever ones
+ # still fail.
+ #
+ # PASS = the marker renders on a state/interest-group modifier AND that
+ # key's name does NOT appear in error.log afterwards. A form that renders
+ # but still logs is no better than what we have.
+ #
+ # If none passes, this is a product decision, not a technical one -- see
+ # the note in docs/followup-plan-2026-09-11.md.
+ # =====================================================================
+ ADD_MODIFIER_THIRD:0 "$SUBJECT_NAME$[AddLocalizationIf(State.IsValid, 'BDI_G_A')][AddTextIf(State.IsValid, Localize('BDI_G_B'))][SelectLocalization(State.IsValid, 'BDI_G_C', '')] gets #tooltippable #tooltip:[GetRawTextTooltipTag('$ADD_MODIFIER_BREAKDOWN$')] $MODIFIER_NAME$#!#! $MAYBE_DECAYING_WITH_SPACE_AFTER$$DURATION$\n$TAB$#indent_newline:3 $MODIFIER_DESC$#![AddLocalizationIf(InterestGroup.IsValid, 'BDI_IG_STANDING')]"
+
+ # A = current form, known to log. Baseline for comparison.
+ BDI_G_A:0 " (s12A)"
+ # B = AddTextIf + Localize, the form vanilla uses for $STRATA$ branching.
+ BDI_G_B:0 " (s12B)"
+ # C = SelectLocalization with an empty else, the form vanilla uses for
+ #     PREFERENCE_LABEL on the diplo play screen.
+ BDI_G_C:0 " (s12C)"
 
  BDI_IG_STANDING:0 " (Currently #b [InterestGroup.GetApprovalValue|+=]#! with #b [InterestGroup.GetClout|%0]#! clout)"
 
