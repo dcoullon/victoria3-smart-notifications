@@ -1447,11 +1447,31 @@ rendering in game, and the convention is to bump only for something new and
 
 Confirm both, then bump and tag:
 
-1. **State-scoped effects.** An event whose effect says "in <some state>"
-   rather than "in <your country>" -- 39% of pop effects, so common. Expect:
-   `+5.0% of Czech Pops (1.2M nationwide) in Bohemia (2.1M inhabitants)
-   become more Radical`. Neither `ADD_RADICALS_IN_STATE_THIRD` nor
-   `ADD_LOYALISTS_IN_STATE_THIRD` has been seen live.
+1. **State-scoped effects, the `in <state>` form.** Still unconfirmed.
+   Expect `+5.0% of Czech Pops (1.2M nationwide) in Bohemia (2.1M
+   inhabitants) become more Radical`. Neither `ADD_RADICALS_IN_STATE_THIRD`
+   nor `ADD_LOYALISTS_IN_STATE_THIRD` has been seen live.
+
+   **Observed 2026-09-14 (The Great Molasses Flood, Bohemia): there is a
+   THIRD rendering path we had not accounted for.** When several pop effects
+   share one state scope, the engine hoists the state name into a header and
+   renders each line with the BARE `ADD_RADICALS` template -- no country, no
+   state, no `in ...` clause:
+
+   ```
+   Bohemia
+     +5.0% of Machinists Pops (97.6K nationwide) become more Radical
+     +5.0% of Engineers Pops  (15.2K nationwide) become more Radical
+   ```
+
+   Our nationwide figure renders correctly there (that is the screenshot
+   above), but the `(2.1M inhabitants)` addition does not, because that
+   template is never invoked. Nothing is broken; the state size simply
+   cannot appear in this form. The bare `ADD_RADICALS` template binds
+   neither COUNTRY nor STATE, so there is nothing else to add to it -- this
+   is the ceiling for the grouped presentation, and it is where the
+   "nationwide is a bit odd here" feeling comes from, since only Bohemia's
+   machinists are affected.
 2. **Strata-filtered effects.** An effect reading "lower/middle/upper strata
    Pops". Expect `(12.4M nationwide)`. These use `GetPlayer`, which an audit
    of all 246 strata effects showed is safe (zero apply to a foreign
