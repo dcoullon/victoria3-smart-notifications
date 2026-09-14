@@ -19,6 +19,14 @@ Usage:
     python tools/scan_logs.py --lines 50       # more context per category
     python tools/scan_logs.py --logs-dir PATH  # override the default logs dir
     python tools/scan_logs.py --unfiltered     # ALL error.log lines, no pattern filter
+    python tools/scan_logs.py --census         # analyse a notification-census run
+
+`--census` is the analysis half of the notification census (see
+docs/feed-census-plan.md and tools/build_census_mod.py). It streams the
+SNW_CENSUS lines a census build wrote and prints aggregates only -- ranked
+keys, the per-decade growth curve, and the vanilla-vs-mod tier split. A census
+debug.log runs to hundreds of MB, so it is never read into a context window;
+the work lives in tools/census_report.py.
 
 Intended for a beta tester to run against their own log files and paste
 the (small, filtered) output when reporting an issue -- see
@@ -33,6 +41,7 @@ the normal filtered scan could miss it).
 """
 import argparse
 import re
+import sys
 from pathlib import Path
 
 DEFAULT_LOGS_DIR = Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3" / "logs"
@@ -71,6 +80,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--lines", type=int, default=20, help="max lines to show per file/category")
     ap.add_argument("--logs-dir", type=Path, default=DEFAULT_LOGS_DIR)
+    ap.add_argument("--census", action="store_true",
+                     help="Analyse a notification-census run (see tools/census_report.py).")
+    ap.add_argument("--census-manifest", type=Path, default=None,
+                     help="Override the census build's manifest location.")
+    ap.add_argument("--top", type=int, default=30, help="--census: keys to rank.")
     ap.add_argument("--unfiltered", action="store_true",
                      help="Print ALL error.log lines (no pattern filter) -- use when checking "
                           "for something not on the known-pattern list, e.g. confirming a save "
@@ -81,6 +95,10 @@ def main():
         print(f"Logs directory not found: {args.logs_dir}")
         print("Pass --logs-dir to point at your own Victoria 3/logs folder.")
         return
+
+    if args.census:
+        import census_report
+        sys.exit(census_report.report(args.logs_dir, args.census_manifest, args.top))
 
     if args.unfiltered:
         path = args.logs_dir / "error.log"

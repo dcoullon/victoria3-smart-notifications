@@ -11,3 +11,8 @@ __pycache__/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Notification-census manifest written by `tools/build_census_mod.py --manifest-only`.
+# A build artefact describing a throwaway measurement mod, regenerated on demand.
+# The real build (and its own copy of this manifest) lives outside the repo.
+tools/census_manifest.json

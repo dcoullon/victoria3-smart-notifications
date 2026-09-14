@@ -17,6 +17,55 @@ Two goals, one dataset:
    findings and the Message Settings players can change by hand — with the mod
    mentioned only as the shortcut.
 
+## BUILD STATUS (2026-09-14, implemented)
+
+Steps 1-4 of "Order of work" are done. What exists now:
+
+- `tools/build_census_mod.py` -- the generator. `--mode calibrate` (run this
+  first, short) / `--mode measure` (the long run). Writes to
+  `Documents/Paradox Interactive/Victoria 3/mod/smart_notifications_census/`,
+  a real directory outside this repo, plus a `census_manifest.json` describing
+  every call site.
+- `tools/census_scope_overrides.json` -- manual scope verdicts, the place a
+  calibrate run's findings get written back.
+- `tools/census_report.py`, reached via `python tools/scan_logs.py --census`.
+
+Measured, superseding the estimates below:
+
+| | spec said | actually |
+|---|---|---|
+| files to override | ~190 | **99** (47 with the events allowlist) |
+| call sites instrumented | -- | **400** |
+| distinct keys | -- | **384** |
+
+Three corrections to the design as specified:
+
+1. **Player scoping, which the spec did not account for.** `post_notification`
+   fires in whatever scope its call site sits in, *including AI countries*,
+   and the player never sees those. A raw firing count answers "how often does
+   this happen in the simulated world" -- for `diplomatic_action_notification`
+   roughly 100x what a player is shown. So each call site is classified, and
+   the logging is wrapped in `if = { limit = { is_player = yes } ... }` where
+   the scope is confidently a country (`P` lines) and left unguarded otherwise
+   (`W` lines). The classifier never guesses COUNTRY without positive
+   evidence: guarding a non-country scope reproduces the exact
+   `Wrong scope for trigger: diplomatic_action, expected country` error this
+   project already hit once. The report keeps `P` and `W` in **separate
+   tables** -- mixing them would produce a headline that cannot be defended.
+2. **The mod-key -> vanilla-key mapping table is not needed.** The spec called
+   it load-bearing. Running the census build *alongside* Smart Notifications
+   removes it: the mod cannot suppress a vanilla `post_notification` (its only
+   vanilla overrides are `common/messages/00_messages.txt` and two `.gui`
+   files, none of which the census touches), so it mutes vanilla keys via
+   `notification_type = none` and posts its own key in parallel. Both are
+   observed directly and the mute falls out of the tier join. Nothing in the
+   report rests on an inferred mapping.
+3. **events/ is instrumented selectively**, not wholesale -- see below.
+
+Load order: the census build must sit **after** Smart Notifications in the
+playset, since it also overrides SN's own 161 call sites. The two mods share
+no other file.
+
 ## What already exists
 
 - `common/on_actions/01_smart_notifications_logger.txt` — hooks **32 vanilla
@@ -120,13 +169,14 @@ Extend `tools/scan_logs.py` with a `--census` mode that reads the run's
 
 ## Order of work
 
-1. `tools/build_census_mod.py` + the throwaway mod folder and its junction.
-2. Verify on a short run that `SNW_CENSUS|` lines actually appear, and that the
+1. ~~`tools/build_census_mod.py` + the throwaway mod folder.~~ DONE.
+2. NEXT: verify on a short run that `SNW_CENSUS|` lines actually appear, and that the
    game loads with ~190 overridden vanilla files without new `error.log` noise
    beyond the expected. **Verify the instrument before trusting it** — a blank
    result usually means the tap is broken, not that nothing fired.
-3. The mod-key → vanilla-key mapping table for the split families.
-4. `scan_logs.py --census`.
+3. ~~The mod-key → vanilla-key mapping table for the split families.~~ NOT
+   NEEDED — see BUILD STATUS correction 2.
+4. ~~`scan_logs.py --census`.~~ DONE.
 5. One long passive session (the real cost, and the user's time not the
    agent's). Ideally 1836 → 1900+ for the growth curve.
 6. Analysis, then the tuning decisions and the post.
