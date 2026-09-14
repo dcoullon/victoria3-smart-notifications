@@ -19,6 +19,33 @@ instrumentation and doc-only changes get a commit but **no** version bump
 unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.40] — 2026-09-14
+
+No settings reset needed. This release changes no notification tiers — it only
+adds information to event tooltips.
+
+### Added
+
+- **Event choices now tell you how many people they affect.** Vanilla says
+  "+10.0% of Czech Pops become more Radical" and leaves you to guess whether
+  that is a rounding error or a catastrophe. It now reads "+10.0% of Czech
+  Pops (3.83M nationwide) become more Radical". Works for cultures, religions,
+  interest groups, professions and strata, on every event, journal entry and
+  decision that moves pops — and on war and famine death tolls too.
+- **State-scoped choices also show the state's population**, so "in Bohemia
+  (2.1M inhabitants)" tells you whether the place being affected matters.
+
+### Known limitations
+
+- The figure is **nationwide**. Roughly 39% of these effects apply to a single
+  state, and the game does not expose the size of a group *within* a state to
+  mods — so the number is an upper bound in those cases, which is why it says
+  "nationwide" rather than pretending otherwise.
+- Effects that combine two filters (a culture *and* a profession, say — about
+  5% of them) show **no** figure, because the affected group is the overlap of
+  the two and no number for that exists. Better to say nothing than to show a
+  confident wrong answer.
+
 ## [0.39] — 2026-09-10
 
 Notification fixes only. **No settings reset needed for this one** — nothing
