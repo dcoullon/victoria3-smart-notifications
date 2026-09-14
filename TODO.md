@@ -1439,6 +1439,33 @@ own separate mod. No version target until that's decided.
 
 ## Marketing idea (not scheduled — for when the mod is closer to release)
 
+### Post hook backlog (user ideas, unscheduled)
+
+1. **"Updated for patch 1.x"** (user, 2026-09-14). Patch-day posts earn
+   attention because players are actively checking what still works, so it
+   reads as useful information rather than promotion. Pairs naturally with
+   the notification-census idea below — a patch is a legitimate reason to
+   re-run the measurement and publish fresh numbers.
+2. **The notification census** (below) — the data-led post.
+3. **Diplomacy noise alone** — already measured, needs no new work: 271
+   diplomatic actions in one session, 233 of them irrelevant to the player.
+   A smaller post that could go out at any time.
+
+Framing rule agreed with the user 2026-09-14: the post must add value to
+r/victoria3 on its own terms, not read as promo. The version that works
+gives the findings away — including the exact Message Settings players can
+change by hand — and mentions the mod only as the shortcut.
+
+Coverage reality for any census claim (measured 2026-09-14): of 463 message
+keys, **200 are cheap to instrument** (call sites in `common/`, safe
+append-only pattern) covering **120 of the 223 toast-tier keys**; 166 are
+event-only and would need vanilla event files overridden; **103 are
+engine-fired and can never be measured**. So every published number is a
+**lower bound** — which is defensible, and arguably a stronger hook than a
+false total.
+
+### Original idea
+
 User idea (2026-09-04): a Reddit post showing **how many notifications fire
 over ~10 years of default-settings gameplay**, broken down by type, as a
 visual way to make the spam problem concrete before linking to the Steam
