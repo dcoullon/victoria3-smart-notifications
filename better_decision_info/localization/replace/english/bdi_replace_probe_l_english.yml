@@ -70,16 +70,16 @@
 
  # Confirmed in game against the game's own panels: Rural Folk rendered
  # 1.23M against a panel reading 1.2M.
- BDI_SIZE_IG:0 " (#b [InterestGroup.GetPopulation|K]#! strong)"
- BDI_SIZE_CULTURE:0 " (#b [Culture.GetPopulation(GetPlayer)|K]#! strong)"
- BDI_SIZE_RELIGION:0 " (#b [Religion.GetPopulation(GetPlayer)|K]#! strong)"
- BDI_SIZE_POPTYPE:0 " (#b [PopType.GetPopulation(GetPlayer)|K]#! strong)"
+ BDI_SIZE_IG:0 " (#b [InterestGroup.GetPopulation|K]#! in [GetPlayer.GetNameNoFlag])"
+ BDI_SIZE_CULTURE:0 " (#b [Culture.GetPopulation(GetPlayer)|K]#! in [GetPlayer.GetNameNoFlag])"
+ BDI_SIZE_RELIGION:0 " (#b [Religion.GetPopulation(GetPlayer)|K]#! in [GetPlayer.GetNameNoFlag])"
+ BDI_SIZE_POPTYPE:0 " (#b [PopType.GetPopulation(GetPlayer)|K]#! in [GetPlayer.GetNameNoFlag])"
 
  # Strata totals need a country and COUNTRY does not bind here, so these use
  # GetPlayer. An audit of all 246 strata-filtered pop effects in vanilla
  # found ZERO that apply to a country other than the event's own, so that is
  # safe. (s9) stays until one is actually seen rendering in game -- no
  # strata-filtered pop effect has turned up yet.
- BDI_SIZE_STRATA_LOWER:0 " (s9 #b [GetTrendValue(GetPlayer.GetLowerStrataPopulationTrend)|K]#! strong)"
- BDI_SIZE_STRATA_MIDDLE:0 " (s9 #b [GetTrendValue(GetPlayer.GetMiddleStrataPopulationTrend)|K]#! strong)"
- BDI_SIZE_STRATA_UPPER:0 " (s9 #b [GetTrendValue(GetPlayer.GetUpperStrataPopulationTrend)|K]#! strong)"
+ BDI_SIZE_STRATA_LOWER:0 " (s9 #b [GetTrendValue(GetPlayer.GetLowerStrataPopulationTrend)|K]#! in [GetPlayer.GetNameNoFlag])"
+ BDI_SIZE_STRATA_MIDDLE:0 " (s9 #b [GetTrendValue(GetPlayer.GetMiddleStrataPopulationTrend)|K]#! in [GetPlayer.GetNameNoFlag])"
+ BDI_SIZE_STRATA_UPPER:0 " (s9 #b [GetTrendValue(GetPlayer.GetUpperStrataPopulationTrend)|K]#! in [GetPlayer.GetNameNoFlag])"
