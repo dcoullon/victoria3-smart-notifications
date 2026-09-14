@@ -4,6 +4,9 @@
 # dev tooling, not treated as personal/local config.
 .claude/settings.json
 
+# Python bytecode from tools/ -- build artefacts, never content.
+__pycache__/
+
 # OS cache/metadata files -- never intentional content.
 .DS_Store
 Thumbs.db
