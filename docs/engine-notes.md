@@ -1157,3 +1157,69 @@ one.
 See [distribution-guidelines.md](distribution-guidelines.md) for the full,
 sourced writeup (Paradox's official mod policy, Steam Workshop rules, and
 why a similar prior-art mod got removed).
+
+## Localization cannot guard on an unbound scope — the rule that killed two features
+
+**Established 2026-09-14, from three independent lines of evidence.** Read this
+before putting any scope-dependent expression into a loc key that the engine
+renders polymorphically.
+
+### The rule
+
+A localization expression that queries a data context **evaluates eagerly**.
+If that context is not bound, the engine does not return false — it writes an
+assertion to `error.log`:
+
+```
+pdx_data_callstack.cpp:16  No context supplied (Use SetDataContext),
+  wanted context of type 'InterestGroup' for 'InterestGroup.IsValid'
+pdx_data_localize_helper.cpp:286  FetchData failed for
+  'AddLocalizationIf(InterestGroup.IsValid, 'BDI_IG_STANDING')'
+```
+
+Four lines per render. Measured cost when attached to `ADD_MODIFIER_THIRD`
+(which renders for every `add_modifier` in the game, across countries, states,
+characters, interest groups and buildings): **1995 of 2003 error.log lines in
+a single in-game year.**
+
+### What does NOT work — all tested, do not retry
+
+| attempt | result |
+|---|---|
+| `AddLocalizationIf(X.IsValid, ...)` | 91 failures |
+| `AddTextIf(X.IsValid, Localize(...))` | 91 failures |
+| `SelectLocalization(X.IsValid, ..., '')` | 92 failures |
+| A subject-typed template variant | none exists — only `ADD_MODIFIER`, `_FIRST`, `_THIRD` |
+| `Container` accessors | `data_types_explorer` shows only `AccessSelf` and `Self`, both `[unregistered]`, 0 args |
+| Runtime type introspection | no global function returns a context's type as a comparable value |
+| A `$SUBJECT_TYPE$`-style parameter | the template receives only **pre-rendered strings** — `$SUBJECT_NAME$`, `$MODIFIER_NAME$`, `$MODIFIER_DESC$`, `$DURATION$`, `$MAYBE_DECAYING_WITH_SPACE_AFTER$`. No scope, no type token. |
+
+The wrappers all fail identically because **the condition is what errors, not
+the wrapper**. There is no short-circuit evaluation and no safe-navigation
+operator: arguments are fully resolved before the outer function runs. The
+global `IsValid( Arg0 )` in the data-types dump does not help for the same
+reason — building its argument still requires resolving `X.Self`.
+
+`GetVariableSystem.Exists('name')` is the only existence test in the system and
+is limited to transient GUI variables; it cannot query game scopes.
+
+### Where scope-dependent text CAN go
+
+1. **A `.gui` widget**, where the context is bound by the layout
+   (`datacontext = "[...]"` above it). `visible = "[InterestGroup.IsValid]"`
+   is safe there because the scope is guaranteed present.
+2. **A script-side `custom_tooltip`** wrapping the effect, where the root scope
+   is guaranteed — but that means editing vanilla event files.
+3. **A specific modifier's own `<modifier_key>_desc`**, which is authored for
+   exactly one modifier and therefore needs no type check.
+
+### Where it CAN safely go in loc
+
+Keys whose scopes the engine **always** binds. `POP_EFFECT_FILTER` is the
+worked example: `InterestGroup`, `Culture`, `Religion` and `PopType` are all
+bound there, so `IsValid` returns false rather than failing. Zero error lines
+across the same 2003-line sample that the modifier guard filled.
+
+**The test for whether a key is safe:** does the engine render it for one
+subject type only, or polymorphically for many? Polymorphic means no guard is
+possible.
