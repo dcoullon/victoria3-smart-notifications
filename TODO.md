@@ -1499,6 +1499,52 @@ single-filter guard; zero error.log output.
   the account flagged, which costs more than the missing link. A few genuine
   replies in the Victoria 3 forum over a few days normally lifts it.
 
+## WANTED: tell the player which random outcome actually happened
+
+Raised by the user 2026-09-14. Many events resolve a choice with a
+`random_list` -- 60% this happens, 40% that -- and the game **never tells you
+which branch fired**. You pick an option, the window closes, and you are left
+to infer the result from your ledger. A small toast or feed line naming the
+outcome would close that loop, and it is squarely a notification feature
+rather than a UI one, so it belongs in this mod.
+
+**Scale (measured 2026-09-14):** 317 `random_list` blocks across 94 event
+files. 260 have 2 outcomes, 39 have 3, and 18 have 4-7. Example:
+`1848.10` alone carries three separate blocks.
+
+**The hard part is the same wall the event-context feature hit.** There is no
+generic "an event option resolved" hook, and a `random_list` branch is plain
+script inside a vanilla event file. To announce the outcome, a
+`post_notification` has to be inserted **inside each branch** -- which means
+overriding the vanilla event files that contain them.
+
+That is exactly what we refused to do for the event-context feature, and for
+good reason: 94 overridden event files in a *shipping* mod is a large
+compatibility surface and a re-diff burden on every patch. (It is fine for the
+throwaway census build, which never ships -- see
+[docs/feed-census-plan.md](docs/feed-census-plan.md) -- but this feature would
+have to ship.)
+
+**Before building, answer these:**
+
+1. Is there any hook we have not found? Check a fresh `data_types_explorer`
+   dump and the on_actions list for anything that fires when an event option
+   resolves. Assume no until proven; the same search came up empty for
+   modifier tooltips.
+2. If it needs event overrides, can it be **narrowed**? The 20-30 events a
+   player actually sees every campaign (the 1848 family, agitator and election
+   pulses) would cover most of the value at a fraction of the conflict
+   surface. A generator like `tools/build_census_mod.py` could emit them
+   mechanically from a curated allowlist.
+3. What does the notification say? The branch has no name -- only its weight
+   and its effects. Naming the outcome usefully probably means authoring a loc
+   string per branch, which is the real cost and scales with the allowlist.
+
+**Judgement at the time:** genuinely wanted, clearly in scope, and the most
+requested-feeling gap after the event context. But it is the first feature
+that would put vanilla event file overrides into a shipping build, so the
+narrowing question in (2) decides whether it is worth doing at all.
+
 ## Marketing idea (not scheduled — for when the mod is closer to release)
 
 ### Post hook backlog (user ideas, unscheduled)
