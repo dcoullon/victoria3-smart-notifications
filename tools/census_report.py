@@ -120,6 +120,73 @@ def parse_log(path):
     return counts, years, ids_seen, undated, total
 
 
+def timeline(logs_dir, manifest_path=None, date_from=None, date_to=None):
+    """Chronological list of every logged firing, for checking against the UI.
+
+    The ground-truth check the census cannot do on its own: play with only the
+    census mod enabled, screenshot the message feed, then lay this beside it.
+
+      - something on screen with no `P` line here -> we are UNDER-counting
+        (a player-scoped call site was classified as world-only, or missed)
+      - a `P` line here with nothing on screen    -> we are OVER-counting
+        (the guard is firing for a non-player, or the tier is `none`)
+
+    `W` lines are printed too, dimmed by a marker, because a notification that
+    shows up on screen while only a `W` line exists is the single most useful
+    finding available -- it names a call site whose scope verdict is wrong.
+    """
+    log = logs_dir / "debug.log"
+    if not log.exists():
+        print(f"debug.log not found: {log}")
+        return 1
+    manifest_path = manifest_path or DEFAULT_MANIFEST
+    by_id = {}
+    if manifest_path.exists():
+        by_id = {e["id"]: e for e in json.loads(manifest_path.read_text(encoding="utf-8"))}
+    vanilla_tiers = per_key_tiers(GAME_ROOT / "common" / "messages")
+    mod_tiers = dict(vanilla_tiers)
+    mod_tiers.update(per_key_tiers(REPO_ROOT / "common" / "messages"))
+
+    rows, shown, skipped = [], 0, 0
+    with log.open(encoding="utf-8", errors="replace") as f:
+        for line in f:
+            if "SNW_CENSUS|" not in line:
+                continue
+            m = CENSUS_RE.search(line)
+            if not m:
+                continue
+            scope, cid, key, datestr = m.groups()
+            y = YEAR_RE.search(datestr)
+            year = int(y.group(1)) if y else None
+            if date_from and (year is None or year < date_from):
+                skipped += 1
+                continue
+            if date_to and (year is None or year > date_to):
+                skipped += 1
+                continue
+            shown += 1
+            entry = by_id.get(int(cid), {})
+            rows.append([
+                datestr or "?",
+                "PLAYER" if scope == "P" else "world",
+                key,
+                vanilla_tiers.get(key, mod_tiers.get(key, "-")),
+                entry.get("reason", "-"),
+            ])
+    if not rows:
+        print("No SNW_CENSUS lines in range. If the run happened, the tap is broken --")
+        print("check the mod is enabled and the game was launched in debug mode.")
+        return 1
+    print(_table(rows, ["date", "scope", "key", "tier", "why that scope"]))
+    print()
+    print(f"{shown:,} firings shown"
+          + (f", {skipped:,} outside the date filter" if skipped else ""))
+    print()
+    print("Compare against the message feed: anything visible on screen that")
+    print("appears here only as `world` is a call site we are mis-classifying.")
+    return 0
+
+
 def _table(rows, headers):
     widths = [max(len(str(r[i])) for r in [headers] + rows) for i in range(len(headers))]
     out = ["  ".join(str(h).ljust(widths[i]) for i, h in enumerate(headers))]

@@ -508,7 +508,7 @@ def instrument(text, rel_path, next_id, mode, manifest, overrides):
     return "".join(out), next_id
 
 
-def collect_sources(events_mode):
+def collect_sources(events_mode, sources_mode="all"):
     """-> list of (absolute source path, mod-relative path, origin label)."""
     found = []
     for sub in ("common", "events"):
@@ -531,6 +531,15 @@ def collect_sources(events_mode):
 
     # Smart Notifications' own call sites. Its keys need counting too, and its
     # watchlist-conditional split families cannot be derived from a vanilla run.
+    #
+    # MUST be skipped when the census runs WITHOUT Smart Notifications enabled.
+    # These 8 files are copies of SN's own on_action handlers; loaded on their
+    # own they are orphans -- they reference SN's scripted_triggers, script
+    # values, message keys and alert groups, none of which exist without SN --
+    # so they would produce error spam and post keys that are not defined.
+    # `--sources vanilla` exists for exactly that run.
+    if sources_mode == "vanilla":
+        return found
     for sub in ("common", "events"):
         base = REPO_ROOT / sub
         if not base.is_dir():
@@ -570,6 +579,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=["measure", "calibrate"], default="measure")
     ap.add_argument("--events", choices=["recurring", "all", "none"], default="recurring")
+    ap.add_argument("--sources", choices=["all", "vanilla"], default="all",
+                    help="'all' also instruments Smart Notifications' own call sites and "
+                         "REQUIRES SN to be enabled alongside. 'vanilla' instruments only "
+                         "vanilla files -- use it when running the census mod ON ITS OWN, "
+                         "e.g. to check the logs against what the player actually sees.")
     ap.add_argument("--out", type=Path, default=DEFAULT_OUT)
     ap.add_argument("--game-root", type=Path, default=GAME_ROOT)
     ap.add_argument("--manifest-only", action="store_true",
@@ -581,7 +595,7 @@ def main():
         print(f"Game install not found: {GAME_ROOT}", file=sys.stderr)
         return 1
 
-    sources = collect_sources(args.events)
+    sources = collect_sources(args.events, args.sources)
     if not sources:
         print("No source files found -- check --game-root.", file=sys.stderr)
         return 1
@@ -619,7 +633,7 @@ def main():
     keys = {e["key"] for e in manifest}
     guarded = counts.get(COUNTRY, 0)
 
-    print(f"mode={args.mode}  events={args.events}")
+    print(f"mode={args.mode}  events={args.events}  sources={args.sources}")
     print(f"  source files      : {len(sources)}  ({written} written)")
     print(f"  call sites        : {len(manifest)}")
     print(f"  distinct keys     : {len(keys)}")
@@ -632,7 +646,11 @@ def main():
     if not args.manifest_only:
         print(f"  output            : {out_dir}")
         print()
-        print("Add as its own mod entry, ordered AFTER Smart Notifications.")
+        if args.sources == "vanilla":
+            print("Built WITHOUT Smart Notifications' files -- run this mod ON ITS OWN.")
+            print("Do NOT enable Smart Notifications alongside a --sources vanilla build.")
+        else:
+            print("Add as its own mod entry, ordered AFTER Smart Notifications.")
         print("NEVER upload this. NEVER add it to the Smart Notifications playset entry.")
     return 0
 

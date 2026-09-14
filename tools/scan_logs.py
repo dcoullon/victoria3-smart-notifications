@@ -85,6 +85,11 @@ def main():
     ap.add_argument("--census-manifest", type=Path, default=None,
                      help="Override the census build's manifest location.")
     ap.add_argument("--top", type=int, default=30, help="--census: keys to rank.")
+    ap.add_argument("--timeline", action="store_true",
+                     help="--census: list every firing chronologically instead of "
+                          "aggregating, to check the log against what was on screen.")
+    ap.add_argument("--from-year", type=int, default=None)
+    ap.add_argument("--to-year", type=int, default=None)
     ap.add_argument("--unfiltered", action="store_true",
                      help="Print ALL error.log lines (no pattern filter) -- use when checking "
                           "for something not on the known-pattern list, e.g. confirming a save "
@@ -98,6 +103,9 @@ def main():
 
     if args.census:
         import census_report
+        if args.timeline:
+            sys.exit(census_report.timeline(args.logs_dir, args.census_manifest,
+                                            args.from_year, args.to_year))
         sys.exit(census_report.report(args.logs_dir, args.census_manifest, args.top))
 
     if args.unfiltered:
