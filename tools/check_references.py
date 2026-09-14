@@ -1,4 +1,4 @@
-﻿"""
+"""
 Cross-file reference integrity checks for the Smart Notifications mod.
 
 Added 2026-09-08 per the user: "add tests into your code so we know it's
@@ -16,11 +16,39 @@ standalone: `python tools/check_references.py`.
 Each `check_*` function returns a list of human-readable error strings
 (empty list = pass) and never raises for a normal missing-reference case.
 """
+import json
 import re
 from pathlib import Path
 
 TEXT_SUFFIXES = {".txt", ".gui"}
 VANILLA_ROOT = Path(r"C:\Program Files (x86)\Steam\steamapps\common\Victoria 3\game")
+
+# This repo builds more than one mod (see better_decision_info/README.md for why the split
+# exists). Checks that assert Smart Notifications' OWN required content is
+# present are meaningless against a sibling mod, so they are gated on the mod
+# id below rather than skipped by folder name -- a rename cannot then silently
+# disable them.
+SMART_NOTIFICATIONS_ID = "smart_notifications"
+
+
+def read_mod_id(root: Path) -> str:
+    """The `id` from a mod root's .metadata/metadata.json, or "" if this
+    directory isn't a mod root (or its metadata is unreadable)."""
+    meta = root / ".metadata" / "metadata.json"
+    if not meta.is_file():
+        return ""
+    try:
+        return json.loads(meta.read_text(encoding="utf-8")).get("id", "")
+    except (json.JSONDecodeError, OSError):
+        return ""
+
+
+def nested_mod_roots(root: Path) -> list[Path]:
+    """Other mods developed inside this repo, each identified by its own
+    .metadata/metadata.json. Their files are not this mod's files, so every
+    whole-tree scan has to exclude them -- otherwise the parent mod's checks
+    would judge a sibling mod's `.gui` overrides as its own."""
+    return [meta.parent.parent for meta in root.glob("*/.metadata/metadata.json")]
 
 
 def _strip_comments(content: str) -> str:
@@ -55,12 +83,14 @@ def _iter_mod_files(root: Path):
     e.g. vanilla's own untouched `popup`-type message getting compared
     against our deliberately-muted override of the same key as if they
     were two messages sharing one group)."""
+    siblings = nested_mod_roots(root)
     for path in root.rglob("*.*"):
         if (
             path.suffix in TEXT_SUFFIXES
             and "tools" not in path.parts
             and ".git" not in path.parts
             and "reference" not in path.parts
+            and not any(sib in path.parents for sib in siblings)
         ):
             yield path
 
@@ -744,24 +774,108 @@ def check_loc_lines_are_well_formed(root: Path) -> list[str]:
     return errs
 
 
+# Vanilla loc keys this mod REPLACES via localization/replace/english/.
+# Each value is a hash of the vanilla text our override was derived from, as
+# shipped in the game version recorded below.
+#
+# WHY THIS EXISTS: a replaced loc key is a silent fork. If Paradox edits the
+# vanilla string in a patch -- adds a clause, renames a concept, changes a
+# formatting token -- our copy keeps rendering the OLD text forever, with no
+# error and nothing in error.log. The player just sees stale wording, or
+# loses a sentence the patch added. That is exactly the failure mode nobody
+# notices until a review mentions it.
+#
+# So every patch, this check tells you which overrides actually need
+# re-deriving, instead of leaving it to memory.
+#
+# TO UPDATE after reviewing a patch's changes: re-run the hash for the key
+# (sha256 of the raw string between the quotes, first 16 hex chars) and paste
+# it here, having merged the vanilla change into our override.
+REPLACED_LOC_BASELINE_GAME_VERSION = "1.13.11"
+REPLACED_LOC_BASELINE = {
+    "POP_EFFECT_FILTER": "605327a4a3c58031",
+    "POP_EFFECT_FILTER_INTEREST_GROUP": "174908cfa3301662",
+    "POP_EFFECT_FILTER_CULTURE": "20c3a7dbef52a7a9",
+    "POP_EFFECT_FILTER_RELIGION": "5201ef34656d95cc",
+    "POP_EFFECT_FILTER_POP_TYPE": "2389a7c580434297",
+    "ADD_RADICALS_IN_STATE_THIRD": "a234c3847df477e8",
+    "ADD_LOYALISTS_IN_STATE_THIRD": "3576276f3952fa7f",
+}
+
+
+def check_replaced_loc_still_matches_vanilla(root: Path) -> list[str]:
+    """Every key in REPLACED_LOC_BASELINE must still look, in the INSTALLED
+    vanilla files, exactly as it did when we forked it. A mismatch means the
+    patch changed it and our override is now stale."""
+    import hashlib
+    replace_dir = root / "localization" / "replace" / "english"
+    if not replace_dir.is_dir():
+        return []
+    ours = set()
+    for path in replace_dir.glob("*.yml"):
+        for m in re.finditer(r'(?m)^\s*([A-Z_0-9]+):\d*\s*"', _read(path)):
+            ours.add(m.group(1))
+
+    vanilla_loc = VANILLA_ROOT / "localization" / "english"
+    if not vanilla_loc.is_dir():
+        return []
+    blob = ""
+    for path in vanilla_loc.glob("*.yml"):
+        try:
+            blob += path.read_text(encoding="utf-8-sig", errors="replace")
+        except OSError:
+            continue
+
+    errs = []
+    for key, expected in REPLACED_LOC_BASELINE.items():
+        if key not in ours:
+            continue  # we no longer override it; nothing to keep in sync
+        m = re.search(rf'(?m)^\s*{re.escape(key)}:\d*\s*"(.*)"\s*$', blob)
+        if not m:
+            errs.append(
+                f"replaced loc key '{key}' no longer exists in installed vanilla -- "
+                f"the patch removed or renamed it, so our override is dead weight"
+            )
+            continue
+        got = hashlib.sha256(m.group(1).encode()).hexdigest()[:16]
+        if got != expected:
+            errs.append(
+                f"replaced loc key '{key}': vanilla text CHANGED since "
+                f"{REPLACED_LOC_BASELINE_GAME_VERSION} (baseline {expected}, now {got}). "
+                f"Re-derive our override from the new vanilla string, then update "
+                f"REPLACED_LOC_BASELINE in tools/check_references.py."
+            )
+    return errs
+
+
 def run_all(root: Path) -> list[str]:
     defined_loc = load_defined_loc_keys(root)
     errs = []
+
+    # Mod-agnostic: these either apply to any mod in this repo, or no-op
+    # cleanly when the directory they inspect doesn't exist.
     errs += check_custom_tooltip_keys(root, defined_loc)
     errs += check_scripted_gui_references(root)
     errs += check_alert_loc_completeness(root, defined_loc)
     errs += check_alert_group_registration(root, defined_loc)
     errs += check_post_notification_targets(root, defined_loc)
-    errs += check_law_type_dispatch_consistency(root)
     errs += check_law_types_exist_in_vanilla(root)
     errs += check_json_files_have_no_bom(root)
-    errs += check_full_overrides_match_installed_vanilla(root)
     errs += check_mixed_group_notification_types(root)
-    errs += check_watchlist_spec_tiers(root)
-    errs += check_watchlist_spec_group_isolation(root)
-    errs += check_mod_group_labels_are_tagged(root)
     errs += check_notification_loc_completeness(root, defined_loc)
     errs += check_loc_lines_are_well_formed(root)
+    errs += check_replaced_loc_still_matches_vanilla(root)
+
+    # Smart-Notifications-only: each asserts that specific files or message
+    # keys THIS mod owns are present, so against a sibling mod every one of
+    # them reports the whole mod as missing. See SMART_NOTIFICATIONS_ID above.
+    if read_mod_id(root) == SMART_NOTIFICATIONS_ID:
+        errs += check_law_type_dispatch_consistency(root)
+        errs += check_full_overrides_match_installed_vanilla(root)
+        errs += check_watchlist_spec_tiers(root)
+        errs += check_watchlist_spec_group_isolation(root)
+        errs += check_mod_group_labels_are_tagged(root)
+
     return errs
 
 

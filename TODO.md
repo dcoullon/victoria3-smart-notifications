@@ -1437,7 +1437,96 @@ own separate mod. No version target until that's decided.
       treaty terms, so the phase closed with no new content needed and
       these tools have nothing left to scope.
 
+## UNVERIFIED before the next release — event context feature
+
+Merged into Smart Notifications 2026-09-14 as
+`localization/replace/english/smart_notifications_event_context_l_english.yml`.
+**No version bump yet**: two of its branches have never been observed
+rendering in game, and the convention is to bump only for something new and
+*confirmed working*.
+
+Confirm both, then bump and tag:
+
+1. **State-scoped effects, the `in <state>` form.** Still unconfirmed.
+   Expect `+5.0% of Czech Pops (1.2M nationwide) in Bohemia (2.1M
+   inhabitants) become more Radical`. Neither `ADD_RADICALS_IN_STATE_THIRD`
+   nor `ADD_LOYALISTS_IN_STATE_THIRD` has been seen live.
+
+   **Observed 2026-09-14 (The Great Molasses Flood, Bohemia): there is a
+   THIRD rendering path we had not accounted for.** When several pop effects
+   share one state scope, the engine hoists the state name into a header and
+   renders each line with the BARE `ADD_RADICALS` template -- no country, no
+   state, no `in ...` clause:
+
+   ```
+   Bohemia
+     +5.0% of Machinists Pops (97.6K nationwide) become more Radical
+     +5.0% of Engineers Pops  (15.2K nationwide) become more Radical
+   ```
+
+   Our nationwide figure renders correctly there (that is the screenshot
+   above), but the `(2.1M inhabitants)` addition does not, because that
+   template is never invoked. Nothing is broken; the state size simply
+   cannot appear in this form. The bare `ADD_RADICALS` template binds
+   neither COUNTRY nor STATE, so there is nothing else to add to it -- this
+   is the ceiling for the grouped presentation, and it is where the
+   "nationwide is a bit odd here" feeling comes from, since only Bohemia's
+   machinists are affected.
+2. **Strata-filtered effects.** An effect reading "lower/middle/upper strata
+   Pops". Expect `(12.4M nationwide)`. These use `GetPlayer`, which an audit
+   of all 246 strata effects showed is safe (zero apply to a foreign
+   country), but the accessor chain
+   `GetTrendValue(GetPlayer.Get*StrataPopulationTrend)` has never rendered.
+
+Confirmed working: interest group, culture, religion, pop type; the
+single-filter guard; zero error.log output.
+
+## Channels posted to (and one open follow-up)
+
+- **Vic3 Discord `#v3-mod-gallery`** — posted 2026-09-14.
+- **Paradox forums** — posted 2026-09-14:
+  https://forum.paradoxplaza.com/forum/threads/mod-release-smart-notifications-get-notified-only-about-the-countries-you-care-about-just-like-eu-iv.1941527/
+
+  **OPEN: the Workshop link is still missing from that thread.** XenForo's
+  anti-spam filter rejected the post with a link, and rejected a follow-up
+  comment containing one too -- an account-level restriction on external
+  links, not anything about the content. The thread currently carries the
+  Workshop ID and mod name as plain text instead, which is findable since
+  "Smart Notifications" is the only exact match in the Vic3 Workshop.
+
+  **Retry adding the link once the account has some post history.** Do not
+  keep retrying against the filter -- repeatedly tripping it risks getting
+  the account flagged, which costs more than the missing link. A few genuine
+  replies in the Victoria 3 forum over a few days normally lifts it.
+
 ## Marketing idea (not scheduled — for when the mod is closer to release)
+
+### Post hook backlog (user ideas, unscheduled)
+
+1. **"Updated for patch 1.x"** (user, 2026-09-14). Patch-day posts earn
+   attention because players are actively checking what still works, so it
+   reads as useful information rather than promotion. Pairs naturally with
+   the notification-census idea below — a patch is a legitimate reason to
+   re-run the measurement and publish fresh numbers.
+2. **The notification census** (below) — the data-led post.
+3. **Diplomacy noise alone** — already measured, needs no new work: 271
+   diplomatic actions in one session, 233 of them irrelevant to the player.
+   A smaller post that could go out at any time.
+
+Framing rule agreed with the user 2026-09-14: the post must add value to
+r/victoria3 on its own terms, not read as promo. The version that works
+gives the findings away — including the exact Message Settings players can
+change by hand — and mentions the mod only as the shortcut.
+
+Coverage reality for any census claim (measured 2026-09-14): of 463 message
+keys, **200 are cheap to instrument** (call sites in `common/`, safe
+append-only pattern) covering **120 of the 223 toast-tier keys**; 166 are
+event-only and would need vanilla event files overridden; **103 are
+engine-fired and can never be measured**. So every published number is a
+**lower bound** — which is defensible, and arguably a stronger hook than a
+false total.
+
+### Original idea
 
 User idea (2026-09-04): a Reddit post showing **how many notifications fire
 over ~10 years of default-settings gameplay**, broken down by type, as a
