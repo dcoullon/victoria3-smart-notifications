@@ -61,6 +61,25 @@
  # vanilla's untouched text.
  POP_EFFECT_FILTER: "[AddLocalizationIf(InterestGroup.IsValid, 'POP_EFFECT_FILTER_INTEREST_GROUP')][AddLocalizationIf(Culture.IsValid, 'POP_EFFECT_FILTER_CULTURE')][AddLocalizationIf(Religion.IsValid, 'POP_EFFECT_FILTER_RELIGION')][AddLocalizationIf(PopType.IsValid, 'POP_EFFECT_FILTER_POP_TYPE')][AddTextIf(Not(EqualTo_string('none', '$STRATA$')), Concatenate(Localize('$STRATA$'), ' '))][Concept('concept_pop', '$concept_pops$')][AddLocalizationIf(And(And4(InterestGroup.IsValid, Not(Culture.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('none', '$STRATA$')), 'BDI_SIZE_IG')][AddLocalizationIf(And(And4(Culture.IsValid, Not(InterestGroup.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('none', '$STRATA$')), 'BDI_SIZE_CULTURE')][AddLocalizationIf(And(And4(Religion.IsValid, Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(PopType.IsValid)), EqualTo_string('none', '$STRATA$')), 'BDI_SIZE_RELIGION')][AddLocalizationIf(And(And4(PopType.IsValid, Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(Religion.IsValid)), EqualTo_string('none', '$STRATA$')), 'BDI_SIZE_POPTYPE')][AddTextIf(And(And4(Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('lower', '$STRATA$')), Localize('BDI_SIZE_STRATA_LOWER'))][AddTextIf(And(And4(Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('middle', '$STRATA$')), Localize('BDI_SIZE_STRATA_MIDDLE'))][AddTextIf(And(And4(Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('upper', '$STRATA$')), Localize('BDI_SIZE_STRATA_UPPER'))]"
 
+ # ---------------------------------------------------------------------
+ # State-scoped effects also get the state's own size, because the figure
+ # above is NATIONAL and these effects hit one state -- 422 of the 1090
+ # single-filter effects (39%). The intersection (Czechs *in Bohemia*) is
+ # not computable: it needs STATE and the filter object in one context, and
+ # they never share one. So both bounds are shown instead of a wrong number:
+ #
+ #   +5.0% of Czech Pops (1.2M nationwide) in Bohemia (2.1M inhabitants)
+ #   become more Radical
+ #
+ # Safe to use STATE here, unlike in POP_EFFECT_FILTER: these two templates
+ # are invoked ONLY for add_*_in_state effects, so STATE is always bound.
+ # They are not polymorphic, which is the whole test for whether a scope
+ # can be touched (see docs/engine-notes.md).
+ #
+ # Vanilla ships both without a version suffix; matched here.
+ ADD_RADICALS_IN_STATE_THIRD: "$VALUE|-=1%$ of $FILTER_DESC$ in [STATE.GetName] (#b [STATE.GetPopulationSize|K]#! inhabitants) become more [concept_radical]"
+ ADD_LOYALISTS_IN_STATE_THIRD: "$VALUE|+=1%$ of $FILTER_DESC$ in [STATE.GetName] (#b [STATE.GetPopulationSize|K]#! inhabitants) become more [concept_loyalist]"
+
  # Vanilla bodies, unchanged -- listed because overriding the parent above
  # means these must exist in the same file.
  POP_EFFECT_FILTER_INTEREST_GROUP: "[InterestGroup.GetName] members of "
