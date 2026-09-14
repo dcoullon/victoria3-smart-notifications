@@ -203,6 +203,30 @@ ROOT_BY_DIR = {
 # redundant world line. Hand-editing it is fine; it is data, not code.
 OVERRIDES_PATH = REPO_ROOT / "tools" / "census_scope_overrides.json"
 
+# Some non-country roots can still REACH the player, even though `is_player`
+# cannot be applied to them directly. A Diplomatic Play is the big one: 18 keys
+# hang off it including 4 toasts and the `diplo_play_war_start_notification`
+# popup, and losing all of them to "world count only" would gut the census.
+#
+# `every_scope_play_involved` is confirmed valid on a diplomatic play scope --
+# vanilla uses it inside `scope:diplomatic_play = { ... }` in
+# common/on_actions/00_code_on_actions.txt (~line 6441) with a country trigger
+# (`has_journal_entry`) in its limit, so the inner scope is a country. That is
+# effect-side precedent on the right scope type, which is what this project
+# requires before trusting a construct.
+#
+# NOT extended to Diplomatic Action: a real script_docs dump previously found
+# no link from `diplomatic_action` to a country (see the header of
+# common/on_actions/01_smart_notifications_logger.txt). Do not re-derive that.
+PLAYER_REACH = {
+    "Diplomatic Play": "every_scope_play_involved",
+}
+# ...but NOT for third-party keys. `every_scope_play_involved` matches the
+# countries IN the play, whereas a `*_third_party_*` notification is addressed
+# to countries that are NOT -- so the guard would count precisely the wrong
+# set. Those keys stay world-only rather than carry a confidently wrong number.
+THIRD_PARTY_MARKER = "third_party"
+
 ROOT_COMMENT_RE = re.compile(r"^\s*#\s*Root\s*=\s*(.+?)\s*$", re.I)
 # Vanilla's Root comments are prose, not an enum. Every country-rooted variant
 # it actually uses -- "Country", "country", "The applicable country", "owner
@@ -326,6 +350,16 @@ def verdict_from_root_comment(root):
     return (COUNTRY if ROOT_IS_COUNTRY_RE.match(root) else NON_COUNTRY), f"# Root = {root}"
 
 
+def reach_iterator(reason, key):
+    """The iterator that walks from a non-country root to the player, if any."""
+    if THIRD_PARTY_MARKER in key:
+        return None
+    for root, iterator in PLAYER_REACH.items():
+        if f"# Root = {root}" in reason:
+            return iterator
+    return None
+
+
 def root_comment_above(text, start):
     """The `# Root = X` in the contiguous comment block directly above `start`.
 
@@ -447,10 +481,20 @@ def instrument(text, rel_path, next_id, mode, manifest, overrides):
         #                -- a wrong guess then costs error.log noise rather
         #                than a silently missing key. Demote the noisy ones via
         #                the overrides file once a calibrate run has named them.
+        reach = reach_iterator(reason, key) if verdict == NON_COUNTRY else None
+        if reach:
+            manifest[-1]["reach"] = reach
         emit_guard = verdict in (COUNTRY, UNKNOWN)
         emit_world = verdict in (NON_COUNTRY, UNKNOWN) or mode == "calibrate"
         lines = []
-        if emit_guard:
+        if reach:
+            # Reachable non-country root: walk to the involved countries and
+            # log once if one of them is the player.
+            lines.append(
+                f'{pad}{reach} = {{ limit = {{ is_player = yes }} '
+                f'debug_log = "SNW_CENSUS|P|{cid}|{key}|{DATE_TOKEN}" }}'
+            )
+        elif emit_guard:
             lines.append(
                 f'{pad}if = {{ limit = {{ is_player = yes }} '
                 f'debug_log = "SNW_CENSUS|P|{cid}|{key}|{DATE_TOKEN}" }}'
@@ -579,7 +623,8 @@ def main():
     print(f"  source files      : {len(sources)}  ({written} written)")
     print(f"  call sites        : {len(manifest)}")
     print(f"  distinct keys     : {len(keys)}")
-    print(f"  player-guarded (P): {guarded}")
+    reached = sum(1 for e in manifest if e.get("reach"))
+    print(f"  player-guarded (P): {guarded} direct + {reached} via a reach iterator")
     print(f"  world-only     (W): {counts.get(NON_COUNTRY, 0) + counts.get(UNKNOWN, 0)}"
           f"   (non-country {counts.get(NON_COUNTRY, 0)}, unknown {counts.get(UNKNOWN, 0)})")
     print(f"  overrides applied : {len(overrides)}")
