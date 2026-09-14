@@ -102,6 +102,6 @@
  # CONFIRMED 2026-09-14: GetTrendValue(GetPlayer.Get*StrataPopulationTrend)
  # resolves correctly -- measured against Austria 1839, which returned
  # lower=19.8M middle=937K against a 20.9M total population.
- SMART_NOTIFICATIONS_EVT_SIZE_STRATA_LOWER:0 " #b [GetTrendValue(GetPlayer.GetLowerStrataPopulationTrend)|K]#! nationwide)"
- SMART_NOTIFICATIONS_EVT_SIZE_STRATA_MIDDLE:0 " #b [GetTrendValue(GetPlayer.GetMiddleStrataPopulationTrend)|K]#! nationwide)"
- SMART_NOTIFICATIONS_EVT_SIZE_STRATA_UPPER:0 " #b [GetTrendValue(GetPlayer.GetUpperStrataPopulationTrend)|K]#! nationwide)"
+ SMART_NOTIFICATIONS_EVT_SIZE_STRATA_LOWER:0 " (#b [GetTrendValue(GetPlayer.GetLowerStrataPopulationTrend)|K]#! nationwide)"
+ SMART_NOTIFICATIONS_EVT_SIZE_STRATA_MIDDLE:0 " (#b [GetTrendValue(GetPlayer.GetMiddleStrataPopulationTrend)|K]#! nationwide)"
+ SMART_NOTIFICATIONS_EVT_SIZE_STRATA_UPPER:0 " (#b [GetTrendValue(GetPlayer.GetUpperStrataPopulationTrend)|K]#! nationwide)"
