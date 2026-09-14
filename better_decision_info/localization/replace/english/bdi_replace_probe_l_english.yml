@@ -71,8 +71,8 @@
  # Confirmed in game against the game's own panels: Rural Folk rendered
  # 1.23M against a panel reading 1.2M.
  BDI_SIZE_IG:0 " (#b [InterestGroup.GetPopulation|K]#! strong)"
- BDI_SIZE_CULTURE:0 " (#b [Culture.GetPopulation|K]#! strong)"
- BDI_SIZE_RELIGION:0 " (#b [Religion.GetPopulation|K]#! strong)"
+ BDI_SIZE_CULTURE:0 " (#b [Culture.GetPopulation(GetPlayer)|K]#! strong)"
+ BDI_SIZE_RELIGION:0 " (#b [Religion.GetPopulation(GetPlayer)|K]#! strong)"
  BDI_SIZE_POPTYPE:0 " (#b [PopType.GetPopulation(GetPlayer)|K]#! strong)"
 
  # Strata totals need a country and COUNTRY does not bind here, so these use
