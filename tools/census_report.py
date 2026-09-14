@@ -50,7 +50,7 @@ GAME_ROOT = Path(r"C:\Program Files (x86)\Steam\steamapps\common\Victoria 3\game
 DEFAULT_MANIFEST = (Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3"
                     / "mod" / "smart_notifications_census" / "census_manifest.json")
 
-CENSUS_RE = re.compile(r"SNW_CENSUS\|([PW])\|(\d+)\|(\w+)\|(.*?)\s*$")
+CENSUS_RE = re.compile(r"SNW_CENSUS\|([PWQ])\|(\d+)\|(\w+)\|(.*?)\s*$")
 # The date comes from [TimeKeeper.GetCurrentDate.GetString], whose exact
 # rendering is a game-side formatting choice ("1836.1.1", "1 January 1836",
 # ...). Pull the year out of whatever it produced rather than assuming one
@@ -96,6 +96,7 @@ def engine_fired_keys(vanilla_tiers):
 
 def parse_log(path):
     """Stream debug.log -> (counts, years, malformed). Never holds the file."""
+    probes = collections.Counter()       # (key, named scope) -> probe hits
     counts = collections.Counter()       # (scope, key) -> firings
     years = collections.Counter()        # (scope, year) -> firings
     ids_seen = collections.Counter()     # call-site id -> firings
@@ -110,6 +111,16 @@ def parse_log(path):
                 continue
             scope, cid, key, datestr = m.groups()
             total += 1
+            if scope == "Q":
+                # Calibrate probe: a named scope we were not sure was bound
+                # turned out to be bound AND to be the player.
+                parts = datestr.rsplit("|", 1)
+                probes[(key, parts[1] if len(parts) == 2 else "?")] += 1
+                datestr = parts[0]
+                y = YEAR_RE.search(datestr)
+                if y:
+                    years[("Q", int(y.group(1)))] += 1
+                continue
             counts[(scope, key)] += 1
             ids_seen[(scope, int(cid))] += 1
             y = YEAR_RE.search(datestr)
@@ -117,7 +128,7 @@ def parse_log(path):
                 years[(scope, int(y.group(1)))] += 1
             else:
                 undated[scope] += 1
-    return counts, years, ids_seen, undated, total
+    return counts, years, ids_seen, undated, total, probes
 
 
 def timeline(logs_dir, manifest_path=None, date_from=None, date_to=None):
@@ -214,7 +225,7 @@ def report(logs_dir, manifest_path=None, top=30):
     mod_tiers = dict(vanilla_tiers)
     mod_tiers.update(per_key_tiers(REPO_ROOT / "common" / "messages"))
 
-    counts, years, ids_seen, undated, total = parse_log(log)
+    counts, years, ids_seen, undated, total, probes = parse_log(log)
     size_mb = log.stat().st_size / (1024 * 1024)
 
     print("=" * 72)
@@ -369,10 +380,28 @@ def report(logs_dir, manifest_path=None, top=30):
         unknown_sites = [e for e in manifest if e["scope"] == "unknown"]
         if unknown_sites:
             resolved = sum(1 for e in unknown_sites if ids_seen.get(("P", e["id"])))
-            print(f"unresolved-scope sites            : {len(unknown_sites)}"
-                  f"  ({resolved} logged player lines, so their scope IS a country"
-                  f" -- promote them in tools/census_scope_overrides.json)")
+            note = (f"{resolved} logged player lines, so those ARE country-scoped "
+                    f"-- promote them in tools/census_scope_overrides.json"
+                    if resolved else
+                    "none logged a player line, so either they are not "
+                    "country-scoped or they never concerned the player")
+            print(f"unresolved-scope sites            : {len(unknown_sites)}  ({note})")
         del by_id
+    if probes:
+        print("--- PROBE HITS: these call sites CAN be player-scoped after all ---")
+        rows = []
+        for (key, scope_name), n in sorted(probes.items(), key=lambda kv: -kv[1]):
+            rows.append([f"{n:,}", key, f"scope:{scope_name}",
+                         vanilla_tiers.get(key, "-")])
+        print(_table(rows, ["hits", "key", "bound scope", "tier"]))
+        print()
+        print("Each row is a non-country call site whose named scope turned out")
+        print("to be bound. Add its on_action to ON_ACTION_SCOPES in")
+        print("tools/build_census_mod.py, then rebuild for the measurement run.")
+        print()
+    elif any(s == "Q" for s, _ in years):
+        print("(probes ran and none were bound -- those call sites really are unreachable)")
+        print()
     print()
     print("Several of the loudest suspected offenders are in the unhookable set")
     print("(country_attitude_*, country_conscription, invasion_*), so the real")

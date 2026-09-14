@@ -229,6 +229,46 @@ OVERRIDES_PATH = REPO_ROOT / "tools" / "census_scope_overrides.json"
 # common/on_actions/01_smart_notifications_logger.txt -- 15 keys including
 # `diplomatic_action_notification` simply cannot be player-scoped. Do not try
 # again; the dump is the answer.
+# NAMED SCOPES. Separate mechanism from the event-target links above, and the
+# reason `diplomatic_action` looked unreachable at first: an on_action can BIND
+# named scopes (`scope:actor`, `scope:recipient`) that have nothing to do with
+# what links exist off the root's scope TYPE. event_targets.log documents the
+# latter and says nothing about the former, and vanilla's own `# scope:` header
+# comments are incomplete -- they do not mention actor/recipient at all.
+#
+# Each entry below is confirmed, never assumed:
+#   on_diplomatic_action / on_diplomatic_action_break / on_diplo_play_subject_released
+#     -- proven by this mod's own shipped, working code
+#        (06_..._diplomatic_action_filtering.txt, 13_..._pact_break_filtering.txt,
+#         03_..._relational_notifications.txt).
+#   the rest -- documented in vanilla's `# scope:` comments above the on_action.
+#
+# Assuming a SIBLING on_action shares its bindings is exactly the mistake that
+# produced `Wrong scope for trigger: diplomatic_action, expected country`
+# before: the `_third_party_` variants do NOT bind these. Unconfirmed on_actions
+# are probed in calibrate mode instead of guessed at -- see PROBE_SCOPES.
+ON_ACTION_SCOPES = {
+    "on_diplomatic_action": ["actor", "recipient"],
+    "on_diplomatic_action_break": ["actor", "recipient"],
+    "on_diplo_play_subject_released": ["actor", "target"],
+    "on_diplomatic_play_started": ["initiator", "target"],
+    "on_country_withdrawn_from_treaty": ["withdrawing_country", "non_withdrawing_country"],
+    "on_country_broke_treaty": ["withdrawing_country", "non_withdrawing_country"],
+    "on_wargoal_added": ["actor"],
+    "on_wargoal_removed": ["actor"],
+    "on_war_end": ["actor", "target"],
+    "on_diplomatic_incident": ["actor", "target"],
+}
+
+# Candidate named scopes to PROBE on a non-country call site we cannot reach
+# any other way. Only emitted in calibrate mode, and only through the optional
+# scope operator `?=`, which skips silently when the scope is not bound -- so a
+# wrong candidate costs nothing, unlike applying `is_player` to the root, which
+# is what actually threw before. A probe that logs proves the binding exists
+# and the call site can be promoted into ON_ACTION_SCOPES for the real run.
+PROBE_SCOPES = ["actor", "recipient", "initiator", "target",
+                "attacker", "defender", "first_country", "second_country"]
+
 PLAY_ITERATOR = "every_scope_play_involved"
 PLAYER_REACH = {
     "Diplomatic Play": PLAY_ITERATOR,
@@ -390,6 +430,19 @@ def reach_for(reason, key):
     return PLAYER_REACH_BY_BLOCK.get(reason)
 
 
+def named_scope_guard(scopes, pad, payload):
+    """`scope:x ?= { if = { limit = { is_player = yes } ... } }` per candidate.
+
+    `?=` is the optional-scope form vanilla itself uses; an unbound scope is
+    skipped rather than raising. One statement per scope instead of an OR so
+    that a probe records WHICH scope was bound.
+    """
+    return [
+        f'{pad}scope:{s} ?= {{ if = {{ limit = {{ is_player = yes }} {payload(s)} }} }}'
+        for s in scopes
+    ]
+
+
 def reach_guard(how, pad, payload):
     """Render the player check for a reachable non-country scope."""
     if how == PLAY_ITERATOR:
@@ -523,18 +576,37 @@ def instrument(text, rel_path, next_id, mode, manifest, overrides):
         #                -- a wrong guess then costs error.log noise rather
         #                than a silently missing key. Demote the noisy ones via
         #                the overrides file once a calibrate run has named them.
-        reach = reach_for(reason, key) if verdict == NON_COUNTRY else None
-        if reach:
+        on_action = stack[0] if stack and stack[0].startswith("on_") else None
+        named = ON_ACTION_SCOPES.get(on_action) if verdict == NON_COUNTRY else None
+        if named and THIRD_PARTY_MARKER in key:
+            named = None
+        reach = None if named else (reach_for(reason, key) if verdict == NON_COUNTRY else None)
+        if named:
+            manifest[-1]["reach"] = "scope:" + "/scope:".join(named)
+        elif reach:
             manifest[-1]["reach"] = reach if isinstance(reach, str) else "/".join(reach)
         emit_guard = verdict in (COUNTRY, UNKNOWN)
         emit_world = verdict in (NON_COUNTRY, UNKNOWN) or mode == "calibrate"
         lines = []
-        if reach:
+        if named:
+            # Reachable via scopes the on_action binds by name.
+            lines.extend(named_scope_guard(
+                named, pad,
+                lambda s: f'debug_log = "SNW_CENSUS|P|{cid}|{key}|{DATE_TOKEN}"'))
+        elif reach:
             # Reachable non-country root: walk to the countries this scope
             # actually concerns and log once if one of them is the player.
             lines.append(reach_guard(
                 reach, pad,
                 f'debug_log = "SNW_CENSUS|P|{cid}|{key}|{DATE_TOKEN}"'))
+        elif verdict == NON_COUNTRY and mode == "calibrate":
+            # Nothing confirmed reaches the player here. Probe, so the run
+            # tells us whether one of the usual named scopes is bound after
+            # all, rather than leaving it assumed unmeasurable.
+            manifest[-1]["probed"] = True
+            lines.extend(named_scope_guard(
+                PROBE_SCOPES, pad,
+                lambda s: f'debug_log = "SNW_CENSUS|Q|{cid}|{key}|{DATE_TOKEN}|{s}"'))
         elif emit_guard:
             lines.append(
                 f'{pad}if = {{ limit = {{ is_player = yes }} '
@@ -678,7 +750,10 @@ def main():
     print(f"  source files      : {len(sources)}  ({written} written)")
     print(f"  call sites        : {len(manifest)}")
     print(f"  distinct keys     : {len(keys)}")
+    probed = sum(1 for e in manifest if e.get("probed"))
     reached = sum(1 for e in manifest if e.get("reach"))
+    if probed:
+        print(f"  probed (calibrate): {probed} call sites with no confirmed route to the player")
     print(f"  player-guarded (P): {guarded} direct + {reached} via a reach iterator")
     print(f"  world-only     (W): {counts.get(NON_COUNTRY, 0) + counts.get(UNKNOWN, 0)}"
           f"   (non-country {counts.get(NON_COUNTRY, 0)}, unknown {counts.get(UNKNOWN, 0)})")
