@@ -5,7 +5,7 @@
  # Shows how large the group is that an event option actually affects, so
  # "+2.0% of Bedouin Pops become more Radical" stops being unreadable.
  #
- # Two vanilla keys overridden, both via localization/replace/english/,
+ # Seven vanilla keys overridden, all via localization/replace/english/,
  # which is the only arrangement the engine honours (a plain
  # localization/english/ file loses the key to vanilla -- confirmed by
  # "Duplicate localization key" warnings in error.log).
