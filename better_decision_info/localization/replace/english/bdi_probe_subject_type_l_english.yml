@@ -1,0 +1,29 @@
+﻿l_english:
+ # =====================================================================
+ # THROWAWAY PROBE -- delete once answered. Kept in its own file so the
+ # shipping feature file stays clean and this can be removed by deleting
+ # one file.
+ #
+ # THE PROBLEM: the interest-group standing line and the state scale line
+ # both had to hang off ADD_MODIFIER_THIRD, and guarding them on
+ # "is the subject an interest group / a state?" writes four error.log
+ # lines whenever it isn't -- because the scope is ABSENT, not invalid, so
+ # the condition cannot be evaluated at all. 1995 of 2003 log lines in one
+ # game-year. Three guard wrappers were tried (AddLocalizationIf,
+ # AddTextIf+Localize, SelectLocalization) and all three failed identically.
+ #
+ # THE IDEA HERE: stop asking the SCOPE and ask a PARAMETER instead.
+ # $SUBJECT_NAME$ already exists, so the engine passes the subject into this
+ # template somehow. If it also passes the subject's TYPE as a string, then
+ # EqualTo_string can guard on it -- and a string comparison needs no scope
+ # binding, so it cannot produce the "No context supplied" error.
+ #
+ # An unrecognised parameter renders as its own name (proven: $VALUE$
+ # printed "VALUE" inside POP_EFFECT_FILTER). So any of the candidates below
+ # that comes back as something OTHER than its own name is the answer.
+ # Look for a lowercase type word: "state", "interest_group", "country",
+ # "character", "building".
+ #
+ # This probe is itself error-free: echoing parameters touches no scope.
+ # =====================================================================
+ ADD_MODIFIER_THIRD:0 "$SUBJECT_NAME$ (p: 1=$SUBJECT_TYPE$ 2=$TYPE$ 3=$SUBJECT$ 4=$SCOPE_TYPE$ 5=$TARGET_TYPE$ 6=$SUBJECT_SCOPE$) gets #tooltippable #tooltip:[GetRawTextTooltipTag('$ADD_MODIFIER_BREAKDOWN$')] $MODIFIER_NAME$#!#! $MAYBE_DECAYING_WITH_SPACE_AFTER$$DURATION$\n$TAB$#indent_newline:3 $MODIFIER_DESC$#!"
