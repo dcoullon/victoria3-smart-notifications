@@ -90,14 +90,7 @@
  # Confirmed in game against the game's own panels: Rural Folk rendered
  # 1.23M against a panel reading 1.2M.
  SMART_NOTIFICATIONS_EVT_SIZE_IG:0 " (#b [InterestGroup.GetPopulation|K]#! nationwide)"
- # TEMPORARY PROBE (s13) -- remove before release.
- # The strata branch has never rendered: strata-filtered pop effects are
- # rare and agitators_law_events.27 fails its triggers for Austria, so the
- # console cannot force one. Rather than hunt for an event, this borrows a
- # line that IS reproducible (the Czech culture event) to test the one
- # unverified accessor chain. If mid= shows a number, the three strata
- # lines are sound and can ship; if it is blank, they get cut.
- SMART_NOTIFICATIONS_EVT_SIZE_CULTURE:0 " (#b [Culture.GetPopulation(GetPlayer)|K]#! nationwide) (s13 mid=[GetTrendValue(GetPlayer.GetMiddleStrataPopulationTrend)|K] low=[GetTrendValue(GetPlayer.GetLowerStrataPopulationTrend)|K])"
+ SMART_NOTIFICATIONS_EVT_SIZE_CULTURE:0 " (#b [Culture.GetPopulation(GetPlayer)|K]#! nationwide)"
  SMART_NOTIFICATIONS_EVT_SIZE_RELIGION:0 " (#b [Religion.GetPopulation(GetPlayer)|K]#! nationwide)"
  SMART_NOTIFICATIONS_EVT_SIZE_POPTYPE:0 " (#b [PopType.GetPopulation(GetPlayer)|K]#! nationwide)"
 
@@ -106,9 +99,9 @@
  # found ZERO that apply to a country other than the event's own, so that is
  # safe.
  #
- # STILL UNVERIFIED IN GAME: no strata-filtered pop effect has been seen
- # rendering yet, so these three lines have never been observed working.
- # Confirm before the next release (see TODO.md).
+ # CONFIRMED 2026-09-14: GetTrendValue(GetPlayer.Get*StrataPopulationTrend)
+ # resolves correctly -- measured against Austria 1839, which returned
+ # lower=19.8M middle=937K against a 20.9M total population.
  SMART_NOTIFICATIONS_EVT_SIZE_STRATA_LOWER:0 " #b [GetTrendValue(GetPlayer.GetLowerStrataPopulationTrend)|K]#! nationwide)"
  SMART_NOTIFICATIONS_EVT_SIZE_STRATA_MIDDLE:0 " #b [GetTrendValue(GetPlayer.GetMiddleStrataPopulationTrend)|K]#! nationwide)"
  SMART_NOTIFICATIONS_EVT_SIZE_STRATA_UPPER:0 " #b [GetTrendValue(GetPlayer.GetUpperStrataPopulationTrend)|K]#! nationwide)"
