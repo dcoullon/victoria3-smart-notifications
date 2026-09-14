@@ -1546,6 +1546,12 @@ regardless. Defensible, and a stronger hook than a false total.
 Effort: roughly half a day for the harness, one long passive play session,
 an hour of analysis. Not days, as first estimated.
 
+**Build spec written 2026-09-14: [docs/feed-census-plan.md](docs/feed-census-plan.md).**
+Self-contained handoff -- a cold session needs only that file plus CLAUDE.md.
+Covers the generator approach, the date-stamping, why one playthrough yields
+both the vanilla and modded columns, and the coverage limits that make every
+published figure a lower bound.
+
 ### Original idea
 
 User idea (2026-09-04): a Reddit post showing **how many notifications fire
