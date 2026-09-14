@@ -1481,6 +1481,24 @@ Confirm both, then bump and tag:
 Confirmed working: interest group, culture, religion, pop type; the
 single-filter guard; zero error.log output.
 
+## Channels posted to (and one open follow-up)
+
+- **Vic3 Discord `#v3-mod-gallery`** — posted 2026-09-14.
+- **Paradox forums** — posted 2026-09-14:
+  https://forum.paradoxplaza.com/forum/threads/mod-release-smart-notifications-get-notified-only-about-the-countries-you-care-about-just-like-eu-iv.1941527/
+
+  **OPEN: the Workshop link is still missing from that thread.** XenForo's
+  anti-spam filter rejected the post with a link, and rejected a follow-up
+  comment containing one too -- an account-level restriction on external
+  links, not anything about the content. The thread currently carries the
+  Workshop ID and mod name as plain text instead, which is findable since
+  "Smart Notifications" is the only exact match in the Vic3 Workshop.
+
+  **Retry adding the link once the account has some post history.** Do not
+  keep retrying against the filter -- repeatedly tripping it risks getting
+  the account flagged, which costs more than the missing link. A few genuine
+  replies in the Victoria 3 forum over a few days normally lifts it.
+
 ## Marketing idea (not scheduled — for when the mod is closer to release)
 
 ### Post hook backlog (user ideas, unscheduled)
