@@ -1,142 +1,85 @@
 ﻿l_english:
  # =====================================================================
- # ROUND 10 -- intended as the last test round.
+ # BETTER DECISION INFO -- event tooltip enrichment.
  #
- # THE STRATA/GetPlayer CAVEAT IS RESOLVED, by measurement rather than
- # assumption. Of 246 strata-filtered pop effects in vanilla, ZERO genuinely
- # apply to a country other than the event's own. 160 sit directly on the
- # event's country; the other 86 are inside STATE scopes
- # (scope:capital_scope, scope:famine_state, ...) which still belong to that
- # same country. The only two that looked like country switches
- # (paralegal_discrimination_events.txt:90 and :152, inside `owner = {`)
- # snap straight back with `root = {` before applying the effect. So
- # GetPlayer is safe here and the strata branch stays.
+ # Shows how large the group is that an event option actually affects, so
+ # "+2.0% of Bedouin Pops become more Radical" stops being unreadable.
  #
- # THE BUG THAT AUDIT FOUND: 68 of 1376 pop effects (4.9%) carry MORE THAN
- # ONE filter -- culture+pop_type 16, culture+strata 15, pop_type+religion
- # 14, and a long tail up to four at once. The previous version rendered one
- # size figure PER valid filter, so those would print two to four numbers in
- # a row -- and none of them would be right, because the affected group is
- # the INTERSECTION (Jewish AND laborers), which no accessor exposes.
+ # Two vanilla keys overridden, both via localization/replace/english/,
+ # which is the only arrangement the engine honours (a plain
+ # localization/english/ file loses the key to vanilla -- confirmed by
+ # "Duplicate localization key" warnings in error.log).
  #
- # Fixed by showing a size only when EXACTLY ONE filter is active. The
- # multi-filter cases now fall back to vanilla's unmodified text, which is
- # the honest outcome: better to say nothing than to print a number that
- # looks authoritative and is wrong. And/And4/Not are all confirmed present
- # in vanilla loc.
+ # ---------------------------------------------------------------------
+ # WHAT WAS CUT, AND WHY -- 2026-09-14
+ #
+ # Two further features worked on screen and were cut for log pollution:
+ #   - interest-group standing  "(Currently +2 with 6% clout)"
+ #   - state scale              "(703K people, 1% of the country)"
+ #
+ # Both hung off ADD_MODIFIER_THIRD, which renders for EVERY add_modifier
+ # in the game -- countries, states, characters, buildings. When the
+ # subject is not the type the guard asks about, the scope is ABSENT
+ # rather than invalid, so the guard cannot be evaluated and the engine
+ # writes four lines per render:
+ #   "No context supplied (Use SetDataContext), wanted context of type
+ #    'State' for 'State.IsValid'"
+ #
+ # Measured over roughly one game-year of play: 2003 lines in error.log,
+ # 1995 of them ours. Extrapolated across a full campaign that is six
+ # figures, in every player's install -- and scan_logs.py is how we judge
+ # whether Smart Notifications is healthy, so it would bury real errors in
+ # the mod that is already live.
+ #
+ # Three guard forms were tried against each other before cutting:
+ # AddLocalizationIf (91 failures), AddTextIf+Localize (91),
+ # SelectLocalization with empty else (92). All three render correctly and
+ # all three log identically -- the condition itself is what fails, not the
+ # wrapper. Vanilla offers no scope-existence test (its only Exists() is
+ # GetVariableSystem.Exists, for GUI variables) and there are no
+ # subject-typed modifier templates, only ADD_MODIFIER/_FIRST/_THIRD.
+ #
+ # Also closed, same session: "how many lower strata live in this state".
+ # That line is a modifier LABEL, and labels render in a 'Container'
+ # context with nothing bound -- "(s11 state= laborers=)" came back empty,
+ # matching interest_group_approval_add's earlier failure.
+ #
+ # Restoring any of this is one commit away (see git history around
+ # 2026-09-14) if the log cost is ever judged acceptable.
+ # ---------------------------------------------------------------------
+ #
+ # THIS FILE PRODUCES NO ERROR.LOG OUTPUT AT ALL. POP_EFFECT_FILTER always
+ # binds its filter scopes, so IsValid returns false instead of failing --
+ # confirmed: zero BDI_SIZE_* lines across the same 2003-line sample.
  # =====================================================================
 
+ # Size shows only when EXACTLY ONE filter applies. 68 of 1376 vanilla pop
+ # effects (4.9%) combine two or more -- culture+pop_type, culture+strata,
+ # pop_type+religion and so on -- and for those the affected group is an
+ # INTERSECTION that no accessor exposes. Printing either single size there
+ # would be authoritative-looking and wrong, so those fall through to
+ # vanilla's untouched text.
  POP_EFFECT_FILTER: "[AddLocalizationIf(InterestGroup.IsValid, 'POP_EFFECT_FILTER_INTEREST_GROUP')][AddLocalizationIf(Culture.IsValid, 'POP_EFFECT_FILTER_CULTURE')][AddLocalizationIf(Religion.IsValid, 'POP_EFFECT_FILTER_RELIGION')][AddLocalizationIf(PopType.IsValid, 'POP_EFFECT_FILTER_POP_TYPE')][AddTextIf(Not(EqualTo_string('none', '$STRATA$')), Concatenate(Localize('$STRATA$'), ' '))][Concept('concept_pop', '$concept_pops$')][AddLocalizationIf(And(And4(InterestGroup.IsValid, Not(Culture.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('none', '$STRATA$')), 'BDI_SIZE_IG')][AddLocalizationIf(And(And4(Culture.IsValid, Not(InterestGroup.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('none', '$STRATA$')), 'BDI_SIZE_CULTURE')][AddLocalizationIf(And(And4(Religion.IsValid, Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(PopType.IsValid)), EqualTo_string('none', '$STRATA$')), 'BDI_SIZE_RELIGION')][AddLocalizationIf(And(And4(PopType.IsValid, Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(Religion.IsValid)), EqualTo_string('none', '$STRATA$')), 'BDI_SIZE_POPTYPE')][AddTextIf(And(And4(Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('lower', '$STRATA$')), Localize('BDI_SIZE_STRATA_LOWER'))][AddTextIf(And(And4(Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('middle', '$STRATA$')), Localize('BDI_SIZE_STRATA_MIDDLE'))][AddTextIf(And(And4(Not(InterestGroup.IsValid), Not(Culture.IsValid), Not(Religion.IsValid), Not(PopType.IsValid)), EqualTo_string('upper', '$STRATA$')), Localize('BDI_SIZE_STRATA_UPPER'))]"
 
+ # Vanilla bodies, unchanged -- listed because overriding the parent above
+ # means these must exist in the same file.
  POP_EFFECT_FILTER_INTEREST_GROUP: "[InterestGroup.GetName] members of "
  POP_EFFECT_FILTER_CULTURE: "[Culture.GetName] "
  POP_EFFECT_FILTER_RELIGION: "[Religion.GetName] "
  POP_EFFECT_FILTER_POP_TYPE: "[PopType.GetName] "
 
- # Confirmed working in game; values matched the game's own panels.
+ # Confirmed in game against the game's own panels: Rural Folk rendered
+ # 1.23M against a panel reading 1.2M.
  BDI_SIZE_IG:0 " (#b [InterestGroup.GetPopulation|K]#! strong)"
  BDI_SIZE_CULTURE:0 " (#b [Culture.GetPopulation|K]#! strong)"
  BDI_SIZE_RELIGION:0 " (#b [Religion.GetPopulation|K]#! strong)"
  BDI_SIZE_POPTYPE:0 " (#b [PopType.GetPopulation(GetPlayer)|K]#! strong)"
 
- # Still unconfirmed -- no strata-filtered effect has been seen in game yet.
- # (s9) stays until one renders.
+ # Strata totals need a country and COUNTRY does not bind here, so these use
+ # GetPlayer. An audit of all 246 strata-filtered pop effects in vanilla
+ # found ZERO that apply to a country other than the event's own, so that is
+ # safe. (s9) stays until one is actually seen rendering in game -- no
+ # strata-filtered pop effect has turned up yet.
  BDI_SIZE_STRATA_LOWER:0 " (s9 #b [GetTrendValue(GetPlayer.GetLowerStrataPopulationTrend)|K]#! strong)"
  BDI_SIZE_STRATA_MIDDLE:0 " (s9 #b [GetTrendValue(GetPlayer.GetMiddleStrataPopulationTrend)|K]#! strong)"
  BDI_SIZE_STRATA_UPPER:0 " (s9 #b [GetTrendValue(GetPlayer.GetUpperStrataPopulationTrend)|K]#! strong)"
-
- # ---------------------------------------------------------------------
- # Modifier line. Both branches confirmed working in game.
- #
- # KNOWN COST, unresolved: when the modifier subject is NOT an interest
- # group, InterestGroup is unbound rather than invalid, so evaluating the
- # guard errors. Harmless on screen -- the guard still scopes correctly --
- # but it writes a "FetchData failed" line each time, and those totalled
- # 1275 in one session's error.log. That matters because scan_logs.py is
- # how we tell whether Smart Notifications is healthy, and this could bury
- # real errors. Must be settled before shipping, not before testing.
- # ---------------------------------------------------------------------
- # PLACEMENT: the state line now hangs off $SUBJECT_NAME$, not off the end
- # of $MODIFIER_DESC$. Previously it trailed the LAST modifier value, so on
- # North Angola it read "...-20% Plantations Throughput (703K people...)",
- # attaching the population to an unrelated throughput penalty. Anchoring it
- # to the subject puts it where it belongs: "North Angola (703K people...)
- # gets Improved Labor Conditions".
- #
- # The interest-group line deliberately STAYS after $MODIFIER_DESC$, because
- # it contextualises the approval value it follows ("-5 Interest Group
- # Approval (Currently +2...)"). Moving it to the subject would separate it
- # from the number it explains. That works because interest-group modifiers
- # carry a single value line; if one ever carries two, it will dangle the
- # same way and need the same treatment.
- # =====================================================================
- # (s12) -- THE SHIP-BLOCKER. Guard-form bake-off.
- #
- # A longer play session settled the log question and the answer is bad:
- # 1018 lines in error.log, ~1000 of them ours. Every time this template
- # renders for a subject that is NOT a State (or NOT an InterestGroup), the
- # guard cannot even be evaluated and the engine writes FOUR lines:
- #   "No context supplied (Use SetDataContext), wanted context of type
- #    'State' for 'State.IsValid'"
- # 255 failed evaluations in one session -- 204 State, 51 InterestGroup.
- # Unshippable as is: it would pollute every player's log and could bury
- # real Smart Notifications errors in scan_logs.py.
- #
- # Vanilla offers no scope-existence guard (its only Exists() is
- # GetVariableSystem.Exists, for GUI variables), and there are no
- # subject-typed ADD_MODIFIER variants -- only ADD_MODIFIER/_FIRST/_THIRD.
- # So this tries three alternative guard forms against the one known-bad
- # form, each pointing at its OWN key so error.log names whichever ones
- # still fail.
- #
- # PASS = the marker renders on a state/interest-group modifier AND that
- # key's name does NOT appear in error.log afterwards. A form that renders
- # but still logs is no better than what we have.
- #
- # If none passes, this is a product decision, not a technical one -- see
- # the note in docs/followup-plan-2026-09-11.md.
- # =====================================================================
- ADD_MODIFIER_THIRD:0 "$SUBJECT_NAME$[AddLocalizationIf(State.IsValid, 'BDI_G_A')][AddTextIf(State.IsValid, Localize('BDI_G_B'))][SelectLocalization(State.IsValid, 'BDI_G_C', '')] gets #tooltippable #tooltip:[GetRawTextTooltipTag('$ADD_MODIFIER_BREAKDOWN$')] $MODIFIER_NAME$#!#! $MAYBE_DECAYING_WITH_SPACE_AFTER$$DURATION$\n$TAB$#indent_newline:3 $MODIFIER_DESC$#![AddLocalizationIf(InterestGroup.IsValid, 'BDI_IG_STANDING')]"
-
- # A = current form, known to log. Baseline for comparison.
- BDI_G_A:0 " (s12A)"
- # B = AddTextIf + Localize, the form vanilla uses for $STRATA$ branching.
- BDI_G_B:0 " (s12B)"
- # C = SelectLocalization with an empty else, the form vanilla uses for
- #     PREFERENCE_LABEL on the diplo play screen.
- BDI_G_C:0 " (s12C)"
-
- BDI_IG_STANDING:0 " (Currently #b [InterestGroup.GetApprovalValue|+=]#! with #b [InterestGroup.GetClout|%0]#! clout)"
-
- # CONFIRMED WORKING. The percentage needed int64 arithmetic: population
- # accessors return int64 while Divide_CFixedPoint wants CFixedPoint, so the
- # first attempt silently produced nothing. Multiplying by 100 before an
- # integer divide gives whole percent. Fallback text dropped now that the
- # percentage renders.
- BDI_STATE_STANDING:0 " (#b [State.GetPopulationSize|K]#! people, [Divide_int64(Multiply_int64(State.GetPopulationSize, '(int64)100'), State.GetCountry.GetTotalPopulation)]% of the country)"
-
- # ---------------------------------------------------------------------
- # (s11) -- probing the "+1.0 Standard of Living for the Lower Strata" line.
- #
- # That line is NOT a pop effect, so nothing in POP_EFFECT_FILTER can reach
- # it: it is a MODIFIER label, rendered from
- # modifiers_l_english.yml:435 (state_lower_strata_standard_of_living_add).
- # Different mechanism entirely, which is why the strata branch never fired
- # on it.
- #
- # EXPECT THIS TO FAIL. interest_group_approval_add -- the same kind of key
- # -- renders in a 'Container' context with no scope bound, confirmed from
- # error.log ("wanted context of type 'InterestGroup' ... got context
- # 'Container'"). If modifier labels universally lack scope, State will be
- # empty here too and this whole idea is closed.
- #
- # So this probes the cheap question first (is State even in scope?) rather
- # than building the expensive thing (a six-profession sum) on top of an
- # assumption. If state= comes back with a name, the sum becomes worth
- # doing -- Add_CFixedPoint exists and GetPopType('x') is confirmed vanilla
- # usage -- but it would still need the social-hierarchy problem solved:
- # lower strata is clerks/laborers/machinists/peasants/slaves/soldiers by
- # default, and a different set under the Edo and Indian caste systems,
- # which Japan and British India use and which decisions can change mid-game.
- # ---------------------------------------------------------------------
- state_lower_strata_standard_of_living_add:0 "[concept_sol] for the [concept_lower_strata] (s11 state=[State.GetName] laborers=[GetPopType('laborers').GetStatePopulation(State.Self)|K])"
