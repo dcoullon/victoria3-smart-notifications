@@ -63,6 +63,7 @@ LOCPROBE_RE = re.compile(r"SNW_LOCPROBE\|(\w+)\|(.*?)[ 	]*$", re.M)
 YEAR_RE = re.compile(r"\b(1[89]\d{2}|20\d{2})\b")
 ENTRY_RE = re.compile(r"^(\w+)\s*=\s*\{(.*?)^\}", re.M | re.S)
 NTYPE_RE = re.compile(r"notification_type\s*=\s*(\w+)")
+COMMENT_RE = re.compile(r"#.*")
 TIERS = ["popup", "toast", "feed", "none"]
 
 
@@ -124,7 +125,17 @@ def per_key_tiers(messages_dir):
     if not messages_dir.is_dir():
         return out
     for f in sorted(messages_dir.glob("*.txt")):
-        text = f.read_text(encoding="utf-8-sig", errors="replace")
+        # Strip `#` comments first. Without this the parser reads commented-out
+        # config as live: diplomatic_action_notification carries a comment
+        # recording that its former siblings "are still notification_type =
+        # toast", and NTYPE_RE takes the first match in the body -- so the key
+        # the mod MUTES was reported as a toast, in the very table the post's
+        # vanilla-vs-mod comparison is built from. SECOND copy of this bug; the
+        # first was fixed in compare_notification_settings.py the same day, and
+        # this one survived because the two tools parse the same files through
+        # separate code.
+        text = COMMENT_RE.sub(
+            "", f.read_text(encoding="utf-8-sig", errors="replace"))
         for key, body in ENTRY_RE.findall(text):
             m = NTYPE_RE.search(body)
             if m:
@@ -427,6 +438,77 @@ def _report_proxy(logs_dir):
     print()
 
 
+def instrument_confidence(logs_dir, manifest):
+    """How much of the instrument has this run actually exercised?
+
+    Added 2026-09-15 because the user pushed back, correctly: a proxy hook had
+    just been found silently broken, and "16 keys cross-check" says nothing
+    about the other 580 sites.
+
+    Two questions, deliberately kept apart:
+
+      - Is each GUARD MECHANISM sound? There are only a handful, and the census
+        generates every site from one template per kind, so one site producing
+        a player line proves that mechanism for all sites using it. Strong
+        evidence, available immediately.
+      - Has each individual SITE been exercised? Mostly not, and no amount of
+        better code fixes that -- a hook for an event that did not occur is
+        untestable. It improves with run length, so the figure is printed
+        rather than glossed over.
+
+    The dangerous cell is a mechanism that FIRED but produced zero player
+    lines: that is exactly what a silently-broken guard looks like.
+    """
+    ids_seen, p_ids = set(), set()
+    pat = re.compile(r"SNW_CENSUS\|([PW])\|(\d+)\|")
+    for path in debug_logs(logs_dir):
+        try:
+            with path.open(encoding="utf-8", errors="replace") as f:
+                for line in f:
+                    m = pat.search(line)
+                    if m:
+                        ids_seen.add(int(m.group(2)))
+                        if m.group(1) == "P":
+                            p_ids.add(int(m.group(2)))
+        except OSError:
+            continue
+    if not ids_seen:
+        return
+
+    by_kind = collections.defaultdict(lambda: {"sites": 0, "fired": 0, "p": 0})
+    for e in manifest:
+        reach = e.get("reach")
+        kind = ("named-scope" if reach and reach.startswith("scope:")
+                else "reach-iterator" if reach
+                else "direct-" + str(e.get("scope", "?")))
+        g = by_kind[kind]
+        g["sites"] += 1
+        g["fired"] += e["id"] in ids_seen
+        g["p"] += e["id"] in p_ids
+
+    print("--- Instrument confidence ---")
+    rows = []
+    for kind in sorted(by_kind):
+        g = by_kind[kind]
+        if g["p"]:
+            v = "mechanism PROVEN"
+        elif "non_country" in kind:
+            v = "world-only by design"
+        elif g["fired"]:
+            v = "fired, no player line -- CHECK"
+        else:
+            v = "never fired -- unproven"
+        rows.append([kind, g["sites"], g["fired"], g["p"], v])
+    print(_table(rows, ["guard kind", "sites", "fired", "with P", "verdict"]))
+    fired = sum(g["fired"] for g in by_kind.values())
+    total = sum(g["sites"] for g in by_kind.values()) or 1
+    print(f"  {fired} of {total} call sites fired at least once "
+          f"({fired / total * 100:.0f}%).")
+    print("  The rest are unproven only because their events did not happen in")
+    print("  this run -- that improves with length, not with better code.")
+    print()
+
+
 def report(logs_dir, manifest_path=None, top=30):
     logs = debug_logs(logs_dir)
     if not logs:
@@ -465,6 +547,8 @@ def report(logs_dir, manifest_path=None, top=30):
     _report_localize_probe(logs_dir)
     _report_proxy(logs_dir)
     cross_check(logs_dir)
+    if manifest:
+        instrument_confidence(logs_dir, manifest)
 
     if total == 0:
         print()
