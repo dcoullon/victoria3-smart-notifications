@@ -101,3 +101,76 @@ smart_notifications_diplomatic_action_break = {
 		}
 	}
 }
+# ===========================================================================
+# Pact AUTO-break, split by pact type  (added 2026-09-15)
+# ===========================================================================
+#
+# A DIFFERENT HOOK from everything above. The rest of this file handles
+# `on_diplomatic_action_break` (Root = Diplomatic Action) -- somebody actively
+# ending a pact. This handles `on_diplomatic_pact_auto_break` (Root =
+# Diplomatic Pact) -- a pact lapsing because its conditions stopped holding.
+# The mod never covered this hook, which is why "Knowledge Sharing broken"
+# kept reaching the user's feed despite the filtering above existing.
+#
+# Vanilla's `diplomatic_pact_auto_break_notification` is muted to `none` in
+# common/messages/00_messages.txt; this posts our replacement for the pact
+# types worth keeping.
+#
+# WHY NOT A FLAT MUTE. The user asked for one, after "Knowledge Sharing
+# broken" and "Investment Rights broken" recurred through a measured ten-year
+# run with nothing to act on. But every subject RELATIONSHIP auto-breaks
+# through this same key, and their `auto_break_effect` posts nothing of its own
+# -- checked across all of protectorate/puppet/dominion/personal_union/vassal/
+# tributary/colony/chartered_company: zero `post_notification` calls. A flat
+# mute would have silently hidden losing a subject.
+#
+# BLOCKLIST, NOT ALLOWLIST -- deliberately. Only the named perk types are
+# quieted; anything else, including a pact type a future patch adds, still
+# notifies. The failure direction matters more than the tidiness: an unknown
+# type showing up in the feed is a minor annoyance, an unknown type silently
+# vanishing is the bug we just avoided.
+#
+# `is_diplomatic_action_type` is confirmed against the installed game's
+# triggers.log: "Checks diplomatic pact is of a certain action type",
+# **Supported Scopes**: diplomatic_pact -- which is exactly this root. Not
+# generalised from a sibling.
+#
+# The four quieted types, and the text the user actually saw for each:
+#   increase_relations                     "Improve Relations broken"
+#   damage_relations                       (the hostile twin of the above)
+#   da_knowledge_sharing                   "Knowledge Sharing broken"
+#   da_request_knowledge_sharing           ditto, subject-initiated
+#   da_overlord_grant_investment_rights    "Investment Rights broken"
+#   da_subject_request_investment_rights   ditto, subject-initiated
+#
+# NOT YET LIVE-TESTED. Rides the late-game Portugal run. Acceptance criteria:
+# an SNW_PACTBREAK line appears for every auto-break, tagged `quiet` for the
+# six types above and `keep` for everything else, and no
+# `Wrong scope for trigger` error appears for is_diplomatic_action_type.
+on_diplomatic_pact_auto_break = {
+	on_actions = {
+		smart_notifications_pact_auto_break_split
+	}
+}
+
+smart_notifications_pact_auto_break_split = {
+	effect = {
+		if = {
+			limit = {
+				OR = {
+					is_diplomatic_action_type = increase_relations
+					is_diplomatic_action_type = damage_relations
+					is_diplomatic_action_type = da_knowledge_sharing
+					is_diplomatic_action_type = da_request_knowledge_sharing
+					is_diplomatic_action_type = da_overlord_grant_investment_rights
+					is_diplomatic_action_type = da_subject_request_investment_rights
+				}
+			}
+			debug_log = "SNW_PACTBREAK|quiet|[TimeKeeper.GetCurrentDate.GetString]"
+		}
+		else = {
+			post_notification = smart_notifications_pact_auto_break_notification
+			debug_log = "SNW_PACTBREAK|keep|[TimeKeeper.GetCurrentDate.GetString]"
+		}
+	}
+}
