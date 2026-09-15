@@ -18,6 +18,40 @@ bypassing tech, laws or the queue. This constraint decides the whole design
 and must not be relaxed — the audience overlaps with Smart Notifications'
 subscribers, and a cheat reputation would damage both.
 
+## 1b. OPEN AND BLOCKING — where the button actually lives
+
+**Not decided. Decide this before writing any code**, because it determines the
+mod's cost, its file-override surface and its patch-fragility — i.e. everything
+that makes it cheap or not.
+
+Candidates, per the user (2026-09-15):
+
+| entry point | `.gui` override? | notes |
+|---|---|---|
+| **The full building list** | yes | where the player already goes to build things; most discoverable at the moment of intent |
+| **The build/construction bottom bar** | yes | fewest clicks from anywhere; smallest surface of the two |
+| **Both of the above** | yes | the user's stated leaning is "probably either, or both" |
+| Decisions panel (`common/decisions/`) | **no** | zero override, but see the discoverability problem below |
+
+**The tension to resolve.** The decisions route is by far the cheapest — no GUI
+file, no compatibility surface, no re-diff burden on patches (§2). But the
+decisions panel is not somewhere Victoria 3 players look, and a one-click build
+tool that nobody finds is worthless. The building list and the bottom bar are
+where the intent actually occurs, and both cost a `.gui` override of a vanilla
+file, which is the risk profile the `better_decision_info` split exists to
+contain.
+
+**So the real question is not "which is nicer" but "is the decisions panel
+discoverable enough to be worth its enormous cost advantage?"** Answer that
+with five minutes in-game before committing to a design. If the answer is no,
+the mod is a `.gui` mod and should be scoped as one from the start rather than
+built as a decision and retrofitted.
+
+Everything below is written against the decision form because it is the
+cheapest thing that could work — **treat it as a placeholder for the entry
+point, not as the settled design.** The `when_taken` effect block in §3 is the
+part that stays identical whichever surface wins.
+
 ## 2. Key engine findings (all verified 2026-09-15)
 
 ### There is only one power plant building
@@ -90,10 +124,10 @@ one go — the second is what stops a double-click queueing two.
 `is_shown`, `possible`, `when_taken`, `ai_chance`
 (`common/decisions/000_decisions_help.txt`).
 
-This is the single most important finding for scoping: **the MVP needs no GUI
-file at all**, so it has no file-override compatibility surface and no
-re-diff burden on patches. That is a categorically cheaper mod than anything
-in this repo so far.
+This matters for scoping: **a decision-based MVP needs no GUI file at all**, so
+it carries no file-override compatibility surface and no re-diff burden on
+patches — categorically cheaper than anything in this repo so far. It is only
+worth that advantage if players actually find it; see §1b, which is unresolved.
 
 Two free wins from the decision system:
 
@@ -106,6 +140,10 @@ Two free wins from the decision system:
   excellent or unreadable.
 
 ## 3. MVP
+
+**Entry point is still open (§1b)** — this is written as a decision because
+that is the cheapest form to prototype. The `when_taken` effect block is the
+part that survives unchanged whichever surface is chosen.
 
 ```
 sn_electrify_all_states_decision = {
@@ -161,11 +199,10 @@ verifiable in a single session.
 3. **Does `EFFECT_SUMMARY` render usably** over an `every_scope_state` loop, or
    does it produce a wall of text? Decides whether the tooltip needs a
    hand-written `_tooltip` loc instead.
-4. **Where does the decision appear, and is it discoverable?** The decisions
-   panel is not somewhere Vic3 players look often. If discoverability is bad,
-   the fallback is a button on a vanilla panel — which costs a `.gui` override
-   and changes the mod's risk profile entirely. Check this **before** building,
-   because it decides whether the "no GUI override" advantage is real.
+4. **Where the entry point lives — see §1b. This is the blocking one.** Full
+   building list, construction bottom bar, both, or the decisions panel. Not
+   decided; it changes the mod's cost and risk profile more than any other
+   choice here, so it is settled first, not discovered during implementation.
 5. **Construction queue cost.** Queueing 20 plants at once could wreck a
    budget. Decide whether that is the player's problem (probably yes — it is a
    queue they can cancel) or whether the tooltip should state the count.
