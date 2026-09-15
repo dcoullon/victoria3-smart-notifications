@@ -168,6 +168,39 @@ leaving it to be noticed.
 silenced N of the M toasts you received", with the list of countries it would
 have silenced. Decide against that, not against the abstraction.
 
+### MEASURED 2026-09-15, then SHELVED by the user
+
+Rode the 1836-1846 census run. **Decision: do nothing for now** -- "consistency
+is better at this stage"; revisit only if complaints actually arrive. Recorded
+here so it does not have to be re-measured.
+
+| rule | at player | at watched | verdict |
+|---|---|---|---|
+| `rank` -- actor below `major_power` | 3 of 4 | **44 of 86 (51%)** | the only real lever |
+| `relevance` -- no `has_diplomatic_relevance` | 0 of 4 | **0 of 86 (0%)** | **dead. Silences nothing; drop it** |
+| `type` -- not `recognized` | 0 of 4 | 7 of 86 (8%) | marginal |
+
+Top actors reaching the player: France 8, Denmark 6, Sweden 5, Brazil 5,
+Great Britain 4, Russia 4, Netherlands 3, Tuscany 2.
+
+**What the numbers actually settle.** `relevance` was a plausible-sounding rule
+and is worthless -- 0% on 86 firings is not a small sample problem, it is the
+trigger being true for essentially every diplomatic actor. That one is closed
+for good. `rank` works, and halves watched-country toasts.
+
+**What they do not settle, and why it was shelved.** `rank` judges the SENDER,
+so a minor power declaring a *rivalry* on the player is silenced along with its
+Improve Relations nudges. The top-actors list makes that concrete: the actors
+reaching the player are mostly powers `rank` would keep, so the 51% it removes
+is largely small-country traffic -- which is the intent, but it is also exactly
+where a surprise rivalry would come from.
+
+**If revisited:** the probe file
+(`common/on_actions/07_smart_notifications_actor_axis_probe.txt`) still exists
+and still rides any census run for free, so re-measuring on a late-game save
+costs nothing extra. A late-game sample is worth having before committing --
+1836-1846 is the least diplomatically active stretch of the game.
+
 **(b) Only two event families are watchlist-aware.** Diplomatic plays and
 diplomatic actions. Everything else in the game either always fires or is
 muted globally. Whether that's a gap or the right scope is an open

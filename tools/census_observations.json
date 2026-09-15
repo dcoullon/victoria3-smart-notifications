@@ -1,11 +1,107 @@
 {
-  "_README": "What was actually on screen during the 1836-1846 measure run, read off the user's in-game screenshots (Steam screenshot folder, 2026-09-15). Feeds the coverage diff: python tools/scan_logs.py --coverage tools/census_observations.json --logs-dir <archive>. Keys are mapped from the feed's displayed text via tools/message_catalog.json; where a line could be one of two keys it is left out rather than guessed, so the coverage number is conservative.",
+  "_README": "What was actually on screen during the 1836-1846 measure run, read off the user's in-game screenshots (Steam screenshot folder, 2026-09-15), country Belgium. Feeds the coverage diff: python tools/scan_logs.py --coverage tools/census_observations.json --logs-dir <archive>.",
+  "_SAMPLING_BIAS": "IMPORTANT, and it cuts in our favour for the post. The user states they did not screenshot at random: they shot whenever several feed notifications arrived at once, and only while actually watching. So this measures what dominates the BUSY moments -- the moments a player actually notices and complains about -- not the campaign average. Quote it that way or not at all. Two consequences: engine-fired families that cluster (ig_*, attitude) are over-represented relative to their true share, and quiet stretches are absent entirely.",
+  "_MAPPING_RULE": "Keys are mapped from the feed's displayed text via tools/message_catalog.json. Where a line could plausibly be one of two keys it is counted as `unidentified` rather than guessed -- which lowers the coverage number rather than flattering it.",
   "country": "BEL",
   "run": "1836-1846 measure run, archive at logs/census_archive",
   "observations": [
     {
+      "date": "1838.1.14",
+      "source": "screenshot 20260915115330",
+      "keys": [
+        "journal_entry_deactivated",
+        "journal_entry_activated",
+        "spreading_technology_notification",
+        "spreading_technology_notification",
+        "character_spawned_in_pool",
+        "exile_notification"
+      ],
+      "unidentified": 0
+    },
+    {
+      "date": "1838.6.16",
+      "source": "screenshot 20260915115436",
+      "keys": [
+        "country_attitude_worsened",
+        "country_attitude_worsened"
+      ],
+      "unidentified": 0
+    },
+    {
+      "date": "1838.10.1",
+      "source": "screenshot 20260915115509",
+      "keys": [
+        "interest_tier_increased",
+        "ig_no_longer_powerful",
+        "ig_became_powerful",
+        "national_awakening_started",
+        "political_movement_formed"
+      ],
+      "unidentified": 0
+    },
+    {
+      "date": "1840.10.1",
+      "source": "screenshot 20260915120315",
+      "keys": [
+        "exile_notification",
+        "ig_trait_activated"
+      ],
+      "unidentified": 1
+    },
+    {
+      "date": "1841.5.16",
+      "source": "screenshot 20260915120645",
+      "keys": [
+        "country_attitude_worsened",
+        "journal_entry_activated",
+        "character_retired_notification"
+      ],
+      "unidentified": 1
+    },
+    {
+      "date": "1841.9.3",
+      "source": "screenshot 20260915120746",
+      "keys": [
+        "character_retired_notification",
+        "peace_agreement_signed_non_participant",
+        "character_spawned_in_pool"
+      ],
+      "unidentified": 0
+    },
+    {
+      "date": "1842.12.27",
+      "source": "screenshot 20260915121125",
+      "keys": [
+        "harvest_condition_started_in_country",
+        "harvest_condition_started_in_country"
+      ],
+      "unidentified": 0
+    },
+    {
+      "date": "1845.3.31",
+      "source": "screenshot 20260915121159",
+      "keys": [
+        "peace_agreement_signed_non_participant",
+        "ig_no_longer_influential",
+        "ig_no_longer_powerful",
+        "diplomatic_pact_auto_break_notification",
+        "ig_became_powerful"
+      ],
+      "unidentified": 0
+    },
+    {
+      "date": "1845.8.11",
+      "source": "screenshot 20260915121300",
+      "keys": [
+        "ig_new_leader_notification",
+        "character_retired_notification",
+        "ig_trait_deactivated"
+      ],
+      "unidentified": 0
+    },
+    {
       "date": "1845.7.21",
-      "source": "feed screenshot 20260915121555 (11 entries visible, fully scrolled)",
+      "source": "screenshot 20260915121555 (11 entries, fully scrolled)",
       "keys": [
         "formation_exiled",
         "ig_new_leader_notification",
@@ -18,18 +114,6 @@
         "ig_became_powerful",
         "character_spawned_in_pool",
         "character_spawned_in_pool"
-      ],
-      "unidentified": 0
-    },
-    {
-      "date": "1845.3.31",
-      "source": "feed screenshot 20260915121159 (5 entries visible)",
-      "keys": [
-        "peace_agreement_signed_non_participant",
-        "ig_no_longer_influential",
-        "ig_no_longer_powerful",
-        "diplomatic_pact_auto_break_notification",
-        "ig_became_powerful"
       ],
       "unidentified": 0
     }
