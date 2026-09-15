@@ -41,8 +41,10 @@ an open question. Nothing here is a record of what happened.
 *(Written 2026-09-09; (c) and (d) refreshed 2026-09-15. The expectations
 half is superseded by [docs/watchlist-spec.md](docs/watchlist-spec.md), the
 behavioural spec agreed with the user family by family — that file is what the
-code answers to, and it is still DRAFT: nothing is built against it until the
-user says OK explicitly.)*
+code answers to. It is **LOCKED** (explicit sign-off 2026-09-09); changing it
+needs the same kind of agreement that produced it. The "still DRAFT, build
+nothing against it" note that used to sit here was written before that
+sign-off and was stale by the time of this review.)*
 
 > **2026-09-09, later:** the expectations half of this section has been
 > superseded by [docs/watchlist-spec.md](docs/watchlist-spec.md), the
@@ -191,9 +193,47 @@ They now log `date=[TimeKeeper.GetCurrentDate.GetString]` and are readable with
 ## Open questions
 
 Each carries its acceptance criteria and how it gets checked, per CLAUDE.md
-§ 5. Both were previously scattered through the session logs — the
-watchlist/tag question alone appeared in three places, worded three different
-ways and answered in none of them.
+§ 5. Two of them were scattered through the session logs — the watchlist/tag
+question alone appeared in three places, worded three different ways and
+answered in none of them — and the third was in no document at all until the
+2026-09-15 review of this file.
+
+### F10 pact-break routing has never been live-tested — and it is already published
+
+`common/on_actions/13_smart_notifications_pact_break_filtering.txt` was added
+2026-09-09 to implement F10 of the spec (a pact break involving a watched
+country, e.g. "Tibet stopped damaging Relations", was sitting in the feed).
+**It appeared in no planning or release document at all** until this review on
+2026-09-15 — not TODO.md, not CHANGELOG.md.
+
+Two things follow, and the second is the one that matters:
+
+- Its own header says **NOT YET LIVE-TESTED**: `scope:actor` / `scope:recipient`
+  are *assumed* bound on `on_diplomatic_action_break` because they are bound on
+  `on_diplomatic_action`, which shares a root type. This project has been
+  bitten by exactly that generalisation before (the `_third_party_` family,
+  which produced a real runtime error).
+- It is **not** in `package_release.py`'s `DEV_ONLY_FILES`, so it ships. v0.39
+  was uploaded 2026-09-10, the day after it landed. **Untested code has been
+  live on the Workshop since then.** The `?=` guards mean the failure mode is a
+  silently missing notification rather than an error, which is why nothing
+  surfaced.
+
+**Acceptance criteria.** When a diplomatic pact the player is party to is
+broken: a `SNW_FILTER|pact_break` line appears in `debug.log`, both country
+names in it resolve to real names rather than empty, and the notification lands
+as a **toast** when the other party is watched (or is the player) and a
+**feed** entry when it is neither. Zero `Wrong scope for trigger` lines in
+`error.log`.
+
+**How it gets checked.** Already fully instrumented — every branch logs — so
+this needs **no dedicated launch**. `python tools/scan_logs.py` after any
+session that was going to happen anyway answers it. It should ride along with
+the next run for any other reason.
+
+**If the scopes turn out not to be bound**, the fix is the same one F1 needed:
+find which scope names the break on_action actually binds via a probe, rather
+than generalising from a sibling a second time.
 
 ### A watched country that becomes a NEW country loses its watch
 
@@ -313,7 +353,8 @@ favour of publishing.
 ## Phase 4 — Relational Notification Engine (Capstone) (target: v1.0.0)
 
 *(The two shipped items of this phase — on-action interception and the
-Message Settings relabel — moved to the archive 2026-09-15; the
+Message Settings relabel — are in
+[the session-log archive](docs/archive/2026-09-session-log.md); the
 country-renaming caveat moved to Open questions. What remains is unfinished.)*
 
 This is what actually makes proper Phase 1 dominion/subject scoping possible —
@@ -415,40 +456,6 @@ list for this phase with that in mind before writing the on_action.
         each of these on_actions, guarded with `?=` so a missing scope is
         skipped rather than erroring. Delete once the scope names are
         known and the filtering is built.
-- [x] **Shorten Message Settings row labels + re-tag mod-created
-      notifications — SHIPPED 2026-09-08.** Flagged 2026-09-07 per the
-      user's screenshot: our group labels (e.g. "Diplomatic Play Started,
-      Watched Country Inv…") truncated hard in the list's fixed-width
-      column, and the old trailing `" (Smart Notifications)"` suffix
-      (per CLAUDE.md's tagging convention) made it worse — it was exactly
-      the part that got cut off. **Extended 2026-09-08 per the user:**
-      wanted a way to tell "this is the mod" at a glance without such
-      long names. **Fix:** the tagging convention changed from a trailing
-      `" (Smart Notifications)"` suffix to a short leading `"(SN) "`
-      prefix on every mod-created group/alert label (13 labels in
-      [smart_notifications_l_english.yml](localization/english/smart_notifications_l_english.yml)) —
-      visible even when truncated, and 5 characters instead of 22.
-      CLAUDE.md and engine-notes.md updated to document the revised
-      convention for future additions.
-      **Grouping itself: user first said our rows already sit at the
-      bottom of the default list (no active work needed); corrected the
-      same day** after checking whether "Law Imposed"/"Colonial Claim
-      Granted" were ours (confirmed via grep: no, 100% vanilla, untouched)
-      — those sit after our rows, so we're grouped together but not
-      strictly last. Not pursuing further — the short prefix already
-      solves the actual problem (telling rows apart at a glance) without
-      needing exact positioning.
-      **GUI-level section divider — investigated, not pursued:** the
-      list is populated from a native datamodel
-      (`MessageSettingsWindow.GetNotificationSettingsItems` per
-      [gui/message_settings.gui](gui/message_settings.gui)), with an
-      existing "sort by Notification Type" column the player can already
-      click — but the DEFAULT (unsorted) order was never confirmed (could
-      be alphabetical, native registration order, file definition order,
-      or something else), and a real section-divider would need actual
-      GUI work. Don't attempt without
-      first confirming what's realistic — this list's sort/grouping
-      behavior hasn't been investigated at all yet.
 - [ ] **Visually distinguish elevated (watched) notifications — parked
       2026-09-07 per the user until the watchlist selector and the base
       filtering changes are confirmed working.** Per-message presentation
@@ -478,8 +485,8 @@ list for this phase with that in mind before writing the on_action.
       set everything else in this mod. This matches the exact same wall
       Phase 3 hit and gave up on for the country-panel pin button
       (`Country.TogglePinInOutliner`, same GUI-only pattern, see the
-      "Country Panel Bookmark Button — dropped" entry under Phase 3
-      above). Not automatically ruled impossible — a scripted_gui might
+      "Country Panel Bookmark Button — dropped" entry under Phase 3 in
+      [the session-log archive](docs/archive/2026-09-session-log.md)). Not automatically ruled impossible — a scripted_gui might
       be able to invoke a GUI-scope function the way
       `watchlist_sgui.txt` does for the Watchlist checkbox, but that
       pattern is GUI-click-triggers-script, the opposite direction of
@@ -922,9 +929,13 @@ uncountable/no-hook list in Dev Tooling above — triage before building:
       checking whether all action types sharing this group deserve
       identical treatment or whether some (e.g. autonomy requests,
       arguably always worth seeing) should stay unconditional.
-- [ ] **Tech spreading notification** — user suspects vanilla may already
-      have a per-notification setting for this; check Message Settings
-      before assuming it needs a mod change at all.
+- [x] **Tech spreading notification — CLOSED 2026-09-15, nothing to do.**
+      The user's suspicion was right: `spreading_technology_notification`
+      ([00_messages.txt:1074](common/messages/00_messages.txt)) has its own
+      `spreading_technology_notification_group`, so it already gets its own
+      Message Settings row a player can tune, and it is already at `feed`,
+      not toast. No mod change warranted. Answered by reading the file, no
+      playtest needed.
 - [ ] **Foreign political lobby *formed*** — confirmed 2026-09-05: two
       distinct keys, `foreign_political_lobby_created` and
       `foreign_political_lobby_created_from_catalyst`
@@ -935,7 +946,12 @@ uncountable/no-hook list in Dev Tooling above — triage before building:
       treatment for consistency, but hasn't been done — do it, or confirm
       with the user first since "formed" (unlike "disbanded") might carry
       slightly more early-warning value.
-- [ ] **"Random country won war"** — checked 2026-09-05: **no
+- [x] **"Random country won war" — CLOSED 2026-09-15, folded into Phase 4.**
+      Not a missing or mis-tiered message; it is the general relational-scoping
+      gap, so it is covered by Phase 4's watchlist filtering and needs no entry
+      of its own. Original finding kept below for the evidence.
+
+      Checked 2026-09-05: **no
       `country_won_war`-shaped message key exists at all** — there's no
       generic "X won the war" notification. What actually exists and would
       fire here is `peace_agreement_signed_war_leader`/`war_participant`
@@ -993,7 +1009,9 @@ uncountable/no-hook list in Dev Tooling above — triage before building:
       any group they've customized before keeps their old value until reset,
       regardless of what this mod's script defaults say. See the
       override-hierarchy note in `CLAUDE.md`.
-- [ ] `python tools/validate_syntax.py` passes.
+- [ ] `python tools/validate_syntax.py --strict` passes **on the machine with
+      the game installed** — the plain form reports PASS (DEGRADED) and exits 0
+      when the vanilla-comparison checks cannot run.
 - [ ] Diff against `reference/vanilla/` reviewed so the changelog entry is
       accurate.
 

@@ -2978,3 +2978,42 @@ Run `python tools/validate_syntax.py` after any change, and follow
 CLAUDE.md's git rules (no AI/attribution lines in commits, version bump
 only for confirmed-working new features, tag every version bump).
 ```
+
+## Phase 4 — Shorten Message Settings row labels (SHIPPED 2026-09-08)
+
+*(Moved out of TODO.md 2026-09-15; the split on 09-15 had kept this one shipped item in the live file by mistake.)*
+
+- [x] **Shorten Message Settings row labels + re-tag mod-created
+      notifications — SHIPPED 2026-09-08.** Flagged 2026-09-07 per the
+      user's screenshot: our group labels (e.g. "Diplomatic Play Started,
+      Watched Country Inv…") truncated hard in the list's fixed-width
+      column, and the old trailing `" (Smart Notifications)"` suffix
+      (per CLAUDE.md's tagging convention) made it worse — it was exactly
+      the part that got cut off. **Extended 2026-09-08 per the user:**
+      wanted a way to tell "this is the mod" at a glance without such
+      long names. **Fix:** the tagging convention changed from a trailing
+      `" (Smart Notifications)"` suffix to a short leading `"(SN) "`
+      prefix on every mod-created group/alert label (13 labels in
+      [smart_notifications_l_english.yml](localization/english/smart_notifications_l_english.yml)) —
+      visible even when truncated, and 5 characters instead of 22.
+      CLAUDE.md and engine-notes.md updated to document the revised
+      convention for future additions.
+      **Grouping itself: user first said our rows already sit at the
+      bottom of the default list (no active work needed); corrected the
+      same day** after checking whether "Law Imposed"/"Colonial Claim
+      Granted" were ours (confirmed via grep: no, 100% vanilla, untouched)
+      — those sit after our rows, so we're grouped together but not
+      strictly last. Not pursuing further — the short prefix already
+      solves the actual problem (telling rows apart at a glance) without
+      needing exact positioning.
+      **GUI-level section divider — investigated, not pursued:** the
+      list is populated from a native datamodel
+      (`MessageSettingsWindow.GetNotificationSettingsItems` per
+      [gui/message_settings.gui](gui/message_settings.gui)), with an
+      existing "sort by Notification Type" column the player can already
+      click — but the DEFAULT (unsorted) order was never confirmed (could
+      be alphabetical, native registration order, file definition order,
+      or something else), and a real section-divider would need actual
+      GUI work. Don't attempt without
+      first confirming what's realistic — this list's sort/grouping
+      behavior hasn't been investigated at all yet.
