@@ -965,3 +965,13 @@
  # matching the established precedent for group-splits of vanilla
  # content (see docs/engine-notes.md "Tagging mod-created notifications").
  smart_notifications_diplomatic_action_notification_muted_group:0 "Diplomatic Action"
+
+ # Pact auto-break split (2026-09-15). Vanilla's own key is muted; this covers
+ # every pact type except the minor perks quieted in
+ # common/on_actions/13_smart_notifications_pact_break_filtering.txt.
+ # Wording follows vanilla's original so the notification reads identically --
+ # the point of the split is WHICH pacts report, not how they read.
+ smart_notifications_pact_auto_break_group:0 "(SN) Pact Lapsed"
+ notification_smart_notifications_pact_auto_break_notification_name:0 "[SCOPE.GetRootScope.GetDiplomaticPact.GetName] broken"
+ notification_smart_notifications_pact_auto_break_notification_desc:0 "[SCOPE.GetRootScope.GetDiplomaticPact.GetName] with [AddTextIf(SCOPE.GetRootScope.GetDiplomaticPact.IsFirstCountry(GetPlayer), SCOPE.GetRootScope.GetDiplomaticPact.GetSecondCountry.GetName)][AddTextIf(SCOPE.GetRootScope.GetDiplomaticPact.IsSecondCountry(GetPlayer), SCOPE.GetRootScope.GetDiplomaticPact.GetFirstCountry.GetName)] can no longer be maintained because the following conditions are no longer true:\n[SCOPE.GetRootScope.GetDiplomaticPact.GetAutoBreakReasonDesc]"
+ notification_smart_notifications_pact_auto_break_notification_tooltip:0 "#header $notification_smart_notifications_pact_auto_break_notification_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_pact_auto_break_notification_desc$"

@@ -1842,3 +1842,33 @@ smart_notifications_law_ready_toast_law_worker_protections = {
 	notification_type = toast
 	color = good
 }
+
+
+# ---------------------------------------------------------------------------
+# Pact auto-break, split by pact type  (added 2026-09-15)
+# ---------------------------------------------------------------------------
+#
+# Replaces vanilla's `diplomatic_pact_auto_break_notification`, which this mod
+# mutes in 00_messages.txt. Posted by
+# common/on_actions/13_smart_notifications_pact_break_filtering.txt for every
+# pact type EXCEPT the minor perks listed there.
+#
+# Why the split rather than a flat mute. The user asked for the mute after
+# "Knowledge Sharing broken" and "Investment Rights broken" recurred through a
+# measured ten-year run with nothing to act on. But every subject RELATIONSHIP
+# -- puppet, vassal, dominion, protectorate, colony -- auto-breaks through this
+# same key, and their `auto_break_effect` posts no notification of its own
+# (checked: zero post_notification calls across all of them). A flat mute would
+# therefore have hidden losing a subject entirely.
+#
+# `type = diplomatic_pact` matches vanilla's, so the notification resolves the
+# same scopes and the same loc functions are available.
+smart_notifications_pact_auto_break_notification = {
+	type = diplomatic_pact
+	group = "smart_notifications_pact_auto_break_group"
+
+	texture = "gfx/interface/icons/notification_icons/influence_bad.dds"
+
+	notification_type = feed
+	color = neutral
+}
