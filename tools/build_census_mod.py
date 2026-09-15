@@ -637,6 +637,24 @@ def instrument(text, rel_path, next_id, mode, manifest, overrides,
     return "".join(out), next_id
 
 
+COMMENT_STRIP_RE = re.compile(r"#.*")
+
+
+def has_call_site(path):
+    """Does this file actually POST a notification, comments excluded?
+
+    Testing the raw text was wrong: 08_smart_notifications_engine_proxy.txt's
+    header comment contains the phrase "no `post_notification` call site
+    anywhere", which pulled the whole file into the census build. That copy
+    then shadowed the real one -- the census loads after Smart Notifications --
+    and froze it at build time, so a fix made afterwards was silently ignored
+    for a whole 11-year run. Found 2026-09-15.
+    """
+    text = COMMENT_STRIP_RE.sub(
+        "", path.read_text(encoding="utf-8-sig", errors="replace"))
+    return "post_notification" in text
+
+
 def collect_sources(events_mode, sources_mode="all"):
     """-> list of (absolute source path, mod-relative path, origin label)."""
     found = []
@@ -647,7 +665,7 @@ def collect_sources(events_mode, sources_mode="all"):
         for f in sorted(base.rglob("*.txt")):
             rel = f.relative_to(GAME_ROOT).as_posix()
             try:
-                if "post_notification" not in f.read_text(encoding="utf-8-sig", errors="replace"):
+                if not has_call_site(f):
                     continue
             except OSError:
                 continue
@@ -675,7 +693,7 @@ def collect_sources(events_mode, sources_mode="all"):
             continue
         for f in sorted(base.rglob("*.txt")):
             rel = f.relative_to(REPO_ROOT).as_posix()
-            if "post_notification" not in f.read_text(encoding="utf-8-sig", errors="replace"):
+            if not has_call_site(f):
                 continue
             if rel.startswith("common/messages/"):
                 continue  # definitions, not call sites

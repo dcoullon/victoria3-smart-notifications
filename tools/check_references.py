@@ -1005,6 +1005,62 @@ def check_vanilla_reference_snapshot_is_complete(root: Path) -> list[str]:
     return errs
 
 
+CENSUS_BUILD = (Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3"
+                / "mod" / "smart_notifications_census")
+
+
+def check_census_build_not_stale(root: Path) -> list[str]:
+    """The census build copies this mod's own files -- and then shadows them.
+
+    The census mod loads AFTER Smart Notifications, so its copy of an SN file
+    wins. That copy is a snapshot taken at build time. Edit the real file
+    afterwards and the running game keeps using the snapshot, silently.
+
+    That is not hypothetical. On 2026-09-15 a fix to
+    08_smart_notifications_engine_proxy.txt was made ten minutes before an
+    11-year measurement run, validated, committed -- and had no effect,
+    because a census build from twenty minutes earlier was shadowing it. The
+    whole run produced the old, broken output and nothing anywhere said so.
+
+    So: whenever a census build exists, every SN file inside it must still
+    match the repo. Compared by stripping the census's own inserted logging
+    lines back out, which needs no sidecar file to go stale in its own right.
+
+    Skipped (not failed) when no census build is present -- it is a dev-only
+    artifact that most checkouts will not have.
+    """
+    if not CENSUS_BUILD.is_dir():
+        return []
+
+    errs = []
+    checked = 0
+    for copy in sorted(CENSUS_BUILD.rglob("*.txt")):
+        rel = copy.relative_to(CENSUS_BUILD).as_posix()
+        ours = root / rel
+        if not ours.is_file():
+            continue          # a vanilla file, not one of ours
+        try:
+            built = copy.read_text(encoding="utf-8-sig", errors="replace")
+            current = ours.read_text(encoding="utf-8-sig", errors="replace")
+        except OSError:
+            continue
+        checked += 1
+        stripped = "\n".join(l for l in built.splitlines()
+                              if "SNW_CENSUS|" not in l)
+        if stripped.strip() != current.strip():
+            errs.append(
+                f"census build is STALE for a file this mod owns: {rel}")
+            errs.append(
+                "    the census loads after Smart Notifications, so its copy "
+                "shadows yours and your edit will have no effect in-game")
+            errs.append(
+                "    fix: python tools/build_census_mod.py --mode measure "
+                "--events all --sources all --probe-localize 0")
+    if errs:
+        errs.append(f"    ({checked} mod-owned file(s) in the census build)")
+    return errs
+
+
 def run_all(root: Path) -> list[str]:
     SKIPPED.clear()
     defined_loc = load_defined_loc_keys(root)
@@ -1035,6 +1091,7 @@ def run_all(root: Path) -> list[str]:
         errs += check_watchlist_spec_tiers(root)
         errs += check_watchlist_spec_group_isolation(root)
         errs += check_mod_group_labels_are_tagged(root)
+        errs += check_census_build_not_stale(root)
 
     return errs
 

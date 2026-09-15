@@ -92,10 +92,19 @@ def archive(src: Path, out_dir: Path, poll: float, quiet: bool) -> int:
                 with src.open("rb") as f:
                     f.seek(pos)
                     chunk = f.read(size - pos)
-                handle.write(chunk)
-                handle.flush()
-                written += len(chunk)
-                pos = size
+                # Only commit up to the last COMPLETE line, and leave the rest
+                # for the next poll. Without this, a rotation landing while a
+                # line is half-written loses that line's tail: the 1836-1846
+                # run dropped 3 of 7,109 firings for one key that way, which
+                # showed up as a cross-check disagreement against an
+                # independent logger. Small, but it is silent corruption and
+                # the fix is two lines.
+                cut = chunk.rfind(b"\n") + 1
+                if cut:
+                    handle.write(chunk[:cut])
+                    handle.flush()
+                    written += cut
+                    pos += cut
 
             now = time.time()
             if not quiet and now - last_report > 10:
