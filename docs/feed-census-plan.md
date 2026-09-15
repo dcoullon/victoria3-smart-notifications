@@ -279,6 +279,69 @@ scoped line. The re-tiering works end to end. They also saw
 engine-fired with no proxy, and is the clearest demonstration of why the
 published figures are a lower bound.
 
+## THE P COLUMN IS NOT A DISPLAY COUNT -- found 2026-09-15, blocks the post
+
+The user doubted a headline figure ("X sides with Y, 1,054 toasts in a
+decade") and was right to. Checking it exposed a flaw in how the census
+attributes notifications to the player.
+
+**What the P column actually means.** For a call site whose root is not a
+country, the generator reaches the player through an iterator:
+
+    every_scope_play_involved = { limit = { is_player = yes } <log> }
+
+That logs once when the player appears in the play's *involved* list. It does
+NOT establish that the engine showed the player anything. `post_notification`
+in a Diplomatic Play scope leaves the choice of recipients to the engine, and
+nothing in script can observe that choice.
+
+**The measurement that gives it away.** Over the 1908-1918 Portugal decade:
+
+| key | W (world) | P (player "involved") |
+|---|---|---|
+| `diplo_play_join_side_notification` | 1,234 | **1,054 (85%)** |
+
+Portugal is not a party to 85% of every diplomatic play on Earth. "Involved"
+is a far wider set than "shown a toast".
+
+**How much of the headline rests on it:** of 1,276 vanilla interrupting
+firings attributed to the player, **1,203 (94%) come from this iterator** and
+only **73** are directly `is_player`-scoped. So the published "-90%
+interrupting" is not defensible: the vanilla column is inflated by a class of
+site whose display behaviour is unknown, while the mod column is mostly its own
+keys, posted in country scope, which certainly do display. Apples to oranges,
+in the direction that flatters the mod.
+
+**This does not affect** the firing counts themselves, the W column, the
+engine-fired coverage figures, or the cross-check against the independent
+logger. It affects exactly one thing: the claim that a given number of
+notifications *reached the player*.
+
+### The test that settles it
+
+Script cannot answer this; only observation can. Pure vanilla, no mods:
+
+1. Load a late-game save with several diplomatic plays running that the player
+   is NOT a participant in.
+2. Run at speed 5 for one in-game year, watching for **"X sides with Y"**
+   toasts.
+3. Compare the count against `SNW_CENSUS|W|` for the same window from an
+   equivalent instrumented run.
+
+Three outcomes and what each means:
+
+- **Roughly matches W** -- the engine broadcasts to all involved; the original
+  figure stands and the post is back on.
+- **Far fewer, or only for plays the player is in** -- the P column is an upper
+  bound for every reach-iterator site, and the post must be rebuilt on the 73
+  directly-scoped firings plus whatever this test measures.
+- **None at all** -- vanilla shows this to participants only, and the whole
+  diplo-play family drops out of the player-facing headline.
+
+Until then, **publish nothing that depends on the P column for reach-iterator
+sites.** The directly-scoped figures and the vanilla tier distribution are
+unaffected and remain safe to quote.
+
 ## Order of work
 
 1. ~~`tools/build_census_mod.py` + the throwaway mod folder.~~ DONE.
