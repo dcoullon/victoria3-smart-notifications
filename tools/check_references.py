@@ -872,6 +872,45 @@ def check_replaced_loc_still_matches_vanilla(root: Path) -> list[str]:
     return errs
 
 
+def check_engine_notes_toc_is_current(root: Path) -> list[str]:
+    """docs/engine-notes.md carries a generated table of contents. CLAUDE.md
+    tells every session to read the relevant section there before relying on a
+    rule, so a stale TOC sends the reader to the wrong place -- or, worse,
+    makes a section invisible and gets a settled question re-litigated from
+    scratch. Regenerate with: python tools/gen_engine_notes_toc.py"""
+    doc = root / "docs" / "engine-notes.md"
+    if not doc.is_file():
+        return []
+    text = doc.read_text(encoding="utf-8-sig")
+    m = re.search(r"<!-- TOC -->(.*?)<!-- /TOC -->", text, re.S)
+    headings = re.findall(r"(?m)^## (.+?)\s*$", text)
+    if not m:
+        if headings:
+            return ["docs/engine-notes.md has no <!-- TOC --> block -- run "
+                    "python tools/gen_engine_notes_toc.py"]
+        return []
+    listed = re.findall(r"(?m)^- \[(.+?)\]\(#", m.group(1))
+
+    def norm(t: str) -> str:
+        return t.replace("`", "").replace("\\[", "[").replace("\\]", "]").strip()
+
+    want = [norm(h) for h in headings]
+    got = [norm(x) for x in listed]
+    if want == got:
+        return []
+    errs = []
+    for t in want:
+        if t not in got:
+            errs.append(f"engine-notes TOC is missing section: {t!r}")
+    for t in got:
+        if t not in want:
+            errs.append(f"engine-notes TOC lists a section that no longer exists: {t!r}")
+    if not errs:
+        errs.append("engine-notes TOC lists the right sections but in the wrong order")
+    errs.append("  fix: python tools/gen_engine_notes_toc.py")
+    return errs
+
+
 def run_all(root: Path) -> list[str]:
     SKIPPED.clear()
     defined_loc = load_defined_loc_keys(root)
@@ -890,6 +929,7 @@ def run_all(root: Path) -> list[str]:
     errs += check_notification_loc_completeness(root, defined_loc)
     errs += check_loc_lines_are_well_formed(root)
     errs += check_replaced_loc_still_matches_vanilla(root)
+    errs += check_engine_notes_toc_is_current(root)
 
     # Smart-Notifications-only: each asserts that specific files or message
     # keys THIS mod owns are present, so against a sibling mod every one of

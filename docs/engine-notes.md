@@ -5,6 +5,43 @@ development — the "why" and "how we know" behind the terse rules in
 `CLAUDE.md`. Read the relevant section here before relying on one of these
 in new code; `CLAUDE.md` only states the rule, not the reasoning.
 
+<!-- TOC -->
+
+- [Override hierarchy](#override-hierarchy)
+- [Demoting a key out of popup leaves a stored setting the UI cannot show](#demoting-a-key-out-of-popup-leaves-a-stored-setting-the-ui-cannot-show)
+- [BOM required on every modded file, not just .yml](#bom-required-on-every-modded-file-not-just-yml)
+- [Dynamic text vs. effect/trigger syntax](#dynamic-text-vs-effecttrigger-syntax)
+- [every_country does not appear to reach decentralized countries](#every_country-does-not-appear-to-reach-decentralized-countries)
+- [THIS needs a cast: \[THIS.GetCountry.GetNameNoFormatting\], never \[THIS.GetNameNoFormatting\]](#this-needs-a-cast-thisgetcountrygetnamenoformatting-never-thisgetnamenoformatting)
+- [debug_log, not log](#debug_log-not-log)
+- [Scope types are not all countries](#scope-types-are-not-all-countries)
+- [Two entirely separate notification systems: messages vs. alerts](#two-entirely-separate-notification-systems-messages-vs-alerts)
+- [Tagging mod-created notifications](#tagging-mod-created-notifications)
+- [An alert type needs TWO name-shaped loc keys, not one](#an-alert-type-needs-two-name-shaped-loc-keys-not-one)
+- [Literal \[...\] in loc text is always a dynamic-text function call](#literal--in-loc-text-is-always-a-dynamic-text-function-call)
+- [GetName is not a valid dynamic-text function — use GetNameNoFormatting](#getname-is-not-a-valid-dynamic-text-function-—-use-getnamenoformatting)
+- [validate_syntax.py bug: comment-stripping wasn't quote-aware](#validate_syntaxpy-bug-comment-stripping-wasnt-quote-aware)
+- [A scripted GUI's is_valid also gates whether .Execute() runs](#a-scripted-guis-is_valid-also-gates-whether-execute-runs)
+- [No confirmed way to pass the player in as a GuiScope AddScope value — RESOLVED via two different techniques, not this one](#no-confirmed-way-to-pass-the-player-in-as-a-guiscope-addscope-value-—-resolved-via-two-different-techniques-not-this-one)
+- [datacontext + Country.MakeScope does NOT give you the player as a scripted_gui root](#datacontext--countrymakescope-does-not-give-you-the-player-as-a-scripted_gui-root)
+- [Known-good invariants are enforced by the validator, not by comments](#known-good-invariants-are-enforced-by-the-validator-not-by-comments)
+- [No generic substring-search filter available for a custom country list](#no-generic-substring-search-filter-available-for-a-custom-country-list)
+- [Known mistake patterns — now caught by validate_syntax.py, not just memory](#known-mistake-patterns-—-now-caught-by-validate_syntaxpy-not-just-memory)
+- [Success-vs-stall comparisons have no numeric form — only threshold checks](#success-vs-stall-comparisons-have-no-numeric-form-—-only-threshold-checks)
+- [Two separate function tables: .gui bindings vs. script-side dynamic text — confirming one does NOT confirm the other](#two-separate-function-tables-gui-bindings-vs-script-side-dynamic-text-—-confirming-one-does-not-confirm-the-other)
+- [A .md schema doc is not proof a key parses — effect in a diplomatic action](#a-md-schema-doc-is-not-proof-a-key-parses-—-effect-in-a-diplomatic-action)
+- [The pact for a diplomatic action does not exist yet when on_diplomatic_action fires](#the-pact-for-a-diplomatic-action-does-not-exist-yet-when-on_diplomatic_action-fires)
+- [Important-action alert order has no priority field — it's file/definition order](#important-action-alert-order-has-no-priority-field-—-its-filedefinition-order)
+- [JSON files must NOT have a BOM](#json-files-must-not-have-a-bom)
+- [Release candidates are now tagged](#release-candidates-are-now-tagged)
+- [Packaging must stage before swapping, never delete-then-copy in place](#packaging-must-stage-before-swapping-never-delete-then-copy-in-place)
+- [Never upload the dev mod folder directly -- it bundles the whole repo](#never-upload-the-dev-mod-folder-directly----it-bundles-the-whole-repo)
+- [Steam Workshop / Paradox mod policy](#steam-workshop--paradox-mod-policy)
+- [Localization cannot guard on an unbound scope — the rule that killed two features](#localization-cannot-guard-on-an-unbound-scope-—-the-rule-that-killed-two-features)
+- [A degraded PASS is not a PASS](#a-degraded-pass-is-not-a-pass)
+
+<!-- /TOC -->
+
 ## Override hierarchy
 
 A player's in-game Message Settings changes are stored client-side in
