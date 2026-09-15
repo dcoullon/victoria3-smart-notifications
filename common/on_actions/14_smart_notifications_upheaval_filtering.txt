@@ -1,0 +1,98 @@
+﻿# Revolution and secession, routed by whether the player cares.
+#
+# THE PROBLEM, observed 2026-09-15 in a late-game Portugal run: the player got
+# a toast for a revolution in a country they were not watching. Vanilla toasts
+# EVERY country's revolution and secession at you, with no filtering at all,
+# and this mod had never touched either key.
+#
+# Confirmed from that run's own log rather than from the report alone:
+# 4 `SNW_PROXY|W|country_revolution` lines and 0 `P` -- four revolutions
+# world-wide, none of them the player's, and one of them interrupted them.
+#
+# WHY THIS ONE IS FIXABLE AND country_attitude_* IS NOT
+#
+# Both families are engine-fired: no `post_notification` call site exists
+# anywhere in common/ or events/, so neither can be intercepted the way
+# diplomatic actions are (see docs/engine-fired-keys.md). The difference is
+# whether the EVENT behind the notification has a hook:
+#
+#   country_attitude_*   no on_action at all -- checked the full 220-entry
+#                        script_docs dump. Nothing to hang a rule on.
+#   country_revolution   on_revolution_start   # Root = Country
+#   country_secession    on_secession_start    # Root = Country
+#
+# Both roots are vanilla's own `# Root =` comments in
+# common/on_actions/00_code_on_actions.txt, and this mod's census proxy
+# (08_smart_notifications_engine_proxy.txt) already fires from both and has
+# produced player-scoped lines -- so the hook and the scope are confirmed by
+# our own measurement, not assumed from a sibling.
+#
+# THE ROUTING
+#
+# Root is the country the upheaval is happening IN, so `is_player` and
+# `smart_notifications_is_watched` both apply directly to it -- no scope walk,
+# nothing optional, no `?=` needed.
+#
+#   your own country     -> toast   (you are losing control of your own state)
+#   a watched country    -> toast
+#   anyone else          -> feed    (NOT none: a revolution is a real event and
+#                                    belongs in the feed, just not in your face)
+#
+# Tiers follow docs/watchlist-spec.md's standard shape.
+#
+# NOT YET LIVE-TESTED. Acceptance criteria, to read off the next run with
+# `python tools/scan_logs.py`:
+#   - an SNW_UPHEAVAL line per revolution/secession, tagged player/watched/quiet
+#   - the counts match SNW_PROXY|W|country_revolution for the same window
+#   - no `Wrong scope for trigger` error naming is_player or
+#     smart_notifications_is_watched
+
+on_revolution_start = {
+	on_actions = {
+		smart_notifications_route_revolution
+	}
+}
+
+on_secession_start = {
+	on_actions = {
+		smart_notifications_route_secession
+	}
+}
+
+smart_notifications_route_revolution = {
+	effect = {
+		if = {
+			limit = { is_player = yes }
+			post_notification = smart_notifications_revolution_player
+			debug_log = "SNW_UPHEAVAL|revolution|player|[THIS.GetCountry.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
+		}
+		else_if = {
+			limit = { smart_notifications_is_watched = yes }
+			post_notification = smart_notifications_revolution_watched
+			debug_log = "SNW_UPHEAVAL|revolution|watched|[THIS.GetCountry.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
+		}
+		else = {
+			post_notification = smart_notifications_revolution_quiet
+			debug_log = "SNW_UPHEAVAL|revolution|quiet|[THIS.GetCountry.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
+		}
+	}
+}
+
+smart_notifications_route_secession = {
+	effect = {
+		if = {
+			limit = { is_player = yes }
+			post_notification = smart_notifications_secession_player
+			debug_log = "SNW_UPHEAVAL|secession|player|[THIS.GetCountry.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
+		}
+		else_if = {
+			limit = { smart_notifications_is_watched = yes }
+			post_notification = smart_notifications_secession_watched
+			debug_log = "SNW_UPHEAVAL|secession|watched|[THIS.GetCountry.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
+		}
+		else = {
+			post_notification = smart_notifications_secession_quiet
+			debug_log = "SNW_UPHEAVAL|secession|quiet|[THIS.GetCountry.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
+		}
+	}
+}
