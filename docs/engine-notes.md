@@ -946,6 +946,36 @@ is to assume the function doesn't exist there and reach for a static
 `$key$` loc reference instead, which needs no scope-specific function at
 all.
 
+### A confirmed crossing: `Localize` — and why the rule still stands
+
+**Measured 2026-09-15 on the notification-census calibrate run.** The census
+build emitted `[Localize('notification_<key>_name')]` inside a `debug_log` at
+six call sites, purely to test the boundary. `Localize` appears in the
+`data_types` dump, which is the **GUI** function table, so by the rule above it
+was a candidate needing a probe, not a fact.
+
+**It resolved — 603 of 603 lines.** So a function known only from the GUI table
+did work in script dynamic text. That is a real crossing, and the first one
+this project has confirmed.
+
+**It still does not license assuming the next one.** The rule above is about
+not *assuming*; it cost a multi-round live-test cycle when it was ignored. The
+probe was six lines and answered it in one run — that is the pattern to copy,
+not "GUI functions work now".
+
+**And the result was useless anyway, for an instructive reason.** Every
+`[SCOPE...]` substitution inside the resolved string came back **blank**:
+`exile_notification` rendered as `" exiled from ."`. A notification's scopes
+are bound by the engine at the moment it *builds the message*, not in the
+effect scope the `post_notification` call sits in — so there is nothing for the
+substitutions to read. Resolving a loc key and rendering it correctly are
+different things.
+
+**Consequence for the census:** the readable text for each key comes from the
+static catalog (`tools/message_catalog.py`, reading
+`notification_<key>_name`/`_desc` out of the localization files), not from a
+runtime render. The measure run uses `--probe-localize 0`.
+
 ## A `.md` schema doc is not proof a key parses — `effect` in a diplomatic action
 
 Confirmed 2026-09-09, and it cost a live test.
