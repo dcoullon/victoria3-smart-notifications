@@ -49,12 +49,23 @@ link it.
 
 ## 5. Playtest Protocol (a game launch costs the user ~2 minutes + play time)
 
-- **State the acceptance criteria before writing the code**, in the form "when Y happens, X should appear in <tier>, and nothing should appear for Z". Write it into the commit or TODO entry. A feature whose success condition isn't stated can't be checked without asking the user to go look.
-- **Then ask: can a static check assert any part of it?** If yes, add it to `tools/check_references.py` *before* requesting a playtest, and ask the user to test only the part that genuinely needs a running game. Every check added there is a playtest never requested again — that's the whole point of that file.
-- **Never request a playtest that tests fewer than 3 hypotheses.** Before asking, list the competing hypotheses the single run distinguishes and give each its own `SNW_*` `debug_log` line, so one launch resolves the whole question instead of one branch of it. If only one hypothesis exists, find the other two candidates first, or instrument rather than guess (`tools/build_census_mod.py` is the worked example).
-- **Measure before designing.** When the mechanism is unknown, ship instrumentation first and read `python tools/scan_logs.py`, rather than writing a feature against an assumption and testing whether it happened to hold.
-- **The user is entitled to push back on any single-hypothesis test request** — if that happens, it's a batching failure here, not a user error.
-- When the user reports back, ask for `python tools/scan_logs.py` output or a screenshot rather than a prose "it didn't work"; in-game screenshots land in the folder in § 6 and can be read directly.
+**Two kinds of run. Tell them apart before asking for either.**
+
+- **Confirmation run** — the mechanism is already confirmed and the question is "did this specific change land?". **One hypothesis is fine.** Don't manufacture extra ones to pad it out; asking the user to hunt for two unrelated things is its own tax. Just check first whether anything else is already queued that this run could carry for free.
+- **Exploration run** — the mechanism is unknown, or a previous attempt failed and the cause is unclear. **Do not request one that can only eliminate a single branch.** Carry every candidate that can be distinguished in one pass, each on its own `SNW_*` `debug_log` line (3+ where there are 3+ plausible candidates), or ship instrumentation and read the result instead of guessing (`tools/build_census_mod.py`, `tools/scan_logs.py` are the worked examples).
+- The failure mode to avoid is **serialising an exploration**: launch, eliminate one candidate, launch again. That, not response latency, is where the week of 2026-09-08..14 went (88 commits, 3 version bumps, 33 probe/retest-shaped subjects).
+- **Measure before designing.** When the mechanism is unknown, instrument first rather than writing a feature against an assumption and then testing whether the assumption held.
+- **The user may push back on any test request.** If they ask "what else can we learn in this run?", that's a batching failure here, not a user error.
+
+**Acceptance criteria are my job, not the user's.** The user should never be asked to define what success looks like, nor to go and judge whether something "looks right".
+
+- **Write the criteria before writing the code**, in the form "when Y happens, X appears in <tier>, and nothing appears for Z", into the commit or the TODO entry. An item without them isn't ready to work on.
+- **Then automate as much of the check as possible, in this order:**
+  1. A static check in `tools/check_references.py` — repo state (tiers, loc keys, group isolation, dispatch consistency) needs no game at all. Add it *before* requesting any run; each one is a playtest never requested again.
+  2. A `SNW_*` `debug_log` line that makes the game *print the verdict*, read back with `python tools/scan_logs.py`. Prefer this to asking the user to look at anything — it also survives them not noticing.
+  3. Only what is genuinely left: a human look.
+- **When a human look is unavoidable, hand over a recipe, not a request.** Which situation to get into, what to click, what the pass and fail both look like — a question they can answer yes/no in one glance, never "does this seem right to you?".
+- When they report back, read the evidence directly: `python tools/scan_logs.py`, or the screenshot via `python tools/shot.py --region <...>` (§ 6). Don't settle for a prose "it didn't work".
 
 ## 6. Other
 

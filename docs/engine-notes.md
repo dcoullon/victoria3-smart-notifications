@@ -39,7 +39,7 @@ in new code; `CLAUDE.md` only states the rule, not the reasoning.
 - [Steam Workshop / Paradox mod policy](#steam-workshop--paradox-mod-policy)
 - [Localization cannot guard on an unbound scope — the rule that killed two features](#localization-cannot-guard-on-an-unbound-scope-—-the-rule-that-killed-two-features)
 - [A degraded PASS is not a PASS](#a-degraded-pass-is-not-a-pass)
-- [Why a playtest request must carry three hypotheses](#why-a-playtest-request-must-carry-three-hypotheses)
+- [Why an exploration playtest must carry every candidate at once](#why-an-exploration-playtest-must-carry-every-candidate-at-once)
 
 <!-- /TOC -->
 
@@ -1301,7 +1301,7 @@ that is pure repo state (brackets, BOM, loc keys, cross-references).
 **The rule:** a `PASS` earned without the game installed does not authorise a
 release or a "this is ready to test" claim. Re-run it where the game lives.
 
-## Why a playtest request must carry three hypotheses
+## Why an exploration playtest must carry every candidate at once
 
 Measured over the 14 sessions of 2026-09-08..09-14: 88 commits produced 3
 version bumps, and 33 of those 88 commit subjects are probe/retest/bake-off
@@ -1315,9 +1315,16 @@ Five such commits in a row is five playthroughs to learn five facts that one
 instrumented run could have answered together.
 
 The failure mode is not "we guessed wrong" — negative results are genuinely
-useful here and this repo records them well. The failure mode is **serialising
-them**: asking a question whose answer only ever eliminates one branch, then
-going back to the user for the next branch.
+useful here and this repo records them well. It is also not "we only checked
+one thing": when the mechanism is already confirmed and the question is just
+*did this change land*, one hypothesis is the right size, and padding the run
+out with unrelated things to look for is its own tax on the user.
+
+The failure mode is **serialising an exploration**: asking a question whose
+answer can only ever eliminate one branch of an unresolved mechanism, then
+going back to the user for the next branch. Revised 2026-09-15 at the user's
+request, who pointed out that the flat "always three" version of this rule
+would fire on confirmation runs where it does not apply.
 
 ### What works instead, twice proven in this repo
 
@@ -1329,8 +1336,8 @@ going back to the user for the next branch.
    `python tools/scan_logs.py`.
 
 Both were invented ad hoc, worked, and were then not reused by default. CLAUDE.md
-§ Playtest Protocol makes the batching rule standing policy rather than an
-occasional good idea.
+§ Playtest Protocol makes the batching rule standing policy for exploration
+runs rather than an occasional good idea.
 
 ### Acceptance criteria are the other half
 
@@ -1343,3 +1350,11 @@ isolation, and dispatch consistency are all repo state, and every one of those
 is now asserted in `tools/check_references.py` instead of by eye. Add the check
 first; ask for the run only for the part that truly needs the game to be
 running.
+
+**Writing them is not the user's job, and neither is judging the result.** The
+escalation order is: a static check that needs no game; failing that, a `SNW_*`
+line that makes the game print the verdict into `debug.log` for
+`tools/scan_logs.py` to read back; and only what is genuinely left over gets a
+human look — handed over as a recipe (get into this situation, click this, pass
+looks like this, fail looks like this), answerable with a yes or no in one
+glance. "Does this seem right to you?" is not an acceptance criterion.
