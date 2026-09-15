@@ -312,7 +312,7 @@ def _report_localize_probe(logs_dir):
     produced probe lines and nothing else still yields its verdict.
     """
     probes = []
-    for path in sorted(Path(logs_dir).glob("debug*.log")):
+    for path in debug_logs(logs_dir):
         try:
             text = path.read_text(encoding="utf-8", errors="replace")
         except OSError:
@@ -395,7 +395,7 @@ def _report_proxy(logs_dir):
     produce a number that is neither.
     """
     counts = collections.Counter()
-    for path in sorted(Path(logs_dir).glob("debug*.log")):
+    for path in debug_logs(logs_dir):
         try:
             with path.open(encoding="utf-8", errors="replace") as f:
                 for line in f:

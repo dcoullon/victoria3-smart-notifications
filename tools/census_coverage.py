@@ -57,7 +57,16 @@ def load_catalog():
 def scan_logs(logs_dir):
     """-> (census_keys, proxy_keys, years_seen). Streams; never holds a file."""
     census, proxy, years = set(), set(), set()
-    for path in sorted(Path(logs_dir).glob("debug*.log")):
+    # Use the census report's rotation-aware ordering rather than a bare glob.
+    # A plain glob("debug*.log") also matches `debug.previous.log`, the backup
+    # the archiver makes when it starts -- which would silently merge the
+    # PREVIOUS run's notifications into this run's coverage number.
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "census_report", Path(__file__).resolve().parent / "census_report.py")
+    cr = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cr)
+    for path in cr.debug_logs(logs_dir):
         try:
             with path.open(encoding="utf-8", errors="replace") as f:
                 for line in f:
