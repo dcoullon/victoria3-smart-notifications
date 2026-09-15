@@ -208,18 +208,43 @@ blank result means the probe did not fire, not that the analysis is wrong.
 
 `07_` is in `package_release.py`'s `DEV_ONLY_FILES`, so it cannot ship.
 
+## Run parameters — DECIDED 2026-09-15 (the user)
+
+| | decision | consequence |
+|---|---|---|
+| span | **~10 in-game years** from 1836 | No growth curve. The headline becomes one total, not a trend. |
+| country | **mid-tier** (Sweden / Belgium class) | Not the noisiest country, so the number cannot be dismissed as cherry-picked. |
+| build | `--mode measure --events all --sources all` | 109 files, 596 call sites, 526 distinct keys. |
+| playset | **Census+SN** (SN at position 0, census at 1) | Required: the actor-axis rider lives in SN, and `--sources all` overrides SN's files. |
+
+**The framing this implies.** A decade from a mid-sized power is a *floor*, not
+a worst case: "even a mid-tier country, in the calmest decade of the game, gets
+N notifications." That is harder to attack than a Great Britain total, and it
+compounds with the coverage caveat below — both push the same direction, so the
+post makes one honest claim (this is a lower bound) rather than two.
+
+**Extending to 1849 was offered and is worth taking if the run is going well**:
+three more in-game years, and it captures the Spring of Nations, the densest
+notification moment in the game.
+
+**Known weakness, do not overstate in the post.** At this span a mid-tier power
+may see only ~20-40 diplomatic actions aimed at it. The actor-axis rider's
+"would have silenced N of M toasts" is therefore *indicative, not precise*. The
+top-actors list still does its job; the percentage should not be quoted as one.
+
 ## Order of work
 
 1. ~~`tools/build_census_mod.py` + the throwaway mod folder.~~ DONE.
-2. NEXT: verify on a short run that `SNW_CENSUS|` lines actually appear, and that the
-   game loads with ~190 overridden vanilla files without new `error.log` noise
-   beyond the expected. **Verify the instrument before trusting it** — a blank
-   result usually means the tap is broken, not that nothing fired.
+2. NEXT — **the calibrate run**: verify on a short run that `SNW_CENSUS|` lines
+   actually appear, that the game loads 109 overridden vanilla files without new
+   `error.log` noise, that the P/W scope verdicts hold, and that the actor-axis
+   probe binds `scope:actor`. **One run, four questions** — do not serialise
+   these. **Verify the instrument before trusting it** — a blank result usually
+   means the tap is broken, not that nothing fired.
 3. ~~The mod-key → vanilla-key mapping table for the split families.~~ NOT
    NEEDED — see BUILD STATUS correction 2.
 4. ~~`scan_logs.py --census`.~~ DONE.
-5. One long passive session (the real cost, and the user's time not the
-   agent's). Ideally 1836 → 1900+ for the growth curve.
+5. The measure run, per the table above.
 6. Analysis, then the tuning decisions and the post.
 
 ## Rules that apply
@@ -232,10 +257,20 @@ blank result means the probe did not fire, not that the analysis is wrong.
   setting overrides the mod until they press Reset to Default Settings, so any
   retune that comes out of this needs a line in the release notes.
 
-## Open question for the user
+## ~~Open question~~ — RESOLVED 2026-09-15: instrument all of `events/`
 
-Whether to also instrument `events/`. It is the largest bucket (166 keys, 62
-toast) and the generator handles it at no extra effort — but it means
-overriding 190-odd vanilla event files in the measurement build, which will
-produce a noisy load. Worth doing for completeness; worth checking the load
-time and `error.log` before committing to it.
+Whether to also instrument `events/` wholesale. **Yes.** Measured, not
+estimated:
+
+| build | files overridden | call sites | distinct keys |
+|---|---|---|---|
+| `--events recurring --sources all` | 47 | 400 | 384 |
+| `--events all --sources all` | **109** | **596** | **526** |
+
++142 keys for 62 more overridden files, and the events bucket holds 62 toast
+keys — the single largest unmeasured slice. The load-noise worry the original
+question raised is not resolved by reasoning about it: **the calibrate run is
+the load test**, which is why the calibrate build is made at the exact config
+the measure run will use rather than at a smaller one. If the load is bad, that
+is what the calibrate run is for and the fallback to `--events recurring` costs
+one rebuild.
