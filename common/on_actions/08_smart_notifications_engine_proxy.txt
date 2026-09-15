@@ -41,7 +41,20 @@
 # `owner` is confirmed against event_targets.log: it accepts `character` and
 # `state` among its input scopes and outputs `country`. NOT `home_country`,
 # which event_targets.log restricts to exiles and would silently miss most
-# characters. Guarded with `exists = owner` rather than assumed bound.
+# characters.
+#
+# CORRECTED 2026-09-15 after the calibrate run. The first version wrote
+# `if = { limit = { exists = owner } owner = { ... } }` and logged ZERO player
+# lines all run -- including for the user's own country, which they confirmed
+# had interest-group leader changes. `exists` does not test an event-target
+# link that way, so the block simply never ran, silently. The correct form is
+# the optional-scope operator, and vanilla's OWN handler for
+# on_new_interest_group_leader uses exactly it:
+#
+#     owner ?= { ... }          # 00_code_on_actions.txt, on_new_interest_group_leader
+#
+# Taken from vanilla's usage on this very on_action rather than reasoned out,
+# which is the rule this file broke the first time.
 #
 # Applying a country-only trigger to a non-country root is the known failure
 # here (CLAUDE.md; docs/engine-notes.md "Scope types are not all countries"),
@@ -96,18 +109,15 @@ on_secession_start = {
 smart_notifications_proxy_resource_discovered = {
 	effect = {
 		debug_log = "SNW_PROXY|W|resource_discovered|[TimeKeeper.GetCurrentDate.GetString]"
-		if = {
-			limit = { exists = owner }
-			owner = {
-				# Unguarded, inside the owner scope: proves `owner` actually
-				# rebound, and names who. Without it a run of all-zero P lines
-				# is ambiguous -- a broken link and a quiet player look
-				# identical. Reading the country back settles it.
-				debug_log = "SNW_PROXY|O|resource_discovered|[THIS.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
-				if = {
-					limit = { is_player = yes }
-					debug_log = "SNW_PROXY|P|resource_discovered|[TimeKeeper.GetCurrentDate.GetString]"
-				}
+		owner ?= {
+			# Unguarded, inside the owner scope: proves `owner` actually
+			# rebound, and names who. Without it a run of all-zero P lines
+			# is ambiguous -- a broken link and a quiet player look
+			# identical. Reading the country back settles it.
+			debug_log = "SNW_PROXY|O|resource_discovered|[THIS.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
+			if = {
+				limit = { is_player = yes }
+				debug_log = "SNW_PROXY|P|resource_discovered|[TimeKeeper.GetCurrentDate.GetString]"
 			}
 		}
 	}
@@ -116,18 +126,15 @@ smart_notifications_proxy_resource_discovered = {
 smart_notifications_proxy_colony_created = {
 	effect = {
 		debug_log = "SNW_PROXY|W|colony_created|[TimeKeeper.GetCurrentDate.GetString]"
-		if = {
-			limit = { exists = owner }
-			owner = {
-				# Unguarded, inside the owner scope: proves `owner` actually
-				# rebound, and names who. Without it a run of all-zero P lines
-				# is ambiguous -- a broken link and a quiet player look
-				# identical. Reading the country back settles it.
-				debug_log = "SNW_PROXY|O|colony_created|[THIS.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
-				if = {
-					limit = { is_player = yes }
-					debug_log = "SNW_PROXY|P|colony_created|[TimeKeeper.GetCurrentDate.GetString]"
-				}
+		owner ?= {
+			# Unguarded, inside the owner scope: proves `owner` actually
+			# rebound, and names who. Without it a run of all-zero P lines
+			# is ambiguous -- a broken link and a quiet player look
+			# identical. Reading the country back settles it.
+			debug_log = "SNW_PROXY|O|colony_created|[THIS.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
+			if = {
+				limit = { is_player = yes }
+				debug_log = "SNW_PROXY|P|colony_created|[TimeKeeper.GetCurrentDate.GetString]"
 			}
 		}
 	}
@@ -138,18 +145,15 @@ smart_notifications_proxy_colony_created = {
 smart_notifications_proxy_character_death = {
 	effect = {
 		debug_log = "SNW_PROXY|W|character_died_notification|[TimeKeeper.GetCurrentDate.GetString]"
-		if = {
-			limit = { exists = owner }
-			owner = {
-				# Unguarded, inside the owner scope: proves `owner` actually
-				# rebound, and names who. Without it a run of all-zero P lines
-				# is ambiguous -- a broken link and a quiet player look
-				# identical. Reading the country back settles it.
-				debug_log = "SNW_PROXY|O|character_died_notification|[THIS.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
-				if = {
-					limit = { is_player = yes }
-					debug_log = "SNW_PROXY|P|character_died_notification|[TimeKeeper.GetCurrentDate.GetString]"
-				}
+		owner ?= {
+			# Unguarded, inside the owner scope: proves `owner` actually
+			# rebound, and names who. Without it a run of all-zero P lines
+			# is ambiguous -- a broken link and a quiet player look
+			# identical. Reading the country back settles it.
+			debug_log = "SNW_PROXY|O|character_died_notification|[THIS.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
+			if = {
+				limit = { is_player = yes }
+				debug_log = "SNW_PROXY|P|character_died_notification|[TimeKeeper.GetCurrentDate.GetString]"
 			}
 		}
 	}
@@ -158,18 +162,15 @@ smart_notifications_proxy_character_death = {
 smart_notifications_proxy_new_ig_leader = {
 	effect = {
 		debug_log = "SNW_PROXY|W|ig_new_leader_notification|[TimeKeeper.GetCurrentDate.GetString]"
-		if = {
-			limit = { exists = owner }
-			owner = {
-				# Unguarded, inside the owner scope: proves `owner` actually
-				# rebound, and names who. Without it a run of all-zero P lines
-				# is ambiguous -- a broken link and a quiet player look
-				# identical. Reading the country back settles it.
-				debug_log = "SNW_PROXY|O|ig_new_leader_notification|[THIS.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
-				if = {
-					limit = { is_player = yes }
-					debug_log = "SNW_PROXY|P|ig_new_leader_notification|[TimeKeeper.GetCurrentDate.GetString]"
-				}
+		owner ?= {
+			# Unguarded, inside the owner scope: proves `owner` actually
+			# rebound, and names who. Without it a run of all-zero P lines
+			# is ambiguous -- a broken link and a quiet player look
+			# identical. Reading the country back settles it.
+			debug_log = "SNW_PROXY|O|ig_new_leader_notification|[THIS.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
+			if = {
+				limit = { is_player = yes }
+				debug_log = "SNW_PROXY|P|ig_new_leader_notification|[TimeKeeper.GetCurrentDate.GetString]"
 			}
 		}
 	}

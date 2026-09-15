@@ -150,6 +150,34 @@ def engine_fired_keys(vanilla_tiers):
     return {k for k in vanilla_tiers if k not in called}
 
 
+def debug_logs(logs_dir):
+    """Every debug log, oldest first.
+
+    Victoria 3 rotates debug.log at ~512KB DURING a session, keeping
+    debug.1.log..debug.5.log. Reading only debug.log therefore reads only the
+    last slice: on the 2026-09-15 calibrate run that was 762 of 7,842 census
+    lines, a 90% undercount that looked like a complete result.
+
+    Highest-numbered file is the oldest, so iterate .5 -> .1 -> current.
+
+    NOTE the hard limit this implies: six files x ~512KB is roughly 3MB of
+    total capture per session. A long measure run WILL exceed that and silently
+    lose its earliest years. Run tools/log_archiver.py alongside the game to
+    capture continuously.
+    """
+    logs_dir = Path(logs_dir)
+    rotated = []
+    for f in logs_dir.glob("debug.*.log"):
+        stem = f.name[len("debug."):-len(".log")]
+        if stem.isdigit():
+            rotated.append((int(stem), f))
+    ordered = [f for _, f in sorted(rotated, reverse=True)]
+    current = logs_dir / "debug.log"
+    if current.exists():
+        ordered.append(current)
+    return ordered
+
+
 def parse_log(path):
     """Stream debug.log -> (counts, years, malformed). Never holds the file."""
     probes = collections.Counter()       # (key, named scope) -> probe hits
@@ -202,9 +230,9 @@ def timeline(logs_dir, manifest_path=None, date_from=None, date_to=None):
     shows up on screen while only a `W` line exists is the single most useful
     finding available -- it names a call site whose scope verdict is wrong.
     """
-    log = logs_dir / "debug.log"
-    if not log.exists():
-        print(f"debug.log not found: {log}")
+    logs = debug_logs(logs_dir)
+    if not logs:
+        print(f"no debug*.log found in: {logs_dir}")
         return 1
     manifest_path = manifest_path or DEFAULT_MANIFEST
     by_id = {}
@@ -215,31 +243,32 @@ def timeline(logs_dir, manifest_path=None, date_from=None, date_to=None):
     mod_tiers.update(per_key_tiers(REPO_ROOT / "common" / "messages"))
 
     rows, shown, skipped = [], 0, 0
-    with log.open(encoding="utf-8", errors="replace") as f:
-        for line in f:
-            if "SNW_CENSUS|" not in line:
-                continue
-            m = CENSUS_RE.search(line)
-            if not m:
-                continue
-            scope, cid, key, datestr = m.groups()
-            y = YEAR_RE.search(datestr)
-            year = int(y.group(1)) if y else None
-            if date_from and (year is None or year < date_from):
-                skipped += 1
-                continue
-            if date_to and (year is None or year > date_to):
-                skipped += 1
-                continue
-            shown += 1
-            entry = by_id.get(int(cid), {})
-            rows.append([
-                datestr or "?",
-                "PLAYER" if scope == "P" else "world",
-                key,
-                vanilla_tiers.get(key, mod_tiers.get(key, "-")),
-                entry.get("reason", "-"),
-            ])
+    for log in logs:
+        with log.open(encoding="utf-8", errors="replace") as f:
+            for line in f:
+                if "SNW_CENSUS|" not in line:
+                    continue
+                m = CENSUS_RE.search(line)
+                if not m:
+                    continue
+                scope, cid, key, datestr = m.groups()
+                y = YEAR_RE.search(datestr)
+                year = int(y.group(1)) if y else None
+                if date_from and (year is None or year < date_from):
+                    skipped += 1
+                    continue
+                if date_to and (year is None or year > date_to):
+                    skipped += 1
+                    continue
+                shown += 1
+                entry = by_id.get(int(cid), {})
+                rows.append([
+                    datestr or "?",
+                    "PLAYER" if scope == "P" else "world",
+                    key,
+                    vanilla_tiers.get(key, mod_tiers.get(key, "-")),
+                    entry.get("reason", "-"),
+                ])
     if not rows:
         print("No SNW_CENSUS lines in range. If the run happened, the tap is broken --")
         print("check the mod is enabled and ordered after Smart Notifications.")
@@ -399,10 +428,11 @@ def _report_proxy(logs_dir):
 
 
 def report(logs_dir, manifest_path=None, top=30):
-    log = logs_dir / "debug.log"
-    if not log.exists():
-        print(f"debug.log not found: {log}")
+    logs = debug_logs(logs_dir)
+    if not logs:
+        print(f"no debug*.log found in: {logs_dir}")
         return 1
+    log = logs[-1]
 
     manifest_path = manifest_path or DEFAULT_MANIFEST
     manifest = []
@@ -416,13 +446,21 @@ def report(logs_dir, manifest_path=None, top=30):
     mod_tiers = dict(vanilla_tiers)
     mod_tiers.update(per_key_tiers(REPO_ROOT / "common" / "messages"))
 
-    counts, years, ids_seen, undated, total, probes = parse_log(log)
-    size_mb = log.stat().st_size / (1024 * 1024)
+    # Fold over every rotated log, not just the current one -- see debug_logs().
+    counts, years, ids_seen, undated, probes = (collections.Counter() for _ in range(5))
+    total = 0
+    for one in logs:
+        c, y, i, u, n, pr = parse_log(one)
+        counts.update(c); years.update(y); ids_seen.update(i)
+        undated.update(u); probes.update(pr); total += n
+    size_mb = sum(f.stat().st_size for f in logs) / (1024 * 1024)
 
     print("=" * 72)
     print("NOTIFICATION CENSUS")
     print("=" * 72)
     print(f"debug.log            : {log}  ({size_mb:.1f} MB)")
+    print(f"debug logs read      : {len(logs)} "
+          f"({', '.join(f.name for f in logs)})")
     print(f"SNW_CENSUS lines     : {total:,}")
     _report_localize_probe(logs_dir)
     _report_proxy(logs_dir)
