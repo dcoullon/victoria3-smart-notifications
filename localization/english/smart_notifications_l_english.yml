@@ -1005,3 +1005,13 @@
  notification_smart_notifications_secession_quiet_name:0 "[concept_secession] in [SCOPE.GetRootScope.GetCountry.GetNameNoFormatting]"
  notification_smart_notifications_secession_quiet_desc:0 "A [concept_secession] has begun in [SCOPE.GetRootScope.GetCountry.GetNameNoFormatting]."
  notification_smart_notifications_secession_quiet_tooltip:0 "#header $notification_smart_notifications_secession_quiet_name$#!\n$notification_smart_notifications_secession_quiet_desc$"
+
+ # Mobilized army with no general (2026-09-15). Red top-bar alert; vanilla
+ # has no equivalent. Wording states the consequence, not just the state --
+ # the user lost time to this precisely because a stalled front looks like
+ # nothing is wrong.
+ alert_smart_notifications_mobilized_army_no_general_alert_name:0 "(SN) [SCOPE.GetRootScope.GetMilitaryFormation.GetName] Has No General"
+ alert_smart_notifications_mobilized_army_no_general_alert_desc:0 "[SCOPE.GetRootScope.GetMilitaryFormation.GetName] is mobilized but has no general in command. It will not advance, and any front it is assigned to will stall until a general is appointed."
+ alert_smart_notifications_mobilized_army_no_general_alert_hint:0 "Appoint a general from the Military panel, or merge this formation into one that already has a commander."
+ alert_smart_notifications_mobilized_army_no_general_alert_action:0 "Military panel for [SCOPE.GetRootScope.GetMilitaryFormation.GetName]"
+ smart_notifications_mobilized_army_no_general_alert_setting_name:0 "(SN) Mobilized Army Without a General"

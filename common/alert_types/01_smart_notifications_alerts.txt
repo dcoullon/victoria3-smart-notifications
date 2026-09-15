@@ -198,3 +198,47 @@ smart_notifications_law_commitment_alert = {
 	type = important_action
 	color = green
 }
+
+
+# ---------------------------------------------------------------------------
+# Mobilized army with no general  (added 2026-09-15)
+# ---------------------------------------------------------------------------
+#
+# Asked for by the user after it happened to them in a late-game Portugal run:
+# an army was mobilized with no general attached, so it never advanced and the
+# front silently stalled. Vanilla has NO alert for this -- checked all of
+# common/alert_types/; there are seven `player_military_formation` alerts
+# (attrition, invalid naval mission, low organization, ship crew ...) and none
+# of them covers a commanderless formation.
+#
+# This is the first alert this mod adds for a genuine GAMEPLAY fault rather
+# than a notification-tier change. It earns that: the failure is silent, costs
+# real time, and the game gives you nothing.
+#
+# `type = alert` + `color = red` is what puts the icon in the red top-of-screen
+# row -- the same pair vanilla's secession_growing_alert uses, which is the one
+# the user pointed at.
+#
+# No war check. The user's point, and it is right: you cannot mobilize in
+# peacetime, so `is_mobilized` already implies the situation is live.
+#
+# `commander` is a confirmed event target on military_formation (event_targets
+# .log: Input Scopes include military_formation, Output character). If
+# `exists = commander` should prove not to work here, the fallback is
+# `NOT = { any_scope_general = { always = yes } }` -- also confirmed supported
+# on this scope. Not assumed from a sibling scope.
+smart_notifications_mobilized_army_no_general_alert = {
+	texture = "gfx/interface/icons/alert_icons/idle_mobilized_general.dds"
+	script_context = player_military_formation
+
+	valid = {
+		is_army = yes
+		is_mobilized = yes
+		NOT = { exists = commander }
+	}
+
+	open_panel = military_formation
+	type = alert
+	color = red
+	alert_group = smart_notifications_generalless_formations
+}
