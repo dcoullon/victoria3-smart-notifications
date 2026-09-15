@@ -611,8 +611,8 @@ not one.
 ## No confirmed way to pass the player in as a GuiScope AddScope value — RESOLVED via two different techniques, not this one
 
 Investigated 2026-09-07 while scoping the Watchlist category bulk-select
-buttons and the Neighbors/Rivals live per-row checks (see TODO.md Phase
-3). Originally looked for a way to build a GuiScope
+buttons and the Neighbors/Rivals live per-row checks (see Phase 3 in
+[the session-log archive](archive/2026-09-session-log.md)). Originally looked for a way to build a GuiScope
 (`GetScriptedGui('...').Execute(GuiScope.SetRoot(<something>).End)`)
 rooted directly on the player, or to pass the player in as an extra
 `AddScope(...)` value, from a plain button click or a per-row check not
@@ -783,7 +783,8 @@ the exact v0.30 blanket replace and confirming it now fails.
 ## No generic substring-search filter available for a custom country list
 
 Investigated 2026-09-07 while scoping the "Add a Country" search box
-(TODO.md Phase 3). Vanilla's own country search
+(Phase 3, in [the session-log archive](archive/2026-09-session-log.md)).
+Vanilla's own country search
 (`gui/diplomatic_overview.gui`'s `search_bar`, bound to
 `DiplomaticOverviewPanel.GetCountriesSearchBar`) turned out to be backed
 by a generic `SearchBar` C++ datacontext object
@@ -797,7 +798,7 @@ dynamic-text string-contains/substring function (`Contains`, `Find`,
 etc.) to see if row `visible` bindings could filter on typed text some
 other way — zero matches anywhere in vanilla. Concluded there's no
 confirmed-safe way to build a live text filter over the "Add a Country"
-list as a mod; the unfiltered list (every country, per TODO.md's original
+list as a mod; the unfiltered list (every country, per the original
 "contained by design" note) stays the design for this list rather than
 guessing at an unconfirmed mechanism. Revisit only if a genuine
 per-window search accessor is found some other way.
@@ -1171,7 +1172,7 @@ ENTIRE directory a mod entry points at for upload -- there's no
 per-folder include/exclude filter in that dialog. Since the dev junction
 points at this whole repo, uploading from it would ship `tools/`,
 `docs/`, `reference/` (verbatim vanilla-file snapshots, see
-docs/distribution-guidelines.md), `.git/`, `TODO.md` (160KB+ of internal
+docs/distribution-guidelines.md), `.git/`, `TODO.md` and `docs/archive/` (hundreds of KB of internal
 process history), and every other dev-only file to every subscriber.
 
 **Decision (explicitly the user's call, not assumed):** given a choice

@@ -373,7 +373,9 @@ reset. The game will remind you in-game once per campaign.
 
 First real commit to version control — everything up to and including this
 point had only ever existed as the repo's initial skeleton. Rolls up
-Phases 0–1 plus the first two pieces of Phase 3; see [TODO.md](TODO.md) for
+Phases 0–1 plus the first two pieces of Phase 3 (those phases now live in
+[docs/archive/2026-09-session-log.md](docs/archive/2026-09-session-log.md)); see
+[TODO.md](TODO.md) for
 what's still in progress (the Country Watchlist tab in Message Settings is
 present but has a known unresolved bug — checkbox state doesn't visibly
 toggle — so it's not listed as shipped below).
