@@ -596,7 +596,11 @@ WATCHLIST_SPEC_VANILLA_TIERS = {
     "resource_discovered": "feed",
     "resource_depleted": "feed",
     "invasion_started_against_us": "toast",
-    "country_swayed": "feed",
+    # Split 2026-09-15 into smart_notifications_country_swayed_watched
+    # (feed) and _quiet (none), routed on whether the SWAYED country is
+    # watched. Vanilla's key is now muted, so `none` here is the
+    # intended state, not drift.
+    "country_swayed": "none",
     "sway_offer_accepted": "feed",
     "reverse_sway_offer_accepted": "feed",
     "sway_offer_rejected": "feed",

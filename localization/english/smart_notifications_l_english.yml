@@ -1022,3 +1022,16 @@
  ag_smart_notifications_generalless_formations_name:0 "(SN) Mobilized Armies Without a General"
  ag_smart_notifications_generalless_formations_desc:0 "We have mobilized armies with no general in command. They will not advance, and any front they are assigned to will stall until generals are appointed."
  ag_smart_notifications_generalless_formations_tooltip:0 "#header $ag_smart_notifications_generalless_formations_name$#!\n$TOOLTIP_DELIMITER$\n$ag_smart_notifications_generalless_formations_desc$\n\n$ALERT_GROUP_TOOLTIP_FOOTER$"
+
+ # country_swayed split (2026-09-15). Vanilla's key is muted; these are
+ # posted by 03_smart_notifications_relational_notifications.txt depending
+ # on whether the SWAYED country is watched. Wording is vanilla's verbatim --
+ # the split changes which sways you hear about, not how they read.
+ smart_notifications_country_swayed_watched_group:0 "(SN) Country Swayed (Watched)"
+ notification_smart_notifications_country_swayed_watched_name:0 "[SCOPE.sC('recipient').GetName] swayed"
+ notification_smart_notifications_country_swayed_watched_desc:0 "[SCOPE.sC('recipient').GetName] was swayed to the side of [SCOPE.sC('actor').GetName] in their [concept_diplomatic_play] against [SCOPE.sC('target').GetName]"
+ notification_smart_notifications_country_swayed_watched_tooltip:0 "#header $notification_smart_notifications_country_swayed_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_country_swayed_watched_desc$"
+ smart_notifications_country_swayed_quiet_group:0 "(SN) Country Swayed (Elsewhere)"
+ notification_smart_notifications_country_swayed_quiet_name:0 "[SCOPE.sC('recipient').GetName] swayed"
+ notification_smart_notifications_country_swayed_quiet_desc:0 "[SCOPE.sC('recipient').GetName] was swayed to the side of [SCOPE.sC('actor').GetName] in their [concept_diplomatic_play] against [SCOPE.sC('target').GetName]"
+ notification_smart_notifications_country_swayed_quiet_tooltip:0 "#header $notification_smart_notifications_country_swayed_quiet_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_country_swayed_quiet_desc$"
