@@ -95,6 +95,10 @@ def main():
                           "(07_smart_notifications_actor_axis_probe.txt) and report how "
                           "many of your toasts each candidate rule in TODO.md's open "
                           "question 3(a) would silence.")
+    ap.add_argument("--coverage", type=Path, default=None,
+                     help="Diff an observations file (what was actually on screen, from "
+                          "feed screenshots) against what the census logged, and report "
+                          "measured coverage. See tools/census_coverage.py.")
     ap.add_argument("--unfiltered", action="store_true",
                      help="Print ALL error.log lines (no pattern filter) -- use when checking "
                           "for something not on the known-pattern list, e.g. confirming a save "
@@ -105,6 +109,10 @@ def main():
         print(f"Logs directory not found: {args.logs_dir}")
         print("Pass --logs-dir to point at your own Victoria 3/logs folder.")
         return
+
+    if args.coverage:
+        import census_coverage
+        sys.exit(census_coverage.report(args.logs_dir, args.coverage))
 
     if args.actor_axis:
         import census_report

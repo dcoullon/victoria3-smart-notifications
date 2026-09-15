@@ -53,6 +53,7 @@ DEFAULT_MANIFEST = (Path.home() / "Documents" / "Paradox Interactive" / "Victori
 CENSUS_RE = re.compile(r"SNW_CENSUS\|([PWQ])\|(\d+)\|(\w+)\|(.*?)\s*$")
 # re.M matters: without it `$` anchors to end-of-STRING, so scanning a whole
 # log file matches only its last line. Caught by the synthetic test.
+PROXY_RE = re.compile(r"SNW_PROXY\|([PW])\|(\w+)\|(.*?)[ \t]*$", re.M)
 LOCPROBE_RE = re.compile(r"SNW_LOCPROBE\|(\w+)\|(.*?)[ 	]*$", re.M)
 # The date comes from [TimeKeeper.GetCurrentDate.GetString], whose exact
 # rendering is a game-side formatting choice ("1836.1.1", "1 January 1836",
@@ -298,6 +299,60 @@ def _report_localize_probe(logs_dir):
     print()
 
 
+def _report_proxy(logs_dir):
+    """Counts for engine-fired keys, from the proxy on_actions in
+    common/on_actions/08_smart_notifications_engine_proxy.txt.
+
+    Kept in its own table and never added to the census totals. A proxy counts
+    the EVENT behind a notification, not the notification: the engine may apply
+    display conditions we cannot see, so these are an UPPER bound, the opposite
+    direction of error from the census's lower bound. Adding the two would
+    produce a number that is neither.
+    """
+    counts = collections.Counter()
+    for path in sorted(Path(logs_dir).glob("debug*.log")):
+        try:
+            with path.open(encoding="utf-8", errors="replace") as f:
+                for line in f:
+                    if "SNW_PROXY|" not in line:
+                        continue
+                    m = PROXY_RE.search(line)
+                    if m:
+                        counts[(m.group(1), m.group(2))] += 1
+        except OSError:
+            continue
+    if not counts:
+        return
+    titles = load_catalog_titles()
+    print("--- Engine-fired keys, counted via proxy on_actions ---")
+    print("  UPPER bound: counts the event, not the notification. Never added")
+    print("  to the census totals above.")
+    keys = sorted({k for _, k in counts})
+    rows = []
+    anomalies = []
+    for key in sorted(keys, key=lambda k: -counts[("W", k)]):
+        p_n = counts[("P", key)]
+        w_n = counts[("W", key)]
+        # Every hook writes its W line unconditionally and its P line only as
+        # a subset, so W < P is impossible in a sound run. If it happens the
+        # instrument is wrong -- say so rather than print a negative count.
+        if w_n < p_n:
+            anomalies.append((key, p_n, w_n))
+            others = "?"
+        else:
+            others = f"{w_n - p_n:,}"
+        rows.append([f"{p_n:,}", f"{w_n:,}", others, key,
+                     titles.get(key, "")[:44]])
+    print(_table(rows, ["you", "world", "others", "key", "what the player sees"]))
+    for key, p_n, w_n in anomalies:
+        print(f"  !! {key}: {p_n} player lines but only {w_n} world lines. "
+              f"Every P is a subset of W, so the hook is wrong -- do not "
+              f"trust this row.")
+    print("  'others' is world minus you -- for the revolution and secession")
+    print("  families that column IS the noise: other countries' events.")
+    print()
+
+
 def report(logs_dir, manifest_path=None, top=30):
     log = logs_dir / "debug.log"
     if not log.exists():
@@ -325,6 +380,7 @@ def report(logs_dir, manifest_path=None, top=30):
     print(f"debug.log            : {log}  ({size_mb:.1f} MB)")
     print(f"SNW_CENSUS lines     : {total:,}")
     _report_localize_probe(logs_dir)
+    _report_proxy(logs_dir)
 
     if total == 0:
         print()

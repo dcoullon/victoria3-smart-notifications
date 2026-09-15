@@ -1,0 +1,178 @@
+﻿# MEASUREMENT ONLY -- dev build, never shipped (package_release.py's
+# DEV_ONLY_FILES). Posts nothing; it only writes SNW_PROXY lines.
+#
+# WHY THIS EXISTS
+#
+# 103 of the game's 468 notification keys are fired by native engine code with
+# no `post_notification` call site anywhere in common/ or events/ (the full
+# list: docs/engine-fired-keys.md). The notification census instruments call
+# sites, so it can never see any of them -- which is why every published
+# figure from it is a lower bound.
+#
+# But a notification having no hook does not mean the EVENT behind it has no
+# hook. Where an on_action fires at the same moment, counting that on_action
+# is a usable proxy. The user named the engine-fired keys that generate real
+# noise in their experience (2026-09-15); six of them have such an on_action.
+#
+# WHAT A PROXY COUNT IS AND IS NOT
+#
+# It counts the EVENT, not the notification. The engine may apply display
+# conditions we cannot see, so a proxy count is an UPPER BOUND on how often
+# the notification actually appeared -- the opposite direction of error from
+# the census's lower bound. For that reason `scan_logs.py --census` reports
+# these in their own table and never adds them to measured call-site counts.
+# Mixing the two would produce a headline that cannot be defended.
+#
+# ROOT SCOPES ARE CONFIRMED, NOT ASSUMED
+#
+# script_docs' on_actions.log reports `Expected Scope: none` for five of these
+# six, which would have meant no safe way to player-scope them. That is the
+# dump being unhelpful, not the truth: vanilla's own
+# common/on_actions/00_code_on_actions.txt carries a `# Root =` comment above
+# each one, and every root here is reachable to a country.
+#
+#   on_resource_discovered          Root = State            -> owner
+#   on_colony_created               Root = Colony state     -> owner
+#   on_character_death              Root = Character        -> owner
+#   on_new_interest_group_leader    Root = Character        -> owner
+#   on_revolution_start             Root = Country          -> direct
+#   on_secession_start              Root = Country          -> direct
+#
+# `owner` is confirmed against event_targets.log: it accepts `character` and
+# `state` among its input scopes and outputs `country`. NOT `home_country`,
+# which event_targets.log restricts to exiles and would silently miss most
+# characters. Guarded with `exists = owner` rather than assumed bound.
+#
+# Applying a country-only trigger to a non-country root is the known failure
+# here (CLAUDE.md; docs/engine-notes.md "Scope types are not all countries"),
+# so no `is_player` is written against a root that is not confirmed a country.
+#
+# READING P VS W
+#
+# Every hook writes an unguarded W line and, where the player is reached, a P
+# line. For the secession and revolution families the difference is the point:
+# P is "this happened to me", and W minus P is every other country's, which is
+# exactly the noise the user described -- "if it applies to other countries
+# not ours".
+
+on_resource_discovered = {
+	on_actions = {
+		smart_notifications_proxy_resource_discovered
+	}
+}
+
+on_colony_created = {
+	on_actions = {
+		smart_notifications_proxy_colony_created
+	}
+}
+
+on_character_death = {
+	on_actions = {
+		smart_notifications_proxy_character_death
+	}
+}
+
+on_new_interest_group_leader = {
+	on_actions = {
+		smart_notifications_proxy_new_ig_leader
+	}
+}
+
+on_revolution_start = {
+	on_actions = {
+		smart_notifications_proxy_revolution_start
+	}
+}
+
+on_secession_start = {
+	on_actions = {
+		smart_notifications_proxy_secession_start
+	}
+}
+
+# --- State roots -----------------------------------------------------------
+
+smart_notifications_proxy_resource_discovered = {
+	effect = {
+		debug_log = "SNW_PROXY|W|resource_discovered|[TimeKeeper.GetCurrentDate.GetString]"
+		if = {
+			limit = { exists = owner }
+			owner = {
+				if = {
+					limit = { is_player = yes }
+					debug_log = "SNW_PROXY|P|resource_discovered|[TimeKeeper.GetCurrentDate.GetString]"
+				}
+			}
+		}
+	}
+}
+
+smart_notifications_proxy_colony_created = {
+	effect = {
+		debug_log = "SNW_PROXY|W|colony_created|[TimeKeeper.GetCurrentDate.GetString]"
+		if = {
+			limit = { exists = owner }
+			owner = {
+				if = {
+					limit = { is_player = yes }
+					debug_log = "SNW_PROXY|P|colony_created|[TimeKeeper.GetCurrentDate.GetString]"
+				}
+			}
+		}
+	}
+}
+
+# --- Character roots -------------------------------------------------------
+
+smart_notifications_proxy_character_death = {
+	effect = {
+		debug_log = "SNW_PROXY|W|character_died_notification|[TimeKeeper.GetCurrentDate.GetString]"
+		if = {
+			limit = { exists = owner }
+			owner = {
+				if = {
+					limit = { is_player = yes }
+					debug_log = "SNW_PROXY|P|character_died_notification|[TimeKeeper.GetCurrentDate.GetString]"
+				}
+			}
+		}
+	}
+}
+
+smart_notifications_proxy_new_ig_leader = {
+	effect = {
+		debug_log = "SNW_PROXY|W|ig_new_leader_notification|[TimeKeeper.GetCurrentDate.GetString]"
+		if = {
+			limit = { exists = owner }
+			owner = {
+				if = {
+					limit = { is_player = yes }
+					debug_log = "SNW_PROXY|P|ig_new_leader_notification|[TimeKeeper.GetCurrentDate.GetString]"
+				}
+			}
+		}
+	}
+}
+
+# --- Country roots ---------------------------------------------------------
+
+smart_notifications_proxy_revolution_start = {
+	effect = {
+		debug_log = "SNW_PROXY|W|country_revolution|[TimeKeeper.GetCurrentDate.GetString]"
+		if = {
+			limit = { is_player = yes }
+			debug_log = "SNW_PROXY|P|country_revolution|[TimeKeeper.GetCurrentDate.GetString]"
+		}
+	}
+}
+
+smart_notifications_proxy_secession_start = {
+	effect = {
+		debug_log = "SNW_PROXY|W|country_secession|[TimeKeeper.GetCurrentDate.GetString]"
+		if = {
+			limit = { is_player = yes }
+			debug_log = "SNW_PROXY|P|country_secession|[TimeKeeper.GetCurrentDate.GetString]"
+		}
+	}
+}
