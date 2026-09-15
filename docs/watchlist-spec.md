@@ -81,6 +81,31 @@ at notification time** (§6), so the rule cannot depend on which one it is.
 | aimed at a **watched country**, actor is not watched | feed |
 | aimed at anyone else | feed |
 
+**`claim_added_notification` is NOT part of F1 — checked 2026-09-15.** An audit
+flagged it as "toasts for every country, contradicts the spec". It does not,
+and it isn't governed by this table:
+
+- The spec's "colonial claims" above means the **`colonization_rights`
+  diplomatic action**, which F1 already gates — `06_` hooks `on_diplomatic_action`
+  with zero per-type branching, so every diplomatic action is covered.
+- `claim_added_notification` is a different event entirely
+  (`on_claim_added`, `# Root = Country (that owns a state in the state region)`,
+  `scope:region = State Region`). It is not a diplomatic action and never
+  passes through F1's hook.
+- It fires in the scope of the country **whose own state region was claimed**,
+  so it is already targeted rather than broadcast.
+
+Measured over the 1836-1846 Belgium run: **361 claim events world-wide, 0 of
+them reaching the player.** If it toasted for every country the player would
+have received all 361.
+
+A toast also looks *correct* here: somebody claiming territory you own is a
+threat to you, not background noise.
+
+**Caveat, and the reason this is not closed outright:** Belgium was passive and
+colonised nothing, so the sample is zero. A colonial power is the real test —
+the late-game Portugal run will produce one.
+
 Rationale: nothing existential lives in this bucket. War arrives via F2;
 subjugation and alliances via proposals (§2). The worst thing lost to the
 feed is a rivalry or embargo declared by a country you are not watching.
