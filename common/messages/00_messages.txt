@@ -1512,7 +1512,16 @@ country_swayed = {
 	# much it matters to you -- and the user reported these as the duplicative
 	# toasts during Great Britain's play, since a sway and the war goal that
 	# bought it read as the same event twice.
-	notification_type = feed
+		# MUTED 2026-09-15: replaced by the smart_notifications_country_swayed_*
+	# keys, routed by 03_smart_notifications_relational_notifications.txt on
+	# whether the SWAYED country is watched.
+	#
+	# Measured, not guessed: 294 player-visible firings in under two in-game
+	# years of the user's late-game Portugal run -- the largest visible feed
+	# item in the game for them, and this mod had never touched it. In the
+	# 1836-46 run it was 185 firings, all inside one three-month diplomatic
+	# play, which is why it looked harmless the first time.
+	notification_type = none
 	color = neutral
 }
 

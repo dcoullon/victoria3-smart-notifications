@@ -1950,3 +1950,43 @@ smart_notifications_secession_quiet = {
 	notification_type = feed
 	color = neutral
 }
+
+
+# ---------------------------------------------------------------------------
+# country_swayed, split by whether the swayed country is watched (2026-09-15)
+# ---------------------------------------------------------------------------
+#
+# Vanilla's key is muted in 00_messages.txt. Which of these gets posted is
+# decided in 03_smart_notifications_relational_notifications.txt.
+#
+# THE SUBJECT IS `recipient`, NOT `target`. Vanilla's own loc reads
+# "[SCOPE.sC('recipient').GetName] swayed" -- three countries are involved and
+# `target` is the diplomatic PLAY's target, a third party. An earlier probe
+# measured actor and target and missed the subject entirely, producing a
+# watched/unwatched split for the wrong country. Read vanilla's loc before
+# writing a filter, not after.
+#
+# Neither tier is a toast: vanilla had this at `feed` and it was never the
+# interrupting kind. This only thins the feed.
+smart_notifications_country_swayed_watched = {
+	type = diplomatic_play
+	group = "smart_notifications_country_swayed_watched_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = feed
+	color = neutral
+}
+
+smart_notifications_country_swayed_quiet = {
+	type = diplomatic_play
+	group = "smart_notifications_country_swayed_quiet_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	# `none` rather than simply not posting: the key still exists, so the row
+	# stays in Message Settings and a player who wants the firehose back can
+	# switch it on.
+	notification_type = none
+	color = neutral
+}

@@ -572,3 +572,64 @@ smart_notifications_diplo_play_subject_released = {
 
 	}
 }
+
+
+# ===========================================================================
+# country_swayed, routed on the swayed country  (added 2026-09-15)
+# ===========================================================================
+#
+# 294 player-visible firings in under two in-game years of the late-game
+# Portugal run -- the largest visible feed item in the game for that player,
+# and untouched by this mod until now. The 1836-46 run showed only 185, all
+# inside a single three-month diplomatic play, which is why it read as
+# harmless the first time it was measured.
+#
+# Root = Diplomatic Play (`on_country_swayed`, vanilla's own comment in
+# common/on_actions/00_code_on_actions.txt).
+#
+# THE SUBJECT IS `recipient`. Vanilla's loc for this notification reads
+# "[SCOPE.sC('recipient').GetName] swayed ... to the side of [actor] ... in
+# their play against [target]" -- so the country the message is ABOUT is
+# `recipient`, while `target` is the play's target and a third party entirely.
+# Gating on `target` would have filtered on the wrong country.
+#
+# `?=` throughout: the probe in 04_ confirmed actor and target bind on this
+# on_action, but `recipient` had not been measured when this was written, and
+# a sibling on_action's bindings are not evidence for this one (this codebase
+# has a live runtime error on record from exactly that assumption).
+# `smart_notifications_is_watched` already includes `is_player = yes`, so a
+# sway aimed at the player's own country is always kept without a separate
+# branch.
+#
+# NOT YET LIVE-TESTED. Acceptance criteria:
+#   - SNW_SWAY_ROUTE lines appear, tagged watched/quiet/unbound
+#   - their total matches the SNW_SWAY|firing| count for the same window
+#   - `unbound` is zero; any non-zero means `recipient` is not bound here and
+#     the rule is filtering on nothing
+on_country_swayed = {
+	on_actions = {
+		smart_notifications_route_country_swayed
+	}
+}
+
+smart_notifications_route_country_swayed = {
+	effect = {
+		if = {
+			limit = { scope:recipient ?= { smart_notifications_is_watched = yes } }
+			post_notification = smart_notifications_country_swayed_watched
+			debug_log = "SNW_SWAY_ROUTE|watched|[TimeKeeper.GetCurrentDate.GetString]"
+		}
+		else_if = {
+			limit = { exists = scope:recipient }
+			post_notification = smart_notifications_country_swayed_quiet
+			debug_log = "SNW_SWAY_ROUTE|quiet|[TimeKeeper.GetCurrentDate.GetString]"
+		}
+		else = {
+			# recipient not bound at all -- post the watched variant rather than
+			# swallow the notification. If the scope name is wrong, the failure
+			# should be a visible notification and a log line, not silence.
+			post_notification = smart_notifications_country_swayed_watched
+			debug_log = "SNW_SWAY_ROUTE|unbound|[TimeKeeper.GetCurrentDate.GetString]"
+		}
+	}
+}
