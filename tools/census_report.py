@@ -186,7 +186,7 @@ def timeline(logs_dir, manifest_path=None, date_from=None, date_to=None):
             ])
     if not rows:
         print("No SNW_CENSUS lines in range. If the run happened, the tap is broken --")
-        print("check the mod is enabled and the game was launched in debug mode.")
+        print("check the mod is enabled and ordered after Smart Notifications.")
         return 1
     print(_table(rows, ["date", "scope", "key", "tier", "why that scope"]))
     print()
@@ -239,7 +239,7 @@ def report(logs_dir, manifest_path=None, top=30):
         print("NOTHING WAS LOGGED. Before concluding the game is quiet, check the")
         print("instrument -- that is far more often the cause:")
         print("  - is the census mod enabled in the playset, ordered AFTER Smart Notifications?")
-        print("  - was the game launched with debug mode (debug_log writes nothing without it)?")
+        print("  - NOT debug mode: `debug_log` writes without it (settled 2026-09-15).")
         print("  - does `python tools/build_census_mod.py` report files written?")
         return 1
 

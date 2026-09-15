@@ -241,6 +241,18 @@ top-actors list still does its job; the percentage should not be quoted as one.
    probe binds `scope:actor`. **One run, four questions** — do not serialise
    these. **Verify the instrument before trusting it** — a blank result usually
    means the tap is broken, not that nothing fired.
+
+   **No `-debug_mode` needed** (settled 2026-09-15): `debug_log` writes
+   unconditionally. `-debug_mode` only unlocks the console, and it costs Steam
+   achievements. Earlier guidance here and in `census_report.py`'s hint text
+   said the opposite; it was never verified.
+
+   **No tier screenshots needed either.** The spot-check in
+   `docs/followup-plan-2026-09-11.md` §1.5 existed because a firing log does
+   not prove the player saw it at the tier we claim. The engine answers that
+   itself: `messagetypes_custom.txt` enumerates every group's resolved tier on
+   exit (128 groups, exactly matching script — zero difference either way). Diff
+   that file instead of asking anyone to look at a feed.
 3. ~~The mod-key → vanilla-key mapping table for the split families.~~ NOT
    NEEDED — see BUILD STATUS correction 2.
 4. ~~`scan_logs.py --census`.~~ DONE.
