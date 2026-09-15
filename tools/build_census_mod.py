@@ -546,7 +546,8 @@ def load_overrides():
     return {k: v for k, v in data.items() if not k.startswith("_")}
 
 
-def instrument(text, rel_path, next_id, mode, manifest, overrides):
+def instrument(text, rel_path, next_id, mode, manifest, overrides,
+               probe_localize=0):
     """Insert the census logging beside every post_notification in `text`."""
     sites = scan_call_sites(text)
     if not sites:
@@ -614,6 +615,21 @@ def instrument(text, rel_path, next_id, mode, manifest, overrides):
             )
         if emit_world:
             lines.append(f'{pad}debug_log = "SNW_CENSUS|W|{cid}|{key}|{DATE_TOKEN}"')
+        # Does `Localize` -- which exists in the GUI function table -- also work
+        # in script dynamic text? If it does, the census can log the notification
+        # the player actually READ, not just its key. CLAUDE.md is explicit that
+        # a function confirmed in a .gui binding is NOT evidence it works here:
+        # the two are separate function tables, so this has to be probed.
+        #
+        # Deliberately capped at a handful of sites. An invalid dynamic-text
+        # function logs "Could not find data system function" EVERY time it is
+        # evaluated -- across 596 call sites that would bury the real errors the
+        # calibrate run exists to surface. A few probes answer it just as well.
+        if probe_localize and cid <= probe_localize:
+            lines.append(
+                f'{pad}debug_log = "SNW_LOCPROBE|{key}|'
+                f"[Localize('notification_{key}_name')]\""
+            )
         out.append(text[cursor:end])
         out.append("\n" + "\n".join(lines))
         cursor = end
@@ -691,6 +707,10 @@ def main():
     global GAME_ROOT
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=["measure", "calibrate"], default="measure")
+    ap.add_argument("--probe-localize", type=int, default=None,
+                    help="probe whether Localize() resolves in script dynamic text, "
+                         "on this many call sites (default: 6 in calibrate, 0 in measure). "
+                         "If it works, the census can log the text the player read.")
     ap.add_argument("--events", choices=["recurring", "all", "none"], default="recurring")
     ap.add_argument("--sources", choices=["all", "vanilla"], default="all",
                     help="'all' also instruments Smart Notifications' own call sites and "
@@ -702,6 +722,8 @@ def main():
     ap.add_argument("--manifest-only", action="store_true",
                     help="Classify every call site and write the manifest, but build nothing.")
     args = ap.parse_args()
+    if args.probe_localize is None:
+        args.probe_localize = 6 if args.mode == "calibrate" else 0
 
     GAME_ROOT = args.game_root
     if not GAME_ROOT.is_dir():
@@ -724,7 +746,8 @@ def main():
     for src, rel, origin in sources:
         text = src.read_text(encoding="utf-8-sig", errors="replace")
         before = len(manifest)
-        new_text, next_id = instrument(text, rel, next_id, args.mode, manifest, overrides)
+        new_text, next_id = instrument(text, rel, next_id, args.mode, manifest,
+                                       overrides, args.probe_localize)
         for entry in manifest[before:]:
             entry["origin"] = origin
         if args.manifest_only:

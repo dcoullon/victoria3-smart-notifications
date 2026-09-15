@@ -51,6 +51,9 @@ DEFAULT_MANIFEST = (Path.home() / "Documents" / "Paradox Interactive" / "Victori
                     / "mod" / "smart_notifications_census" / "census_manifest.json")
 
 CENSUS_RE = re.compile(r"SNW_CENSUS\|([PWQ])\|(\d+)\|(\w+)\|(.*?)\s*$")
+# re.M matters: without it `$` anchors to end-of-STRING, so scanning a whole
+# log file matches only its last line. Caught by the synthetic test.
+LOCPROBE_RE = re.compile(r"SNW_LOCPROBE\|(\w+)\|(.*?)[ 	]*$", re.M)
 # The date comes from [TimeKeeper.GetCurrentDate.GetString], whose exact
 # rendering is a game-side formatting choice ("1836.1.1", "1 January 1836",
 # ...). Pull the year out of whatever it produced rather than assuming one
@@ -60,6 +63,58 @@ YEAR_RE = re.compile(r"\b(1[89]\d{2}|20\d{2})\b")
 ENTRY_RE = re.compile(r"^(\w+)\s*=\s*\{(.*?)^\}", re.M | re.S)
 NTYPE_RE = re.compile(r"notification_type\s*=\s*(\w+)")
 TIERS = ["popup", "toast", "feed", "none"]
+
+
+CATALOG_PATH = Path(__file__).resolve().parent / "message_catalog.json"
+
+_BRACKET_RE = re.compile(r"\[[^\]]*\]")
+_CONCEPT_RE = re.compile(r"\$([^$]*)\$")
+_MARKUP_RE = re.compile(r"#[a-zA-Z_]+ |#!")
+
+
+def load_catalog_titles():
+    """key -> readable notification title, from tools/message_catalog.json.
+
+    The census log carries only the key. A key is not what a player sees, and
+    a chart captioned `country_attitude_improved` is unreadable to anyone who
+    has not modded the game -- so the report joins against the static catalog
+    and prints the real title.
+
+    These are TEMPLATES: the `[SCOPE...]` calls inside them only resolve inside
+    the engine at post time, and script cannot read the rendered string back
+    (see docs/engine-notes.md). Dynamic parts collapse to `<>` rather than
+    being dropped, so a title stays honestly incomplete instead of looking
+    like the whole text.
+
+    Regenerate with `python tools/message_catalog.py`; absent, the report
+    simply falls back to bare keys.
+    """
+    if not CATALOG_PATH.exists():
+        return {}
+
+    def flatten(raw):
+        text = _BRACKET_RE.sub("<>", raw)
+        text = _CONCEPT_RE.sub(lambda m: m.group(1), text)
+        return _MARKUP_RE.sub("", text).strip()
+
+    out = {}
+    for rec in json.loads(CATALOG_PATH.read_text(encoding="utf-8")):
+        raw = rec.get("loc_name")
+        if not raw:
+            continue
+        text = flatten(raw)
+        # 35 of 459 titles are almost entirely dynamic once flattened
+        # ("<> <>", "<>!"), which tells a reader nothing. The description is
+        # more prose and less substitution, so fall back to it rather than
+        # print a row of placeholders.
+        if len(_BRACKET_RE.sub("", text).replace("<>", "").strip()) < 6:
+            desc = rec.get("loc_desc")
+            if desc:
+                first = flatten(desc).splitlines()[0].strip()
+                if first:
+                    text = first
+        out[rec["key"]] = text
+    return out
 
 
 def per_key_tiers(messages_dir):
@@ -207,6 +262,42 @@ def _table(rows, headers):
     return "\n".join(out)
 
 
+def _report_localize_probe(logs_dir):
+    """Did `Localize()` resolve in script dynamic text?
+
+    If it did, the census can log the notification the player actually READ,
+    not just its key. Reported here rather than left for someone to notice in
+    debug.log. Printed before the "nothing logged" bail-out, so a run that
+    produced probe lines and nothing else still yields its verdict.
+    """
+    probes = []
+    for path in sorted(Path(logs_dir).glob("debug*.log")):
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        probes.extend(LOCPROBE_RE.findall(text))
+    if not probes:
+        return
+    print()
+    print("--- Localize() probe: can we log the rendered text? ---")
+    # An unresolved call leaves the raw loc key (or nothing) in place.
+    resolved = [(k, v) for k, v in probes
+                if v and not v.startswith("notification_")]
+    for k, v in probes[:8]:
+        print(f"  {k:46} -> {v[:60]!r}")
+    if resolved:
+        print(f"  VERDICT: WORKS ({len(resolved)}/{len(probes)} rendered). "
+              f"Localize() resolves in script dynamic text, so the census can "
+              f"log real notification text -- raise --probe-localize.")
+    else:
+        print(f"  VERDICT: DOES NOT RESOLVE (0/{len(probes)} rendered). "
+              f"Expected: .gui and script dynamic text are separate function "
+              f"tables (CLAUDE.md). Use the static catalog instead "
+              f"(tools/message_catalog.py) and rebuild with --probe-localize 0.")
+    print()
+
+
 def report(logs_dir, manifest_path=None, top=30):
     log = logs_dir / "debug.log"
     if not log.exists():
@@ -233,6 +324,7 @@ def report(logs_dir, manifest_path=None, top=30):
     print("=" * 72)
     print(f"debug.log            : {log}  ({size_mb:.1f} MB)")
     print(f"SNW_CENSUS lines     : {total:,}")
+    _report_localize_probe(logs_dir)
 
     if total == 0:
         print()
@@ -337,12 +429,17 @@ def report(logs_dir, manifest_path=None, top=30):
 
     # --- ranked keys ----------------------------------------------------
     print(f"--- Top {top} keys by player-visible firings ---")
+    titles = load_catalog_titles()
     rows = []
     for (scope, key), n in sorted(counts.items(), key=lambda kv: -kv[1]):
         if scope != "P" or len(rows) >= top:
             continue
-        rows.append([f"{n:,}", key, vanilla_tiers.get(key, "-"), mod_tiers.get(key, "-")])
-    print(_table(rows, ["firings", "key", "vanilla", "mod"]) if rows else "  (none)")
+        rows.append([f"{n:,}", key, vanilla_tiers.get(key, "-"),
+                     mod_tiers.get(key, "-"), titles.get(key, "")[:52]])
+    print(_table(rows, ["firings", "key", "vanilla", "mod", "what the player sees"])
+          if rows else "  (none)")
+    if rows and not titles:
+        print("  (no titles: run `python tools/message_catalog.py` to build the catalog)")
     print()
 
     # --- growth curve ---------------------------------------------------
