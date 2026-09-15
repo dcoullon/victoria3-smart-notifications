@@ -23,6 +23,23 @@ from pathlib import Path
 TEXT_SUFFIXES = {".txt", ".gui"}
 VANILLA_ROOT = Path(r"C:\Program Files (x86)\Steam\steamapps\common\Victoria 3\game")
 
+# Checks that compare this mod against the INSTALLED vanilla game silently
+# no-op when the game isn't on this machine (a cloud session, a fresh
+# checkout). They used to print a "(skipped: ...)" line into the middle of
+# the output -- or, in one case, nothing at all -- and let the run still
+# report a clean PASS, so a cloud PASS read exactly like a local PASS while
+# real checks had not run. Every such skip now registers here instead, and
+# the caller reports it as PASS (DEGRADED).
+# See docs/engine-notes.md "A degraded PASS is not a PASS".
+SKIPPED: list[str] = []
+
+
+def _skip(check: str, reason: str) -> None:
+    entry = check + ": " + reason
+    if entry not in SKIPPED:
+        SKIPPED.append(entry)
+
+
 # This repo builds more than one mod (see better_decision_info/README.md for why the split
 # exists). Checks that assert Smart Notifications' OWN required content is
 # present are meaningless against a sibling mod, so they are gated on the mod
@@ -356,7 +373,8 @@ def check_law_types_exist_in_vanilla(root: Path) -> list[str]:
     since this check depends on local environment, not just repo state."""
     laws_dir = VANILLA_ROOT / "common" / "laws"
     if not laws_dir.is_dir():
-        print(f"  (skipped: vanilla install not found at {VANILLA_ROOT})")
+        _skip("check_law_types_exist_in_vanilla",
+              f"vanilla install not found at {VANILLA_ROOT}")
         return []
 
     real_laws = set()
@@ -421,7 +439,8 @@ def check_full_overrides_match_installed_vanilla(root: Path) -> list[str]:
     for our_rel, snapshot_rel in FULL_OVERRIDE_FILES:
         installed = VANILLA_ROOT / our_rel
         if not installed.is_file():
-            print(f"  (skipped: vanilla install file not found at {installed})")
+            _skip("check_full_overrides_match_installed_vanilla",
+                  f"vanilla file not found at {installed}")
             continue
         our_path = root / our_rel
         if not our_path.is_file():
@@ -818,6 +837,11 @@ def check_replaced_loc_still_matches_vanilla(root: Path) -> list[str]:
 
     vanilla_loc = VANILLA_ROOT / "localization" / "english"
     if not vanilla_loc.is_dir():
+        # This one used to return silently -- no "(skipped)" line at all --
+        # so a stale override against a patched vanilla string could
+        # survive a green run without leaving a trace in the output.
+        _skip("check_replaced_loc_still_matches_vanilla",
+              f"vanilla localization not found at {vanilla_loc}")
         return []
     blob = ""
     for path in vanilla_loc.glob("*.yml"):
@@ -849,6 +873,7 @@ def check_replaced_loc_still_matches_vanilla(root: Path) -> list[str]:
 
 
 def run_all(root: Path) -> list[str]:
+    SKIPPED.clear()
     defined_loc = load_defined_loc_keys(root)
     errs = []
 
@@ -888,6 +913,11 @@ if __name__ == "__main__":
         for e in errs:
             print(f"  - {e}")
         sys.exit(1)
+    if SKIPPED:
+        print(f"PASS (DEGRADED): {len(SKIPPED)} vanilla-dependent check(s) did NOT run.")
+        for entry in SKIPPED:
+            print(f"  - {entry}")
+        sys.exit(0)
     print("PASS: all cross-reference checks (loc keys, scripted_gui folder, "
           "alert_group registration, law-type dispatch consistency, "
           "watchlist spec tiers and group isolation).")

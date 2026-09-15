@@ -265,7 +265,13 @@ def check_known_good(root: Path):
 
 
 if __name__ == "__main__":
-    target = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(".")
+    # --strict turns a DEGRADED pass (vanilla-dependent checks skipped because
+    # the game isn't installed on this machine) into a failure. Use it before
+    # a playtest or a release; a plain run stays green so a cloud session can
+    # still validate everything that doesn't need the install.
+    args = [a for a in sys.argv[1:] if a != "--strict"]
+    strict = "--strict" in sys.argv[1:]
+    target = Path(args[0]) if args else Path(".")
     has_err = False
     for path in target.rglob("*.*"):
         if path.suffix in [".txt", ".gui", ".yml"] and "tools" not in str(path):
@@ -291,6 +297,20 @@ if __name__ == "__main__":
         print("FAIL: cross-reference checks (see tools/check_references.py)")
         for e in ref_errs: print(f"  - {e}")
 
-    if not has_err:
+    skipped = check_references.SKIPPED
+    if not has_err and skipped:
+        # A skipped check is not a passed check. Without this, a run on a
+        # machine with no game install printed the same "PASS" as a full local
+        # run while several vanilla-comparison checks had quietly no-opped --
+        # which is a direct source of "it validated, but it broke in game".
+        print(f"PASS (DEGRADED): {len(skipped)} check(s) did NOT run on this machine.")
+        for entry in skipped:
+            print(f"  - {entry}")
+        print("  Re-run on the machine with Victoria 3 installed before a "
+              "playtest or a release.")
+        if strict:
+            print("FAIL: --strict was given and the run is degraded.")
+            sys.exit(1)
+    elif not has_err:
         print("PASS: Syntax, brackets, known-good invariants, and cross-references verified.")
     sys.exit(1 if has_err else 0)

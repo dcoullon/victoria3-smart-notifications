@@ -1223,3 +1223,41 @@ across the same 2003-line sample that the modifier guard filled.
 **The test for whether a key is safe:** does the engine render it for one
 subject type only, or polymorphically for many? Polymorphic means no guard is
 possible.
+
+## A degraded PASS is not a PASS
+
+Five of `check_references.py`'s checks compare this mod against the
+**installed** vanilla game at `VANILLA_ROOT`, so they can only run on a
+machine that actually has Victoria 3:
+
+- `check_law_types_exist_in_vanilla`
+- `check_replaced_loc_still_matches_vanilla`
+- `check_full_overrides_match_installed_vanilla` (three files: `00_messages.txt`,
+  `message_settings.gui`, `politics_panel_change_law.gui`)
+
+Until 2026-09-15 these degraded invisibly. Two printed a `(skipped: ...)` line
+into the middle of the output; the third — the loc-baseline one — returned an
+empty list with no output at all. In every case the run still ended with the
+same green `PASS:` line as a full local run. So a session on a machine without
+the game (a cloud session, a fresh checkout, a container) reported a clean
+validation while the checks that catch *"vanilla changed under us"* had not
+executed. That is precisely the class of bug that then costs a playtest to
+find, which is the thing this tooling exists to prevent.
+
+Now every such skip registers in `check_references.SKIPPED`, and the run
+reports:
+
+```
+PASS (DEGRADED): 5 check(s) did NOT run on this machine.
+  - check_law_types_exist_in_vanilla: vanilla install not found at ...
+  ...
+  Re-run on the machine with Victoria 3 installed before a playtest or a release.
+```
+
+`python tools/validate_syntax.py --strict` turns that degraded state into a
+**failure** (exit 1). Use `--strict` before any playtest or release; the plain
+form stays exit-0 so a machine without the game can still validate everything
+that is pure repo state (brackets, BOM, loc keys, cross-references).
+
+**The rule:** a `PASS` earned without the game installed does not authorise a
+release or a "this is ready to test" claim. Re-run it where the game lives.
