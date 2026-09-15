@@ -445,7 +445,12 @@ country_revolution = {
 
 	texture = "gfx/interface/icons/notification_icons/revolution.dds"
 
-	notification_type = toast
+		# MUTED 2026-09-15: replaced by the smart_notifications_revolution_*
+	# keys, posted from `on_revolution_start` by
+	# common/on_actions/14_smart_notifications_upheaval_filtering.txt.
+	# Vanilla toasts EVERY country's revolution at you; the user got one
+	# for a country they were not watching, in a late-game Portugal run.
+	notification_type = none
 	color = bad
 
 	on_created_soundeffect = "event:/SFX/UI/Alerts/Toasts/country_revolution"
@@ -457,7 +462,9 @@ country_secession = {
 
 	texture = "gfx/interface/icons/notification_icons/secession.dds"
 
-	notification_type = toast
+		# MUTED 2026-09-15: same treatment as country_revolution above, via
+	# `on_secession_start`.
+	notification_type = none
 	color = bad
 
 	on_created_soundeffect = "event:/SFX/UI/Alerts/Toasts/country_revolution"

@@ -1872,3 +1872,81 @@ smart_notifications_pact_auto_break_notification = {
 	notification_type = feed
 	color = neutral
 }
+
+
+# ---------------------------------------------------------------------------
+# Revolution / secession, watchlist-gated  (added 2026-09-15)
+# ---------------------------------------------------------------------------
+#
+# Vanilla toasts every country's revolution and secession at the player. The
+# user hit exactly that in a late-game Portugal run -- a toast for a revolution
+# in a country they were not watching.
+#
+# Both keys are engine-fired, so there is no call site to intercept. But unlike
+# country_attitude_* (which has no on_action at all, and therefore no fix),
+# these DO have one: on_revolution_start and on_secession_start, both
+# `# Root = Country` per vanilla's own comment. This mod's census proxy already
+# fires from both, which is direct evidence the hook and the scope work.
+#
+# Tiers follow docs/watchlist-spec.md: it is about you or a country you watch
+# -> toast; anyone else -> feed. Never `none` -- a revolution is a real event
+# and the feed is the right place for it, not silence.
+smart_notifications_revolution_player = {
+	type = country
+	group = "smart_notifications_upheaval_player_group"
+
+	texture = "gfx/interface/icons/notification_icons/revolution.dds"
+
+	notification_type = toast
+	color = bad
+}
+
+smart_notifications_revolution_watched = {
+	type = country
+	group = "smart_notifications_upheaval_watched_group"
+
+	texture = "gfx/interface/icons/notification_icons/revolution.dds"
+
+	notification_type = toast
+	color = bad
+}
+
+smart_notifications_revolution_quiet = {
+	type = country
+	group = "smart_notifications_upheaval_quiet_group"
+
+	texture = "gfx/interface/icons/notification_icons/revolution.dds"
+
+	notification_type = feed
+	color = neutral
+}
+
+smart_notifications_secession_player = {
+	type = country
+	group = "smart_notifications_upheaval_player_group"
+
+	texture = "gfx/interface/icons/notification_icons/revolution.dds"
+
+	notification_type = toast
+	color = bad
+}
+
+smart_notifications_secession_watched = {
+	type = country
+	group = "smart_notifications_upheaval_watched_group"
+
+	texture = "gfx/interface/icons/notification_icons/revolution.dds"
+
+	notification_type = toast
+	color = bad
+}
+
+smart_notifications_secession_quiet = {
+	type = country
+	group = "smart_notifications_upheaval_quiet_group"
+
+	texture = "gfx/interface/icons/notification_icons/revolution.dds"
+
+	notification_type = feed
+	color = neutral
+}
