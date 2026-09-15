@@ -1,5 +1,7 @@
 {
   "_README": "Manual scope verdicts for notification-census call sites, applied after build_census_mod.py's static classifier. Keyed by '<mod-relative file>#<message key>#<nth occurrence of that key in that file>' -- stable across regeneration, unlike a line number or the manifest's sequential id. Value is one of: country | non_country | unknown.",
   "_WHEN_TO_EDIT": "After a calibrate run. Demote a site to 'non_country' if it produced 'Wrong scope for trigger: <type>, expected country' in error.log; promote one to 'country' if it logged clean SNW_CENSUS|P| lines, which stops it paying for the redundant world line. scan_logs.py --census names the candidates.",
-  "_EXAMPLE": "\"common/scripted_effects/00_chris_scripted_effects.txt#some_notification#0\": \"country\""
+  "_EXAMPLE": "\"common/scripted_effects/00_chris_scripted_effects.txt#some_notification#0\": \"country\"",
+  "common/on_actions/10_smart_notifications_taxation_deficit_toast.txt#smart_notifications_taxation_deficit_toast#0": "non_country",
+  "_CONFIRMED_2026_09_15": "Calibrate run: 1 misclassified site out of 596. The classifier read `THIS.owner` from the enclosing block and concluded country, but the post_notification sits inside `prev = { ... }`, which re-scopes back to the STATE. Produced 'Wrong scope for trigger: state, expected country'."
 }

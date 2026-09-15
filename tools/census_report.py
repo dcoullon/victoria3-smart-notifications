@@ -282,20 +282,65 @@ def _report_localize_probe(logs_dir):
         return
     print()
     print("--- Localize() probe: can we log the rendered text? ---")
-    # An unresolved call leaves the raw loc key (or nothing) in place.
-    resolved = [(k, v) for k, v in probes
-                if v and not v.startswith("notification_")]
-    for k, v in probes[:8]:
+    # Three outcomes, not two. The call can fail outright, OR resolve the loc
+    # key but render every [SCOPE...] substitution empty -- which is what
+    # actually happened on 2026-09-15: "exile_notification" came back as
+    # " exiled from ." The notification's own scopes are bound by the engine
+    # when it builds the message, not in the effect scope we log from, so the
+    # substitutions have nothing to read. Reporting that as WORKS would send
+    # the next session off to raise the probe count for no gain.
+    unresolved = [(k, v) for k, v in probes
+                  if not v or v.startswith("notification_")]
+    rendered = [(k, v) for k, v in probes if (k, v) not in unresolved]
+
+    # Did the SUBSTITUTIONS fill in, or only the static skeleton survive?
+    # Comparing against real words is not enough: "Failed Assassination
+    # Attempt on" is all static template text with an empty [SCOPE] after it.
+    # The test that works is to strip every [...] out of the catalog template
+    # and see whether the render says any more than that skeleton does.
+    catalog = {}
+    if CATALOG_PATH.exists():
+        catalog = {r["key"]: (r.get("loc_name") or "")
+                   for r in json.loads(CATALOG_PATH.read_text(encoding="utf-8"))}
+
+    def norm(s):
+        return re.sub(r"[^a-z0-9]+", " ", s.lower()).strip()
+
+    def substitutions_filled(key, value):
+        template = catalog.get(key)
+        if not template:
+            return True          # cannot tell; do not claim it is empty
+        skeleton = norm(re.sub(r"\[[^\]]*\]", " ", template))
+        return norm(value) != skeleton
+
+    empty = [(k, v) for k, v in rendered if not substitutions_filled(k, v)]
+    seen = set()
+    for k, v in probes:
+        if k in seen:
+            continue
+        seen.add(k)
         print(f"  {k:46} -> {v[:60]!r}")
-    if resolved:
-        print(f"  VERDICT: WORKS ({len(resolved)}/{len(probes)} rendered). "
-              f"Localize() resolves in script dynamic text, so the census can "
-              f"log real notification text -- raise --probe-localize.")
+        if len(seen) >= 6:
+            break
+
+    if not rendered:
+        print(f"  VERDICT: DOES NOT RESOLVE (0/{len(probes)}). Expected -- .gui and "
+              f"script dynamic text are separate function tables (CLAUDE.md). "
+              f"Use the static catalog and rebuild with --probe-localize 0.")
+    elif len(empty) == len(rendered):
+        print(f"  VERDICT: RESOLVES, BUT RENDERS EMPTY ({len(rendered)}/{len(probes)} "
+              f"resolved, all with blank substitutions).")
+        print("  Localize() IS available in script dynamic text -- worth knowing, and")
+        print("  it contradicts the assumption that .gui-only functions never cross.")
+        print("  But the notification's scopes are bound by the engine when it builds")
+        print("  the message, not in the effect scope we log from, so every [SCOPE...]")
+        print("  comes back blank. The static catalog is strictly better here: it at")
+        print("  least marks where the dynamic parts go. Rebuild with")
+        print("  --probe-localize 0 for the measure run; these lines are pure noise.")
     else:
-        print(f"  VERDICT: DOES NOT RESOLVE (0/{len(probes)} rendered). "
-              f"Expected: .gui and script dynamic text are separate function "
-              f"tables (CLAUDE.md). Use the static catalog instead "
-              f"(tools/message_catalog.py) and rebuild with --probe-localize 0.")
+        print(f"  VERDICT: WORKS WITH REAL TEXT ({len(rendered) - len(empty)} of "
+              f"{len(probes)} rendered with live substitutions). The census can log "
+              f"what the player actually read -- raise --probe-localize.")
     print()
 
 

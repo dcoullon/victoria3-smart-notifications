@@ -232,6 +232,53 @@ may see only ~20-40 diplomatic actions aimed at it. The actor-axis rider's
 "would have silenced N of M toasts" is therefore *indicative, not precise*. The
 top-actors list still does its job; the percentage should not be quoted as one.
 
+## CALIBRATE RUN RESULT — 2026-09-15, April-September 1838 (~5 months)
+
+All six questions answered in one launch. The instrument works.
+
+| # | question | result |
+|---|---|---|
+| 1 | census tap | **762 `SNW_CENSUS` lines.** Works. |
+| 2 | 109 overridden vanilla files load | **Clean.** No load errors. |
+| 3 | P/W scope verdicts | **1 bad site out of 596** — fixed, see below. |
+| 4 | actor-axis probe binds | 4 `SNW_A3` lines. Binds. |
+| 5 | proxy hooks | 37 `SNW_PROXY` lines across 4 of 6 hooks. Fire. |
+| 6 | `Localize()` in script | **Resolves — but renders empty.** See below. |
+
+**The one scope error, and it is the kind this run exists to find.**
+`is_player trigger [ Wrong scope for trigger: state, expected country ]` at
+census site 592. The classifier read `THIS.owner` from the enclosing block and
+concluded country, but the `post_notification` sits inside `prev = { ... }`,
+which re-scopes back to the **state**. Fixed by an entry in
+`census_scope_overrides.json`; the rebuilt site now probes with `?=` instead.
+The mod's own shipping file is correct — the error was in the census's
+instrumented copy of it, and the line number in `error.log` refers to that
+copy, not to the repo.
+
+**`Localize()` resolves in script dynamic text.** This contradicts the
+expectation going in, and is worth recording on its own: a function present
+only in the `.gui` data-types table DID work in a `debug_log`. But every
+`[SCOPE...]` substitution inside the resolved string comes back **blank** —
+the notification's scopes are bound by the engine when it builds the message,
+not in the effect scope we log from. `exile_notification` renders as
+`" exiled from ."`. The static catalog is strictly better, since it at least
+marks where the dynamic parts go. **Measure run: `--probe-localize 0`.**
+
+**Still unproven: proxy player-scoping.** All four firing hooks reported
+`you = 0` (686 `ig_new_leader_notification` world-wide, none the player's). At
+five months that is plausible rather than wrong, but a broken `owner` link and
+a quiet player look identical. `08_` now logs an unguarded `SNW_PROXY|O|` line
+inside the owner scope naming the country, so the measure run settles it
+either way.
+
+**Live confirmation of the mod, unplanned:** the user saw a national awakening
+in the **feed**. `national_awakening_started` is vanilla **toast**, re-tiered
+by this mod to **feed** — and the log caught that exact firing as a player-
+scoped line. The re-tiering works end to end. They also saw
+`country_attitude_worsened`, which logged **nothing** — correct, it is
+engine-fired with no proxy, and is the clearest demonstration of why the
+published figures are a lower bound.
+
 ## Order of work
 
 1. ~~`tools/build_census_mod.py` + the throwaway mod folder.~~ DONE.
