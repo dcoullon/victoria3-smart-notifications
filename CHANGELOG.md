@@ -19,6 +19,24 @@ instrumentation and doc-only changes get a commit but **no** version bump
 unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [Unreleased]
+
+### Changed
+
+Three notification tiers retuned from a measured ten-year playthrough
+(Belgium, 1836-1846) rather than from judgement. **If you have ever opened
+Message Settings, your saved choices override these** until you press Reset to
+Default Settings.
+
+- **Interest group joins/leaves a political lobby** — was a toast, now goes to
+  the feed. It is almost always the immediate consequence of a decision you
+  just took, so it interrupts you to tell you what you just did.
+- **Pacts breaking on their own** ("Knowledge Sharing broken", "Investment
+  Rights broken") — was in the feed, now hidden. These recurred steadily
+  through the measured run with nothing to act on. Note this arrives through a
+  different hook than the pact breaks the watchlist already filters, which is
+  why it kept showing up.
+
 ## [0.40] — 2026-09-14
 
 No settings reset needed. This release changes no notification tiers — it only

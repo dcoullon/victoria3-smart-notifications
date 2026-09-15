@@ -210,3 +210,60 @@ smart_notifications_probe_spreading_technology = {
 		scope:second_country ?= { debug_log = "SNW_PROBE|spreading_technology|scope:second_country=[THIS.GetCountry.GetNameNoFormatting]" }
 	}
 }
+
+# ---------------------------------------------------------------------------
+# country_swayed: watched vs unwatched  (added 2026-09-15)
+# ---------------------------------------------------------------------------
+#
+# The 1836-1846 census measured 185 player-visible `country_swayed` firings --
+# by a wide margin the largest instrumented feed item in ten years. But the
+# census records only key and date, so it could not say WHO was swayed, and
+# the user's question -- "is this watched countries or noise?" -- was
+# unanswerable from it.
+#
+# The dates already reframed it: all 185 fell in Aug-Oct 1845, i.e. one
+# diplomatic play, not chronic drip. That matters, because a burst during a
+# war the player is fighting is arguably wanted, while the same volume spread
+# over a decade would not be. Before demoting it, we need the split.
+#
+# Root = Diplomatic Play (vanilla's own comment, 00_code_on_actions.txt at
+# on_country_swayed). The play's named scopes are NOT confirmed for this
+# specific on_action -- 03_'s scope:actor / scope:target are confirmed on
+# OTHER diplo-play on_actions, and this project has a live runtime error on
+# record from generalising exactly that way (the `_third_party_` family in
+# 06_). So every scope here is reached through the optional operator `?=`,
+# which skips silently when unbound and costs nothing when wrong.
+#
+# Each candidate is logged separately so one run names which scope is actually
+# bound, rather than leaving a blank result ambiguous.
+on_country_swayed = {
+	on_actions = {
+		smart_notifications_probe_country_swayed
+	}
+}
+
+smart_notifications_probe_country_swayed = {
+	effect = {
+		debug_log = "SNW_SWAY|firing|[TimeKeeper.GetCurrentDate.GetString]"
+		scope:actor ?= {
+			debug_log = "SNW_SWAY|scope=actor|bound|[THIS.GetCountry.GetNameNoFormatting]"
+			if = {
+				limit = { smart_notifications_is_watched = yes }
+				debug_log = "SNW_SWAY|scope=actor|watched"
+			}
+			else = {
+				debug_log = "SNW_SWAY|scope=actor|unwatched"
+			}
+		}
+		scope:target ?= {
+			debug_log = "SNW_SWAY|scope=target|bound|[THIS.GetCountry.GetNameNoFormatting]"
+			if = {
+				limit = { smart_notifications_is_watched = yes }
+				debug_log = "SNW_SWAY|scope=target|watched"
+			}
+			else = {
+				debug_log = "SNW_SWAY|scope=target|unwatched"
+			}
+		}
+	}
+}

@@ -868,7 +868,12 @@ interest_group_joins_lobby = {
 
 	texture = "gfx/interface/icons/notification_icons/interest_group.dds"
 
-	notification_type = toast
+		# DEMOTED 2026-09-15 per the user, from their own 1836-1846 playthrough:
+	# an interest group joining a lobby is normally the immediate consequence
+	# of a decision the player just took, so it has nothing to tell them that
+	# they did not just cause. Vanilla toasts it. Alone in its group, so this
+	# demotes nothing else and cannot create a mixed-type group.
+	notification_type = feed
 	color = neutral
 }
 
@@ -932,7 +937,9 @@ interest_group_leaves_lobby = {
 
 	texture = "gfx/interface/icons/notification_icons/interest_group.dds"
 
-	notification_type = toast
+		# DEMOTED 2026-09-15 per the user -- same reasoning as
+	# interest_group_joins_lobby above, and likewise alone in its group.
+	notification_type = feed
 	color = neutral
 }
 
@@ -1374,7 +1381,21 @@ diplomatic_pact_auto_break_notification = {
 
 	texture = "gfx/interface/icons/notification_icons/influence_bad.dds"
 
-	notification_type = feed
+		# MUTED 2026-09-15 per the user: "Knowledge Sharing broken" and
+	# "Investment Rights broken" recurred through their 1836-1846 run with
+	# nothing to act on. Alone in `diplomatic_pact_notification_group`, so
+	# muting it affects no sibling.
+	#
+	# NOTE the hook this arrives through. 13_smart_notifications_pact_break_
+	# filtering.txt already watchlist-gates pact breaks, but only those from
+	# `on_diplomatic_action_break` (Root = Diplomatic Action). THIS one comes
+	# from `on_diplomatic_pact_auto_break` (Root = Diplomatic Pact) -- a
+	# different hook the mod never covered, which is why it kept appearing
+	# despite that filtering existing. A watchlist split would be more
+	# consistent than a flat mute and is reachable (the root exposes
+	# first_country / second_country), but the user asked for the mute and a
+	# split would need its own live test.
+	notification_type = none
 	color = neutral
 }
 
