@@ -22,26 +22,45 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-VANILLA_MESSAGES = REPO_ROOT / "reference" / "vanilla" / "1.13.x" / "common" / "messages" / "00_messages.txt"
-MOD_MESSAGES = REPO_ROOT / "common" / "messages" / "00_messages.txt"
+VANILLA_MESSAGES = REPO_ROOT / "reference" / "vanilla" / "1.13.x" / "common" / "messages"
+MOD_MESSAGES = REPO_ROOT / "common" / "messages"
 USER_SETTINGS = Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3" / "messagetypes_custom.txt"
 
 ENTRY_RE = re.compile(r"^(\w+)\s*=\s*\{\n(.*?)\n\}", re.MULTILINE | re.DOTALL)
 GROUP_RE = re.compile(r'group\s*=\s*"([^"]+)"')
 NTYPE_RE = re.compile(r"notification_type\s*=\s*(\w+)")
 USER_ENTRY_RE = re.compile(r"(\w+)=\{\s*notification=(\w+)(?:\s*pause_game=(\w+))?\s*\}")
+COMMENT_RE = re.compile(r"#.*")
 
 
 def parse_messages_file(path: Path) -> dict:
-    """group -> set of notification_type values used by keys in that group."""
-    text = path.read_text(encoding="utf-8-sig")
+    """group -> set of notification_type values used by keys in that group.
+
+    `path` is the whole `common/messages/` DIRECTORY, not one file. It used to
+    be `00_messages.txt` alone, which silently dropped every group this mod
+    newly creates -- all 161 group lines live in
+    `99_smart_notifications_messages.txt`. Those reported as `-` (absent), so
+    the mod column of the join table was blank for exactly the split families
+    the notification census most needs to measure. Found 2026-09-15 while
+    diffing the player's stored overrides against the mod's defaults.
+    """
+    files = sorted(path.glob("*.txt")) if path.is_dir() else [path]
     group_defaults: dict[str, set[str]] = {}
-    for key, body in ENTRY_RE.findall(text):
-        gmatch = GROUP_RE.search(body)
-        nmatch = NTYPE_RE.search(body)
-        if not gmatch or not nmatch:
-            continue
-        group_defaults.setdefault(gmatch.group(1), set()).add(nmatch.group(1))
+    for f in files:
+        # Strip `#` comments FIRST. Without this the parser reads commented-out
+        # config as live: `diplomatic_action_notification` carries a comment
+        # explaining that its former siblings "are still notification_type =
+        # toast", and since NTYPE_RE takes the first match in the body, the
+        # group was reported as `toast` when the script actually sets `none`.
+        # A notification tier read out of a code comment is exactly the kind of
+        # wrong number that survives into a published chart. Found 2026-09-15.
+        text = COMMENT_RE.sub("", f.read_text(encoding="utf-8-sig"))
+        for key, body in ENTRY_RE.findall(text):
+            gmatch = GROUP_RE.search(body)
+            nmatch = NTYPE_RE.search(body)
+            if not gmatch or not nmatch:
+                continue
+            group_defaults.setdefault(gmatch.group(1), set()).add(nmatch.group(1))
     return group_defaults
 
 

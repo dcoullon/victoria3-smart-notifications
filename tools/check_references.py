@@ -911,6 +911,100 @@ def check_engine_notes_toc_is_current(root: Path) -> list[str]:
     return errs
 
 
+# How each snapshotted `reference/vanilla/<ver>/` directory is used, because
+# the right completeness rule differs and cannot be inferred from the files
+# present (inferring it is what let the 2026-09-15 bug hide -- a corpus
+# baseline holding one file looks exactly like a correct diff baseline).
+#
+#   "corpus" -- tooling reads the whole directory as "what vanilla defines".
+#               It MUST hold every installed file, or vanilla looks smaller
+#               than it is.
+#   "diff"   -- the snapshot exists only to diff the files this mod overrides.
+#               It must hold exactly those, and nothing else is expected.
+REFERENCE_SNAPSHOT_MODE: dict[str, str] = {
+    "common/messages": "corpus",
+    "gui": "diff",
+}
+
+
+def check_vanilla_reference_snapshot_is_complete(root: Path) -> list[str]:
+    """A partially-snapshotted reference directory is silently wrong.
+
+    Found 2026-09-15: the snapshot held only `common/messages/00_messages.txt`
+    while the game ships seven message files, so the vanilla column of
+    `compare_notification_settings.py` -- the join table the notification
+    census and its Reddit post both rest on -- was missing whole groups
+    (`colonial_claim`, `on_impose_law`, ...) and reported them as absent.
+    Nothing failed; the numbers were just quietly short.
+
+    Skipped (not failed) without a local game install.
+    """
+    ref_root = root / "reference" / "vanilla"
+    if not ref_root.is_dir():
+        return []
+    if not VANILLA_ROOT.is_dir():
+        _skip("check_vanilla_reference_snapshot_is_complete",
+              f"vanilla install not found at {VANILLA_ROOT}")
+        return []
+
+    errs = []
+    for version_dir in sorted(d for d in ref_root.iterdir() if d.is_dir()):
+        for our_dir in sorted(d for d in version_dir.rglob("*") if d.is_dir()):
+            rel = our_dir.relative_to(version_dir).as_posix()
+            game_dir = VANILLA_ROOT / rel
+            if not game_dir.is_dir():
+                continue
+            ours = {f.name for f in our_dir.iterdir() if f.is_file()}
+            if not ours:
+                continue
+
+            mode = REFERENCE_SNAPSHOT_MODE.get(rel)
+            if mode is None:
+                errs.append(
+                    f"reference/vanilla/{version_dir.name}/{rel} is snapshotted "
+                    f"but not declared in REFERENCE_SNAPSHOT_MODE"
+                )
+                errs.append(
+                    "    fix: declare it 'corpus' (tooling reads the whole "
+                    "directory as vanilla) or 'diff' (only the files this mod "
+                    "overrides), in tools/check_references.py"
+                )
+                continue
+
+            if mode == "corpus":
+                exts = {f.suffix for f in our_dir.iterdir() if f.is_file()}
+                for ext in sorted(exts):
+                    have = {f.name for f in our_dir.glob(f"*{ext}")}
+                    want = {f.name for f in game_dir.glob(f"*{ext}")}
+                    missing = want - have
+                    if missing:
+                        errs.append(
+                            f"vanilla reference snapshot is incomplete: "
+                            f"reference/vanilla/{version_dir.name}/{rel} has "
+                            f"{len(have)} of {len(want)} installed {ext} file(s)"
+                        )
+                        for name in sorted(missing):
+                            errs.append(f"    missing: {name}")
+                        errs.append(f"    fix: copy them from {game_dir}")
+            else:  # diff
+                mod_dir = root / rel
+                overrides = (
+                    {f.name for f in mod_dir.iterdir() if f.is_file()}
+                    & {f.name for f in game_dir.iterdir() if f.is_file()}
+                    if mod_dir.is_dir() else set()
+                )
+                missing = overrides - ours
+                if missing:
+                    errs.append(
+                        f"vanilla reference snapshot is missing a file this "
+                        f"mod overrides: reference/vanilla/{version_dir.name}/{rel}"
+                    )
+                    for name in sorted(missing):
+                        errs.append(f"    missing: {name}")
+                    errs.append(f"    fix: copy them from {game_dir}")
+    return errs
+
+
 def run_all(root: Path) -> list[str]:
     SKIPPED.clear()
     defined_loc = load_defined_loc_keys(root)
@@ -930,6 +1024,7 @@ def run_all(root: Path) -> list[str]:
     errs += check_loc_lines_are_well_formed(root)
     errs += check_replaced_loc_still_matches_vanilla(root)
     errs += check_engine_notes_toc_is_current(root)
+    errs += check_vanilla_reference_snapshot_is_complete(root)
 
     # Smart-Notifications-only: each asserts that specific files or message
     # keys THIS mod owns are present, so against a sibling mod every one of
