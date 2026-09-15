@@ -1,4 +1,4 @@
-# Notification census — build spec
+﻿# Notification census — build spec
 
 **Written 2026-09-14 as a cold-start handoff.** A session picking this up needs
 no other context than this file plus CLAUDE.md. Everything below was measured
@@ -166,6 +166,47 @@ Extend `tools/scan_logs.py` with a `--census` mode that reads the run's
 - the vanilla-vs-mod tier totals from the join above
 - counts split into *measured* vs *known-unmeasurable*, so the lower-bound
   caveat is visible in the output rather than remembered later
+
+## Rider: the actor-axis measurement (TODO.md open question 3a)
+
+Added 2026-09-15 at the user's request — "we should measure it first... would be
+great if we can do both at the same time". The census run is a long passive
+session; question 3(a) needs the same kind of session. One run, both datasets,
+no second launch.
+
+`common/on_actions/07_smart_notifications_actor_axis_probe.txt` appends its own
+on_action to `on_diplomatic_action` (it does not edit the shipping
+`06_..._diplomatic_action_filtering.txt`) and posts nothing. For every
+diplomatic action that currently reaches a **toast** — aimed at the player, or
+aimed at a watched country — it writes the verdict of three candidate rules,
+each independently so all three can be compared from one run:
+
+| rule | would quiet when |
+|---|---|
+| `rank` | actor is below `major_power` |
+| `relevance` | actor has no `has_diplomatic_relevance` to the recipient |
+| `type` | actor is not a `recognized` country |
+
+All three triggers were checked against the installed game's `triggers.log`
+before the file was written, not generalised from a sibling on_action.
+
+Read it with:
+
+```bash
+python tools/scan_logs.py --actor-axis
+```
+
+which prints, per cell, how many of the toasts you actually received each rule
+would have silenced, plus the actors that reached you most often — because the
+percentage alone does not answer the question. The rule judges the sender, not
+the message, so whatever it silences it silences completely, including a
+rivalry declaration from a small country. The top-actors list is what makes
+that trade-off concrete.
+
+The report logic was verified against synthetic log lines before the run, so a
+blank result means the probe did not fire, not that the analysis is wrong.
+
+`07_` is in `package_release.py`'s `DEV_ONLY_FILES`, so it cannot ship.
 
 ## Order of work
 

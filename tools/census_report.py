@@ -407,3 +407,82 @@ def report(logs_dir, manifest_path=None, top=30):
     print("(country_attitude_*, country_conscription, invasion_*), so the real")
     print("vanilla volume is higher than anything printed here. Say so in the post.")
     return 0
+
+
+def actor_axis(logs_dir) -> int:
+    """Report on the SNW_A3 lines written by
+    common/on_actions/07_smart_notifications_actor_axis_probe.txt.
+
+    Answers TODO.md's open question 3(a) with counts: of the diplomatic-action
+    toasts a player actually receives, how many would each candidate
+    actor-based rule silence? Each rule is logged independently, so all three
+    are compared from one run.
+    """
+    import re
+    from collections import Counter
+
+    path = logs_dir / "debug.log"
+    if not path.is_file():
+        print(f"debug.log not found in {logs_dir}")
+        return 1
+
+    firings = Counter()
+    verdicts = Counter()          # (cell, rule, verdict) -> n
+    actors = Counter()            # (cell, actor) -> n
+    line_re = re.compile(r"SNW_A3\|(?P<cell>\w+)\|(?P<rest>.+?)\s*$")
+    for raw in path.open(encoding="utf-8", errors="replace"):
+        m = line_re.search(raw)
+        if not m:
+            continue
+        cell, rest = m.group("cell"), m.group("rest")
+        if rest.startswith("firing"):
+            firings[cell] += 1
+            am = re.search(r"actor=(.*)$", rest)
+            if am:
+                actors[(cell, am.group(1).strip())] += 1
+        else:
+            rm = re.match(r"rule=(\w+)\|verdict=(\w+)", rest)
+            if rm:
+                verdicts[(cell, rm.group(1), rm.group(2))] += 1
+
+    if not firings:
+        print("No SNW_A3 lines found.")
+        print("  Verify the instrument before concluding nothing fired:")
+        print("  - is 07_smart_notifications_actor_axis_probe.txt in the dev mod folder?")
+        print("  - did any diplomatic action aimed at you or a watched country occur?")
+        print("  - do SNW_FILTER|diplomatic_action lines appear at all?")
+        return 1
+
+    RULES = {
+        "rank": "actor is below major_power",
+        "relevance": "actor has no diplomatic relevance to the recipient",
+        "type": "actor is not a `recognized` country",
+    }
+    print("=== Actor-axis measurement (TODO.md open question 3a) ===")
+    print("How many of the toasts you actually get would each candidate rule silence?\n")
+    for cell in sorted(firings):
+        total = firings[cell]
+        print(f"{cell}: {total} firings that currently reach a toast")
+        for rule, desc in RULES.items():
+            quiet = verdicts.get((cell, rule, "quiet"), 0)
+            keep = verdicts.get((cell, rule, "keep"), 0)
+            seen = quiet + keep
+            if not seen:
+                print(f"  {rule:10s} no verdicts logged")
+                continue
+            pct = 100.0 * quiet / seen
+            flag = ""
+            if seen != total:
+                flag = f"  [!] {seen} verdicts vs {total} firings -- scope:actor missing on some"
+            print(f"  {rule:10s} would quiet {quiet:5d} of {seen:5d}  ({pct:5.1f}%)   {desc}{flag}")
+        print()
+
+    print("Top actors, by how often they reached you:")
+    for (cell, actor), n in actors.most_common(15):
+        print(f"  {n:5d}  {cell:11s} {actor}")
+    print("\nReading this: a high 'would quiet' percentage means the rule is")
+    print("effective but also that it is doing a lot -- check the top actors above")
+    print("to see whether the countries it silences are ones you would want to hear")
+    print("from. The rule judges the sender, never the message, so anything that")
+    print("actor does would be quieted, including a rivalry declaration.")
+    return 0

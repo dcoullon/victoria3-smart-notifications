@@ -147,8 +147,26 @@ The only untried axis is a property of the **actor** (rank,
 `has_diplomatic_relevance`, `is_country_type`), all readable at the right
 instant. It approximates the rule rather than implementing it — it judges
 the sender, not the message, so a small country declaring a *rivalry* on
-you would be quieted along with the relations nudges. **Needs a product
-call from the user before anyone builds it.**
+you would be quieted along with the relations nudges.
+
+**DECISION 2026-09-15 (the user): measure before deciding, on the census
+run.** Not built, and not to be built until there are numbers. The probe
+(`common/on_actions/07_smart_notifications_actor_axis_probe.txt`, dev-only)
+rides along with the notification census session — see
+[docs/feed-census-plan.md § Rider](docs/feed-census-plan.md) — so it costs no
+launch of its own.
+
+**Acceptance criteria for the measurement** (not for the feature): after a
+census session, `python tools/scan_logs.py --actor-axis` reports a non-zero
+firing count for `at_player`, and for each of the three candidate rules a
+verdict count equal to that firing count. A rule with fewer verdicts than
+firings means `scope:actor` was not bound on some of them and that rule's
+percentage is not trustworthy — the report flags that itself rather than
+leaving it to be noticed.
+
+**The product call then has a shape:** each rule comes back as "would have
+silenced N of the M toasts you received", with the list of countries it would
+have silenced. Decide against that, not against the abstraction.
 
 **(b) Only two event families are watchlist-aware.** Diplomatic plays and
 diplomatic actions. Everything else in the game either always fires or is

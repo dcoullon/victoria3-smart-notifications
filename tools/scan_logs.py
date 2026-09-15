@@ -90,6 +90,11 @@ def main():
                           "aggregating, to check the log against what was on screen.")
     ap.add_argument("--from-year", type=int, default=None)
     ap.add_argument("--to-year", type=int, default=None)
+    ap.add_argument("--actor-axis", action="store_true",
+                     help="Aggregate the SNW_A3 lines from the actor-axis probe "
+                          "(07_smart_notifications_actor_axis_probe.txt) and report how "
+                          "many of your toasts each candidate rule in TODO.md's open "
+                          "question 3(a) would silence.")
     ap.add_argument("--unfiltered", action="store_true",
                      help="Print ALL error.log lines (no pattern filter) -- use when checking "
                           "for something not on the known-pattern list, e.g. confirming a save "
@@ -100,6 +105,10 @@ def main():
         print(f"Logs directory not found: {args.logs_dir}")
         print("Pass --logs-dir to point at your own Victoria 3/logs folder.")
         return
+
+    if args.actor_axis:
+        import census_report
+        sys.exit(census_report.actor_axis(args.logs_dir))
 
     if args.census:
         import census_report

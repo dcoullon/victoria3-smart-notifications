@@ -68,6 +68,7 @@ DEV_ONLY_FILES = [
     "common/on_actions/01_smart_notifications_logger.txt",
     "common/on_actions/04_smart_notifications_probes.txt",
     "common/on_actions/05_smart_notifications_toast_popup_audit.txt",
+    "common/on_actions/07_smart_notifications_actor_axis_probe.txt",
 ]
 
 # The dev/test mod entry's metadata.json intentionally carries a

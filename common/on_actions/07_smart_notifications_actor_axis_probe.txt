@@ -1,0 +1,104 @@
+﻿# MEASUREMENT ONLY -- dev build, never shipped (package_release.py's
+# DEV_ONLY_FILES). Posts nothing; it only writes SNW_A3 lines.
+#
+# Answers TODO.md's open product question 3(a), "the importance axis does not
+# exist", with counts instead of judgement. The spec wants a toast only for
+# IMPORTANT actions aimed at you or a watched country, but nothing at the
+# moment this fires can tell an important action from a routine one: three
+# mechanisms for reading the action's own type were tried on 2026-09-09 and
+# all three are closed (docs/engine-notes.md). The only axis left is a
+# property of the ACTOR, which approximates the rule -- it judges the sender
+# rather than the message, so a minor power declaring a rivalry on you would
+# be quieted along with its relations nudges.
+#
+# Whether that trade is worth making is a product call, and it should be made
+# against numbers: of the diplomatic-action toasts a player actually receives,
+# how many would each candidate rule silence? This probe measures exactly
+# that, and it rides along with the notification census run
+# (docs/feed-census-plan.md) -- one session, both datasets, no extra launch.
+#
+# Three independent candidate rules, each logged separately rather than as one
+# combined verdict, so the report can compare them without re-running:
+#
+#   rank       actor is below major_power                -> would quiet
+#   relevance  actor has no diplomatic relevance to the recipient -> would quiet
+#   type       actor is not a `recognized` country       -> would quiet
+#
+# All three triggers were confirmed against the installed game's own
+# triggers.log before this file was written (country_rank takes
+# rank_value:<key> and is country-scoped; has_diplomatic_relevance takes a
+# country target; is_country_type takes a country type key) -- not assumed
+# from a sibling, which is the mistake that produced a real runtime error in
+# the _third_party_ family.
+#
+# Root = Diplomatic Action, same as 06_smart_notifications_diplomatic_action_filtering.txt,
+# whose scope:actor / scope:recipient bindings are confirmed live. This file
+# appends its own on_action rather than editing 06_, so the shipping file
+# stays untouched and the probe disappears from releases automatically.
+on_diplomatic_action = {
+	on_actions = {
+		smart_notifications_a3_actor_axis_probe
+	}
+}
+
+smart_notifications_a3_actor_axis_probe = {
+	effect = {
+		# Only the two cells that currently reach a TOAST are measured.
+		# `elsewhere` already goes to the feed, so an actor rule could not
+		# make it any quieter and it is not part of the question.
+		if = {
+			limit = { scope:recipient ?= { is_player = yes } }
+			debug_log = "SNW_A3|at_player|firing|actor=[SCOPE.sC('actor').GetNameNoFormatting]"
+			scope:actor ?= {
+				if = {
+					limit = { country_rank < rank_value:major_power }
+					debug_log = "SNW_A3|at_player|rule=rank|verdict=quiet"
+				}
+				else = {
+					debug_log = "SNW_A3|at_player|rule=rank|verdict=keep"
+				}
+				if = {
+					limit = { has_diplomatic_relevance = scope:recipient }
+					debug_log = "SNW_A3|at_player|rule=relevance|verdict=keep"
+				}
+				else = {
+					debug_log = "SNW_A3|at_player|rule=relevance|verdict=quiet"
+				}
+				if = {
+					limit = { is_country_type = recognized }
+					debug_log = "SNW_A3|at_player|rule=type|verdict=keep"
+				}
+				else = {
+					debug_log = "SNW_A3|at_player|rule=type|verdict=quiet"
+				}
+			}
+		}
+		else_if = {
+			limit = { scope:recipient ?= { smart_notifications_is_watched = yes } }
+			debug_log = "SNW_A3|at_watched|firing|actor=[SCOPE.sC('actor').GetNameNoFormatting]"
+			scope:actor ?= {
+				if = {
+					limit = { country_rank < rank_value:major_power }
+					debug_log = "SNW_A3|at_watched|rule=rank|verdict=quiet"
+				}
+				else = {
+					debug_log = "SNW_A3|at_watched|rule=rank|verdict=keep"
+				}
+				if = {
+					limit = { has_diplomatic_relevance = scope:recipient }
+					debug_log = "SNW_A3|at_watched|rule=relevance|verdict=keep"
+				}
+				else = {
+					debug_log = "SNW_A3|at_watched|rule=relevance|verdict=quiet"
+				}
+				if = {
+					limit = { is_country_type = recognized }
+					debug_log = "SNW_A3|at_watched|rule=type|verdict=keep"
+				}
+				else = {
+					debug_log = "SNW_A3|at_watched|rule=type|verdict=quiet"
+				}
+			}
+		}
+	}
+}
