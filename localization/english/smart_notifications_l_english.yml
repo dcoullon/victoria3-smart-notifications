@@ -1015,3 +1015,14 @@
  alert_smart_notifications_mobilized_army_no_general_alert_hint:0 "Appoint a general from the Military panel, or merge this formation into one that already has a commander."
  alert_smart_notifications_mobilized_army_no_general_alert_action:0 "Military panel for [SCOPE.GetRootScope.GetMilitaryFormation.GetName]"
  smart_notifications_mobilized_army_no_general_alert_setting_name:0 "(SN) Mobilized Army Without a General"
+
+ # Alert group for the commanderless-formation alert: the game aggregates
+ # every offending formation behind one top-bar icon rather than stacking
+ # an icon per army.
+ ag_smart_notifications_generalless_formations_name:0 "(SN) Mobilized Armies Without a General"
+ ag_smart_notifications_generalless_formations_desc:0 "We have mobilized armies with no general in command. They will not advance, and any front they are assigned to will stall until generals are appointed."
+ ag_smart_notifications_generalless_formations_tooltip:0 "#header $ag_smart_notifications_generalless_formations_name$#!
+$TOOLTIP_DELIMITER$
+$ag_smart_notifications_generalless_formations_desc$
+
+$ALERT_GROUP_TOOLTIP_FOOTER$"
