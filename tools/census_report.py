@@ -464,6 +464,7 @@ def report(logs_dir, manifest_path=None, top=30):
     print(f"SNW_CENSUS lines     : {total:,}")
     _report_localize_probe(logs_dir)
     _report_proxy(logs_dir)
+    cross_check(logs_dir)
 
     if total == 0:
         print()
@@ -722,3 +723,93 @@ def actor_axis(logs_dir) -> int:
     print("from. The rule judges the sender, never the message, so anything that")
     print("actor does would be quieted, including a rivalry declaration.")
     return 0
+
+
+# --------------------------------------------------------------------------
+# Cross-check: the census against the mod's OTHER, independent loggers.
+# --------------------------------------------------------------------------
+
+SNWLOG_RE = re.compile(r"SNW_LOG\|(\w+)")
+CENSUS_XR = re.compile(r"SNW_CENSUS\|([PW])\|\d+\|(\w+)\|")
+
+
+def cross_check(logs_dir):
+    """Validate the census against `01_smart_notifications_logger.txt`.
+
+    Why this is worth more than another playtest: that logger was written
+    months earlier, hooks different on_actions, and counts independently. Where
+    the two overlap they must agree, and nobody has to look at anything.
+
+    The one subtlety, and it is the whole reason this needs code rather than a
+    glance: some logger hooks are `is_player`-guarded and some are not. A
+    guarded hook must match the census's **P** count; an unguarded one must
+    match **W**. Comparing everything to W reports false disagreements -- which
+    is exactly what the first manual pass did on 2026-09-15 before the guards
+    were checked.
+
+    Run automatically as part of `scan_logs.py --census`.
+    """
+    logger_src = REPO_ROOT / "common" / "on_actions" / "01_smart_notifications_logger.txt"
+    if not logger_src.exists():
+        return
+    text = logger_src.read_text(encoding="utf-8-sig")
+
+    # Which logged keys sit under an is_player guard?
+    #
+    # Brace-depth tracking was tried first and got this wrong: in
+    # `limit = { is_player = yes }` the brace opens and closes on one line, so
+    # the guard looked like it had already ended by the time the debug_log on
+    # the NEXT line was read. It reported national_awakening_started as
+    # unguarded when it is guarded three scopes deep.
+    #
+    # The file's actual shape makes this simpler than parsing. Each key has its
+    # own small `smart_notifications_log_<x> = { ... }` handler, so the guard
+    # question is just "does this handler mention is_player at all".
+    guarded = set()
+    for block in re.split(r"\n(?=smart_notifications_log_\w+\s*=\s*\{)", text):
+        body = re.sub(r"#.*", "", block)
+        if "is_player" not in body:
+            continue
+        guarded.update(SNWLOG_RE.findall(body))
+
+    census_p, census_w, snwlog = (collections.Counter() for _ in range(3))
+    for path in debug_logs(logs_dir):
+        try:
+            with path.open(encoding="utf-8", errors="replace") as f:
+                for line in f:
+                    m = CENSUS_XR.search(line)
+                    if m:
+                        (census_p if m.group(1) == "P" else census_w)[m.group(2)] += 1
+                    elif "SNW_LOG|" in line:
+                        m2 = SNWLOG_RE.search(line)
+                        if m2:
+                            snwlog[m2.group(1)] += 1
+        except OSError:
+            continue
+    if not snwlog:
+        return
+
+    print("--- Cross-check: census vs the independent SNW_LOG logger ---")
+    print("  Two instruments, different hooks, same run. Where they overlap")
+    print("  they must agree. Player-guarded logger hooks compare to P, the")
+    print("  rest to W.")
+    rows, agree, differ = [], 0, 0
+    for key, n in snwlog.most_common():
+        is_guarded = key in guarded
+        expect = census_p[key] if is_guarded else census_w[key]
+        ok = (expect == n)
+        agree += ok
+        differ += (not ok)
+        rows.append([f"{n:,}", f"{expect:,}", "P" if is_guarded else "W",
+                     "match" if ok else "DIFFERS", key])
+    print(_table(rows, ["SNW_LOG", "census", "vs", "verdict", "key"]))
+    print(f"  {agree} agree, {differ} differ, of {len(snwlog)} shared keys")
+    if differ:
+        print("  !! A disagreement means one of the two instruments is wrong.")
+        print("     Do not publish a count for a differing key until it is")
+        print("     resolved -- check the logger's guard first, then the")
+        print("     census site's scope verdict.")
+    else:
+        print("  No disagreements: the census reproduces an independently")
+        print("  written instrument exactly, on every shared key.")
+    print()
