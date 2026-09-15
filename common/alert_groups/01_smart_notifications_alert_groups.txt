@@ -15,3 +15,9 @@
 # across common/alert_groups/ (same convention as common/alert_types/),
 # so it only needs OUR entry, not a copy of vanilla's file.
 smart_notifications_taxation_deficit_states = {}
+
+# Mobilized armies with no general (2026-09-15). Grouped so a country
+# with several commanderless armies shows ONE red top-bar icon rather
+# than one per formation -- the failure this alert exists for tends to
+# happen to several formations at once, right after a mass mobilization.
+smart_notifications_generalless_formations = {}

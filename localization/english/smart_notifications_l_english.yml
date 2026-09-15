@@ -1021,8 +1021,4 @@
  # an icon per army.
  ag_smart_notifications_generalless_formations_name:0 "(SN) Mobilized Armies Without a General"
  ag_smart_notifications_generalless_formations_desc:0 "We have mobilized armies with no general in command. They will not advance, and any front they are assigned to will stall until generals are appointed."
- ag_smart_notifications_generalless_formations_tooltip:0 "#header $ag_smart_notifications_generalless_formations_name$#!
-$TOOLTIP_DELIMITER$
-$ag_smart_notifications_generalless_formations_desc$
-
-$ALERT_GROUP_TOOLTIP_FOOTER$"
+ ag_smart_notifications_generalless_formations_tooltip:0 "#header $ag_smart_notifications_generalless_formations_name$#!\n$TOOLTIP_DELIMITER$\n$ag_smart_notifications_generalless_formations_desc$\n\n$ALERT_GROUP_TOOLTIP_FOOTER$"
