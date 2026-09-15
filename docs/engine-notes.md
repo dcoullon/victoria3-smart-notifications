@@ -41,6 +41,9 @@ in new code; `CLAUDE.md` only states the rule, not the reasoning.
 - [A degraded PASS is not a PASS](#a-degraded-pass-is-not-a-pass)
 - [Why an exploration playtest must carry every candidate at once](#why-an-exploration-playtest-must-carry-every-candidate-at-once)
 
+- [A law's effects are not readable as numbers — `LawType` exposes no modifiers](#a-laws-effects-are-not-readable-as-numbers--lawtype-exposes-no-modifiers)
+- [Taxation Capacity has no national total, anywhere](#taxation-capacity-has-no-national-total-anywhere)
+
 <!-- /TOC -->
 
 ## Override hierarchy
@@ -1388,3 +1391,70 @@ line that makes the game print the verdict into `debug.log` for
 human look — handed over as a recipe (get into this situation, click this, pass
 looks like this, fail looks like this), answerable with a yes or no in one
 glance. "Does this seem right to you?" is not an acceptance criterion.
+
+## A law's effects are not readable as numbers — `LawType` exposes no modifiers
+
+Investigated 2026-09-15 for a "show the delta vs your current law" feature
+(Reddit's top-voted request). Parked; the finding is what matters.
+
+`LawType` exposes **exactly 20 functions** in the engine's own `data_types`
+dump, and **none of them return modifier values**. Every effect accessor —
+`GetEffectDesc(Arg0)`, `GetAdditionalEffectDesc`, `GetDesc`, `GetTypeDesc`,
+`GetUnlocks`, `GetTooltip(Arg0)` — returns a **pre-formatted, engine-rendered
+string**.
+
+Three consequences for anything that wants to compare two laws:
+
+1. **No runtime arithmetic on law effects.** `+100 Authority` cannot be read
+   back as a number, so it cannot be subtracted from another law's value.
+2. **No inline annotation of the vanilla effects list.** `GetEffectDesc` is
+   opaque — there is no way to inject `(-20 vs Oligarchy)` into a line inside
+   it. Annotating inline requires replacing the whole list, which means
+   reproducing display names, formats, colours, icons and tooltip routing for
+   **229 distinct modifier keys**.
+3. **No `LawType.GetKey`.** `LawGroup.GetKey` exists; LawType has no
+   equivalent, so a law cannot be turned into a string for a dynamic loc key.
+   Pair identification has to go through `ObjectsEqual` plus the global
+   `GetLawType('law_key')`.
+
+**What *is* possible**, if this is ever revisited: the displayed effects come
+straight from the law's plain `modifier = { }` block, which is static data.
+Verified line-by-line — all 8 effect lines of `law_oligarchy` map 1:1 to its
+modifier block. So deltas can be **precomputed offline and looked up at
+runtime** via `Law.GetActiveGroupLaw` + `ObjectsEqual` + `GetLawType(...)`,
+all three confirmed in the dump. Cost: **724 ordered law pairs** across 138
+laws and 26 groups, and 724 `visible` expressions evaluated per panel draw —
+the perf risk is why it was not attempted.
+
+Also worth knowing before re-opening this: **21 of 138 laws have no `modifier`
+block at all**, and whole groups (`welfare`, `taxation`, `labor_rights`,
+`health_system`, `policing`) carry their real effects through institutions and
+production methods instead. A modifier-based comparison would truthfully report
+"nothing changes" for laws that differ enormously, which is worse than showing
+nothing.
+
+## Taxation Capacity has no national total, anywhere
+
+Confirmed 2026-09-15. Taxation Capacity is **state-scoped only**:
+`State.CalcTaxCapacity`, `State.CalcTaxCapacityBalance`,
+`State.CalcTaxCapacityUsage` in the GUI table; `tax_capacity` and
+`tax_capacity_usage` as state-scope script triggers (this mod's own deficit
+alert uses the latter pair). **The game itself never displays a national
+total**, so a mod cannot aggregate one either — the same structural wall as
+per-state pop counts.
+
+This kills any "how will this law affect my taxes overall" preview. Two further
+facts, so the question does not get re-opened from scratch:
+
+- **Only four laws in the game change Taxation Capacity at all:**
+  `law_appointed_bureaucrats` (+0.25), `law_isolationism` (+0.25),
+  `law_canton_system` (+0.15), `law_traditionalism` (-0.25).
+- **The malus is severe**, which is why players ask:
+  `common/static_modifiers/00_code_static_modifiers.txt` —
+  `insufficient_tax_capacity = { state_tax_collection_mult = -1 }`.
+
+And an accuracy trap that makes a naive simulation actively harmful:
+`state_tax_capacity_mult` adds to a **sum of multipliers**, so
+`current_capacity * 1.25` is wrong whenever the player already carries other
+tax-capacity modifiers (they usually do, from tech and PMs). A wrong number in
+a decision screen is worse than no number.
