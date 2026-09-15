@@ -21,60 +21,48 @@ mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
 ## [Unreleased]
 
-Everything here comes out of two instrumented playthroughs -- Belgium 1836-1846
-and Portugal 1908-1918 -- rather than judgement. Counts below are what the
-measurement actually produced.
+### Read this first: reset your Message Settings
 
-### IMPORTANT: reset your Message Settings after updating
+**Message Settings -> Reset to Default Settings.** If you have ever opened that
+screen, your saved choices override everything below. This release especially:
+several changes hide a base-game notification and show a smarter one instead --
+so without a reset you get *both*.
 
-**If you have ever opened Message Settings, your saved choices override every
-default in this mod.** None of the changes below will take effect until you
-press **Reset to Default Settings** on that screen.
+### New
 
-This matters more than usual for this release. Several changes work by hiding
-a vanilla notification and posting a better-filtered replacement -- and if your
-saved settings keep the vanilla one visible, you get *both* until you reset.
+- **Alert: your mobilized army has no general.** A red icon at the top of the
+  screen. Without a general the army will not move and its front quietly
+  stalls, and the base game never tells you. One icon even if several armies
+  are affected.
 
-### Added
+### Quieter now
 
-- **A red top-bar alert when a mobilized army has no general.** It will not
-  advance, and any front it is assigned to stalls -- with nothing on screen to
-  say why. The base game has no warning for this. Grouped, so several
-  commanderless armies after a mass mobilization give you one icon, not one
-  each.
-
-### Changed
-
-- **Revolutions and secessions elsewhere no longer interrupt you.** The base
-  game toasts you for every revolution in the world; its own text even reads
-  "Revolution is upon us!" for a country you have never met. Now: your own
-  country or one you watch still toasts, everyone else goes to the feed.
-  Measured over seven months of play, 23 of 24 stopped interrupting.
-- **"Country swayed" is filtered by who was swayed.** A country you watch (or
-  your own) still appears in the feed; the rest are hidden. This was the single
-  largest visible feed item in the late-game measurement -- 779 firings in ten
-  years, and roughly 5 in 6 involved nobody the player was tracking.
-- **Native uprisings no longer double-toast.** An uprising aimed at you
-  produced two toasts for one event -- the diplomatic play starting, and the
-  uprising itself. The play notification is the one that needs a response, so
-  the uprising now goes to the feed.
-- **Interest group joins/leaves a political lobby** -- was a toast, now the
-  feed. It is almost always the immediate consequence of a decision you just
-  took, so it was interrupting you to report your own action back.
-- **Pacts lapsing on their own, now split by what lapsed.** The minor perks
-  that recur with nothing to act on -- Improve Relations, Knowledge Sharing,
-  Investment Rights -- are hidden. Everything else still reports, including a
-  subject relationship (puppet, vassal, dominion, protectorate, colony) ending:
-  those lapse through the same notification and have no other announcement, so
-  hiding them wholesale would have meant losing a subject in silence.
+- **Revolutions and civil wars in countries you don't follow** -- feed instead
+  of a toast. The base game interrupts you for every revolution on the map,
+  and its text even says "Revolution is upon us!" about a country on the other
+  side of the world. Your own country and the ones on your watchlist still
+  toast.
+- **"X was swayed" now only appears for countries you follow.** During a
+  diplomatic play the base game reports every country picking a side. You now
+  see it only when the country that switched is on your watchlist (or is you);
+  the rest are hidden.
+- **Native uprisings against you no longer fire two toasts.** You were told
+  twice about one event -- once that a diplomatic play had started, once that
+  it was an uprising. The play notification is the one you act on, so the
+  second now goes to the feed.
+- **An interest group joining or leaving a lobby** -- feed instead of a toast.
+  It is nearly always the direct result of something you just did.
+- **Trade agreements and subject perks expiring on their own** ("Knowledge
+  Sharing broken", "Investment Rights broken") -- now hidden. **Losing an
+  actual subject** -- a puppet, vassal, dominion, protectorate or colony --
+  still tells you, because the base game announces that through the very same
+  notification and nowhere else.
 
 ### Fixed
 
-- **"Law Ready to Enact" now stops once you enact the law.** The alert was
-  driven by a flag set when you tick a law's checkbox, and nothing cleared that
-  flag when the law actually passed -- so it kept pointing at a law you already
-  had. Note it cannot retroactively clear a flag for a law enacted before this
-  update; untick that law's checkbox once and it is gone.
+- **"Law Ready to Enact" kept nagging after you enacted the law.** It now stops
+  when the law passes. One catch: it cannot clear a law you enacted *before*
+  this update -- untick that law's checkbox once and it will go.
 
 ## [0.40] — 2026-09-14
 
