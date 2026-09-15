@@ -156,12 +156,25 @@ muted globally. Whether that's a gap or the right scope is an open
 question — worth listing which other families *could* be watchlist-gated
 before deciding.
 
-**(c) v0.40 is built but not published, and two of its branches are
-unverified.** Live on the Workshop is **v0.39**; the repo is at v0.40 (event
-context). Before it can be uploaded, the two never-observed rendering branches
-in § *UNVERIFIED before the next release* have to be confirmed. Packaging is
-`python tools/package_release.py`, and the upload comes from
-`smart_notifications_release`, never the dev junction.
+**(c) v0.40 is LIVE, and it shipped with unverified parts.** Verified
+2026-09-15 with `python tools/published_version.py`, which reads the copy Steam
+downloads back from the Workshop — those files *are* the published mod, so this
+is evidence rather than recollection. Published v0.40 on 2026-09-14 14:13;
+repo, packaged and published file lists are identical (22 files).
+
+*(This entry said the opposite on 2026-09-14 — "built but not published, live
+is v0.39". That was wrong; the user corrected it. The lesson is in the tool:
+check what Steam has on disk, don't reason from the last thing you remember
+doing.)*
+
+**What that changes:** the two never-observed rendering branches in
+§ *UNVERIFIED* and the never-tested F10 pact-break routing in § *Open
+questions* are not pending work before a release — **they are already in front
+of every subscriber.** Neither can error loudly (one is a loc template that
+simply never gets invoked, the other is `?=`-guarded), so the live failure mode
+is a missing figure or a missing notification, not a crash. That lowers the
+urgency but raises the honesty bar: they need confirming, and until then the
+CHANGELOG claims for 0.40 are partly unverified.
 
 *(The 2026-09-09 version of this note said the live build predated the
 actor/recipient split. That shipped in 0.38, and the diplomatic-play gap it
@@ -656,15 +669,31 @@ own separate mod. No version target until that's decided.
       treaty terms, so the phase closed with no new content needed and
       these tools have nothing left to scope.
 
-## UNVERIFIED before the next release — event context feature
+## UNVERIFIED — event context feature, already shipped in v0.40
 
 Merged into Smart Notifications 2026-09-14 as
 `localization/replace/english/smart_notifications_event_context_l_english.yml`.
-**No version bump yet**: two of its branches have never been observed
-rendering in game, and the convention is to bump only for something new and
-*confirmed working*.
 
-Confirm both, then bump and tag:
+**Corrected 2026-09-15:** this section used to be headed "before the next
+release" and to say "no version bump yet". Both were wrong — 0.40 was bumped,
+tagged *and* published on 2026-09-14 (`python tools/published_version.py`).
+These two branches are live and unconfirmed, not pending.
+
+**Acceptance criteria.** (1) A state-scoped effect using the `in <state>` form
+renders `+5.0% of Czech Pops (1.2M nationwide) in Bohemia (2.1M inhabitants)
+become more Radical` — both figures present. (2) A strata-filtered effect
+renders `(12.4M nationwide)`. Zero new lines in `error.log` either way.
+
+**How it gets checked.** Neither can be asserted statically: whether the engine
+invokes a given loc template is engine behaviour. But both are pure
+observation, cost no dedicated launch, and ride along with any session — read
+the screenshot back with `python tools/shot.py --region panel`. Also worth
+watching for, unprompted: a **single-filter culture** effect in a
+country-scoped choice that shows no `(N nationwide)` figure at all — one
+screenshot from 2026-09-14 14:23 appears to show exactly that, which would be a
+third un-hit template rather than a bug, but it has not been checked.
+
+Confirm both, then note the result here and in the CHANGELOG:
 
 1. **State-scoped effects, the `in <state>` form.** Still unconfirmed.
    Expect `+5.0% of Czech Pops (1.2M nationwide) in Bohemia (2.1M
