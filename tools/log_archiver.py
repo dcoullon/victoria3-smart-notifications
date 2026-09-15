@@ -56,7 +56,17 @@ def archive(src: Path, out_dir: Path, poll: float, quiet: bool) -> int:
     print(f"archive: {dest}")
     print("Leave this running, launch the game, and Ctrl+C when you quit.\n")
 
-    pos = 0
+    # Start at the CURRENT end of file, like `tail -f`. The debug.log sitting
+    # there now is the previous session's leftover; archiving it would silently
+    # merge two runs into one analysis. The game truncates the file when it
+    # launches, which we detect as a rotation and follow from byte zero.
+    try:
+        pos = src.stat().st_size
+    except FileNotFoundError:
+        pos = 0
+    if pos and not quiet:
+        print(f"skipping {pos / 1024:.0f} KB of pre-existing log "
+              f"(previous session); capturing from here on.\n")
     rotations = 0
     written = 0
     last_report = 0.0
