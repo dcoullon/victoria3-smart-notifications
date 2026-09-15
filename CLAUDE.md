@@ -45,7 +45,18 @@ link it.
 - `validate_syntax.py` also flags a short list of confirmed-real, repeated-mistake patterns (uncast `SCOPE.GetRootScope`, `any_X` inside an `effect`, effect keywords inside a `valid`/`limit` trigger block) — fix any of these before finishing too, same as a bracket error. See engine-notes.md § Known mistake patterns before adding a new one to that list.
 - `validate_syntax.py` also runs `tools/check_references.py`: static cross-file checks (undefined `custom_tooltip` loc keys, a `GetScriptedGui` reference or a scripted-gui-shaped block outside `common/scripted_guis/`, an `alert_group` used but not declared, missing alert loc keys, and law-type-list drift across this mod's generated per-law files). These catch bug classes that previously required a live playtest to notice — add a new check there whenever a bug is found that a static scan could have caught.
 
-## 5. Other
+- A run without the game installed is **not** a pass: `validate_syntax.py` now reports `PASS (DEGRADED)` and lists the vanilla-comparison checks that did not execute. Before a playtest or a release, run `python tools/validate_syntax.py --strict` on the machine that has Victoria 3 — `--strict` makes a degraded run exit non-zero. See engine-notes.md § A degraded PASS is not a PASS.
+
+## 5. Playtest Protocol (a game launch costs the user ~2 minutes + play time)
+
+- **State the acceptance criteria before writing the code**, in the form "when Y happens, X should appear in <tier>, and nothing should appear for Z". Write it into the commit or TODO entry. A feature whose success condition isn't stated can't be checked without asking the user to go look.
+- **Then ask: can a static check assert any part of it?** If yes, add it to `tools/check_references.py` *before* requesting a playtest, and ask the user to test only the part that genuinely needs a running game. Every check added there is a playtest never requested again — that's the whole point of that file.
+- **Never request a playtest that tests fewer than 3 hypotheses.** Before asking, list the competing hypotheses the single run distinguishes and give each its own `SNW_*` `debug_log` line, so one launch resolves the whole question instead of one branch of it. If only one hypothesis exists, find the other two candidates first, or instrument rather than guess (`tools/build_census_mod.py` is the worked example).
+- **Measure before designing.** When the mechanism is unknown, ship instrumentation first and read `python tools/scan_logs.py`, rather than writing a feature against an assumption and testing whether it happened to hold.
+- **The user is entitled to push back on any single-hypothesis test request** — if that happens, it's a batching failure here, not a user error.
+- When the user reports back, ask for `python tools/scan_logs.py` output or a screenshot rather than a prose "it didn't work"; in-game screenshots land in the folder in § 6 and can be read directly.
+
+## 6. Other
 
 - Game install: `C:\Program Files (x86)\Steam\steamapps\common\Victoria 3`
 - **In-game screenshots the user takes land in `C:\Program Files (x86)\Steam\userdata\42572\760\remote\529340\screenshots\`**, named `YYYYMMDDHHMMSS_1.jpg`. Read them from there with the `Read` tool rather than asking the user to paste them (their standing request, 2026-09-09); `ls -t` that folder to find the ones just taken.

@@ -39,6 +39,7 @@ in new code; `CLAUDE.md` only states the rule, not the reasoning.
 - [Steam Workshop / Paradox mod policy](#steam-workshop--paradox-mod-policy)
 - [Localization cannot guard on an unbound scope — the rule that killed two features](#localization-cannot-guard-on-an-unbound-scope-—-the-rule-that-killed-two-features)
 - [A degraded PASS is not a PASS](#a-degraded-pass-is-not-a-pass)
+- [Why a playtest request must carry three hypotheses](#why-a-playtest-request-must-carry-three-hypotheses)
 
 <!-- /TOC -->
 
@@ -1298,3 +1299,46 @@ that is pure repo state (brackets, BOM, loc keys, cross-references).
 
 **The rule:** a `PASS` earned without the game installed does not authorise a
 release or a "this is ready to test" claim. Re-run it where the game lives.
+
+## Why a playtest request must carry three hypotheses
+
+Measured over the 14 sessions of 2026-09-08..09-14: 88 commits produced 3
+version bumps, and 33 of those 88 commit subjects are probe/retest/bake-off
+shaped — "Round 1 lost the duplicate-key fight; retest via localization/
+replace", "Test the global IsValid() against the last untried mechanism",
+"Probe whether the modifier subject's TYPE arrives as a string parameter",
+"Drop the multiplication: its two operands never share a context". Each of
+those is one hypothesis, and each cost the user a game launch (~2 minutes,
+plus however long it takes to reach the situation that triggers the thing).
+Five such commits in a row is five playthroughs to learn five facts that one
+instrumented run could have answered together.
+
+The failure mode is not "we guessed wrong" — negative results are genuinely
+useful here and this repo records them well. The failure mode is **serialising
+them**: asking a question whose answer only ever eliminates one branch, then
+going back to the user for the next branch.
+
+### What works instead, twice proven in this repo
+
+1. **The bake-off.** Ship three candidate guard forms at once, each writing its
+   own `SNW_*` line, and let one run say which parses and which fires.
+2. **The measurement build.** `tools/build_census_mod.py` (775 lines) builds an
+   instrumented variant that enumerates what the engine actually does, instead
+   of testing whether one assumption about it holds. Read the result with
+   `python tools/scan_logs.py`.
+
+Both were invented ad hoc, worked, and were then not reused by default. CLAUDE.md
+§ Playtest Protocol makes the batching rule standing policy rather than an
+occasional good idea.
+
+### Acceptance criteria are the other half
+
+State the success condition *before* writing the code: "when Y happens, X
+appears in <tier>, and nothing appears for Z". Two reasons. First, an unstated
+success condition can only be checked by asking the user to go look — which is
+another playtest. Second, a stated one is frequently *partly* checkable
+statically: the tier a message resolves to, the existence of loc keys, group
+isolation, and dispatch consistency are all repo state, and every one of those
+is now asserted in `tools/check_references.py` instead of by eye. Add the check
+first; ask for the run only for the part that truly needs the game to be
+running.
