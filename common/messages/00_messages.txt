@@ -542,7 +542,20 @@ native_uprising_notification = {
 
 	texture = "gfx/interface/icons/notification_icons/secession.dds"
 
-	notification_type = toast
+		# DEMOTED 2026-09-15 from the user's live late-game Portugal run: an
+	# uprising aimed at them produced TWO toasts back to back for one event.
+	# Confirmed from that run's log -- on July 31 1909 both of these fired
+	# player-visible on the same day:
+	#
+	#   smart_notifications_diplo_play_start_player   toast   "... against us"
+	#   native_uprising_notification                  toast   "<X> Uprising"
+	#
+	# A native uprising IS a diplomatic play, so the play-start toast already
+	# interrupts and is the actionable one -- it is the general handler for
+	# every play aimed at the player, and demoting THAT would quiet war
+	# declarations too. This key only re-labels the same event, so it is the
+	# one that gives way. Alone in its group, so nothing else moves with it.
+	notification_type = feed
 	color = bad
 
 	on_created_soundeffect = "event:/SFX/UI/Alerts/Toasts/native_uprising"
