@@ -975,3 +975,33 @@
  notification_smart_notifications_pact_auto_break_notification_name:0 "[SCOPE.GetRootScope.GetDiplomaticPact.GetName] broken"
  notification_smart_notifications_pact_auto_break_notification_desc:0 "[SCOPE.GetRootScope.GetDiplomaticPact.GetName] with [AddTextIf(SCOPE.GetRootScope.GetDiplomaticPact.IsFirstCountry(GetPlayer), SCOPE.GetRootScope.GetDiplomaticPact.GetSecondCountry.GetName)][AddTextIf(SCOPE.GetRootScope.GetDiplomaticPact.IsSecondCountry(GetPlayer), SCOPE.GetRootScope.GetDiplomaticPact.GetFirstCountry.GetName)] can no longer be maintained because the following conditions are no longer true:\n[SCOPE.GetRootScope.GetDiplomaticPact.GetAutoBreakReasonDesc]"
  notification_smart_notifications_pact_auto_break_notification_tooltip:0 "#header $notification_smart_notifications_pact_auto_break_notification_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_pact_auto_break_notification_desc$"
+
+ # Revolution / secession, watchlist-gated (2026-09-15). Vanilla's two keys
+ # are muted in common/messages/00_messages.txt; these are posted instead by
+ # common/on_actions/14_smart_notifications_upheaval_filtering.txt.
+ #
+ # Note vanilla's own desc is "[concept_revolution] is upon us!" -- written as
+ # though it were always YOUR revolution, while the key actually toasts for
+ # every country in the world. The player-facing wording below keeps "us" only
+ # for the player's own, and names the country otherwise.
+ smart_notifications_upheaval_player_group:0 "(SN) Upheaval (Ours)"
+ smart_notifications_upheaval_watched_group:0 "(SN) Upheaval (Watched)"
+ smart_notifications_upheaval_quiet_group:0 "(SN) Upheaval (Elsewhere)"
+ notification_smart_notifications_revolution_player_name:0 "[concept_revolution]!"
+ notification_smart_notifications_revolution_player_desc:0 "[concept_revolution] is upon us!"
+ notification_smart_notifications_revolution_player_tooltip:0 "#header $notification_smart_notifications_revolution_player_name$#!\n$notification_smart_notifications_revolution_player_desc$"
+ notification_smart_notifications_revolution_watched_name:0 "[concept_revolution] in [SCOPE.GetRootScope.GetCountry.GetNameNoFormatting]"
+ notification_smart_notifications_revolution_watched_desc:0 "A [concept_revolution] has begun in [SCOPE.GetRootScope.GetCountry.GetNameNoFormatting]."
+ notification_smart_notifications_revolution_watched_tooltip:0 "#header $notification_smart_notifications_revolution_watched_name$#!\n$notification_smart_notifications_revolution_watched_desc$"
+ notification_smart_notifications_revolution_quiet_name:0 "[concept_revolution] in [SCOPE.GetRootScope.GetCountry.GetNameNoFormatting]"
+ notification_smart_notifications_revolution_quiet_desc:0 "A [concept_revolution] has begun in [SCOPE.GetRootScope.GetCountry.GetNameNoFormatting]."
+ notification_smart_notifications_revolution_quiet_tooltip:0 "#header $notification_smart_notifications_revolution_quiet_name$#!\n$notification_smart_notifications_revolution_quiet_desc$"
+ notification_smart_notifications_secession_player_name:0 "[concept_secession]!"
+ notification_smart_notifications_secession_player_desc:0 "[concept_secession] is upon us!"
+ notification_smart_notifications_secession_player_tooltip:0 "#header $notification_smart_notifications_secession_player_name$#!\n$notification_smart_notifications_secession_player_desc$"
+ notification_smart_notifications_secession_watched_name:0 "[concept_secession] in [SCOPE.GetRootScope.GetCountry.GetNameNoFormatting]"
+ notification_smart_notifications_secession_watched_desc:0 "A [concept_secession] has begun in [SCOPE.GetRootScope.GetCountry.GetNameNoFormatting]."
+ notification_smart_notifications_secession_watched_tooltip:0 "#header $notification_smart_notifications_secession_watched_name$#!\n$notification_smart_notifications_secession_watched_desc$"
+ notification_smart_notifications_secession_quiet_name:0 "[concept_secession] in [SCOPE.GetRootScope.GetCountry.GetNameNoFormatting]"
+ notification_smart_notifications_secession_quiet_desc:0 "A [concept_secession] has begun in [SCOPE.GetRootScope.GetCountry.GetNameNoFormatting]."
+ notification_smart_notifications_secession_quiet_tooltip:0 "#header $notification_smart_notifications_secession_quiet_name$#!\n$notification_smart_notifications_secession_quiet_desc$"
