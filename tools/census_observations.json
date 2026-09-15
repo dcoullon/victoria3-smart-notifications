@@ -1,0 +1,37 @@
+{
+  "_README": "What was actually on screen during the 1836-1846 measure run, read off the user's in-game screenshots (Steam screenshot folder, 2026-09-15). Feeds the coverage diff: python tools/scan_logs.py --coverage tools/census_observations.json --logs-dir <archive>. Keys are mapped from the feed's displayed text via tools/message_catalog.json; where a line could be one of two keys it is left out rather than guessed, so the coverage number is conservative.",
+  "country": "BEL",
+  "run": "1836-1846 measure run, archive at logs/census_archive",
+  "observations": [
+    {
+      "date": "1845.7.21",
+      "source": "feed screenshot 20260915121555 (11 entries visible, fully scrolled)",
+      "keys": [
+        "formation_exiled",
+        "ig_new_leader_notification",
+        "ig_new_leader_notification",
+        "ig_new_leader_notification",
+        "ig_no_longer_influential",
+        "ig_trait_deactivated",
+        "ig_trait_deactivated",
+        "ig_became_powerful",
+        "ig_became_powerful",
+        "character_spawned_in_pool",
+        "character_spawned_in_pool"
+      ],
+      "unidentified": 0
+    },
+    {
+      "date": "1845.3.31",
+      "source": "feed screenshot 20260915121159 (5 entries visible)",
+      "keys": [
+        "peace_agreement_signed_non_participant",
+        "ig_no_longer_influential",
+        "ig_no_longer_powerful",
+        "diplomatic_pact_auto_break_notification",
+        "ig_became_powerful"
+      ],
+      "unidentified": 0
+    }
+  ]
+}

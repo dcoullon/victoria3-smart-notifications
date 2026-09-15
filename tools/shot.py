@@ -33,7 +33,13 @@ REGIONS = {
     "full":     (0.00, 0.00, 1.00, 1.00),
     "toast":    (0.58, 0.05, 1.00, 0.55),  # toasts stack down the right edge
     "alerts":   (0.00, 0.05, 0.22, 0.75),  # Important Actions, left edge
-    "feed":     (0.58, 0.05, 1.00, 1.00),  # message feed, full right column
+    # CORRECTED 2026-09-15 against real screenshots. The feed is NOT the right
+    # column -- that is the outliner (journal, markets, interest groups). The
+    # message feed stacks bottom-CENTRE, left of the outliner. The old region
+    # returned the outliner every time and missed the thing entirely.
+    "feed":     (0.50, 0.58, 0.84, 1.00),
+    "outliner": (0.80, 0.05, 1.00, 1.00),  # what "feed" used to point at
+    "date":     (0.74, 0.00, 0.92, 0.05),  # in-game date, top right
     "settings": (0.15, 0.05, 0.85, 0.95),  # centred Message Settings dialog
     "topbar":   (0.00, 0.00, 1.00, 0.10),
     "panel":    (0.15, 0.10, 0.85, 0.90),  # any centred panel
