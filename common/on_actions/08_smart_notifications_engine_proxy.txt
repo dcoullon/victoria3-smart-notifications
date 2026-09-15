@@ -114,7 +114,7 @@ smart_notifications_proxy_resource_discovered = {
 			# rebound, and names who. Without it a run of all-zero P lines
 			# is ambiguous -- a broken link and a quiet player look
 			# identical. Reading the country back settles it.
-			debug_log = "SNW_PROXY|O|resource_discovered|[THIS.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
+			debug_log = "SNW_PROXY|O|resource_discovered|[THIS.GetCountry.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
 			if = {
 				limit = { is_player = yes }
 				debug_log = "SNW_PROXY|P|resource_discovered|[TimeKeeper.GetCurrentDate.GetString]"
@@ -131,7 +131,7 @@ smart_notifications_proxy_colony_created = {
 			# rebound, and names who. Without it a run of all-zero P lines
 			# is ambiguous -- a broken link and a quiet player look
 			# identical. Reading the country back settles it.
-			debug_log = "SNW_PROXY|O|colony_created|[THIS.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
+			debug_log = "SNW_PROXY|O|colony_created|[THIS.GetCountry.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
 			if = {
 				limit = { is_player = yes }
 				debug_log = "SNW_PROXY|P|colony_created|[TimeKeeper.GetCurrentDate.GetString]"
@@ -150,7 +150,7 @@ smart_notifications_proxy_character_death = {
 			# rebound, and names who. Without it a run of all-zero P lines
 			# is ambiguous -- a broken link and a quiet player look
 			# identical. Reading the country back settles it.
-			debug_log = "SNW_PROXY|O|character_died_notification|[THIS.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
+			debug_log = "SNW_PROXY|O|character_died_notification|[THIS.GetCountry.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
 			if = {
 				limit = { is_player = yes }
 				debug_log = "SNW_PROXY|P|character_died_notification|[TimeKeeper.GetCurrentDate.GetString]"
@@ -167,7 +167,7 @@ smart_notifications_proxy_new_ig_leader = {
 			# rebound, and names who. Without it a run of all-zero P lines
 			# is ambiguous -- a broken link and a quiet player look
 			# identical. Reading the country back settles it.
-			debug_log = "SNW_PROXY|O|ig_new_leader_notification|[THIS.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
+			debug_log = "SNW_PROXY|O|ig_new_leader_notification|[THIS.GetCountry.GetNameNoFormatting]|[TimeKeeper.GetCurrentDate.GetString]"
 			if = {
 				limit = { is_player = yes }
 				debug_log = "SNW_PROXY|P|ig_new_leader_notification|[TimeKeeper.GetCurrentDate.GetString]"
