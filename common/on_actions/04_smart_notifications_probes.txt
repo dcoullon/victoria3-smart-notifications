@@ -265,5 +265,22 @@ smart_notifications_probe_country_swayed = {
 				debug_log = "SNW_SWAY|scope=target|unwatched"
 			}
 		}
+		# ADDED 2026-09-15, and it is the one that actually matters. Vanilla's
+		# own loc for this notification reads
+		#   "[SCOPE.sC('recipient').GetName] swayed"
+		# so the country the notification is ABOUT is `recipient` -- not
+		# `target`, which is the diplomatic play's target. The first version of
+		# this probe measured actor and target and missed the subject entirely,
+		# which produced a watched/unwatched split for the wrong country.
+		scope:recipient ?= {
+			debug_log = "SNW_SWAY|scope=recipient|bound|[THIS.GetCountry.GetNameNoFormatting]"
+			if = {
+				limit = { smart_notifications_is_watched = yes }
+				debug_log = "SNW_SWAY|scope=recipient|watched"
+			}
+			else = {
+				debug_log = "SNW_SWAY|scope=recipient|unwatched"
+			}
+		}
 	}
 }
