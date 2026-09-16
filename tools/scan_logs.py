@@ -55,7 +55,39 @@ ENGINE_ERROR_PATTERNS = [
     r"Unknown effect",
     r"Failed to convert statement",
     r"should be in utf8-bom encoding",
+    # Added 2026-09-16. A .gui file referencing an @constant declared in a
+    # DIFFERENT file fails with this, kills the enclosing type, and the panel
+    # silently falls back to vanilla -- no missing-widget error, nothing on
+    # screen to explain it. It sat at line 2 of error.log and this scan
+    # reported "no errors found" because nothing here matched it.
+    r"Malformed token",
+    r"Failed to read key reference",
 ]
+
+# Any log line naming a file THIS REPO ships, whatever the engine called the
+# problem. The signature list above can only catch failure modes we have
+# already met once; this catches the first occurrence of one we haven't.
+#
+# It exists because of a concrete miss: the @panel_width failure above was in
+# error.log, attributed by name to our own .gui file, and a filtered scan
+# still printed "(none found)" -- which read as "the mod loaded fine".
+# A clean scan has to mean the mod is clean, or it is worse than no scan.
+REPO_FILE_SUFFIXES = (".txt", ".gui", ".yml")
+REPO_ROOT = Path(__file__).resolve().parent.parent
+
+
+def shipped_file_names() -> set[str]:
+    """Basenames of every script file this repo ships, across all its mods.
+    `reference/` (pristine vanilla snapshots) and `tools/` are excluded --
+    the game never loads either, so an error naming one is not ours."""
+    names = set()
+    for path in REPO_ROOT.rglob("*"):
+        if (path.suffix in REPO_FILE_SUFFIXES
+                and "reference" not in path.parts
+                and "tools" not in path.parts
+                and ".git" not in path.parts):
+            names.add(path.name)
+    return names
 # This repo now hosts more than one mod (see better_decision_info/ and
 # bulk_construction/), so the tag pattern covers every mod prefix in it:
 # SNW_ for Smart Notifications, BC_ for Bulk Construction. A new sibling
@@ -66,19 +98,27 @@ MOD_TAG_PATTERN = r"(?:SNW|BC)_[A-Z_]+\|"
 FILES_TO_SCAN = ["error.log", "debug.log"]
 
 
-def scan_file(path: Path, lines_limit: int) -> tuple[list[str], list[str]]:
+def scan_file(path: Path, lines_limit: int) -> tuple[list[str], list[str], list[str]]:
     if not path.exists():
-        return [], []
+        return [], [], []
     mod_tag_re = re.compile(MOD_TAG_PATTERN)
     error_re = re.compile("|".join(ENGINE_ERROR_PATTERNS))
-    tagged, errors = [], []
+    ours_re = re.compile("|".join(re.escape(n) for n in sorted(shipped_file_names())))
+    tagged, errors, ours = [], [], []
     with path.open(encoding="utf-8", errors="replace") as f:
         for line in f:
             if mod_tag_re.search(line):
                 tagged.append(line.rstrip())
+                continue
+            # Deliberately not `elif` against the error list: a line naming one
+            # of our files is worth showing under its own heading even when it
+            # also matches a known signature, because that heading is the one
+            # that means "this is yours, not vanilla noise".
+            if ours_re.search(line):
+                ours.append(line.rstrip())
             elif error_re.search(line):
                 errors.append(line.rstrip())
-    return tagged[-lines_limit:], errors[-lines_limit:]
+    return tagged[-lines_limit:], errors[-lines_limit:], ours[-lines_limit:]
 
 
 def main():
@@ -146,7 +186,7 @@ def main():
 
     for name in FILES_TO_SCAN:
         path = args.logs_dir / name
-        tagged, errors = scan_file(path, args.lines)
+        tagged, errors, ours = scan_file(path, args.lines)
         print(f"=== {name} ===")
         if not path.exists():
             print("  (not found)")
@@ -155,6 +195,15 @@ def main():
         print(f"  Mod debug_log lines (SNW_*/BC_*), last {len(tagged)}:")
         if tagged:
             for line in tagged:
+                print(f"    {line}")
+        else:
+            print("    (none found)")
+
+        # First, and loudly: anything the engine blamed on one of our own
+        # files, whether or not its wording is on the signature list.
+        print(f"  !! Lines naming THIS REPO's own files, last {len(ours)}:")
+        if ours:
+            for line in ours:
                 print(f"    {line}")
         else:
             print("    (none found)")

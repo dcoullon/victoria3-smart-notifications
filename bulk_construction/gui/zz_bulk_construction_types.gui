@@ -15,6 +15,20 @@
 # vanilla and must stay that way -- redefining a type replaces it wholesale,
 # so anything not copied is lost.
 
+# CONFIRMED 2026-09-16 by a live launch, not reasoned about: a @constant
+# declared in another .gui file is NOT visible here. Referencing vanilla's
+# @panel_width produced
+#   Error: "Malformed token: @panel_width" in file "gui/zz_bulk_construction_types.gui"
+# which killed this whole type -- the panel then silently fell back to
+# vanilla's version with no missing-widget error and nothing on screen to say
+# why. Constants are file-scoped; redeclare, never borrow.
+#
+# Must stay equal to vanilla's @panel_width (gui/map_list_panel.gui:3).
+# check_references.check_bc_panel_width_matches_vanilla asserts that on every
+# validation run, so a patch that changes it fails here instead of quietly
+# misaligning the panel.
+@bc_panel_width = 540
+
 types map_list_panel_types {
 	type build_building_map_list_panel = map_list_panel {
 		name = "build_building_map_list_panel"
@@ -169,13 +183,7 @@ types map_list_panel_types {
 		blockoverride "item" {
 			item = {
 				container = {
-					# @panel_width is declared at FILE scope in vanilla
-					# gui/map_list_panel.gui:3, not inside the types block, so
-					# it resolves here only because mod .gui files are parsed
-					# after vanilla ones. If error.log reports an unknown
-					# variable on load, this line is why -- replace with the
-					# literal 540 and note the drift risk.
-					min_width = @panel_width
+					min_width = @bc_panel_width
 
 					construction_interaction_item_condensed = {
 						visible = "[Not(GetVariableSystem.Exists('construction_list_toggle_full_or_condensed'))]"

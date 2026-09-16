@@ -1099,6 +1099,39 @@ CHEAT_VERBS = {
 }
 
 
+def check_bc_panel_width_matches_vanilla(root: Path) -> list[str]:
+    """`@constant`s are file-scoped in this engine's GUI parser, confirmed the
+    hard way on 2026-09-16: referencing vanilla's `@panel_width` from our own
+    .gui file produced `Malformed token: @panel_width`, which killed the whole
+    redefined type. The panel then fell back to vanilla silently -- no missing
+    widget error, nothing on screen -- so the failure looked exactly like "the
+    mod did nothing".
+
+    So we declare our own copy, which means it can now drift from vanilla's
+    without anything complaining. This asserts it hasn't. Skipped (not failed)
+    without the game installed, like the other vanilla comparisons."""
+    ours = root / "gui" / "zz_bulk_construction_types.gui"
+    if not ours.is_file():
+        return []
+    vanilla = VANILLA_ROOT / "gui" / "map_list_panel.gui"
+    if not vanilla.is_file():
+        _skip("bc panel width", "Victoria 3 not installed on this machine")
+        return []
+
+    m = re.search(r"^@bc_panel_width\s*=\s*(\d+)", _read(ours), re.M)
+    if not m:
+        return ["gui/zz_bulk_construction_types.gui: @bc_panel_width is gone -- "
+                "it must stay declared here, never borrowed from vanilla "
+                "(a cross-file @constant is a parse error that kills the type)"]
+    v = re.search(r"^@panel_width\s*=\s*(\d+)", _read(vanilla), re.M)
+    if v and v.group(1) != m.group(1):
+        return [f"gui/zz_bulk_construction_types.gui: @bc_panel_width is "
+                f"{m.group(1)}, but vanilla's @panel_width is now {v.group(1)} "
+                f"(gui/map_list_panel.gui) -- the construction panel rows will "
+                f"be misaligned until this matches"]
+    return []
+
+
 def check_no_cheat_verbs(root: Path) -> list[str]:
     """Bulk Construction's hard rule, enforced rather than documented: fix the
     UX, never change the rules of the game (spec section 1a). The mod's whole
@@ -1151,6 +1184,7 @@ def run_all(root: Path) -> list[str]:
     # asserted on every run rather than remembered at release time.
     if read_mod_id(root) == BULK_CONSTRUCTION_ID:
         errs += check_no_cheat_verbs(root)
+        errs += check_bc_panel_width_matches_vanilla(root)
 
     return errs
 
