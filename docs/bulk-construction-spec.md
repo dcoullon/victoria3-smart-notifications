@@ -228,6 +228,10 @@ All verified by the user in a live game, against a real construction queue.
 
 - Any new filter of our own (the "Incorporated only" toggle, a nice-to-have) —
   the panel's existing Location filter comes for free, ours would not.
+- **A "Max" level option.** Deferred 2026-09-16 by the user: wait until the
+  mod has been used in a real game and players have asked for it after public
+  launch, rather than guess at the right ceiling now. There is also no GUI
+  path to a per-state cap, so it would have to be an arbitrary large number.
 - A queue-cost preview or treasury warning. The player can cancel a queue.
 - Private-funding variant (`start_privately_funded_building_construction`
   exists, but the GUI-native route inherits whatever funding the row's **+**
@@ -266,7 +270,12 @@ Remaining distribution work:
   pre-existing blocker: Smart Notifications could not be packaged at all,
   because the census-freshness check rejected the release staging copy. Also
   fixed.)
-- No `(SN) ` prefix — that convention belongs to Smart Notifications
-  (CLAUDE.md §3). This mod adds labels to a vanilla panel and needs its own
-  answer before the first public build; decide at release, not now.
+- **Mod tag: `(Build All) `**, decided 2026-09-16, on the stepper label and on
+  the build button — the two labels this mod adds to a vanilla panel. Not
+  `(SN) `, which belongs to Smart Notifications (CLAUDE.md §3).
+  **Parentheses, never square brackets.** `[Build All]` was the first
+  proposal, and a literal `[...]` in loc is always parsed as a dynamic-text
+  call with no escape available — it would have rendered the button blank,
+  the same failure as the nested arithmetic in §4. Guarded by
+  `check_bc_loc_has_no_bracket_decoration`.
 - Release via `package_release.py`, never the dev junction.

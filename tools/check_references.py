@@ -1197,6 +1197,31 @@ def check_bc_loc_has_no_nested_arithmetic(root: Path) -> list[str]:
     return errs
 
 
+def check_bc_loc_has_no_bracket_decoration(root: Path) -> list[str]:
+    """A literal `[...]` in loc text is ALWAYS parsed as a dynamic-text call --
+    there is no escape (CLAUDE.md section 3). Used as a visual tag, e.g.
+    `[Build All] Queue 5 levels`, it fails to resolve and the widget renders
+    BLANK, exactly like the nested-arithmetic failure above. Use parentheses.
+
+    Proposed as a mod tag on 2026-09-16 and caught before it shipped. The
+    pattern below is deliberately narrow: it wants a bracketed run containing a
+    space and starting with a capital, with no `(` inside -- prose, in other
+    words. Real calls carry parentheses, and vanilla's bare concept references
+    (`[concept_state]`) are lowercase and spaceless, so neither trips it."""
+    loc = root / "localization" / "english"
+    if not loc.is_dir():
+        return []
+    errs = []
+    for path in loc.glob("*.yml"):
+        for i, line in enumerate(path.read_text(encoding="utf-8-sig").splitlines(), 1):
+            for m in re.finditer(r"\[([A-Z][^\[\]()]*\s[^\[\]()]*)\]", line):
+                errs.append(
+                    f"localization/english/{path.name}:{i}: '[{m.group(1)}]' reads as "
+                    f"decoration but will be parsed as a dynamic-text call and render "
+                    f"the widget BLANK. Use parentheses: '({m.group(1)})'")
+    return errs
+
+
 def check_no_cheat_verbs(root: Path) -> list[str]:
     """Bulk Construction's hard rule, enforced rather than documented: fix the
     UX, never change the rules of the game (spec section 1a). The mod's whole
@@ -1253,6 +1278,7 @@ def run_all(root: Path) -> list[str]:
         errs += check_bc_gui_filename_still_sorts_first(root)
         errs += check_bc_panel_width_matches_vanilla(root)
         errs += check_bc_loc_has_no_nested_arithmetic(root)
+        errs += check_bc_loc_has_no_bracket_decoration(root)
 
     return errs
 
