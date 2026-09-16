@@ -1,0 +1,40 @@
+﻿# Bulk Construction -- build logging.
+#
+# This does NOT build anything. The building is done by the game's own +
+# button (MapListOption.OnClick) from gui/00_bulk_construction_map_list.gui;
+# this runs alongside it, once per build call, purely so the log can say how
+# many calls were issued without anyone counting the construction queue by
+# eye. Read back with:
+#
+#     python tools/scan_logs.py
+#
+# One press of "Build N levels across M states" should produce exactly N*M
+# BC_BUILT|state lines, in one burst, and nothing afterwards.
+#
+# No state name is logged on purpose. A country's name in dynamic text is
+# GetNameNoFormatting and plain GetName errors outright (CLAUDE.md section 3);
+# the State equivalent is unproven in dynamic text, and a .gui file using
+# State.GetName is explicitly NOT evidence that it works here. Counting lines
+# answers the question without betting on an unproven function.
+#
+# HISTORY, kept because it is the reason the .gui is shaped the way it is.
+# The first version of this feature fired its per-state widgets with
+# `trigger_on_create` inside a container gated by `visible`. Measured, with
+# debug_log standing in for the build call: 777 firings across four bursts,
+# one full pass every time the panel rebuilt, with no click -- and 237 of
+# those from a container hard-coded `visible = no`. `visible` does not gate
+# widget creation. Had OnClick been wired in at that point it would have
+# queued hundreds of buildings into a live save unasked. The current
+# hand-triggered version measured exactly one pass of 123 against a panel
+# reading "valid 123".
+
+bc_built_log_sgui = {
+	scope = state
+
+	effect = {
+		debug_log = "BC_BUILT|state"
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}

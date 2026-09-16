@@ -410,9 +410,10 @@ FULL_OVERRIDE_FILES = [
 # drift check, or a game patch silently reverts part of the panel for players.
 FULL_OVERRIDES_BY_MOD = {
     SMART_NOTIFICATIONS_ID: FULL_OVERRIDE_FILES,
-    "bulk_construction": [
-        ("gui/map_list_panel.gui", "reference/vanilla/1.13.x/gui/map_list_panel.gui"),
-    ],
+    # Bulk Construction deliberately overrides NO vanilla file: it redefines a
+    # single type from its own 00_-prefixed file instead. If that ever changes,
+    # list the file here so drift against a patched vanilla is caught.
+    "bulk_construction": [],
 }
 
 
@@ -1111,6 +1112,60 @@ CHEAT_VERBS = {
 }
 
 
+def check_bc_gui_filename_still_sorts_first(root: Path) -> list[str]:
+    """This mod works by redefining one vanilla `type` from its own file, and
+    the engine keeps the FIRST definition it reads, in filename order. So the
+    file must sort before vanilla's `map_list_panel.gui` or the mod silently
+    does nothing -- it parses cleanly, loads, and the panel just renders
+    vanilla's version.
+
+    That is not hypothetical: an identical earlier version named
+    `zz_bulk_construction_types.gui` did exactly that and cost two playtests
+    to diagnose. A rename is the one edit that breaks this mod without
+    breaking anything a normal check would notice."""
+    gui_dir = root / "gui"
+    if not gui_dir.is_dir():
+        return []
+    ours = [p.name for p in gui_dir.glob("*.gui")]
+    if not ours:
+        return []
+    late = [n for n in ours if n.lower() >= "map_list_panel.gui"]
+    if late:
+        return [f"gui/{late[0]}: sorts at or after vanilla's map_list_panel.gui, "
+                f"so its type redefinition will lose and the mod will silently "
+                f"do nothing. Keep the 00_ prefix (see the file's own header)."]
+    return []
+
+
+def check_bc_panel_width_matches_vanilla(root: Path) -> list[str]:
+    """`@constant`s are file-scoped in this engine's GUI parser, confirmed the
+    hard way on 2026-09-16: referencing vanilla's `@panel_width` from our own
+    .gui file produced `Malformed token: @panel_width`, which killed the whole
+    redefined type and made the panel fall back to vanilla silently.
+
+    So we declare our own copy, which can now drift from vanilla's without
+    anything complaining. This asserts it hasn't."""
+    ours = root / "gui" / "00_bulk_construction_map_list.gui"
+    if not ours.is_file():
+        return []
+    vanilla = VANILLA_ROOT / "gui" / "map_list_panel.gui"
+    if not vanilla.is_file():
+        _skip("bc panel width", "Victoria 3 not installed on this machine")
+        return []
+
+    m = re.search(r"^@bc_panel_width\s*=\s*(\d+)", _read(ours), re.M)
+    if not m:
+        return ["gui/00_bulk_construction_map_list.gui: @bc_panel_width is gone -- "
+                "it must stay declared here, never borrowed from vanilla "
+                "(a cross-file @constant is a parse error that kills the type)"]
+    v = re.search(r"^@panel_width\s*=\s*(\d+)", _read(vanilla), re.M)
+    if v and v.group(1) != m.group(1):
+        return [f"gui/00_bulk_construction_map_list.gui: @bc_panel_width is "
+                f"{m.group(1)}, but vanilla's @panel_width is now {v.group(1)} "
+                f"-- the construction panel rows will be misaligned until it matches"]
+    return []
+
+
 def check_no_cheat_verbs(root: Path) -> list[str]:
     """Bulk Construction's hard rule, enforced rather than documented: fix the
     UX, never change the rules of the game (spec section 1a). The mod's whole
@@ -1164,6 +1219,8 @@ def run_all(root: Path) -> list[str]:
     if read_mod_id(root) == BULK_CONSTRUCTION_ID:
         errs += check_no_cheat_verbs(root)
         errs += check_full_overrides_match_installed_vanilla(root)
+        errs += check_bc_gui_filename_still_sorts_first(root)
+        errs += check_bc_panel_width_matches_vanilla(root)
 
     return errs
 

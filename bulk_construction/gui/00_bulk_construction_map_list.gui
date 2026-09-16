@@ -1,32 +1,23 @@
-﻿# Bulk Construction -- LOAD-ORDER PROBE, added 2026-09-16.
+﻿# Bulk Construction -- the whole mod's GUI, in one file.
 #
-# Tests whether a mod can redefine ONE vanilla `type` from its own file
-# instead of copying all 5,212 lines of gui/map_list_panel.gui.
+# It redefines ONE vanilla type, build_building_map_list_panel (vanilla
+# gui/map_list_panel.gui:1091-1123), from our own file. No vanilla file is
+# overridden, so the patch-fragility surface is this ~35-line type rather
+# than 5,212 lines of copied panel.
 #
-# An earlier attempt at exactly this failed, in a file named
-# zz_bulk_construction_types.gui. The Community Mod Framework does the same
-# thing successfully and names its files `00_MPM_building_browser_panel.gui`
-# -- a `00_` prefix, sorting BEFORE the vanilla file that declares the type.
-# That fits the earlier failure precisely if the engine keeps the FIRST
-# definition it reads: `zz_` sorted after vanilla and lost, `00_` sorts before
-# it and should win.
+# THE FILENAME IS LOAD-BEARING. The engine keeps the FIRST definition of a
+# type that it reads, and files are read in name order, so `00_` sorts ahead
+# of vanilla's `map_list_panel.gui` and wins. An identical earlier attempt
+# named `zz_bulk_construction_types.gui` sorted AFTER it and silently lost --
+# it parsed with no errors and the panel simply rendered vanilla's version.
+# Confirmed 2026-09-16 by launching both at once and labelling them
+# differently. This convention is also what the Community Mod Framework uses
+# (`00_MPM_building_browser_panel.gui`). Do not rename this file.
 #
-# So this file carries the same type and the same probe as our full override,
-# labelled BC2 instead of BC. Exactly one of them can win, and the label on
-# screen says which:
-#
-#   row reads "BC"  -> the whole-file override won; this mechanism does not
-#                      work, and the 5,212-line copy stays.
-#   row reads "BC2" -> this file won; the override can be deleted outright
-#                      and the mod's patch-fragility surface goes to ~35 lines.
-#
-# Either way the probe button works, so the latch/CanClick/visible questions
-# get answered in the same launch.
-#
-# @constants are file-scoped (docs/engine-notes.md), so vanilla's @panel_width
-# is not visible here -- hence our own copy. Must equal vanilla's
-# gui/map_list_panel.gui:3.
-@bc2_panel_width = 540
+# @constants are file-scoped, so vanilla's @panel_width is not visible here.
+# Ours must stay equal to it (gui/map_list_panel.gui:3); asserted by
+# check_references.check_bc_panel_width_matches_vanilla.
+@bc_panel_width = 540
 
 types map_list_panel_types {
 	type build_building_map_list_panel = map_list_panel {
@@ -37,70 +28,152 @@ types map_list_panel_types {
 			direction = vertical
 
 			construction_filters = {}
-			### BC PROBE -- start ####################################
-			# Placed BELOW the filters on purpose (user, 2026-09-16): the bulk
-			# action reads the filters, so it must not sit above them.
+			### BULK BUILD -- start ##################################
+			# Below the filters on purpose: this acts on whatever the filters
+			# above are currently showing, so it must read as their consequence.
 			#
-			# FIRING MECHANISM CHANGED 2026-09-16 after the first probe came
-			# back fatal. The previous version fired items via
-			# `trigger_on_create` inside a container gated by `visible`.
-			# Measured result: 777 firings in four bursts, one full pass every
-			# time the panel rebuilt, with NO click -- and 237 of them from a
-			# container hard-coded `visible = no`. So `visible` does not gate
-			# widget creation, the CanClick guard was decorative and the latch
-			# was never a latch. With OnClick wired in, that would have queued
-			# hundreds of buildings unprompted.
+			# It builds by triggering the game's OWN + button
+			# (MapListOption.OnClick, gui/map_list_panel.gui:230) once per
+			# valid row, per level. Nothing here decides what may be built,
+			# what it costs, or who pays -- that is the whole no-cheat claim
+			# (docs/bulk-construction-spec.md section 1a), and it is why this
+			# iterates AccessValidOptions and never the Failed or Invalid
+			# lists.
 			#
-			# This version fires nothing on creation. The items sit idle and
-			# only act when the button triggers their named state by hand, via
-			# PdxGuiTriggerAllAnimations (vanilla: gui/character_panel.gui:582).
-			# A click should now produce exactly one pass, and no click should
-			# produce nothing at all.
+			# MEASURED 2026-09-16, and the reason it is safe to wire OnClick
+			# here at all: one PdxGuiTriggerAllAnimations press produced
+			# exactly one pass -- 123 firings against a panel reading
+			# "valid 123", in a single burst, with nothing before or after.
+			# The earlier trigger_on_create version fired 777 times unprompted
+			# across four panel rebuilds; see docs/engine-notes.md
+			# "visible does not gate widget creation".
 			flowcontainer = {
-				direction = horizontal
+				direction = vertical
 				parentanchor = hcenter
-				spacing = 8
 				margin = { 10 4 }
-				datacontext = "[GetMetaPlayer.GetPlayedOrObservedCountry]"
+				spacing = 4
 
-				textbox = {
-					autoresize = yes
-					align = nobaseline
-					# No |= formatter: it renders the count as "+57".
-					raw_text = "#BOLD BC2#! valid [GetDataModelSize(MapListPanel.AccessValidOptions)] / failed [GetDataModelSize(MapListPanel.AccessFailedOptions)] / invalid [GetDataModelSize(MapListPanel.AccessInvalidOptions)]"
+				flowcontainer = {
+					direction = horizontal
+					parentanchor = hcenter
+					spacing = 6
+
+					textbox = {
+						autoresize = yes
+						align = nobaseline
+						parentanchor = vcenter
+						text = "BC_LEVELS_LABEL"
+					}
+
+					button = {
+						size = { 52 28 }
+						using = default_button
+						text = "BC_LEVELS_1"
+						onclick = "[GetVariableSystem.Set('bc_levels', '1')]"
+
+						icon = {
+							visible = "[Not(Or(GetVariableSystem.HasValue('bc_levels', '5'), GetVariableSystem.HasValue('bc_levels', '10')))]"
+							texture = "gfx/interface/buttons/button_selected_frame.dds"
+							size = { 52 28 }
+							parentanchor = center
+							alwaystransparent = yes
+						}
+					}
+					button = {
+						size = { 52 28 }
+						using = default_button
+						text = "BC_LEVELS_5"
+						onclick = "[GetVariableSystem.Set('bc_levels', '5')]"
+
+						icon = {
+							visible = "[GetVariableSystem.HasValue('bc_levels', '5')]"
+							texture = "gfx/interface/buttons/button_selected_frame.dds"
+							size = { 52 28 }
+							parentanchor = center
+							alwaystransparent = yes
+						}
+					}
+					button = {
+						size = { 52 28 }
+						using = default_button
+						text = "BC_LEVELS_10"
+						onclick = "[GetVariableSystem.Set('bc_levels', '10')]"
+
+						icon = {
+							visible = "[GetVariableSystem.HasValue('bc_levels', '10')]"
+							texture = "gfx/interface/buttons/button_selected_frame.dds"
+							size = { 52 28 }
+							parentanchor = center
+							alwaystransparent = yes
+						}
+					}
 				}
 
-				# Fires the three counters below, by triggering their state.
 				button = {
-					size = { 120 28 }
+					visible = "[Not(Or(GetVariableSystem.HasValue('bc_levels', '5'), GetVariableSystem.HasValue('bc_levels', '10')))]"
+					size = { 300 30 }
 					using = default_button
-					text = "BC_PROBE_FIRE_BUTTON"
-					tooltip = "BC_PROBE_FIRE_BUTTON_TOOLTIP"
-					onclick = "[PdxGuiTriggerAllAnimations('bc_fire')]"
+					text = "BC_BUILD_BUTTON_1"
+					tooltip = "BC_BUILD_BUTTON_TOOLTIP"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_log_1')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_build_1')]"
 				}
-
-				# Separate button, one onclick only. The previous probe logged
-				# ZERO click markers, and could not distinguish "the scripted
-				# GUI call failed" from "the button was never pressed" because
-				# the same button also carried a second onclick. This one does
-				# nothing else, so a missing marker means the call itself.
 				button = {
-					size = { 120 28 }
+					visible = "[GetVariableSystem.HasValue('bc_levels', '5')]"
+					size = { 300 30 }
 					using = default_button
-					text = "BC_PROBE_MARK_BUTTON"
-					tooltip = "BC_PROBE_MARK_BUTTON_TOOLTIP"
-					onclick = "[GetScriptedGui('bc_probe_click_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
+					text = "BC_BUILD_BUTTON_5"
+					tooltip = "BC_BUILD_BUTTON_TOOLTIP"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_log_1')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_build_1')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_log_2')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_build_2')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_log_3')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_build_3')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_log_4')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_build_4')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_log_5')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_build_5')]"
+				}
+				button = {
+					visible = "[GetVariableSystem.HasValue('bc_levels', '10')]"
+					size = { 300 30 }
+					using = default_button
+					text = "BC_BUILD_BUTTON_10"
+					tooltip = "BC_BUILD_BUTTON_TOOLTIP"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_log_1')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_build_1')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_log_2')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_build_2')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_log_3')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_build_3')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_log_4')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_build_4')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_log_5')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_build_5')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_log_6')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_build_6')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_log_7')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_build_7')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_log_8')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_build_8')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_log_9')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_build_9')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_log_10')]"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_build_10')]"
 				}
 			}
 
-			# All three counters share the state name 'bc_fire', so one button
-			# press triggers all of them and the three counts are directly
-			# comparable within a single pass.
+			# The workers. One hidden row per valid option, each carrying one
+			# state per level. They do nothing until a button triggers a state
+			# by name -- there is deliberately no trigger_on_create anywhere.
+			#
+			# bc_log_N mirrors bc_build_N so the log says exactly how many
+			# build calls were issued, without asking anyone to count the
+			# construction queue by eye.
 			widget = {
 				size = { 1 1 }
 
-				### A -- every valid option, unguarded. Expect: one line per
-				# valid state, per click, and nothing without a click.
 				flowcontainer = {
 					direction = vertical
 					datamodel = "[MapListPanel.AccessValidOptions]"
@@ -108,61 +181,102 @@ types map_list_panel_types {
 					item = {
 						widget = {
 							size = { 1 1 }
-							datacontext = "[MapListOption.AccessBuildingData.AccessState]"
 
 							state = {
-								name = bc_fire
-								on_start = "[GetScriptedGui('bc_probe_state_sgui').Execute(GuiScope.SetRoot(State.MakeScope).End)]"
+								name = bc_build_1
+								on_start = "[MapListOption.OnClick]"
 							}
-						}
-					}
-				}
-
-				### B -- guarded by the same condition vanilla's + button uses.
-				# Fewer than A means the valid list contains options the player
-				# may not click, so the guard is load-bearing.
-				flowcontainer = {
-					direction = vertical
-					datamodel = "[MapListPanel.AccessValidOptions]"
-
-					item = {
-						widget = {
-							size = { 1 1 }
-							visible = "[MapListOption.CanClick]"
-							datacontext = "[MapListOption.AccessBuildingData.AccessState]"
 
 							state = {
-								name = bc_fire
-								on_start = "[GetScriptedGui('bc_probe_clickable_sgui').Execute(GuiScope.SetRoot(State.MakeScope).End)]"
+								name = bc_log_1
+								on_start = "[GetScriptedGui('bc_built_log_sgui').Execute(GuiScope.SetRoot(MapListOption.AccessBuildingData.AccessState.MakeScope).End)]"
 							}
-						}
-					}
-				}
-
-				### C -- the control, hard-coded invisible. `visible` already
-				# failed to gate creation; this asks the narrower question of
-				# whether it gates a hand-triggered state. Zero means B's guard
-				# works and the design is viable. Non-zero means no GUI-side
-				# guard exists and we go to the script route.
-				flowcontainer = {
-					direction = vertical
-					datamodel = "[MapListPanel.AccessValidOptions]"
-
-					item = {
-						widget = {
-							size = { 1 1 }
-							visible = no
-							datacontext = "[MapListOption.AccessBuildingData.AccessState]"
+							state = {
+								name = bc_build_2
+								on_start = "[MapListOption.OnClick]"
+							}
 
 							state = {
-								name = bc_fire
-								on_start = "[GetScriptedGui('bc_probe_hidden_sgui').Execute(GuiScope.SetRoot(State.MakeScope).End)]"
+								name = bc_log_2
+								on_start = "[GetScriptedGui('bc_built_log_sgui').Execute(GuiScope.SetRoot(MapListOption.AccessBuildingData.AccessState.MakeScope).End)]"
+							}
+							state = {
+								name = bc_build_3
+								on_start = "[MapListOption.OnClick]"
+							}
+
+							state = {
+								name = bc_log_3
+								on_start = "[GetScriptedGui('bc_built_log_sgui').Execute(GuiScope.SetRoot(MapListOption.AccessBuildingData.AccessState.MakeScope).End)]"
+							}
+							state = {
+								name = bc_build_4
+								on_start = "[MapListOption.OnClick]"
+							}
+
+							state = {
+								name = bc_log_4
+								on_start = "[GetScriptedGui('bc_built_log_sgui').Execute(GuiScope.SetRoot(MapListOption.AccessBuildingData.AccessState.MakeScope).End)]"
+							}
+							state = {
+								name = bc_build_5
+								on_start = "[MapListOption.OnClick]"
+							}
+
+							state = {
+								name = bc_log_5
+								on_start = "[GetScriptedGui('bc_built_log_sgui').Execute(GuiScope.SetRoot(MapListOption.AccessBuildingData.AccessState.MakeScope).End)]"
+							}
+							state = {
+								name = bc_build_6
+								on_start = "[MapListOption.OnClick]"
+							}
+
+							state = {
+								name = bc_log_6
+								on_start = "[GetScriptedGui('bc_built_log_sgui').Execute(GuiScope.SetRoot(MapListOption.AccessBuildingData.AccessState.MakeScope).End)]"
+							}
+							state = {
+								name = bc_build_7
+								on_start = "[MapListOption.OnClick]"
+							}
+
+							state = {
+								name = bc_log_7
+								on_start = "[GetScriptedGui('bc_built_log_sgui').Execute(GuiScope.SetRoot(MapListOption.AccessBuildingData.AccessState.MakeScope).End)]"
+							}
+							state = {
+								name = bc_build_8
+								on_start = "[MapListOption.OnClick]"
+							}
+
+							state = {
+								name = bc_log_8
+								on_start = "[GetScriptedGui('bc_built_log_sgui').Execute(GuiScope.SetRoot(MapListOption.AccessBuildingData.AccessState.MakeScope).End)]"
+							}
+							state = {
+								name = bc_build_9
+								on_start = "[MapListOption.OnClick]"
+							}
+
+							state = {
+								name = bc_log_9
+								on_start = "[GetScriptedGui('bc_built_log_sgui').Execute(GuiScope.SetRoot(MapListOption.AccessBuildingData.AccessState.MakeScope).End)]"
+							}
+							state = {
+								name = bc_build_10
+								on_start = "[MapListOption.OnClick]"
+							}
+
+							state = {
+								name = bc_log_10
+								on_start = "[GetScriptedGui('bc_built_log_sgui').Execute(GuiScope.SetRoot(MapListOption.AccessBuildingData.AccessState.MakeScope).End)]"
 							}
 						}
 					}
 				}
 			}
-			### BC PROBE -- end ######################################
+			### BULK BUILD -- end ####################################
 
 			construction_headers_condensed = {
 				visible = "[Not(GetVariableSystem.Exists('construction_list_toggle_full_or_condensed'))]"
@@ -175,7 +289,7 @@ types map_list_panel_types {
 		blockoverride "item" {
 			item = {
 				container = {
-					min_width = @bc2_panel_width
+					min_width = @bc_panel_width
 
 					construction_interaction_item_condensed = {
 						visible = "[Not(GetVariableSystem.Exists('construction_list_toggle_full_or_condensed'))]"

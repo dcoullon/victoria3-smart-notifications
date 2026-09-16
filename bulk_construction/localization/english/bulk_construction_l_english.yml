@@ -1,5 +1,9 @@
 ﻿l_english:
- BC_PROBE_FIRE_BUTTON:0 "BC probe: fire"
- BC_PROBE_FIRE_BUTTON_TOOLTIP:0 "Probe build. This builds nothing. It triggers one pass over the states this panel currently lists as valid and writes a line to debug.log for each, so the iteration can be counted."
- BC_PROBE_MARK_BUTTON:0 "BC probe: mark"
- BC_PROBE_MARK_BUTTON_TOOLTIP:0 "Writes a single line to debug.log. Nothing else. This exists only to prove a button in this panel can reach a scripted GUI at all."
+ BC_LEVELS_LABEL:0 "Levels to build:"
+ BC_LEVELS_1:0 "1"
+ BC_LEVELS_5:0 "5"
+ BC_LEVELS_10:0 "10"
+ BC_BUILD_BUTTON_1:0 "Build 1 level in each of [GetDataModelSize(MapListPanel.AccessValidOptions)] states"
+ BC_BUILD_BUTTON_5:0 "Build [Multiply_CFixedPoint(IntToFixedPoint(GetDataModelSize(MapListPanel.AccessValidOptions)), '(CFixedPoint)5')|0] levels across [GetDataModelSize(MapListPanel.AccessValidOptions)] states"
+ BC_BUILD_BUTTON_10:0 "Build [Multiply_CFixedPoint(IntToFixedPoint(GetDataModelSize(MapListPanel.AccessValidOptions)), '(CFixedPoint)10')|0] levels across [GetDataModelSize(MapListPanel.AccessValidOptions)] states"
+ BC_BUILD_BUTTON_TOOLTIP:0 "Queues this building in every state the list below is currently showing, through the normal government construction queue at normal cost.\n\nThis presses the same #V +#! button you would press yourself, once per state, per level. It cannot build anywhere you could not have built by hand, and it changes nothing about cost or build time.\n\nChange the #V Location#! filter above to choose which states are included."
