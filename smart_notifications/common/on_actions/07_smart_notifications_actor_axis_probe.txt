@@ -1,4 +1,7 @@
-﻿# MEASUREMENT ONLY -- dev build, never shipped (package_release.py's
+﻿# DEV-ONLY: never shipped. Dropped whole from a release by
+# tools/package_release.py; the list and this marker are cross-checked by
+# check_dev_only_files_are_consistent() in tools/check_references.py.
+# MEASUREMENT ONLY -- dev build, never shipped (package_release.py's
 # DEV_ONLY_FILES). Posts nothing; it only writes SNW_A3 lines.
 #
 # Answers TODO.md's open product question 3(a), "the importance axis does not

@@ -61,6 +61,32 @@ def _skip(check: str, reason: str) -> None:
 # disable them.
 SMART_NOTIFICATIONS_ID = "smart_notifications"
 
+# Diagnostic-only files, dropped whole from a release by
+# tools/package_release.py. Stripping their debug_log lines is not enough --
+# what would remain is a pile of empty on_action handlers the game still calls
+# every month.
+#
+# The list lives HERE rather than in package_release.py so the packager and
+# the validator share one source of truth: it is hand-maintained, and the
+# 2026-09-16 probe was very nearly added to the repo without being added to
+# the list. Forgetting is silent -- the release simply ships a dev handler --
+# so check_dev_only_files_are_consistent() below makes the omission fail the
+# ordinary validation run instead, long before a packaging run.
+DEV_ONLY_FILES = [
+    "common/on_actions/01_smart_notifications_logger.txt",
+    "common/on_actions/04_smart_notifications_probes.txt",
+    "common/on_actions/05_smart_notifications_toast_popup_audit.txt",
+    "common/on_actions/07_smart_notifications_actor_axis_probe.txt",
+    "common/on_actions/08_smart_notifications_engine_proxy.txt",
+    "common/on_actions/16_smart_notifications_nogeneral_probe.txt",
+]
+
+# The marker every one of those files carries, and that no shipped file may.
+# A marker rather than a filename convention: `01_..._logger.txt` and
+# `05_..._toast_popup_audit.txt` are diagnostic but say so nowhere in their
+# names, so any name-based rule would have to guess.
+DEV_ONLY_MARKER = "# DEV-ONLY"
+
 
 def read_mod_id(root: Path) -> str:
     """The `id` from a mod root's .metadata/metadata.json, or "" if this
@@ -1278,6 +1304,59 @@ def check_bc_loc_has_no_bracket_decoration(root: Path) -> list[str]:
     return errs
 
 
+def check_dev_only_files_are_consistent(root: Path) -> list[str]:
+    """DEV_ONLY_FILES and the `# DEV-ONLY` markers must agree, both ways.
+
+    Root cause class: a diagnostic on_action file shipping to subscribers.
+    Its handlers do nothing once their debug_log lines are stripped, so
+    nothing breaks loudly -- the game just calls a set of empty handlers on
+    every monthly pulse forever, and no log line or error signature says so.
+    The only moment it is visible is by reading the packaged output, which is
+    exactly the step nobody repeats before an upload.
+
+    Three ways it can drift, all caught here:
+      - a new probe is written and not added to the list  (the near-miss that
+        prompted this check)
+      - a listed file is renamed, so the exclusion silently matches nothing
+      - a marker is pasted into a file that genuinely ships
+    """
+    errs = []
+    on_actions = root / "common" / "on_actions"
+    if not on_actions.is_dir():
+        return []
+
+    # Raw text, NOT _read(): the marker IS a comment, and _read() strips
+    # comments, so every file would look unmarked and the check would fail
+    # everything indiscriminately -- which is exactly what it did when first
+    # written.
+    def raw(p: Path) -> str:
+        return p.read_text(encoding="utf-8-sig")
+
+    listed = set(DEV_ONLY_FILES)
+    for rel in sorted(listed):
+        path = root / rel
+        if not path.is_file():
+            errs.append(
+                f"{rel}: listed in DEV_ONLY_FILES but does not exist -- the "
+                f"exclusion matches nothing, so if the file was renamed its "
+                f"replacement is now shipping. Update the list in "
+                f"tools/check_references.py")
+        elif DEV_ONLY_MARKER not in raw(path):
+            errs.append(
+                f"{rel}: listed in DEV_ONLY_FILES but carries no "
+                f"`{DEV_ONLY_MARKER}` marker comment. Add one so the file "
+                f"says for itself that it never ships")
+
+    for path in sorted(on_actions.glob("*.txt")):
+        rel = path.relative_to(root).as_posix()
+        if DEV_ONLY_MARKER in raw(path) and rel not in listed:
+            errs.append(
+                f"{rel}: marked `{DEV_ONLY_MARKER}` but NOT in DEV_ONLY_FILES "
+                f"-- it would ship to subscribers as a set of empty handlers. "
+                f"Add it to the list in tools/check_references.py")
+    return errs
+
+
 def check_no_cheat_verbs(root: Path) -> list[str]:
     """Bulk Construction's hard rule, enforced rather than documented: fix the
     UX, never change the rules of the game (spec section 1a). The mod's whole
@@ -1326,6 +1405,7 @@ def run_all(root: Path) -> list[str]:
         errs += check_watchlist_spec_group_isolation(root)
         errs += check_mod_group_labels_are_tagged(root)
         errs += check_census_build_not_stale(root)
+        errs += check_dev_only_files_are_consistent(root)
 
     # Bulk-Construction-only: its no-cheat rule is structural, so it is
     # asserted on every run rather than remembered at release time.

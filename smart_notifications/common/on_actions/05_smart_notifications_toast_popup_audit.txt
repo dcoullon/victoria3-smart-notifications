@@ -1,4 +1,7 @@
-﻿# TEMPORARY diagnostic audit -- DELETE once the user has reviewed a real
+﻿# DEV-ONLY: never shipped. Dropped whole from a release by
+# tools/package_release.py; the list and this marker are cross-checked by
+# check_dev_only_files_are_consistent() in tools/check_references.py.
+# TEMPORARY diagnostic audit -- DELETE once the user has reviewed a real
 # session's SNW_TOAST_AUDIT counts and decided which of these are worth
 # downgrading for unwatched countries (see TODO.md's "Toast/popup spam
 # audit" item). Adds no player-visible behaviour: every block below only

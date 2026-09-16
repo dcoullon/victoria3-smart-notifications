@@ -124,13 +124,11 @@ SHIP_FILES = ["thumbnail.png"]  # copied only if present
 #
 # They stay in the repo -- they are how this mod gets diagnosed without asking
 # the user to watch for toasts -- and are simply not copied into a release.
-DEV_ONLY_FILES = [
-    "common/on_actions/01_smart_notifications_logger.txt",
-    "common/on_actions/04_smart_notifications_probes.txt",
-    "common/on_actions/05_smart_notifications_toast_popup_audit.txt",
-    "common/on_actions/07_smart_notifications_actor_axis_probe.txt",
-    "common/on_actions/08_smart_notifications_engine_proxy.txt",
-]
+# Single source of truth, shared with the validator: check_references.py also
+# asserts this list against the `# DEV-ONLY` markers in the files themselves,
+# so a probe that never made it into the list fails an ordinary
+# `validate_syntax.py` run rather than quietly shipping.
+DEV_ONLY_FILES = check_references.DEV_ONLY_FILES
 
 # The dev/test mod entry's metadata.json intentionally carries a
 # " - Dev" suffix on its name (2026-09-09 per the user: the two entries

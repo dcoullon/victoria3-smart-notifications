@@ -1,0 +1,112 @@
+﻿# Probe: does the commanderless-formation alert's condition ever come true,
+# and does a formation's name resolve in dynamic text?
+#
+# WHY THIS EXISTS. `smart_notifications_mobilized_army_no_general_alert`
+# (common/alert_types/01_smart_notifications_alerts.txt) is the only genuinely
+# NEW feature in the unreleased v0.41 set, and an `alert_type` has no script
+# hook at all -- the engine evaluates its `valid` block continuously and there
+# is nowhere inside it to hang a `debug_log`. The alert cannot report on
+# itself. This file re-evaluates the SAME condition from a monthly pulse, so
+# the single question a playtest would otherwise have to answer by eye splits
+# into four outcomes that can be told apart from the log alone:
+#
+#   icon appears + SNW_NOGEN|match        -> works, ship it
+#   no icon      + SNW_NOGEN|match        -> the condition is right and the
+#                                            ALERT plumbing is wrong
+#                                            (texture / alert_group / loc)
+#   no icon, no match, heartbeat present  -> the situation never arose; the
+#                                            run did not test the feature at
+#                                            all, and proves nothing
+#   no heartbeat either                   -> this probe never ran. Believe
+#                                            nothing else in this file.
+#
+# That last branch is the whole reason the heartbeat exists. A blank result
+# from an instrument that was never wired up reads exactly like a clean
+# negative, and this repo has been burned by that before.
+#
+# THE CONDITION IS COPIED, NOT PARAPHRASED. `is_army`, `is_mobilized` and
+# `NOT = { exists = commander }` are the alert's own three triggers in its own
+# order. If the two ever drift apart this probe stops testing the thing it
+# claims to test, so they change together or not at all.
+#
+# `exists = commander` on a military formation is vanilla's, not an
+# assumption: events/tech_events/naval_tech_events.txt and
+# military_tech_events.txt both use it inside `any_scope_fleet = { ... }`,
+# which is a military-formation scope. (battle_condition.md also documents a
+# `commander` scope -- that one belongs to a BATTLE and is a different thing;
+# it is not the precedent being relied on here.)
+#
+# `every_military_formation` is the country-scope iterator vanilla uses in
+# common/history/military_deployments/00_military_deployments.txt. No
+# `every_scope_army` or `any_scope_army` appears anywhere in vanilla, so this
+# filters with `is_army` rather than inventing an iterator that may not exist.
+#
+# TWO LINES PER MATCH, DELIBERATELY. The verdict line uses only
+# `TimeKeeper.GetCurrentDate.GetString`, which this mod has relied on for many
+# versions and is known to resolve. The name line is the actual experiment:
+# the alert's own loc calls `.GetName` on a formation (loc lines 1013-1016,
+# `[SCOPE.GetRootScope.GetMilitaryFormation.GetName]`) and this repo has never
+# confirmed `GetName` resolves on a formation -- on a COUNTRY it errors
+# outright and must be `GetNameNoFormatting` (CLAUDE.md section 3). If the
+# verdict line appears and the name line does not, the alert's title and
+# description will render blank in game for exactly that reason. Better to
+# learn that here than from a subscriber.
+#
+# The `has_general` branch is not noise: without it, "no match lines" cannot
+# be told apart from "the iterator never ran". It supplies the denominator.
+#
+# DEV-ONLY. Listed in DEV_ONLY_FILES in tools/check_references.py so the whole
+# file is dropped from a release, rather than shipping as an empty handler the
+# game still calls every month.
+#
+# ACCEPTANCE CRITERIA for the next run, read with `python tools/scan_logs.py`:
+#   - at least one SNW_NOGEN|heartbeat line               (the probe is alive)
+#   - mobilize an army that has no general: an SNW_NOGEN|match line that same
+#     month, AND the red icon in the top-right alert strip
+#   - assign it a general: match lines stop the following month
+#   - an SNW_NOGEN|name line accompanies every match line. If it is absent,
+#     `.GetName` does not resolve on a formation and the alert's loc must move
+#     to `GetNameNoFormatting` before v0.41 ships.
+
+on_yearly_pulse_country = {
+	on_actions = {
+		smart_notifications_nogeneral_heartbeat
+	}
+}
+
+smart_notifications_nogeneral_heartbeat = {
+	effect = {
+		if = {
+			limit = { is_player = yes }
+			debug_log = "SNW_NOGEN|heartbeat|[TimeKeeper.GetCurrentDate.GetString]"
+		}
+	}
+}
+
+on_monthly_pulse_country = {
+	on_actions = {
+		smart_notifications_nogeneral_probe
+	}
+}
+
+smart_notifications_nogeneral_probe = {
+	effect = {
+		if = {
+			limit = { is_player = yes }
+			every_military_formation = {
+				limit = {
+					is_army = yes
+					is_mobilized = yes
+				}
+				if = {
+					limit = { NOT = { exists = commander } }
+					debug_log = "SNW_NOGEN|match|[TimeKeeper.GetCurrentDate.GetString]"
+					debug_log = "SNW_NOGEN|name|[THIS.GetName]|[TimeKeeper.GetCurrentDate.GetString]"
+				}
+				else = {
+					debug_log = "SNW_NOGEN|has_general|[TimeKeeper.GetCurrentDate.GetString]"
+				}
+			}
+		}
+	}
+}

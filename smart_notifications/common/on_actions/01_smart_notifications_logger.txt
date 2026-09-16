@@ -1,4 +1,7 @@
-﻿# TEMPORARY QA TOOL -- delete this whole file before publishing the mod,
+﻿# DEV-ONLY: never shipped. Dropped whole from a release by
+# tools/package_release.py; the list and this marker are cross-checked by
+# check_dev_only_files_are_consistent() in tools/check_references.py.
+# TEMPORARY QA TOOL -- delete this whole file before publishing the mod,
 # unless a future phase wants to keep it.
 #
 # Logs every time one of our reviewed/touched notification keys -- plus a

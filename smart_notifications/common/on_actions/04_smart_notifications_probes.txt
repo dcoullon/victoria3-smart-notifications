@@ -1,4 +1,7 @@
-﻿# TEMPORARY diagnostic probes -- DELETE once the third-party notification
+﻿# DEV-ONLY: never shipped. Dropped whole from a release by
+# tools/package_release.py; the list and this marker are cross-checked by
+# check_dev_only_files_are_consistent() in tools/check_references.py.
+# TEMPORARY diagnostic probes -- DELETE once the third-party notification
 # filtering is scoped (Phase 4, see TODO.md). Adds no player-visible
 # behaviour: every block below only writes debug_log lines.
 #
