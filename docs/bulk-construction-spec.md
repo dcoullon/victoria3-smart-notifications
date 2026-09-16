@@ -235,10 +235,12 @@ Why, from a Workshop search survey the same day:
 
 Remaining distribution work:
 
-- **`tools/package_release.py` is hardcoded to `REPO_ROOT`** and will stage
-  Smart Notifications no matter which mod it is asked for. It has to take a
-  mod root before this mod can ship. Not urgent, but it is a release blocker,
-  not a nice-to-have.
+- ~~`tools/package_release.py` is hardcoded to `REPO_ROOT`~~ — **fixed
+  2026-09-16.** `python tools/package_release.py bulk_construction` now stages
+  this mod into `bulk_construction_release`. (It also turned up a separate
+  pre-existing blocker: Smart Notifications could not be packaged at all,
+  because the census-freshness check rejected the release staging copy. Also
+  fixed.)
 - No `(SN) ` prefix — that convention belongs to Smart Notifications
   (CLAUDE.md §3). This mod adds labels to a vanilla panel and needs its own
   answer before the first public build; decide at release, not now.
