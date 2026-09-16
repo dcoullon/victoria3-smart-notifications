@@ -62,6 +62,14 @@ ENGINE_ERROR_PATTERNS = [
     # reported "no errors found" because nothing here matched it.
     r"Malformed token",
     r"Failed to read key reference",
+    # Added 2026-09-16, the THIRD time this scan reported "clean" while a real
+    # failure sat in error.log. A loc string whose dynamic text cannot be
+    # resolved renders as an EMPTY widget -- a blank button, no crash, no
+    # visible clue -- and the engine reports it under these two, naming the
+    # loc key rather than any file of ours, so neither the signature list nor
+    # the shipped-filename matcher caught it.
+    r"FetchData failed",
+    r"PdxDataFetchLocalizedData failed",
 ]
 
 # Any log line naming a file THIS REPO ships, whatever the engine called the
@@ -74,6 +82,9 @@ ENGINE_ERROR_PATTERNS = [
 # A clean scan has to mean the mod is clean, or it is worse than no scan.
 REPO_FILE_SUFFIXES = (".txt", ".gui", ".yml")
 REPO_ROOT = Path(__file__).resolve().parent.parent
+
+
+LOC_KEY_PREFIXES = ("SNW_", "BC_", "SMART_NOTIFICATIONS_")
 
 
 def shipped_file_names() -> set[str]:
@@ -103,7 +114,9 @@ def scan_file(path: Path, lines_limit: int) -> tuple[list[str], list[str], list[
         return [], [], []
     mod_tag_re = re.compile(MOD_TAG_PATTERN)
     error_re = re.compile("|".join(ENGINE_ERROR_PATTERNS))
-    ours_re = re.compile("|".join(re.escape(n) for n in sorted(shipped_file_names())))
+    ours_re = re.compile("|".join(
+        [re.escape(n) for n in sorted(shipped_file_names())]
+        + [re.escape(pfx) for pfx in LOC_KEY_PREFIXES]))
     tagged, errors, ours = [], [], []
     with path.open(encoding="utf-8", errors="replace") as f:
         for line in f:

@@ -1166,6 +1166,37 @@ def check_bc_panel_width_matches_vanilla(root: Path) -> list[str]:
     return []
 
 
+def check_bc_loc_has_no_nested_arithmetic(root: Path) -> list[str]:
+    """A loc string whose dynamic text cannot be resolved renders as an EMPTY
+    widget. No crash, no fallback text, no visible clue -- the button is just
+    blank, and only error.log says why:
+
+        FetchData failed for 'Multiply_CFixedPoint(IntToFixedPoint(...))'
+        PdxDataFetchLocalizedData failed for 'BC_BUILD_BUTTON_5'
+
+    Confirmed 2026-09-16: the level-count buttons tried to show N*M by nesting
+    IntToFixedPoint inside Multiply_CFixedPoint. Both functions are real and
+    used by vanilla, but not composed over a call like this, and it fails at
+    fetch time rather than at load.
+
+    There is no datamodel-filtering function in this engine either (only
+    GetDataModelSize / SkipFirst / SubSpan / First / Last), so the count shown
+    can only ever be "rows listed", never "rows that will actually build" --
+    which is why the label says "where possible" instead of a product."""
+    loc = root / "localization" / "english"
+    if not loc.is_dir():
+        return []
+    errs = []
+    for path in loc.glob("*.yml"):
+        for i, line in enumerate(path.read_text(encoding="utf-8-sig").splitlines(), 1):
+            if re.search(r"(Multiply|Add|Subtract|Divide)_\w+\(\s*\w+\(", line):
+                errs.append(
+                    f"localization/english/{path.name}:{i}: nested arithmetic in a loc "
+                    f"string. It fails at fetch time and renders the widget BLANK with "
+                    f"no visible error -- see this check's docstring")
+    return errs
+
+
 def check_no_cheat_verbs(root: Path) -> list[str]:
     """Bulk Construction's hard rule, enforced rather than documented: fix the
     UX, never change the rules of the game (spec section 1a). The mod's whole
@@ -1221,6 +1252,7 @@ def run_all(root: Path) -> list[str]:
         errs += check_full_overrides_match_installed_vanilla(root)
         errs += check_bc_gui_filename_still_sorts_first(root)
         errs += check_bc_panel_width_matches_vanilla(root)
+        errs += check_bc_loc_has_no_nested_arithmetic(root)
 
     return errs
 

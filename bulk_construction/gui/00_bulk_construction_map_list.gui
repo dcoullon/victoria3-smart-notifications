@@ -114,7 +114,7 @@ types map_list_panel_types {
 					size = { 300 30 }
 					using = default_button
 					text = "BC_BUILD_BUTTON_1"
-					tooltip = "BC_BUILD_BUTTON_TOOLTIP"
+					tooltip = "BC_BUILD_TOOLTIP_1"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_log_1')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_build_1')]"
 				}
@@ -123,7 +123,7 @@ types map_list_panel_types {
 					size = { 300 30 }
 					using = default_button
 					text = "BC_BUILD_BUTTON_5"
-					tooltip = "BC_BUILD_BUTTON_TOOLTIP"
+					tooltip = "BC_BUILD_TOOLTIP_5"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_log_1')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_build_1')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_log_2')]"
@@ -140,7 +140,7 @@ types map_list_panel_types {
 					size = { 300 30 }
 					using = default_button
 					text = "BC_BUILD_BUTTON_10"
-					tooltip = "BC_BUILD_BUTTON_TOOLTIP"
+					tooltip = "BC_BUILD_TOOLTIP_10"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_log_1')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_build_1')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_log_2')]"
