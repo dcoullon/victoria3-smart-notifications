@@ -17,8 +17,8 @@ design we build.
 In the construction panel the player already uses — pick a building from the
 bottom bar, the "select in which State to build" list opens — add:
 
-- a **level stepper** (1 / 5 / 10 / Max) next to the existing filters,
-- a **bulk build button** reading *"Build N levels across M states"*,
+- a **level stepper** (1 / 5 / 10) below the existing filters,
+- a **bulk build button** reading *"Queue N levels in the M states below"*,
 
 which queues N levels of the selected building in every state the panel is
 currently listing as valid, through the normal construction queue, at normal
@@ -38,32 +38,38 @@ construction row. We do not reimplement building, pricing, funding or
 eligibility, so there is nothing to get wrong in our favour: N clicks of our
 button and N clicks of the player's **+** are the same N calls.
 
-### The one place it could leak, and the guard
+### Where it could have leaked, and why it does not — settled in game
 
-The **+** button is gated by `enabled = "[MapListOption.CanClick]"`
-(`:229`). **`enabled` is a widget property, not an engine check.** It stops a
-human clicking a greyed-out row; it does not stop us calling `OnClick` from a
-widget state. So if the panel's "valid" list can ever contain an option the
-player is not currently allowed to take, firing across the whole list blindly
-would do something the game said no to — the exact failure this rule exists to
-prevent.
+The **+** button is gated by `enabled = "[MapListOption.CanClick]"` (`:229`),
+and **`enabled` is a widget property, not an engine check**. It stops a human
+clicking a greyed-out row; it does not stop us calling `OnClick` from a widget
+state. The obvious mitigation — put `visible = "[MapListOption.CanClick]"` on
+the firing widget — turned out not to work either: `visible` gates nothing at
+all (§3).
 
-Therefore: **every firing item carries `visible = "[MapListOption.CanClick]"`,
-in every version, whether or not the probe shows it is load-bearing.** The
-probe measures two things about this directly — whether "valid" implies
-"clickable" (counts B vs A), and whether `visible` actually prevents a
-`trigger_on_create` state from firing at all (count C, which must be zero). If
-C is non-zero the guard is decorative and **the GUI-native design is abandoned**,
-not shipped with a weaker guard.
+So for a while this mod had an ungated action and a fake guard. What resolves
+it is not a guard we wrote but a fact about the engine, measured in a live
+game on 2026-09-16:
 
-Two further consequences of the same rule, for later versions:
+> The button offered **44** states. **39** were queued. The 5 skipped were rows
+> whose `+` is greyed out because they are at their level cap.
 
-- The level stepper repeats the *same* gated pass N times. It never calls a
-  "build N levels" shortcut that skips per-level revalidation, because a state
-  can stop being buildable partway through a batch.
-- Nothing in this mod ever touches the treasury, construction points, or
-  build time — not to charge, and not to discount. Whatever the **+** costs is
-  what our button costs.
+**`MapListOption.OnClick` validates internally and silently refuses an option
+the player could not click.** Vanilla's own `+` greys out on existing *plus
+queued* levels, so that check already accounts for pending queue items, and a
+multi-level press cannot overshoot a cap either.
+
+That is a stronger guarantee than anything we could have written, and it is the
+reason the design survives: we iterate `AccessValidOptions`, never the Failed
+or Invalid lists, and the engine refuses whatever is left that it should.
+
+Two consequences that still bind:
+
+- The level stepper repeats the *same* call N times. It never reaches for a
+  "build N levels" shortcut that would skip the engine's per-call check.
+- Nothing in this mod touches the treasury, construction points or build time
+  — not to charge, and not to discount. Whatever the **+** costs is what our
+  button costs.
 
 ### Locked scope (user decisions, 2026-09-16)
 
@@ -79,7 +85,7 @@ own eligibility rules, we drive the list the game already computed.
 
 ## 2. Engine findings (verified 2026-09-16 against the 1.13 game files)
 
-### The panel is a 33-line type inside a 5,212-line file — and we must copy all of it
+### One 35-line type, redefined from our own file — the filename is load-bearing
 
 The window is `build_building_map_list_panel`
 (`gui/map_list_panel.gui:1091-1123`), a derived type of `map_list_panel` with
@@ -87,24 +93,28 @@ just two blockoverrides, `headers` and `item`. The filters the player sees
 (Location All/Domestic/Abroad, List item, Workforce) are `construction_filters`
 (`:2433`).
 
-**Settled 2026-09-16, by two live launches: there is no partial `.gui`
-override in this engine.** Redefining that one type from our own separate
-`.gui` file does nothing. The second launch had the file parsing with zero
-errors, this mod as the *only* enabled mod (confirmed from the launcher's
-playset database, not assumed), and the panel still rendered vanilla's version
-of the type. The engine keeps the first definition it read and never mentions
-the second — no warning, no duplicate-type error, nothing.
+**A mod can redefine that one type from its own `.gui` file — if its filename
+sorts first.** The engine keeps the FIRST definition of a type that it reads,
+and files are read in name order. `00_bulk_construction_map_list.gui` sorts
+ahead of vanilla's `map_list_panel.gui` and wins.
 
-So this mod ships a **whole-file override** of `gui/map_list_panel.gui`, which
-is exactly what Smart Notifications already does for `gui/message_settings.gui`
-and `gui/politics_panel_change_law.gui`. That precedent was in this repo the
-whole time and should have been the starting point rather than a fallback.
+This cost two playtests to learn. An identical earlier attempt named
+`zz_bulk_construction_types.gui` sorted *after* vanilla and silently lost: it
+parsed with zero errors, was the only mod enabled, and the panel simply
+rendered vanilla's version — no warning, no duplicate-type error, nothing. The
+conclusion drawn at the time ("there is no partial `.gui` override in this
+engine") was **wrong**, and a whole-file override of all 5,212 lines was
+written and shipped before the real rule was found.
 
-The cost is the one the `better_decision_info` split exists to contain: 5,212
-vanilla lines we now carry and must re-sync after each patch.
-`check_full_overrides_match_installed_vanilla` now covers this mod too, so a
-patch that changes the vanilla file fails validation instead of silently
-reverting part of the panel for players.
+What found it was reading the **Community Mod Framework**, which does exactly
+this and names its files `00_MPM_building_browser_panel.gui`. The lesson is
+cheap to state: before inventing a mechanism, look at what a shipped framework
+already does.
+
+The whole-file override is gone. The patch-fragility surface is now this one
+type. `check_bc_gui_filename_still_sorts_first` fails the build if the file is
+ever renamed, because a rename is the one edit that breaks this mod without
+breaking anything else.
 
 ### The game hands us the eligibility list for free
 
@@ -126,17 +136,26 @@ label. `MapListBuildingPanel.GetBuildingType` gives the selected building, and
 `MapListBuildingPanel.HasFilter` / `SetFilter` expose the panel's own filter
 state.
 
-### A widget can fire a datafunction on creation
+### Firing must be hand-triggered, never on creation
 
-`state = { name = update  trigger_on_create = yes  on_finish = "[...]" }` is
-vanilla, e.g. `gui/journal_entry_widgets/ep2_japan_widgets.gui:561` firing a
-scripted GUI's `Execute` that way.
+A widget state can run a datafunction, and the tempting form is
+`state = { trigger_on_create = yes  on_finish = "[...]" }` (vanilla:
+`gui/journal_entry_widgets/ep2_japan_widgets.gui:561`). **Do not use it here.**
+Items in a live datamodel are recreated whenever the panel rebuilds, so that
+form fires on every rebuild, unprompted — measured at 777 firings in one short
+session (§3).
 
-Combined with the point above: a container with
-`datamodel = "[MapListPanel.AccessValidOptions]"` whose items call
-`[MapListOption.OnClick]` on creation is a **loop over every valid state that
-executes the game's own build action** — no script, no per-building-type
-generation, no duplicated rules.
+The working form is a *named* state with `on_start` and no `trigger_on_create`,
+fired by the button with `PdxGuiTriggerAllAnimations('<name>')` (vanilla:
+`gui/character_panel.gui:582`). Measured: one press, one pass, 123 firings
+against a panel reading "valid 123", nothing before or after.
+
+The level stepper is built on this directly: each row carries states
+`bc_build_1 … bc_build_10`, and the button for N triggers the first N of them.
+Because a trigger sweeps all rows before the next one fires, levels are queued
+**level-by-level across states** rather than state-by-state — every state gets
+its first level before any gets its second. Confirmed in game, and the better
+behaviour: a bulk order cancelled halfway leaves the empire evenly covered.
 
 ### What the script route would have cost
 
@@ -172,45 +191,38 @@ before it is written:
 If the latch cannot be made reliable, fall back to the script route in §2 and
 drop the abroad case to Phase 2. **Do not ship a version that can fire twice.**
 
-## 4. Acceptance criteria — written before the code
+## 4. Acceptance criteria — confirmed in-game 2026-09-16
 
-1. With a building selected and M states listed as valid, clicking bulk build
-   queues **exactly N levels in each of those M states** and nothing anywhere
-   else; the construction queue grows by exactly N×M entries.
-2. Clicking it a second time queues another N×M (the semantics are "add", not
-   "top up") — and **not** 2×N×M or an unbounded amount. One click, one batch.
-3. Leaving the panel open after a click queues nothing further: the queue count
-   is identical one second later, ten seconds later, and after a day tick.
-   *(This is the runaway check — it is the criterion that matters.)*
-4. The button label's M matches the number of rows visible in the list, and
-   changes when the player changes the Location filter.
-5. With the Abroad filter selected, the states built in are the foreign ones
-   the panel lists, and construction is funded the way a single **+** click on
-   that same row would fund it.
-6. States under the "Failed" and "Invalid" headings are never built in, and
-   neither is any state whose **+** button is greyed out (§1a).
-7. Zero new `error.log` lines; zero new `.gui` errors on load.
-8. **No-cheat audit:** the mod contains no `create_building`, no
-   `add_building_level`, no `add_treasury` and no `add_modifier`. If the
-   GUI-native route holds, the mod's only verbs are `OnClick` and
-   `debug_log`. Enforced by `check_no_cheat_verbs` in
-   `tools/check_references.py` on every validation run, not remembered at
-   release time — and verified to fail on a planted cheat, not merely to pass.
-   `start_building_construction` is deliberately **not** on that list: it
-   starts a normal paid construction rather than conjuring a building, so it
-   stays available if we fall back to the script route (§2).
+All verified by the user in a live game, against a real construction queue.
 
-**Automated as far as it goes, per CLAUDE.md §5:**
+1. **Queues exactly the chosen levels, in the government queue.** Levels = 1
+   queued one level per buildable state, in the right order. Confirmed.
+2. **Level stepper works, and interleaves.** Levels = 5 queued 5 per state,
+   ordered level-by-level across states rather than all of one state then the
+   next — i.e. every state gets its first level before any gets its second.
+   That falls out of triggering `bc_build_1` across all rows, then
+   `bc_build_2`, and it is the behaviour we want: a bulk order that is
+   cancelled halfway still leaves the empire evenly covered.
+3. **It cannot build where the player could not.** The button offered 44
+   states; 39 were queued. The 5 skipped were rows whose `+` is greyed out
+   because they are at their level cap. **`MapListOption.OnClick` validates
+   internally** — it silently refuses an option the player could not click.
 
-- (7) and the load-time GUI errors: `python tools/scan_logs.py`, no game
-  interaction needed beyond a launch to the main menu.
-- (1), (2), (3): a `debug_log` line per queued state is *not* available — the
-  GUI-native route runs no script. Substitute: the construction queue's own
-  count, read from a `tools/shot.py --region panel` screenshot before and
-  after, which is a yes/no comparison rather than a judgement call.
-- (4), (6): static — the label binds to `GetDataModelSize` of the same
-  datamodel the list binds to, checkable by reading the file. Add a
-  `check_references.py` rule asserting the two datamodel expressions match.
+   This is the finding that retires the guard problem in §1a. `visible` never
+   gated anything (see §3), so no GUI-side guard was available — and none is
+   needed, because the engine enforces it. Vanilla's own `+` greys out on
+   existing *plus queued* levels, so the cap check already accounts for
+   pending queue items and a multi-level press cannot overshoot a cap.
+4. **The displayed count means "rows listed", not "rows that will build".**
+   44 shown, 39 built. This engine has no datamodel-filtering function — only
+   `GetDataModelSize`, `DataModelSkipFirst`, `DataModelSubSpan`,
+   `DataModelFirst`, `DataModelLast` — so a filtered count is not obtainable
+   in GUI at all. The label says "in the N states below" and the tooltip says
+   "where possible" rather than showing a product that would be wrong.
+5. **One press is one pass.** Measured before `OnClick` was wired in: 123
+   firings against a panel reading "valid 123", in a single burst, nothing
+   before or after. See §3 for what the rejected design did instead.
+6. Zero `error.log` lines attributable to this mod.
 
 ## 5. Explicitly out of the first build
 
