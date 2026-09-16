@@ -1,0 +1,186 @@
+﻿# Bulk Construction -- LOAD-ORDER PROBE, added 2026-09-16.
+#
+# Tests whether a mod can redefine ONE vanilla `type` from its own file
+# instead of copying all 5,212 lines of gui/map_list_panel.gui.
+#
+# An earlier attempt at exactly this failed, in a file named
+# zz_bulk_construction_types.gui. The Community Mod Framework does the same
+# thing successfully and names its files `00_MPM_building_browser_panel.gui`
+# -- a `00_` prefix, sorting BEFORE the vanilla file that declares the type.
+# That fits the earlier failure precisely if the engine keeps the FIRST
+# definition it reads: `zz_` sorted after vanilla and lost, `00_` sorts before
+# it and should win.
+#
+# So this file carries the same type and the same probe as our full override,
+# labelled BC2 instead of BC. Exactly one of them can win, and the label on
+# screen says which:
+#
+#   row reads "BC"  -> the whole-file override won; this mechanism does not
+#                      work, and the 5,212-line copy stays.
+#   row reads "BC2" -> this file won; the override can be deleted outright
+#                      and the mod's patch-fragility surface goes to ~35 lines.
+#
+# Either way the probe button works, so the latch/CanClick/visible questions
+# get answered in the same launch.
+#
+# @constants are file-scoped (docs/engine-notes.md), so vanilla's @panel_width
+# is not visible here -- hence our own copy. Must equal vanilla's
+# gui/map_list_panel.gui:3.
+@bc2_panel_width = 540
+
+types map_list_panel_types {
+	type build_building_map_list_panel = map_list_panel {
+		name = "build_building_map_list_panel"
+		datamodel_reuse_widgets = yes
+
+		blockoverride "headers" {
+			direction = vertical
+
+			### BC PROBE -- start ####################################
+			# Probe question 1: does this override render at all? If this row
+			# is visible, whole-file override works and the architecture is
+			# back on. Question 2: does GetDataModelSize over the panel's own
+			# datamodel match the rows the player sees?
+			flowcontainer = {
+				direction = horizontal
+				parentanchor = hcenter
+				spacing = 8
+				margin = { 10 4 }
+				# GetPlayer.MakeScope has no vanilla precedent; this is the
+				# pattern already proven in gui/message_settings.gui.
+				datacontext = "[GetMetaPlayer.GetPlayedOrObservedCountry]"
+
+				textbox = {
+					autoresize = yes
+					align = nobaseline
+					# The `|=` formatter is how vanilla prints a datamodel size
+					# (gui/building_details_panel.gui:4627).
+					raw_text = "#BOLD BC2#! valid [GetDataModelSize(MapListPanel.AccessValidOptions)|=] / failed [GetDataModelSize(MapListPanel.AccessFailedOptions)|=] / invalid [GetDataModelSize(MapListPanel.AccessInvalidOptions)|=]"
+				}
+
+				button = {
+					size = { 150 28 }
+					using = default_button
+					text = "BC_PROBE_FIRE_BUTTON"
+					tooltip = "BC_PROBE_FIRE_BUTTON_TOOLTIP"
+					onclick = "[GetScriptedGui('bc_probe_click_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
+					onclick = "[GetVariableSystem.Set('bc_probe_fire', 'go')]"
+				}
+			}
+
+			# Probe question 3, the one that matters: does a datamodel
+			# container whose items fire on creation iterate the valid options
+			# EXACTLY ONCE per click, or free-run every frame? This container
+			# only exists while 'bc_probe_fire' is set, and clears it a
+			# fraction of a second after being created -- a latch, not a flag.
+			#
+			# Nothing here builds anything. The real version replaces the
+			# scripted GUI calls with [MapListOption.OnClick]; that
+			# substitution is NOT made until this probe comes back clean.
+			widget = {
+				size = { 1 1 }
+				visible = "[GetVariableSystem.HasValue('bc_probe_fire', 'go')]"
+
+				state = {
+					name = bc_latch_clear
+					trigger_on_create = yes
+					duration = 0.05
+					on_finish = "[GetVariableSystem.Clear('bc_probe_fire')]"
+				}
+
+				### A -- every valid option, unguarded.
+				flowcontainer = {
+					direction = vertical
+					datamodel = "[MapListPanel.AccessValidOptions]"
+
+					item = {
+						widget = {
+							size = { 1 1 }
+							datacontext = "[MapListOption.AccessBuildingData.AccessState]"
+
+							state = {
+								name = bc_fire
+								trigger_on_create = yes
+								on_finish = "[GetScriptedGui('bc_probe_state_sgui').Execute(GuiScope.SetRoot(State.MakeScope).End)]"
+							}
+						}
+					}
+				}
+
+				### B -- probe question 5, and the reason this block exists.
+				# The vanilla + button gates on `enabled = [MapListOption.CanClick]`
+				# and `enabled` is a WIDGET property: it stops a human clicking,
+				# it does not stop us calling OnClick from a state. Counting B
+				# against A says whether valid implies clickable. The real build
+				# carries this guard regardless of the answer.
+				flowcontainer = {
+					direction = vertical
+					datamodel = "[MapListPanel.AccessValidOptions]"
+
+					item = {
+						widget = {
+							size = { 1 1 }
+							visible = "[MapListOption.CanClick]"
+							datacontext = "[MapListOption.AccessBuildingData.AccessState]"
+
+							state = {
+								name = bc_fire_clickable
+								trigger_on_create = yes
+								on_finish = "[GetScriptedGui('bc_probe_clickable_sgui').Execute(GuiScope.SetRoot(State.MakeScope).End)]"
+							}
+						}
+					}
+				}
+
+				### C -- probe question 4, and the control for B.
+				# Hard-coded invisible. If any BC_PROBE|hidden line appears,
+				# `visible` does NOT prevent trigger_on_create from firing --
+				# which would mean B's guard is decorative AND the latch above
+				# is not a latch. Expected count: zero.
+				flowcontainer = {
+					direction = vertical
+					datamodel = "[MapListPanel.AccessValidOptions]"
+
+					item = {
+						widget = {
+							size = { 1 1 }
+							visible = no
+							datacontext = "[MapListOption.AccessBuildingData.AccessState]"
+
+							state = {
+								name = bc_fire_hidden
+								trigger_on_create = yes
+								on_finish = "[GetScriptedGui('bc_probe_hidden_sgui').Execute(GuiScope.SetRoot(State.MakeScope).End)]"
+							}
+						}
+					}
+				}
+			}
+			### BC PROBE -- end ######################################
+
+			construction_filters = {}
+			construction_headers_condensed = {
+				visible = "[Not(GetVariableSystem.Exists('construction_list_toggle_full_or_condensed'))]"
+			}
+			construction_headers_full = {
+				visible = "[GetVariableSystem.Exists('construction_list_toggle_full_or_condensed')]"
+			}
+		}
+
+		blockoverride "item" {
+			item = {
+				container = {
+					min_width = @bc2_panel_width
+
+					construction_interaction_item_condensed = {
+						visible = "[Not(GetVariableSystem.Exists('construction_list_toggle_full_or_condensed'))]"
+					}
+
+					construction_interaction_item_full = {
+						visible = "[GetVariableSystem.Exists('construction_list_toggle_full_or_condensed')]"
+					}
+				}
+			}
+		}
+	}
+}
