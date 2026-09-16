@@ -1033,8 +1033,21 @@ def check_census_build_not_stale(root: Path) -> list[str]:
 
     Skipped (not failed) when no census build is present -- it is a dev-only
     artifact that most checkouts will not have.
+
+    Also skipped when `root` is not the live dev repo itself. The hazard this
+    guards against is entirely about the tree the game loads through the dev
+    junction; a copy of the mod somewhere else is never shadowed by anything.
+    Without that gate this fired on tools/package_release.py's staging
+    directory -- which is a deliberately MODIFIED copy (debug_log lines are
+    stripped out of a release), so every on_action file "differed" from the
+    census snapshot and the check reported all nine as stale. That aborted
+    packaging outright, i.e. Smart Notifications could not be packaged for
+    release at all. Found 2026-09-16, and confirmed against the unmodified
+    script from git HEAD so it could not be mistaken for a regression.
     """
     if not CENSUS_BUILD.is_dir():
+        return []
+    if root.resolve() != Path(__file__).resolve().parent.parent:
         return []
 
     errs = []

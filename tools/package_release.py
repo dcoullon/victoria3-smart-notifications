@@ -16,13 +16,27 @@ exactly as before.
 Refuses to run if `tools/validate_syntax.py` fails on the source repo --
 never package known-broken content.
 
+This repo hosts more than one mod -- the root (Smart Notifications) plus a
+folder per sibling mod, each with its own `.metadata/metadata.json` (see
+`check_references.nested_mod_roots`). Which one gets packaged is the optional
+first argument; it defaults to the repo root, so the Smart Notifications
+workflow and the /package-release skill are unchanged by its existence.
+
 Usage:
-    python tools/package_release.py
+    python tools/package_release.py                      # the root mod
+    python tools/package_release.py bulk_construction    # a sibling mod
     python tools/package_release.py --out "D:\\some\\other\\folder"
 
-Default output: Documents/Paradox Interactive/Victoria 3/mod/smart_notifications_release
-(a plain directory the launcher will pick up as a separate mod entry --
-NOT a junction, a real copy, rebuilt each time this is run).
+Default output: Documents/Paradox Interactive/Victoria 3/mod/<mod id>_release
+-- so `smart_notifications_release` as before, and `bulk_construction_release`
+for that mod. A plain directory the launcher will pick up as a separate mod
+entry -- NOT a junction, a real copy, rebuilt each time this is run.
+
+Before this took a mod argument it read every shipped folder from the repo
+root unconditionally, so asking it for a sibling mod silently staged Smart
+Notifications' `common/`, `gui/`, `events/` and `localization/` under the
+sibling's name -- i.e. it would have uploaded the wrong mod, quietly, at the
+one moment that is hardest to undo.
 
 Only the specific SHIP_ITEMS subpaths are removed and replaced on each
 run -- the rest of the output directory (e.g. any bookkeeping the
@@ -40,8 +54,44 @@ import sys
 from datetime import date
 from pathlib import Path
 
+import check_references
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DEFAULT_OUT = Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3" / "mod" / "smart_notifications_release"
+MOD_DIR = Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3" / "mod"
+
+
+def resolve_mod_root(arg: str | None) -> Path:
+    """Which mod in this repo to package. No argument means the repo root
+    (Smart Notifications), which keeps the existing workflow identical.
+
+    A bare name like `bulk_construction` is resolved against the repo root, so
+    the command reads the same from anywhere; an explicit path still works.
+    Anything without a `.metadata/metadata.json` is refused outright rather
+    than packaged as an empty mod -- a typo'd folder name would otherwise
+    produce a valid-looking output directory with nothing in it."""
+    if arg is None:
+        return REPO_ROOT
+    candidate = Path(arg)
+    if not candidate.is_dir():
+        candidate = REPO_ROOT / arg
+    candidate = candidate.resolve()
+    if not (candidate / ".metadata" / "metadata.json").is_file():
+        known = [REPO_ROOT.name] + [p.name for p in check_references.nested_mod_roots(REPO_ROOT)]
+        print(f"ABORTED: {candidate} is not a mod root -- no .metadata/metadata.json there.\n"
+              f"Mods in this repo: {', '.join(known)}")
+        sys.exit(1)
+    return candidate
+
+
+def default_out_for(mod_root: Path) -> Path:
+    """`<mod id>_release`, next to the launcher's other mod entries. Derived
+    from the packaged mod's own id rather than hardcoded, so two mods cannot
+    end up sharing one output folder and overwriting each other."""
+    mod_id = check_references.read_mod_id(mod_root)
+    if not mod_id:
+        print(f"ABORTED: {mod_root}/.metadata/metadata.json has no `id`.")
+        sys.exit(1)
+    return MOD_DIR / f"{mod_id}_release"
 
 # Everything Victoria 3 actually loads for this mod. Anything NOT listed
 # here (tools/, docs/, reference/, .claude/, .git/, TODO.md, CHANGELOG.md,
@@ -82,9 +132,18 @@ DEV_ONLY_FILES = [
 DEV_NAME_SUFFIX = " - Dev"
 
 
-def run_validation() -> bool:
+def run_validation(mod_root: Path) -> bool:
+    """Validate the mod being packaged, not the repo. Passing the mod root
+    explicitly also selects the right per-mod checks inside the validator,
+    which gate on the mod id found there (see check_references.run_all).
+
+    `--strict` because this is the release path: CLAUDE.md section 4 says a
+    DEGRADED pass -- one where the vanilla-comparison checks were skipped
+    because the game is not installed on this machine -- is not a pass, and a
+    release is exactly the moment that distinction matters."""
     result = subprocess.run(
-        [sys.executable, str(REPO_ROOT / "tools" / "validate_syntax.py")],
+        [sys.executable, str(REPO_ROOT / "tools" / "validate_syntax.py"),
+         str(mod_root), "--strict"],
         cwd=REPO_ROOT, capture_output=True, text=True,
     )
     print(result.stdout.strip())
@@ -115,10 +174,17 @@ def strip_dev_name_suffix(metadata_path: Path):
 DEBUG_CALL_RE = re.compile(r'\bdebug_log\s*=\s*"[^"]*"|\bdebug_log_scopes\s*=\s*\w+')
 
 
-def drop_dev_only_files(staging: Path) -> list[str]:
+def drop_dev_only_files(staging: Path, mod_id: str) -> list[str]:
     """Remove the diagnostic-only files from the packaged copy entirely.
     Stripping their debug_log lines is not enough -- what would remain is a
-    pile of empty on_action handlers the game still calls."""
+    pile of empty on_action handlers the game still calls.
+
+    DEV_ONLY_FILES is a hand-maintained list of Smart Notifications' own
+    paths, so it is gated on the mod id rather than left to miss by accident:
+    a sibling mod with a same-named file would otherwise have it silently
+    dropped from its release."""
+    if mod_id != check_references.SMART_NOTIFICATIONS_ID:
+        return []
     dropped = []
     for rel in DEV_ONLY_FILES:
         p = staging / rel
@@ -198,7 +264,7 @@ def validate_staging(staging: Path) -> bool:
     return result.returncode == 0
 
 
-def package(out_dir: Path):
+def package(mod_root: Path, out_dir: Path):
     """Stage the full copy in a sibling temp directory first, and only
     swap it into place once every folder has copied successfully --
     confirmed necessary 2026-09-09: an earlier version deleted-then-
@@ -216,21 +282,21 @@ def package(out_dir: Path):
 
     try:
         for name in SHIP_DIRS:
-            src = REPO_ROOT / name
+            src = mod_root / name
             if not src.is_dir():
                 continue
             shutil.copytree(src, staging / name)
             copied.append(name + "/")
 
         for name in SHIP_FILES:
-            src = REPO_ROOT / name
+            src = mod_root / name
             if src.is_file():
                 shutil.copy2(src, staging / name)
                 copied.append(name)
 
         strip_dev_name_suffix(staging / ".metadata" / "metadata.json")
 
-        dropped = drop_dev_only_files(staging)
+        dropped = drop_dev_only_files(staging, check_references.read_mod_id(mod_root))
         for rel in dropped:
             print(f"Excluded dev-only file: {rel}")
 
@@ -320,16 +386,24 @@ def package(out_dir: Path):
     return copied, failed
 
 
-def tag_release_commit() -> str | None:
+def tag_release_commit(mod_root: Path) -> str | None:
     """Tag the current HEAD commit as `release-v<version>-<date>` so it's
     trivially findable later ("what did we actually package for external
     release on this date") -- separate from the per-version-bump `v<version>`
     tags (CLAUDE.md), since not every version bump gets externally
     released, and packaging can happen more than once for the same
-    version. Returns the tag name, or None if it already existed."""
-    with open(REPO_ROOT / ".metadata" / "metadata.json", encoding="utf-8") as f:
+    version. Returns the tag name, or None if it already existed.
+
+    The version comes from the mod being packaged. A sibling mod's tag also
+    carries its id (`release-bulk_construction-v0.01-<date>`): one git repo
+    holds all three mods, so without it two mods released on the same day at
+    the same version number would collide on one tag. The root mod's tag
+    format is left exactly as it was, so existing tags stay consistent."""
+    with open(mod_root / ".metadata" / "metadata.json", encoding="utf-8") as f:
         version = json.load(f)["version"]
-    tag = f"release-v{version}-{date.today().isoformat()}"
+    mod_id = check_references.read_mod_id(mod_root)
+    scope = "" if mod_id == check_references.SMART_NOTIFICATIONS_ID else f"{mod_id}-"
+    tag = f"release-{scope}v{version}-{date.today().isoformat()}"
 
     existing = subprocess.run(["git", "tag", "-l", tag], cwd=REPO_ROOT,
                                capture_output=True, text=True).stdout.strip()
@@ -351,37 +425,49 @@ def tag_release_commit() -> str | None:
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    ap.add_argument("mod", nargs="?", default=None,
+                     help="Which mod in this repo to package: a folder name like "
+                          "bulk_construction, or a path. Defaults to the repo root "
+                          "(Smart Notifications).")
+    ap.add_argument("--out", type=Path, default=None,
+                     help="Output directory. Defaults to "
+                          "Documents/Paradox Interactive/Victoria 3/mod/<mod id>_release.")
     ap.add_argument("--skip-validation", action="store_true",
                      help="Not recommended -- skips the pre-package validate_syntax.py check.")
     ap.add_argument("--no-tag", action="store_true",
                      help="Skip creating the release-vX.Y-<date> git tag.")
     args = ap.parse_args()
 
+    mod_root = resolve_mod_root(args.mod)
+    out_dir = args.out if args.out is not None else default_out_for(mod_root)
+    mod_name = check_references.read_mod_id(mod_root)
+
+    print(f"Packaging mod: {mod_name}  (from {mod_root})")
+
     if not args.skip_validation:
-        print("Validating source repo before packaging...")
-        if not run_validation():
-            print("\nABORTED: source repo failed validation. Fix the reported "
+        print("Validating the mod before packaging...")
+        if not run_validation(mod_root):
+            print("\nABORTED: the mod failed validation. Fix the reported "
                   "issues before packaging a release (or pass --skip-validation "
                   "if you're certain).")
             sys.exit(1)
 
-    copied, failed = package(args.out)
+    copied, failed = package(mod_root, out_dir)
 
-    print(f"\nPackaged to: {args.out}")
+    print(f"\nPackaged to: {out_dir}")
     print("Included:", ", ".join(copied) if copied else "(nothing found to copy)")
     if "thumbnail.png" not in copied:
-        print("NOTE: no thumbnail.png at repo root -- required before uploading "
+        print(f"NOTE: no thumbnail.png in {mod_root} -- required before uploading "
               "(see STORE_ASSETS_GUIDE.md).")
 
     if failed:
-        print(f"\nDO NOT upload from {args.out} yet -- {len(failed)} item(s) "
+        print(f"\nDO NOT upload from {out_dir} yet -- {len(failed)} item(s) "
               f"above are stale (locked during swap). Re-run after closing "
               f"whatever has them open.")
         sys.exit(1)
 
     if not args.no_tag:
-        tag = tag_release_commit()
+        tag = tag_release_commit(mod_root)
         if tag:
             print(f"Tagged and pushed: {tag} (so this exact state is easy to find/checkout later)")
         else:
