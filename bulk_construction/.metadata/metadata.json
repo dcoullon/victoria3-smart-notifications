@@ -1,0 +1,16 @@
+{
+	"name": "Bulk Construction - Dev",
+	"id": "bulk_construction",
+	"version": "0.01",
+	"supported_game_version": "1.13.*",
+	"short_description": "Build in every state at once. Adds a bulk-build button and a level stepper to the construction panel you already use, queueing through the normal construction queue at normal cost.",
+	"tags": [
+		"User Interface",
+		"Utilities",
+		"Economy and Buildings"
+	],
+	"relationships": [],
+	"game_custom_data": {
+		"multiplayer_synchronized": false
+	}
+}

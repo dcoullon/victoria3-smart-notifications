@@ -1,0 +1,40 @@
+﻿# Bulk Construction -- PROBE BUILD ONLY. Neither of these builds anything;
+# both exist so the .gui side's iteration behaviour can be COUNTED in
+# debug.log instead of guessed at. Read back with:
+#
+#     python tools/scan_logs.py
+#
+# Expected clean result, per docs/bulk-construction-spec.md section 3:
+# one BC_PROBE|click line per button press, followed by exactly M
+# BC_PROBE|state lines, where M is the "valid" count shown on the probe row.
+# Any BC_PROBE|state line that keeps arriving after the click -- hundreds,
+# thousands, or one per frame -- means the latch does not hold and the
+# GUI-native architecture is dead.
+#
+# No state name is logged on purpose. A country's name in dynamic text is
+# GetNameNoFormatting and plain GetName errors outright (CLAUDE.md section 3);
+# the State equivalent is unproven in dynamic text, and a .gui file using
+# State.GetName is explicitly NOT evidence that it works here. Counting lines
+# answers the question without betting on an unproven function.
+
+bc_probe_click_sgui = {
+	scope = country
+
+	effect = {
+		debug_log = "BC_PROBE|click"
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+bc_probe_state_sgui = {
+	scope = state
+
+	effect = {
+		debug_log = "BC_PROBE|state"
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
