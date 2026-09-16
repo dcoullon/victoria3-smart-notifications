@@ -8,6 +8,10 @@ One repo, one folder per mod, shared tooling.
 | [`bulk_construction/`](bulk_construction/) | **Build All: Bulk Construction, One Click** — one button queues a building in every state the construction panel is showing, at normal cost through the normal government queue | working, not yet published |
 | [`better_decision_info/`](better_decision_info/) | **Better Decision Info** — the missing numbers where you decide | stub |
 
+Each mod folder is self-contained — its own `.metadata/`, its own script
+directories, and its own README, changelog, backlog and Workshop assets. A
+folder here is exactly what gets published, and nothing else.
+
 Shared across all of them: `tools/` (validation, packaging, log scanning,
 screenshots), `docs/` (engine notes and per-mod specs), `reference/` (pristine
 vanilla snapshots for diffing), `.claude/` (skills).

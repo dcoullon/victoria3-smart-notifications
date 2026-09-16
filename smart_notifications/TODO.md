@@ -5,10 +5,10 @@ an open question. Nothing here is a record of what happened.
 
 - What shipped, per version, player-facing: [CHANGELOG.md](CHANGELOG.md).
 - How past problems were solved and what the engine actually does:
-  [docs/engine-notes.md](docs/engine-notes.md) (it has a table of contents).
+  [docs/engine-notes.md](../docs/engine-notes.md) (it has a table of contents).
 - Session-by-session working notes from 2026-09-05..09-09, kept because several
   carry evidence that is not recorded anywhere else:
-  [docs/archive/2026-09-session-log.md](docs/archive/2026-09-session-log.md).
+  [docs/archive/2026-09-session-log.md](../docs/archive/2026-09-session-log.md).
 
 ## How to use this file
 
@@ -39,7 +39,7 @@ an open question. Nothing here is a record of what happened.
 ## Current state — the Watchlist
 
 *(Written 2026-09-09; (c) and (d) refreshed 2026-09-15. The expectations
-half is superseded by [docs/watchlist-spec.md](docs/watchlist-spec.md), the
+half is superseded by [docs/watchlist-spec.md](../docs/watchlist-spec.md), the
 behavioural spec agreed with the user family by family — that file is what the
 code answers to. It is **LOCKED** (explicit sign-off 2026-09-09); changing it
 needs the same kind of agreement that produced it. The "still DRAFT, build
@@ -47,7 +47,7 @@ nothing against it" note that used to sit here was written before that
 sign-off and was stale by the time of this review.)*
 
 > **2026-09-09, later:** the expectations half of this section has been
-> superseded by [docs/watchlist-spec.md](docs/watchlist-spec.md), the
+> superseded by [docs/watchlist-spec.md](../docs/watchlist-spec.md), the
 > behavioural spec agreed with the user family by family. That file is the
 > reference the code answers to; **it is still DRAFT and nothing is built
 > against it until the user says "OK" explicitly.** The state-and-gaps half
@@ -153,7 +153,7 @@ you would be quieted along with the relations nudges.
 run.** Not built, and not to be built until there are numbers. The probe
 (`common/on_actions/07_smart_notifications_actor_axis_probe.txt`, dev-only)
 rides along with the notification census session — see
-[docs/feed-census-plan.md § Rider](docs/feed-census-plan.md) — so it costs no
+[docs/feed-census-plan.md § Rider](../docs/feed-census-plan.md) — so it costs no
 launch of its own.
 
 **Acceptance criteria for the measurement** (not for the feature): after a
@@ -373,7 +373,7 @@ the conclusion in engine-notes.
 
 Per the user, 2026-09-09. Attitude changes toward the player
 (`country_attitude_changed` / `_improved` / `_worsened`) are going to
-`feed` (see [docs/watchlist-spec.md](docs/watchlist-spec.md) F6), but what
+`feed` (see [docs/watchlist-spec.md](../docs/watchlist-spec.md) F6), but what
 the user actually wants is a **toast when a *watched* country's attitude
 toward them shifts**, and nothing for anyone else.
 
@@ -418,7 +418,7 @@ favour of publishing.
 
 *(The two shipped items of this phase — on-action interception and the
 Message Settings relabel — are in
-[the session-log archive](docs/archive/2026-09-session-log.md); the
+[the session-log archive](../docs/archive/2026-09-session-log.md); the
 country-renaming caveat moved to Open questions. What remains is unfinished.)*
 
 This is what actually makes proper Phase 1 dominion/subject scoping possible —
@@ -538,9 +538,9 @@ list for this phase with that in mind before writing the on_action.
       auto-shows for plays the player is a committed participant of.
       Investigated the mechanism: a play shows there only if
       `DiplomaticPlay.IsPinnedInOutliner` is true (confirmed in
-      [gui/outliner_ongoing_types.gui](gui/outliner_ongoing_types.gui)),
+      the game's own `gui/outliner_ongoing_types.gui`),
       toggled today only via the star icon in
-      [gui/diplomatic_play_panel.gui](gui/diplomatic_play_panel.gui)
+      the game's own `gui/diplomatic_play_panel.gui`
       (`onclick = "[DiplomaticPlay.TogglePinInOutliner]"`). **Real
       blocker:** `TogglePinInOutliner`/`IsPinnedInOutliner` are GUI-only —
       confirmed via an exhaustive grep of the game's own `effects.log`
@@ -550,7 +550,7 @@ list for this phase with that in mind before writing the on_action.
       Phase 3 hit and gave up on for the country-panel pin button
       (`Country.TogglePinInOutliner`, same GUI-only pattern, see the
       "Country Panel Bookmark Button — dropped" entry under Phase 3 in
-      [the session-log archive](docs/archive/2026-09-session-log.md)). Not automatically ruled impossible — a scripted_gui might
+      [the session-log archive](../docs/archive/2026-09-session-log.md)). Not automatically ruled impossible — a scripted_gui might
       be able to invoke a GUI-scope function the way
       `watchlist_sgui.txt` does for the Watchlist checkbox, but that
       pattern is GUI-click-triggers-script, the opposite direction of
@@ -821,7 +821,7 @@ That is exactly what we refused to do for the event-context feature, and for
 good reason: 94 overridden event files in a *shipping* mod is a large
 compatibility surface and a re-diff burden on every patch. (It is fine for the
 throwaway census build, which never ships -- see
-[docs/feed-census-plan.md](docs/feed-census-plan.md) -- but this feature would
+[docs/feed-census-plan.md](../docs/feed-census-plan.md) -- but this feature would
 have to ship.)
 
 **Before building, answer these:**
@@ -891,7 +891,7 @@ regardless. Defensible, and a stronger hook than a false total.
 Effort: roughly half a day for the harness, one long passive play session,
 an hour of analysis. Not days, as first estimated.
 
-**Build spec written 2026-09-14: [docs/feed-census-plan.md](docs/feed-census-plan.md).**
+**Build spec written 2026-09-14: [docs/feed-census-plan.md](../docs/feed-census-plan.md).**
 Self-contained handoff -- a cold session needs only that file plus CLAUDE.md.
 Covers the generator approach, the date-stamping, why one playthrough yields
 both the vanilla and modded columns, and the coverage limits that make every
@@ -1073,7 +1073,7 @@ uncountable/no-hook list in Dev Tooling above — triage before building:
       no pulse-scan needed), shown as top-ribbon icons, independently
       tunable as `alert | important_action | angry_important_action | none`.
       Full writeup in
-      [docs/engine-notes.md § Two entirely separate notification systems](docs/engine-notes.md).
+      [docs/engine-notes.md § Two entirely separate notification systems](../docs/engine-notes.md).
       **This directly changes the plan for 3 items below** (truce
       expiry, law-support, repeal-amendment) — an alert-type entry is
       simpler than a monthly-pulse message for all three, if the
@@ -1082,7 +1082,7 @@ uncountable/no-hook list in Dev Tooling above — triage before building:
 ## Release checklist (every version)
 
 - [ ] No bundled third-party assets (audio/images/fonts) without clear
-      rights — see [docs/distribution-guidelines.md](docs/distribution-guidelines.md).
+      rights — see [docs/distribution-guidelines.md](../docs/distribution-guidelines.md).
       Still free/non-commercial, per Paradox's mod policy.
 - [ ] Workshop update notes remind players to open **Message Settings** and
       click **Reset to Default** (per affected category) or **Reset All** —
@@ -1097,8 +1097,8 @@ uncountable/no-hook list in Dev Tooling above — triage before building:
 
 ## Technical guardrails
 
-Full protocol lives in [CLAUDE.md](CLAUDE.md) (terse rules) and
-[docs/engine-notes.md](docs/engine-notes.md) (the reasoning/evidence behind
+Full protocol lives in [CLAUDE.md](../CLAUDE.md) (terse rules) and
+[docs/engine-notes.md](../docs/engine-notes.md) (the reasoning/evidence behind
 them) — not repeated here to avoid a third source of truth.
 
 ---

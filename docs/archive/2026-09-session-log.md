@@ -4,7 +4,7 @@ Working notes moved out of TODO.md on 2026-09-15, when that file had reached
 4,034 lines with 55% of it dated logs, which made the live backlog unreadable.
 
 **This is history, not a plan.** Nothing here is an open commitment; anything
-still open lives in [TODO.md](../../TODO.md). It is kept because several of
+still open lives in [TODO.md](../../smart_notifications/TODO.md). It is kept because several of
 these entries carry the evidence behind a decision — what was tried, what the
 engine actually did, and why an approach was abandoned — and that evidence is
 not recorded anywhere else. Durable engine facts have been promoted to
@@ -100,11 +100,11 @@ Confirm the simplest possible mod actually loads in-game before anything else.
 - [x] Ship one trivial, visibly-different-from-vanilla change whose only
       purpose is to prove the mod is loading: a custom
       `smart_notifications_mod_loaded` toast (see
-      [00_messages.txt](common/messages/00_messages.txt)) fired once per
+      [00_messages.txt](../../smart_notifications/common/messages/00_messages.txt)) fired once per
       campaign via an `on_game_started_after_lobby` hook (see
-      [00_smart_notifications_on_actions.txt](common/on_actions/00_smart_notifications_on_actions.txt)),
+      [00_smart_notifications_on_actions.txt](../../smart_notifications/common/on_actions/00_smart_notifications_on_actions.txt)),
       with its own localization
-      ([smart_notifications_l_english.yml](localization/english/smart_notifications_l_english.yml)).
+      ([smart_notifications_l_english.yml](../../smart_notifications/localization/english/smart_notifications_l_english.yml)).
       Cheap enough to keep permanently as a "mod active" signal.
 - [x] Set `multiplayer_synchronized: false` in `metadata.json` — this mod is
       single-player only. Also relocated `metadata.json` itself into
@@ -140,7 +140,7 @@ Confirm the simplest possible mod actually loads in-game before anything else.
       confirmed in-game.**
 - [x] **Conscription Noise Reduction** — shipped as a blunt global demotion:
       `country_conscription` is `none` for everyone (see
-      [00_messages.txt:1489](common/messages/00_messages.txt)), not scoped to
+      [00_messages.txt:1489](../../smart_notifications/common/messages/00_messages.txt)), not scoped to
       "declared strategic interests" as originally envisioned. Scoping that
       condition also depends on Phase 4-style relational/on_action logic —
       revisit then if the blunt version proves too quiet.
@@ -313,7 +313,7 @@ architectural concern, not an afterthought. Landed on a genuinely simpler
   cost.
 
 Confirmed-real triggers behind each category (from the `script_docs`
-dump, see [docs/engine-notes.md](docs/engine-notes.md) for how that dump
+dump, see [docs/engine-notes.md](../engine-notes.md) for how that dump
 works) — used only at click-time now, not at runtime:
 - **Great Powers:** `country_rank >= rank_value:great_power` — an exact
   tier comparison via `common/country_ranks/00_country_ranks.txt`.
@@ -427,11 +427,11 @@ from EU4's country selector, propose something better if you have it"):
   scoped to the section it's shown in.
 
 - [x] **v1 — Scripted GUI Logic** — built 2026-09-06:
-      [watchlist_sgui.txt](common/scripted_guis/watchlist_sgui.txt).
+      [watchlist_sgui.txt](../../smart_notifications/common/scripted_guis/watchlist_sgui.txt).
       Toggles the watched state (all 4 flags, per the individual-row
       semantics above) on a target country; includes
       `ai_is_valid = { always = no }` and `ai_chance = { base = 0 }` per
-      [CLAUDE.md](CLAUDE.md). Will be wired to row checkboxes on the
+      [CLAUDE.md](../../CLAUDE.md). Will be wired to row checkboxes on the
       management screen (see below) rather than a country-panel star.
 - [x] **Country Panel Bookmark Button — dropped 2026-09-06, not
       building.** Investigated `gui/country_panel.gui` for where the
@@ -449,7 +449,7 @@ from EU4's country selector, propose something better if you have it"):
       alone is sufficient, see above.
 - [x] **v1 — Game-start defaults** — built 2026-09-06, added to the
       existing `on_game_started_after_lobby` hook
-      ([00_smart_notifications_on_actions.txt](common/on_actions/00_smart_notifications_on_actions.txt)):
+      ([00_smart_notifications_on_actions.txt](../../smart_notifications/common/on_actions/00_smart_notifications_on_actions.txt)):
       runs Great Powers + Neighbors + Rivals bulk-select once, using
       `every_rival_country` run directly from the player's own scope for
       Rivals (simpler than a candidate-loop, since it doesn't need
@@ -462,7 +462,7 @@ from EU4's country selector, propose something better if you have it"):
       SEEN IN-GAME.** Per the user, dropped the "new topbar button" idea
       entirely in favor of a much lower-risk approach: a genuinely new
       **4th tab inside the existing Message Settings window**
-      ([gui/message_settings.gui](gui/message_settings.gui), full-file
+      ([gui/message_settings.gui](../../smart_notifications/gui/message_settings.gui), full-file
       override — same pattern as `common/messages/00_messages.txt`).
       This needed no new entry point at all (the window's already opened
       via the gear icon players already use), and `tab_buttons` already
@@ -489,7 +489,7 @@ from EU4's country selector, propose something better if you have it"):
       show any countries at all."
       Also found and fixed a real bug in our OWN validator while doing
       this — see
-      [docs/engine-notes.md § validate_syntax.py bug](docs/engine-notes.md):
+      [docs/engine-notes.md § validate_syntax.py bug](../engine-notes.md):
       it falsely reported this file as unbalanced because its
       comment-stripping wasn't quote-aware (GUI files embed `#title`-style
       formatting codes inside strings). Fixed the tool itself, re-confirmed
@@ -514,7 +514,7 @@ from EU4's country selector, propose something better if you have it"):
    a real vanilla precedent
    (`je_meiji_restoration_japanese_emperor_check_sgui`) that does exactly
    this split. See
-   [docs/engine-notes.md § A scripted GUI's is_valid also gates .Execute()](docs/engine-notes.md).
+   [docs/engine-notes.md § A scripted GUI's is_valid also gates .Execute()](../engine-notes.md).
 2. **Reproduced consistently by the user, root-caused, fixed:**
    closing Message Settings while the Watchlist tab is active, then
    reopening, merged the Watchlist and Alerts tabs' content visibly on
@@ -614,7 +614,7 @@ four are" so the list is never empty on first open.
       no equivalent accessor on `MessageSettingsWindow`, and no
       dynamic-text substring/contains function exists anywhere in
       vanilla to filter on typed text another way — see
-      [docs/engine-notes.md § No generic substring-search filter available for a custom country list](docs/engine-notes.md).
+      [docs/engine-notes.md § No generic substring-search filter available for a custom country list](../engine-notes.md).
       Shows every country in the world, unfiltered, so you can scroll and
       check any one — not a stopgap, the actual intended design until a
       real mechanism turns up.
@@ -689,7 +689,7 @@ four are" so the list is never empty on first open.
       this bullet's own wording just predated that decision and was
       never reconciled with it until now.
       Implementation:
-      [03_smart_notifications_relational_notifications.txt](common/on_actions/03_smart_notifications_relational_notifications.txt)
+      [03_smart_notifications_relational_notifications.txt](../../smart_notifications/common/on_actions/03_smart_notifications_relational_notifications.txt)
       appends to all 3 vanilla on_actions (never redefines their effect
       directly, per CLAUDE.md) and uses `any_scope_play_involved`
       (confirmed real via the game's own `script_docs` effects.log —
@@ -779,7 +779,7 @@ four are" so the list is never empty on first open.
       (pairwise, same-play-scoped) proved correct both times: only the
       real actor/target ever showed `participant_with_actor=yes`, every
       Great Power correctly showed `no`. The elevation check in
-      [03_smart_notifications_relational_notifications.txt](common/on_actions/03_smart_notifications_relational_notifications.txt)
+      [03_smart_notifications_relational_notifications.txt](../../smart_notifications/common/on_actions/03_smart_notifications_relational_notifications.txt)
       now reads `any_scope_play_involved = { is_diplomatic_play_participant_with
       = scope:actor  smart_notifications_is_watched = yes }` — ANDed, so
       only a watched country that's a genuine committed participant of
@@ -836,7 +836,7 @@ four are" so the list is never empty on first open.
       country showed watched — the filtering decision was correct, and
       the message key it posted (`smart_notifications_diplo_play_join_side_quiet`)
       is confirmed `notification_type = feed` in
-      [00_messages.txt](common/messages/00_messages.txt), not toast. Also
+      [00_messages.txt](../../smart_notifications/common/messages/00_messages.txt), not toast. Also
       confirmed the dedup guard held here: dozens of repeat on_action
       invocations, only ONE decision line.
       **My first theory ("Vic3 shows a brief toast-shaped card for any
@@ -960,7 +960,7 @@ commitment alert before it was ever seen live. All fixed same day:
    names as an empty `{}` entry). Ours was referenced from the alert_type
    but never declared there, so the engine silently never grouped it
    at all — the `ag_*` loc was necessary but not sufficient. Fixed:
-   [common/alert_groups/01_smart_notifications_alert_groups.txt](common/alert_groups/01_smart_notifications_alert_groups.txt).
+   [common/alert_groups/01_smart_notifications_alert_groups.txt](../../smart_notifications/common/alert_groups/01_smart_notifications_alert_groups.txt).
    **Not yet re-confirmed live**, but this is now believed to be the
    actual, complete fix (both pieces the grouping mechanism needs are in
    place). Also worth re-checking whether this incidentally fixes the
@@ -1087,15 +1087,15 @@ commitment alert before it was ever seen live. All fixed same day:
    type — mechanically generated (not hand-typed) from every law_type key
    in the installed game's own `common/laws/*.txt` (126 at generation
    time), covering:
-   - [common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt](common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt)
+   - [common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt](../../smart_notifications/common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt)
      — new shared scripted_trigger, `smart_notifications_law_matches_wanted_flag`,
      the single source of truth for the law_type↔variable_name mapping,
      reused by both the check_sgui's `is_valid` and the alert's `valid`
      (avoids tripling 126 branches across three places).
-   - [common/scripted_guis/smart_notifications_law_notify_sgui.txt](common/scripted_guis/smart_notifications_law_notify_sgui.txt)
+   - [common/scripted_guis/smart_notifications_law_notify_sgui.txt](../../smart_notifications/common/scripted_guis/smart_notifications_law_notify_sgui.txt)
      — the toggle SGUI's effect, one `if`/`else_if` branch per law type
      (needs its own copy since it performs an action, not just a check).
-   - [common/alert_types/01_smart_notifications_alerts.txt](common/alert_types/01_smart_notifications_alerts.txt)'s
+   - [common/alert_types/01_smart_notifications_alerts.txt](../../smart_notifications/common/alert_types/01_smart_notifications_alerts.txt)'s
      `smart_notifications_law_commitment_alert` — `valid` now calls the
      shared scripted_trigger instead of a plain `has_variable` on `law`
      scope.
@@ -1126,7 +1126,7 @@ commitment alert before it was ever seen live. All fixed same day:
    cover standalone in-panel UI labels too (previously scoped to
    Message-Settings rows only), and only the leading word plus the
    pronoun "I" are capitalized, not every word. See
-   [docs/engine-notes.md § Tagging mod-created notifications](docs/engine-notes.md)
+   [docs/engine-notes.md § Tagging mod-created notifications](../engine-notes.md)
    for the extension writeup.
    **Not yet re-confirmed live** — needs another test: does the checkbox
    now actually toggle, and does the alert fire for a flagged-but-not-yet-
@@ -1151,9 +1151,9 @@ point IS the law — the SGUI's own root — not a country at all, so the
 `has_variable` check landed right back on `law` scope, exactly the thing
 the whole redesign was meant to avoid.
 **Fixed** by using `THIS.owner` instead of `ROOT` in both
-[common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt](common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt)
+[common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt](../../smart_notifications/common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt)
 and
-[common/scripted_guis/smart_notifications_law_notify_sgui.txt](common/scripted_guis/smart_notifications_law_notify_sgui.txt) —
+[common/scripted_guis/smart_notifications_law_notify_sgui.txt](../../smart_notifications/common/scripted_guis/smart_notifications_law_notify_sgui.txt) —
 `owner` is confirmed real for `law` scope (event_targets.log: "Scope to
 the owner country of object", Input Scopes includes `law`), and unlike
 `ROOT`, `THIS` (the law being evaluated) is consistent across both
@@ -1179,7 +1179,7 @@ conclusive either way.
   `any_law` rebinds the current scope to the iterated LAW. Same class of
   mistake as the two already-confirmed bugs, just not live-tested yet.
   Fixed using the exact pattern already proven in
-  [common/on_actions/02_smart_notifications_truce_tracker.txt](common/on_actions/02_smart_notifications_truce_tracker.txt)
+  [common/on_actions/02_smart_notifications_truce_tracker.txt](../../smart_notifications/common/on_actions/02_smart_notifications_truce_tracker.txt)
   (`save_scope_as` to carry a reference across a `root = { ... }` switch)
   rather than guessing a new mechanism: `THIS.type = { save_scope_as =
   ... }` while still law-scoped, then `root = { enactment_chance_for_law
@@ -1197,7 +1197,7 @@ conclusive either way.
   ran.
 - **New temporary diagnostic for the alert side specifically**, since
   that path has never been live-tested at all (only the checkbox has):
-  [common/on_actions/08_smart_notifications_law_commitment_probe.txt](common/on_actions/08_smart_notifications_law_commitment_probe.txt),
+  `common/on_actions/08_smart_notifications_law_commitment_probe.txt` (since deleted, commit b7676e5),
   an `on_monthly_pulse_country` tap (same real hook the truce tracker
   uses) that logs, for every currently-flagged law, which of the
   remaining two gates (`can_be_enacted`, the 0.5 threshold) it passes or
@@ -1239,14 +1239,14 @@ way, confirmed live and by `error.log`:
    Needs no effect: enter `THIS.owner = { ... }` (a plain scope
    transition, valid in triggers) and reference `prev.type` from inside
    it to mean "the law we just came from"'s type. Rewritten in
-   [common/alert_types/01_smart_notifications_alerts.txt](common/alert_types/01_smart_notifications_alerts.txt).
+   [common/alert_types/01_smart_notifications_alerts.txt](../../smart_notifications/common/alert_types/01_smart_notifications_alerts.txt).
 2. **The diagnostic probe itself had a bug**, caught via `error.log`
    before it ever produced a useful line: `Unknown effect any_law at
    common/on_actions/08_smart_notifications_law_commitment_probe.txt:31`.
    `any_law` is trigger-only; the effect-side iterator is a different
    keyword, `every_law` (confirmed: effects.log documents it separately,
    "Iterate through all laws in a country"). Fixed in
-   [common/on_actions/08_smart_notifications_law_commitment_probe.txt](common/on_actions/08_smart_notifications_law_commitment_probe.txt).
+   `common/on_actions/08_smart_notifications_law_commitment_probe.txt` (since deleted, commit b7676e5).
 
 **Lesson for this whole feature, now confirmed three times over**:
 `any_X`/`every_X` and effect-vs-trigger context are NOT
@@ -1331,9 +1331,9 @@ likely a metric mismatch (not a bug, needs a decision):**
    `law_no_schools`, `law_no_social_security`, `law_peasant_levies`,
    `law_serfdom` — every one of them the first entry in its own file.
    Regenerated
-   [common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt](common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt)
+   [common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt](../../smart_notifications/common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt)
    and
-   [common/scripted_guis/smart_notifications_law_notify_sgui.txt](common/scripted_guis/smart_notifications_law_notify_sgui.txt)
+   [common/scripted_guis/smart_notifications_law_notify_sgui.txt](../../smart_notifications/common/scripted_guis/smart_notifications_law_notify_sgui.txt)
    from the corrected 138-law list. This also directly answers the
    user's earlier question about future DLC laws: the mechanism already
    degrades gracefully (an unmatched law's checkbox just does nothing,
@@ -1363,7 +1363,7 @@ to the monthly probe — alerts globally re-evaluate every
 `ALERTS_FRAMES_BETWEEN_UPDATES` (5) frames, i.e. multiple times per
 second, the same as every other alert in the game. Only the TEMPORARY
 diagnostic probe
-([common/on_actions/08_smart_notifications_law_commitment_probe.txt](common/on_actions/08_smart_notifications_law_commitment_probe.txt))
+(`common/on_actions/08_smart_notifications_law_commitment_probe.txt` (since deleted, commit b7676e5))
 is monthly — that's what needed the wait, not the alert. If the
 underlying condition is ever true, the real alert would show up within a
 second or two, not a month.
@@ -1391,9 +1391,9 @@ same already-confirmed `_for_law` trigger shape repeated at 19 points,
 not a new mechanism.
 
 Updated both
-[common/alert_types/01_smart_notifications_alerts.txt](common/alert_types/01_smart_notifications_alerts.txt)
+[common/alert_types/01_smart_notifications_alerts.txt](../../smart_notifications/common/alert_types/01_smart_notifications_alerts.txt)
 (the real condition) and
-[common/on_actions/08_smart_notifications_law_commitment_probe.txt](common/on_actions/08_smart_notifications_law_commitment_probe.txt)
+`common/on_actions/08_smart_notifications_law_commitment_probe.txt` (since deleted, commit b7676e5)
 (the temporary diagnostic, now mirroring the exact same check so its
 output stays meaningful) to match. **Not yet re-confirmed live.**
 
@@ -1443,7 +1443,7 @@ elsewhere renders the built list live via
 evaluated fresh every time the tooltip renders, so there's no staleness
 the way a slow monthly-pulse-computed value would have. Added
 `smart_notifications_law_commitment_list_sgui`
-([common/alert_types/01_smart_notifications_alerts.txt](common/alert_types/01_smart_notifications_alerts.txt)),
+([common/alert_types/01_smart_notifications_alerts.txt](../../smart_notifications/common/alert_types/01_smart_notifications_alerts.txt)),
 which lists every ready law via `[THIS.GetNameNoFormatting]
 ([THIS.GetGroup.GetName])` entries, embedded into the alert's `_desc`.
 
@@ -1451,7 +1451,7 @@ which lists every ready law via `[THIS.GetNameNoFormatting]
 builder) needing the identical ~400-line success-vs-stall threshold
 sweep as the alert and the probe, factored it into one shared scripted
 trigger, `smart_notifications_law_ready_to_enact`
-([common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt](common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt)) —
+([common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt](../../smart_notifications/common/scripted_triggers/01_smart_notifications_law_wanted_trigger.txt)) —
 the alert's own `valid` and the probe both got dramatically shorter as a
 result, and there's now exactly one place to ever change this logic
 again.
@@ -1483,7 +1483,7 @@ even constructed.
 just for a different accessor.** `SCOPE.GetRootScope` is a generic
 wrapper that always needs an explicit per-type cast chained onto it
 before anything else works — this mod's own
-[docs/engine-notes.md](docs/engine-notes.md) already documents this for
+[docs/engine-notes.md](../engine-notes.md) already documents this for
 `THIS` vs `SCOPE.sC(...)`, and the taxation deficit alert's own working
 loc (`SCOPE.GetRootScope.GetState.GetName`) already demonstrated the
 cast pattern for state alerts — but writing this alert's `player_country`
@@ -1514,7 +1514,7 @@ cause: `smart_notifications_law_commitment_list_sgui` was defined inside
 scripted_gui in this whole mod NOT placed in `common/scripted_guis/`.
 The engine only scans that dedicated folder for scripted_gui
 definitions. Fixed by moving it, unchanged otherwise, to
-[common/scripted_guis/smart_notifications_law_commitment_list_sgui.txt](common/scripted_guis/smart_notifications_law_commitment_list_sgui.txt).
+[common/scripted_guis/smart_notifications_law_commitment_list_sgui.txt](../../smart_notifications/common/scripted_guis/smart_notifications_law_commitment_list_sgui.txt).
 **Not yet re-confirmed live.**
 
 ## Alert won't re-fire after dismissal — likely a real engine constraint, not a bug
@@ -1544,10 +1544,10 @@ dismissal is edge-triggered on the alert's `valid`, not per-item, and the
 standard fix pattern is a decoupled one-time toast independent of the
 persistent alert.
 
-**Built**: [common/on_actions/09_smart_notifications_law_ready_toast.txt](common/on_actions/09_smart_notifications_law_ready_toast.txt),
+**Built**: [common/on_actions/09_smart_notifications_law_ready_toast.txt](../../smart_notifications/common/on_actions/09_smart_notifications_law_ready_toast.txt),
 a monthly edge-detector (same real hook as the truce tracker) — for each
 law, fires `smart_notifications_law_ready_toast`
-([common/messages/00_messages.txt](common/messages/00_messages.txt)) once
+([common/messages/00_messages.txt](../../smart_notifications/common/messages/00_messages.txt)) once
 when it transitions from not-ready to ready (a per-law-type "already
 notified" variable, cleared again once the law stops being ready, so it
 can fire again on a future readiness edge), independent of whether the
@@ -1566,7 +1566,7 @@ to test?" Real, fair critique — the same general class of mistake
 (a subtly-wrong scope/context assumption) hit this one feature five
 times in an afternoon, each only caught after a live test. Rather than
 just committing to look harder, extended
-[tools/validate_syntax.py](tools/validate_syntax.py) (already a required
+[tools/validate_syntax.py](../../tools/validate_syntax.py) (already a required
 step after every file change, per CLAUDE.md) to catch the three
 confirmed-real patterns behind those five bugs automatically: an uncast
 `SCOPE.GetRootScope`, `any_X` used inside an `effect` block, and effect
@@ -1574,7 +1574,7 @@ keywords used inside a `valid`/`is_valid`/`limit` trigger block. Verified
 it actually works both directions — reproduced known-bad snippets from
 this session's real bugs (all three caught) and known-good snippets from
 the current codebase (zero false positives) — before trusting it. See
-[docs/engine-notes.md § Known mistake patterns](docs/engine-notes.md) for
+[docs/engine-notes.md § Known mistake patterns](../engine-notes.md) for
 the full writeup; add new patterns there (and to the checker function)
 if a similar mistake shape turns up again.
 
@@ -1590,7 +1590,7 @@ plain number; an exhaustive grep for `value = enactment_chance`/
 included) found nothing. The threshold sweep is the closest
 approximation of an exact subtraction the engine's own vocabulary
 allows, not an unnecessary complication. See
-[docs/engine-notes.md § Success-vs-stall comparisons have no numeric form](docs/engine-notes.md).
+[docs/engine-notes.md § Success-vs-stall comparisons have no numeric form](../engine-notes.md).
 
 ## New notifications/alerts backlog — sized and sequenced 2026-09-08
 
@@ -1664,11 +1664,11 @@ grouping them here rather than writing three near-duplicate sections:
       separate cooldown check — but if a session ever shows this alert
       lit up while Invite Exile is still greyed out on cooldown, that
       assumption is wrong and needs revisiting. Shipped:
-      [common/alert_types/01_smart_notifications_alerts.txt](common/alert_types/01_smart_notifications_alerts.txt)
+      [common/alert_types/01_smart_notifications_alerts.txt](../../smart_notifications/common/alert_types/01_smart_notifications_alerts.txt)
       (`smart_notifications_agitator_invite_available_alert`, `type =
       important_action`, `open_panel = politics|default` matching the
       exile pool's own overlay on the Politics Overview tab), loc in
-      [smart_notifications_l_english.yml](localization/english/smart_notifications_l_english.yml)
+      [smart_notifications_l_english.yml](../../smart_notifications/localization/english/smart_notifications_l_english.yml)
       (both `_name`/`_desc` and the separate `_setting_name`, per the "two
       name-shaped loc keys" engine-notes entry). **Needs in-game
       confirmation**, same caveat as every other alert here: an open slot
@@ -1692,7 +1692,7 @@ grouping them here rather than writing three near-duplicate sections:
       trigger verbatim rather than inventing a new one, since Paradox had
       already worked out the right condition and simply left it off.
       Shipped:
-      [common/alert_types/01_smart_notifications_alerts.txt](common/alert_types/01_smart_notifications_alerts.txt)
+      [common/alert_types/01_smart_notifications_alerts.txt](../../smart_notifications/common/alert_types/01_smart_notifications_alerts.txt)
       (`smart_notifications_taxation_deficit_alert`, `script_context =
       player_state`, `open_panel = states_panel`, `alert_group =
       smart_notifications_taxation_deficit_states` since multiple states
@@ -1700,7 +1700,7 @@ grouping them here rather than writing three near-duplicate sections:
       `alert_group` never groups — matching vanilla's own
       `low_market_access_alert`/the hidden tax-capacity alert's choice to
       group by state), loc in
-      [smart_notifications_l_english.yml](localization/english/smart_notifications_l_english.yml)
+      [smart_notifications_l_english.yml](../../smart_notifications/localization/english/smart_notifications_l_english.yml)
       using the exact `SCOPE.GetRootScope.GetState.GetName` dynamic-text
       chain (plus the extra `_action` key used for grouped
       important-actions) copied from vanilla's own `player_state`-scoped
@@ -1716,14 +1716,14 @@ grouping them here rather than writing three near-duplicate sections:
       despite the small country count, and only the "just expired" half is
       buildable (see the earlier finding below on why "expiring in one
       month" isn't). Shipped:
-      [common/on_actions/02_smart_notifications_truce_tracker.txt](common/on_actions/02_smart_notifications_truce_tracker.txt)
+      [common/on_actions/02_smart_notifications_truce_tracker.txt](../../smart_notifications/common/on_actions/02_smart_notifications_truce_tracker.txt)
       — a monthly pulse (`on_monthly_pulse_country`, `is_player`-gated)
       that iterates every country, flags one with `has_truce_with = root`
       via a variable set *on that country* (variable names are static
       keys, can't be parameterized per-tag, so the flag has to live on the
       other country rather than as a list on us), and fires
       `smart_notifications_truce_expired`
-      ([00_messages.txt](common/messages/00_messages.txt), new `toast`
+      ([00_messages.txt](../../smart_notifications/common/messages/00_messages.txt), new `toast`
       group) when the flag is set but the truce is gone. Uses
       `save_scope_as` to carry the partner country across the `root = {
       post_notification = ... }` switch-back, mirroring the
@@ -1769,10 +1769,10 @@ grouping them here rather than writing three near-duplicate sections:
       `any_law`/`any_active_law`'s own documented iteration target,
       inherently per-country already). This sidesteps the country-vs-law_type
       ambiguity entirely. Shipped, three pieces:
-      1. [common/scripted_guis/smart_notifications_law_notify_sgui.txt](common/scripted_guis/smart_notifications_law_notify_sgui.txt)
+      1. [common/scripted_guis/smart_notifications_law_notify_sgui.txt](../../smart_notifications/common/scripted_guis/smart_notifications_law_notify_sgui.txt)
          — toggle/check SGUI pair, `scope = law`, same
          is_valid-also-gates-Execute split as `watchlist_sgui.txt`.
-      2. [gui/politics_panel_change_law.gui](gui/politics_panel_change_law.gui)
+      2. [gui/politics_panel_change_law.gui](../../smart_notifications/gui/politics_panel_change_law.gui)
          — the same full-file GUI override as before (transcription
          re-verified with a `diff` against vanilla), now with the
          checkbox moved onto the shared law-detail panel so it's visible
@@ -1787,7 +1787,7 @@ grouping them here rather than writing three near-duplicate sections:
          this is extrapolation from a consistent pattern, not a copied
          confirmed example. **First thing to check in-game**: does the
          checkbox render and actually toggle at all.
-      3. [common/alert_types/01_smart_notifications_alerts.txt](common/alert_types/01_smart_notifications_alerts.txt)
+      3. [common/alert_types/01_smart_notifications_alerts.txt](../../smart_notifications/common/alert_types/01_smart_notifications_alerts.txt)
          (`smart_notifications_law_commitment_alert`) — `valid =
          { any_law = { has_variable = smart_notifications_wanted_law
          can_be_enacted = yes  enactment_chance_for_law = { target =
@@ -1801,7 +1801,7 @@ grouping them here rather than writing three near-duplicate sections:
          reasonable "better support than pushback" guess, not verified
          against how vanilla's own UI colors the number; first thing to
          tune if the alert fires too early or too late. loc in
-         [smart_notifications_l_english.yml](localization/english/smart_notifications_l_english.yml),
+         [smart_notifications_l_english.yml](../../smart_notifications/localization/english/smart_notifications_l_english.yml),
          static/generic text (no dynamic law-name reference) for the same
          lower-risk reason the amendment-repeal alert made that call.
       **Needs in-game confirmation across the whole chain** — checkbox
@@ -1814,7 +1814,7 @@ grouping them here rather than writing three near-duplicate sections:
       shipped 2026-09-06.** Per the user, this one should surface on the
       top ribbon — used `type = important_action` (not plain `alert`) for
       exactly that. Shipped:
-      [common/alert_types/01_smart_notifications_alerts.txt](common/alert_types/01_smart_notifications_alerts.txt),
+      [common/alert_types/01_smart_notifications_alerts.txt](../../smart_notifications/common/alert_types/01_smart_notifications_alerts.txt),
       a genuinely new file (alert_types merge additively across files in
       the folder, unlike `common/messages/`, so no vanilla file needed
       copying — see engine-notes.md). Trigger chain:
@@ -1836,7 +1836,7 @@ caught and fixed in its Message Settings label: an alert needs a separate
 `<key>_setting_name` loc key (no `alert_` prefix) distinct from
 `alert_<key>_name` (the ribbon tooltip) — omitting it showed the raw
 script key in Message Settings instead of a label. See
-[docs/engine-notes.md § An alert type needs TWO name-shaped loc keys](docs/engine-notes.md).
+[docs/engine-notes.md § An alert type needs TWO name-shaped loc keys](../engine-notes.md).
 
 **Regression found and fixed 2026-09-06** — a second truce expired and
 the user didn't see a toast this time, despite the above. Investigated
@@ -1864,7 +1864,7 @@ two real, confirmed causes:
    defensively everywhere regardless, since `.GetNameNoFormatting` is the
    exhaustively-confirmed-safe vanilla convention and there's no reason
    not to use it. See
-   [docs/engine-notes.md § `GetName` is not a valid dynamic-text function](docs/engine-notes.md).
+   [docs/engine-notes.md § `GetName` is not a valid dynamic-text function](../engine-notes.md).
 
 **Not yet re-confirmed live** — needs another truce expiry (or a repeat of
 whatever the second, silent one was) to confirm both fixes actually
@@ -1905,8 +1905,8 @@ at a glance. Any message group / alert `_name` that's genuinely new content
 the in-game toast/popup sentence itself). Applied retroactively to
 `smart_notifications_truce_expired_group` and the amendment alert's
 `_name`; full rule and reasoning in
-[docs/engine-notes.md § Tagging mod-created notifications](docs/engine-notes.md)
-and [CLAUDE.md](CLAUDE.md). Deliberately NOT applied to
+[docs/engine-notes.md § Tagging mod-created notifications](../engine-notes.md)
+and [CLAUDE.md](../../CLAUDE.md). Deliberately NOT applied to
 `invasion_against_us_notification_group`/`diplo_play_subject_overlord_notification_group`
 (Phase 1 group-splits of vanilla content, not new notifications).
 
@@ -1968,7 +1968,7 @@ workaround still to come.
 
 User confirmed the correct law name and group now render in the alert
 tooltip. Root cause and fix are documented above and in
-[docs/engine-notes.md § Two separate function tables](docs/engine-notes.md)
+[docs/engine-notes.md § Two separate function tables](../engine-notes.md)
 -- this took far more live-test rounds than it should have, and that
 section is the retrospective on why, plus the new CLAUDE.md rule meant to
 stop it recurring: precedent for a dynamic-text/`custom_tooltip` call must
@@ -1984,7 +1984,7 @@ sorted first" is documented). No code change was needed or possible here
 vanilla one, because they all live in one file
 (`01_smart_notifications_alerts.txt`) that sorts after vanilla's `00_`
 file by filename, in the order they were added within it. Full writeup:
-[docs/engine-notes.md § Important-action alert order](docs/engine-notes.md).
+[docs/engine-notes.md § Important-action alert order](../engine-notes.md).
 
 The temporary diagnostic probe
 (`common/on_actions/08_smart_notifications_law_commitment_probe.txt`) can
@@ -2994,7 +2994,7 @@ only for confirmed-working new features, tag every version bump).
       long names. **Fix:** the tagging convention changed from a trailing
       `" (Smart Notifications)"` suffix to a short leading `"(SN) "`
       prefix on every mod-created group/alert label (13 labels in
-      [smart_notifications_l_english.yml](localization/english/smart_notifications_l_english.yml)) —
+      [smart_notifications_l_english.yml](../../smart_notifications/localization/english/smart_notifications_l_english.yml)) —
       visible even when truncated, and 5 characters instead of 22.
       CLAUDE.md and engine-notes.md updated to document the revised
       convention for future additions.
@@ -3009,7 +3009,7 @@ only for confirmed-working new features, tag every version bump).
       **GUI-level section divider — investigated, not pursued:** the
       list is populated from a native datamodel
       (`MessageSettingsWindow.GetNotificationSettingsItems` per
-      [gui/message_settings.gui](gui/message_settings.gui)), with an
+      [gui/message_settings.gui](../../smart_notifications/gui/message_settings.gui)), with an
       existing "sort by Notification Type" column the player can already
       click — but the DEFAULT (unsorted) order was never confirmed (could
       be alphabetical, native registration order, file definition order,

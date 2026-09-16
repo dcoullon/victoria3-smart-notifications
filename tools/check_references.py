@@ -943,6 +943,48 @@ def check_engine_notes_toc_is_current(root: Path) -> list[str]:
     return errs
 
 
+
+# Repo-wide checks run once per process, not once per mod: they inspect
+# REPO_ROOT, so running them per mod root would just triple every message.
+_REPO_WIDE_DONE: set[str] = set()
+
+
+def check_markdown_links_resolve(root: Path) -> list[str]:
+    """Every relative link in this repo's own .md files has to point at a file
+    that exists.
+
+    Added 2026-09-16, after the one-folder-per-mod restructure moved
+    CHANGELOG.md, TODO.md and the whole of common/, gui/ and localization/
+    under `smart_notifications/` and left 14 links pointing at their old
+    paths. Nothing caught it -- the mod still loaded, the validator still
+    passed, and the only symptom was a doc link that 404s months later when
+    someone follows it looking for the evidence behind a decision. A moved
+    file is exactly what a static scan sees and a playtest never will.
+
+    Only relative links are checked; http(s)/mailto are somebody else's
+    problem, and a citation of a VANILLA game file must not be written as a
+    markdown link in the first place (it does not exist in this repo, so it
+    would fail here -- cite it in backticks instead)."""
+    if "markdown_links" in _REPO_WIDE_DONE:
+        return []
+    _REPO_WIDE_DONE.add("markdown_links")
+
+    link_re = re.compile(r"\[[^\]]*\]\(([^)\s]+)\)")
+    skip_dirs = {".git", "__pycache__", "node_modules"}
+    errs = []
+    for md in sorted(REPO_ROOT.rglob("*.md")):
+        if any(part in skip_dirs or part.endswith("_release") for part in md.parts):
+            continue
+        for m in link_re.finditer(md.read_text(encoding="utf-8-sig", errors="replace")):
+            target = m.group(1).split("#", 1)[0]
+            if not target or target.startswith(("http://", "https://", "mailto:", "claude://")):
+                continue
+            if not (md.parent / target).exists():
+                rel = md.relative_to(REPO_ROOT).as_posix()
+                errs.append(f"{rel} links to a path that does not exist: {target}")
+    return errs
+
+
 # How each snapshotted `reference/vanilla/<ver>/` directory is used, because
 # the right completeness rule differs and cannot be inferred from the files
 # present (inferring it is what let the 2026-09-15 bug hide -- a corpus
@@ -1272,6 +1314,7 @@ def run_all(root: Path) -> list[str]:
     errs += check_replaced_loc_still_matches_vanilla(root)
     errs += check_engine_notes_toc_is_current(root)
     errs += check_vanilla_reference_snapshot_is_complete(root)
+    errs += check_markdown_links_resolve(root)
 
     # Smart-Notifications-only: each asserts that specific files or message
     # keys THIS mod owns are present, so against a sibling mod every one of

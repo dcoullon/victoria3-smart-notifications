@@ -435,7 +435,7 @@ checking which system actually owns it first.
   boolean), but `enactment_chance`/`enacting_any_law` (for laws) and
   `amendment_can_be_repealed` (for amendments) do exist and are exactly
   what's needed. See the Phase-2-adjacent state-change-watcher entries in
-  [TODO.md](../TODO.md) for the specifics and the resulting alert-type
+  [TODO.md](../smart_notifications/TODO.md) for the specifics and the resulting alert-type
   trigger chains.
 
 ### Where `script_docs` actually writes its output
