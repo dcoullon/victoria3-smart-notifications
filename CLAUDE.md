@@ -6,6 +6,31 @@ there before relying on one of these in new code. This file stays a terse
 checklist on purpose; don't add narrative/rationale here, add it there and
 link it.
 
+## 0. Repo layout — one folder per mod
+
+This repo holds several mods. **Every path below that names `common/`, `gui/`,
+`events/`, `localization/` or `.metadata/` is relative to a MOD folder, not to
+the repo root.**
+
+```
+smart_notifications/    published; the EU4-style watchlist and notification tuning
+bulk_construction/      "Build All": one button queues a building in every listed state
+better_decision_info/   stub
+docs/ reference/ tools/ .claude/   shared across all of them
+```
+
+Restructured 2026-09-16 (Smart Notifications used to sit at the repo root).
+Consequences worth knowing:
+
+- `python tools/validate_syntax.py` with no argument validates **every** mod;
+  name one (`... validate_syntax.py bulk_construction`) to narrow it.
+- `python tools/package_release.py <mod>` **requires** the mod name — with
+  several mods, a default is how you upload the wrong one.
+- Checks that inspect the REPO (engine-notes TOC, vanilla snapshot, census
+  freshness) resolve from `check_references.REPO_ROOT`; checks that inspect a
+  MOD resolve from the root they are handed. Getting that backwards makes a
+  check silently no-op and still print PASS.
+
 ## 1. Git Authorship Rules
 
 - Never include "Co-Authored-By", AI mentions, or session URLs in git commit messages or PR descriptions.
@@ -73,5 +98,5 @@ link it.
 - **In-game screenshots the user takes land in `C:\Program Files (x86)\Steam\userdata\42572\760\remote\529340\screenshots\`**, named `YYYYMMDDHHMMSS_1.jpg`. Read them from there with the `Read` tool rather than asking the user to paste them (their standing request, 2026-09-09); `ls -t` that folder to find the ones just taken. **Prefer `python tools/shot.py --region <toast|alerts|feed|settings|panel|topbar>` and read what it writes**: a raw 1920x1080 frame costs ~2,764 image tokens and stays in context for the rest of the session, a cropped one 150-700. Read the raw file only when the whole screen genuinely matters.
 - Distribution constraints (Steam/Paradox mod policy, download expectations): `docs/distribution-guidelines.md`.
 - To check whether something is actually working without asking the user to test again: `python tools/scan_logs.py` filters the live `error.log`/`debug.log` down to this mod's own `SNW_*` debug lines and known engine-error signatures — never dump a full log into context instead. Slash commands `/validate-mod`, `/compare-notifications`, `/scan-logs`, `/package-release` wrap this and the other `tools/*.py` scripts for direct human use.
-- **Never upload straight from the dev mod folder/junction** — the Paradox Launcher bundles its entire target directory, including this repo's `tools/`, `docs/`, `reference/`, `.git/`, and root-level docs. Run `python tools/package_release.py` first (see engine-notes.md § Never upload the dev mod folder directly) to build a clean copy at a separate mod entry, and upload from that instead.
-- **Every time we're about to release a new version externally (a Workshop upload, sharing the mod outside local testing) — the user wants this called out explicitly, every time, not assumed remembered:** remind them to run `python tools/package_release.py` (or `/package-release`) and to upload from the `smart_notifications_release` folder, never the dev junction.
+- **Never upload straight from the dev mod folder/junction.** The Paradox Launcher bundles its entire target directory. Since the 2026-09-16 restructure each junction points at one mod folder rather than the whole repo, so `tools/`, `docs/`, `reference/` and `.git/` are no longer in the blast radius — but the junction still carries `CHANGELOG.md`, the `.bbcode`, and every dev-only diagnostic file and `debug_log` line, which `package_release.py` strips. Run it first (see engine-notes.md § Never upload the dev mod folder directly).
+- **Every time we're about to release a new version externally (a Workshop upload, sharing the mod outside local testing) — the user wants this called out explicitly, every time, not assumed remembered:** remind them to run `python tools/package_release.py <mod>` (or `/package-release`) and to upload from the `<mod id>_release` folder, never the dev junction.

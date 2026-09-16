@@ -4,19 +4,19 @@ description: Build a clean, upload-only copy of the mod (just the folders Victor
 disable-model-invocation: true
 ---
 
-Run:
+Run, from the repository root, naming the mod to package:
 
 ```
-python tools/package_release.py
+python tools/package_release.py smart_notifications
 ```
-
-from the repository root. This repo hosts more than one mod; with no
-argument it packages the root mod (Smart Notifications). To package a
-sibling mod, name its folder:
 
 ```
 python tools/package_release.py bulk_construction
 ```
+
+The mod argument is **required** — this repo holds one folder per mod, and
+with several of them a default is how you upload the wrong one. Running it
+bare aborts and lists the mods available.
 
 Each mod gets its own output folder, `<mod id>_release`, and its own
 launcher entry. Copies only `.metadata/`, `common/`, `events/`,

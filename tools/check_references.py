@@ -23,6 +23,20 @@ from pathlib import Path
 TEXT_SUFFIXES = {".txt", ".gui"}
 VANILLA_ROOT = Path(r"C:\Program Files (x86)\Steam\steamapps\common\Victoria 3\game")
 
+# This repo holds one folder per mod, with docs/, reference/ and tools/ shared
+# at the top. Checks that inspect a MOD resolve from the `root` they are given;
+# checks that inspect the REPO (the engine-notes TOC, the vanilla snapshot,
+# the census build) must resolve from here instead.
+#
+# Smart Notifications used to live at the repo root, so `root` meant both
+# things at once and three checks read repo-level paths off it. After the
+# 2026-09-16 restructure those would have found nothing, returned clean and
+# registered no skip -- a PASS with three checks silently not running, on the
+# published mod. Measured before the move, which is the only reason it was
+# caught.
+REPO_ROOT = Path(__file__).resolve().parent.parent
+SMART_NOTIFICATIONS_ROOT = REPO_ROOT / "smart_notifications"
+
 # Checks that compare this mod against the INSTALLED vanilla game silently
 # no-op when the game isn't on this machine (a cloud session, a fresh
 # checkout). They used to print a "(skipped: ...)" line into the middle of
@@ -896,7 +910,7 @@ def check_engine_notes_toc_is_current(root: Path) -> list[str]:
     rule, so a stale TOC sends the reader to the wrong place -- or, worse,
     makes a section invisible and gets a settled question re-litigated from
     scratch. Regenerate with: python tools/gen_engine_notes_toc.py"""
-    doc = root / "docs" / "engine-notes.md"
+    doc = REPO_ROOT / "docs" / "engine-notes.md"
     if not doc.is_file():
         return []
     text = doc.read_text(encoding="utf-8-sig")
@@ -957,7 +971,7 @@ def check_vanilla_reference_snapshot_is_complete(root: Path) -> list[str]:
 
     Skipped (not failed) without a local game install.
     """
-    ref_root = root / "reference" / "vanilla"
+    ref_root = REPO_ROOT / "reference" / "vanilla"
     if not ref_root.is_dir():
         return []
     if not VANILLA_ROOT.is_dir():
@@ -1060,7 +1074,7 @@ def check_census_build_not_stale(root: Path) -> list[str]:
     """
     if not CENSUS_BUILD.is_dir():
         return []
-    if root.resolve() != Path(__file__).resolve().parent.parent:
+    if root.resolve() != SMART_NOTIFICATIONS_ROOT.resolve():
         return []
 
     errs = []

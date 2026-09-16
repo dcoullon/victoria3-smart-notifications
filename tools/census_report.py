@@ -46,6 +46,10 @@ import re
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+# Smart Notifications moved out of the repo root into its own folder
+# 2026-09-16, so each mod in this repo sits in one. Mod CONTENT resolves from
+# here; docs/, reference/ and tools/ stay at the repo root.
+SN_ROOT = REPO_ROOT / "smart_notifications"
 GAME_ROOT = Path(r"C:\Program Files (x86)\Steam\steamapps\common\Victoria 3\game")
 DEFAULT_MANIFEST = (Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3"
                     / "mod" / "smart_notifications_census" / "census_manifest.json")
@@ -251,7 +255,7 @@ def timeline(logs_dir, manifest_path=None, date_from=None, date_to=None):
         by_id = {e["id"]: e for e in json.loads(manifest_path.read_text(encoding="utf-8"))}
     vanilla_tiers = per_key_tiers(GAME_ROOT / "common" / "messages")
     mod_tiers = dict(vanilla_tiers)
-    mod_tiers.update(per_key_tiers(REPO_ROOT / "common" / "messages"))
+    mod_tiers.update(per_key_tiers(SN_ROOT / "common" / "messages"))
 
     rows, shown, skipped = [], 0, 0
     for log in logs:
@@ -526,7 +530,7 @@ def report(logs_dir, manifest_path=None, top=30):
 
     vanilla_tiers = per_key_tiers(GAME_ROOT / "common" / "messages")
     mod_tiers = dict(vanilla_tiers)
-    mod_tiers.update(per_key_tiers(REPO_ROOT / "common" / "messages"))
+    mod_tiers.update(per_key_tiers(SN_ROOT / "common" / "messages"))
 
     # Fold over every rotated log, not just the current one -- see debug_logs().
     counts, years, ids_seen, undated, probes = (collections.Counter() for _ in range(5))
@@ -833,7 +837,7 @@ def cross_check(logs_dir):
 
     Run automatically as part of `scan_logs.py --census`.
     """
-    logger_src = REPO_ROOT / "common" / "on_actions" / "01_smart_notifications_logger.txt"
+    logger_src = SN_ROOT / "common" / "on_actions" / "01_smart_notifications_logger.txt"
     if not logger_src.exists():
         return
     text = logger_src.read_text(encoding="utf-8-sig")

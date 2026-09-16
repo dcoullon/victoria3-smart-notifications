@@ -16,15 +16,14 @@ exactly as before.
 Refuses to run if `tools/validate_syntax.py` fails on the source repo --
 never package known-broken content.
 
-This repo hosts more than one mod -- the root (Smart Notifications) plus a
-folder per sibling mod, each with its own `.metadata/metadata.json` (see
-`check_references.nested_mod_roots`). Which one gets packaged is the optional
-first argument; it defaults to the repo root, so the Smart Notifications
-workflow and the /package-release skill are unchanged by its existence.
+This repo hosts one folder per mod, each with its own `.metadata/metadata.json`.
+Which one gets packaged is the first argument, and it is required -- with
+several mods in one repo, defaulting to any of them is how you upload the
+wrong one.
 
 Usage:
-    python tools/package_release.py                      # the root mod
-    python tools/package_release.py bulk_construction    # a sibling mod
+    python tools/package_release.py smart_notifications
+    python tools/package_release.py bulk_construction
     python tools/package_release.py --out "D:\\some\\other\\folder"
 
 Default output: Documents/Paradox Interactive/Victoria 3/mod/<mod id>_release
@@ -61,8 +60,9 @@ MOD_DIR = Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3" / "mo
 
 
 def resolve_mod_root(arg: str | None) -> Path:
-    """Which mod in this repo to package. No argument means the repo root
-    (Smart Notifications), which keeps the existing workflow identical.
+    """Which mod in this repo to package. Required: the repo root stopped
+    being a mod in the 2026-09-16 restructure, and with three mods in one repo
+    a default is how you upload the wrong one.
 
     A bare name like `bulk_construction` is resolved against the repo root, so
     the command reads the same from anywhere; an explicit path still works.
@@ -70,7 +70,17 @@ def resolve_mod_root(arg: str | None) -> Path:
     than packaged as an empty mod -- a typo'd folder name would otherwise
     produce a valid-looking output directory with nothing in it."""
     if arg is None:
-        return REPO_ROOT
+        # The repo root stopped being a mod in the 2026-09-16 restructure, so
+        # there is no sensible default any more. Naming the mod explicitly is
+        # also the safer habit with three of them: the failure this whole
+        # argument exists to prevent is packaging the wrong one.
+        known = sorted(p.parent.parent.name
+                       for p in REPO_ROOT.glob("*/.metadata/metadata.json"))
+        example = known[0] if known else "<mod>"
+        print("ABORTED: name the mod to package, e.g.")
+        print(f"    python tools/package_release.py {example}")
+        print(f"Mods in this repo: {', '.join(known)}")
+        sys.exit(1)
     candidate = Path(arg)
     if not candidate.is_dir():
         candidate = REPO_ROOT / arg

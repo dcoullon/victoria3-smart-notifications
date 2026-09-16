@@ -264,26 +264,21 @@ def check_known_good(root: Path):
     return errs
 
 
-if __name__ == "__main__":
-    # --strict turns a DEGRADED pass (vanilla-dependent checks skipped because
-    # the game isn't installed on this machine) into a failure. Use it before
-    # a playtest or a release; a plain run stays green so a cloud session can
-    # still validate everything that doesn't need the install.
-    args = [a for a in sys.argv[1:] if a != "--strict"]
-    strict = "--strict" in sys.argv[1:]
-    target = Path(args[0]) if args else Path(".")
-    has_err = False
-    for path in target.rglob("*.*"):
-        if path.suffix in [".txt", ".gui", ".yml"] and "tools" not in str(path):
-            errs = validate_file(path)
-            if errs:
-                has_err = True
-                print(f"FAIL: {path}")
-                for e in errs: print(f"  - {e}")
+# check_references.run_all() clears its SKIPPED list on every call, so across
+# several mods only the last one's skips would survive -- and a DEGRADED run
+# would under-report, or report as clean, exactly the thing --strict exists to
+# catch. Accumulated here instead.
+ALL_SKIPPED: list[str] = []
 
+
+def run_checks_for(target: Path) -> bool:
+    """Known-good invariants plus cross-file reference integrity for one mod.
+    Returns True if anything failed. Split out of __main__ so a bare run can
+    apply it to every mod in the repo."""
+    failed = False
     kg = check_known_good(target)
     if kg:
-        has_err = True
+        failed = True
         print("FAIL: known-good invariant broken (confirmed-working behaviour regressed)")
         for e in kg: print(f"  - {e}")
 
@@ -292,12 +287,56 @@ if __name__ == "__main__":
     # validate_syntax.py" habit (CLAUDE.md) covers it without a second
     # command to remember.
     ref_errs = check_references.run_all(target)
+    for entry in check_references.SKIPPED:
+        if entry not in ALL_SKIPPED:
+            ALL_SKIPPED.append(entry)
     if ref_errs:
-        has_err = True
+        failed = True
         print("FAIL: cross-reference checks (see tools/check_references.py)")
         for e in ref_errs: print(f"  - {e}")
+    return failed
 
-    skipped = check_references.SKIPPED
+
+if __name__ == "__main__":
+    # --strict turns a DEGRADED pass (vanilla-dependent checks skipped because
+    # the game isn't installed on this machine) into a failure. Use it before
+    # a playtest or a release; a plain run stays green so a cloud session can
+    # still validate everything that doesn't need the install.
+    args = [a for a in sys.argv[1:] if a != "--strict"]
+    strict = "--strict" in sys.argv[1:]
+
+    # No argument means "every mod in this repo", not "the current directory".
+    # Smart Notifications used to sit at the repo root, so a bare run happened
+    # to validate it; since the 2026-09-16 restructure the root is not a mod at
+    # all, and a bare run would have checked nothing while still printing PASS.
+    # CLAUDE.md's habit is `python tools/validate_syntax.py` with no argument,
+    # so that has to keep meaning something.
+    repo_root = Path(__file__).resolve().parent.parent
+    if args:
+        targets = [Path(args[0])]
+    else:
+        targets = sorted(m.parent.parent for m in repo_root.glob("*/.metadata/metadata.json"))
+        if not targets:
+            print(f"FAIL: no mods found under {repo_root} "
+                  f"(looked for */.metadata/metadata.json)")
+            sys.exit(1)
+
+    has_err = False
+    for target in targets:
+        if len(targets) > 1:
+            print(f"--- {target.name} ---")
+        for path in target.rglob("*.*"):
+            if path.suffix in [".txt", ".gui", ".yml"] and "tools" not in str(path):
+                errs = validate_file(path)
+                if errs:
+                    has_err = True
+                    print(f"FAIL: {path}")
+                    for e in errs: print(f"  - {e}")
+
+        if run_checks_for(target):
+            has_err = True
+
+    skipped = ALL_SKIPPED
     if not has_err and skipped:
         # A skipped check is not a passed check. Without this, a run on a
         # machine with no game install printed the same "PASS" as a full local

@@ -63,6 +63,10 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+# Smart Notifications moved out of the repo root into its own folder
+# 2026-09-16, so each mod in this repo sits in one. Mod CONTENT resolves from
+# here; docs/, reference/ and tools/ stay at the repo root.
+SN_ROOT = REPO_ROOT / "smart_notifications"
 GAME_ROOT = Path(r"C:\Program Files (x86)\Steam\steamapps\common\Victoria 3\game")
 DEFAULT_OUT = (Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3"
                / "mod" / "smart_notifications_census")
@@ -514,7 +518,7 @@ def handler_root_map():
             if root:
                 vanilla_roots[m.group(1)] = verdict_from_root_comment(root)
     handlers = {}
-    for f in sorted((REPO_ROOT / "common" / "on_actions").glob("*.txt")):
+    for f in sorted((SN_ROOT / "common" / "on_actions").glob("*.txt")):
         text = f.read_text(encoding="utf-8-sig", errors="replace")
         for m in REGISTERS_RE.finditer(text):
             on_action, body = m.group(1), m.group(2)

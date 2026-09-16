@@ -20,6 +20,10 @@ from datetime import datetime
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
+# Smart Notifications moved out of the repo root into its own folder
+# 2026-09-16, so each mod in this repo sits in one. Mod CONTENT resolves from
+# here; docs/, reference/ and tools/ stay at the repo root.
+SN_ROOT = REPO / "smart_notifications"
 PACKAGED = (Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3"
             / "mod" / "smart_notifications_release")
 # Workshop file ID 3799284646, Victoria 3 App ID 529340.
@@ -56,7 +60,7 @@ def main() -> int:
                     help="also compare the shipped file lists")
     a = ap.parse_args()
 
-    rows = [("repo", REPO), ("packaged", PACKAGED), ("published", PUBLISHED)]
+    rows = [("repo", SN_ROOT), ("packaged", PACKAGED), ("published", PUBLISHED)]
     seen = {}
     for label, root in rows:
         version, when = read(root)
