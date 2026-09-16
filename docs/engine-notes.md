@@ -40,9 +40,9 @@ in new code; `CLAUDE.md` only states the rule, not the reasoning.
 - [Localization cannot guard on an unbound scope — the rule that killed two features](#localization-cannot-guard-on-an-unbound-scope-—-the-rule-that-killed-two-features)
 - [A degraded PASS is not a PASS](#a-degraded-pass-is-not-a-pass)
 - [Why an exploration playtest must carry every candidate at once](#why-an-exploration-playtest-must-carry-every-candidate-at-once)
-
-- [A law's effects are not readable as numbers — `LawType` exposes no modifiers](#a-laws-effects-are-not-readable-as-numbers--lawtype-exposes-no-modifiers)
+- [A law's effects are not readable as numbers — LawType exposes no modifiers](#a-laws-effects-are-not-readable-as-numbers-—-lawtype-exposes-no-modifiers)
 - [Taxation Capacity has no national total, anywhere](#taxation-capacity-has-no-national-total-anywhere)
+- [A .gui @constant is file-scoped, and borrowing one fails silently](#a-gui-constant-is-file-scoped-and-borrowing-one-fails-silently)
 
 <!-- /TOC -->
 
@@ -1458,3 +1458,51 @@ And an accuracy trap that makes a naive simulation actively harmful:
 `current_capacity * 1.25` is wrong whenever the player already carries other
 tax-capacity modifiers (they usually do, from tech and PMs). A wrong number in
 a decision screen is worse than no number.
+
+## A `.gui` `@constant` is file-scoped, and borrowing one fails silently
+
+Confirmed 2026-09-16 by a live launch while building Bulk Construction.
+
+Vanilla declares `@panel_width = 540` at file scope in
+`gui/map_list_panel.gui:3`, before its `types` block. A mod file that
+redefines one of that file's types and refers to `@panel_width` does **not**
+inherit it:
+
+```
+Error: "Malformed token: @panel_width, near line: 178"
+  in file: "gui/zz_bulk_construction_types.gui" near line: 178
+```
+
+Two things make this worth a section rather than a one-line rule.
+
+**The blast radius is the whole type, not the one line.** The parse error
+killed the entire redefined type. The game then fell back to vanilla's version
+of that panel and rendered it perfectly — no missing widget, no visual
+artefact, no second error. On screen it was indistinguishable from the mod
+simply not doing anything, which is the most expensive thing a failure can
+look like: every plausible cause (mod not enabled, wrong panel, type
+redefinition unsupported) is more interesting than the real one.
+
+**So: redeclare, never borrow.** Declare your own `@my_constant` at the top of
+your own file, and add a check that it still equals the vanilla value it
+mirrors — see `check_bc_panel_width_matches_vanilla` in
+`tools/check_references.py`. Copying the number is the only option; keeping it
+correct afterwards is what the check is for.
+
+Note this says nothing about whether redefining a single `type` from a separate
+file works at all — that question is still open, because the file never parsed
+far enough to answer it.
+
+### The second lesson: a filtered log scan that finds nothing is not a pass
+
+`tools/scan_logs.py` reported `(none found)` for this run while the error above
+sat at line 2 of `error.log`. It matched only a list of failure signatures we
+had already met once, and this was a new one. That is a scan which reports
+success precisely when it is least able to judge.
+
+It now reports, first and under its own heading, **any** log line naming a file
+this repo ships, whatever the engine called the problem — see
+`shipped_file_names()`. A signature list can only catch a repeat; this catches
+a first occurrence. Related: `docs/engine-notes.md` § A degraded PASS is not a
+PASS, and the same failure shape in the memory note on verifying
+instrumentation before trusting it.
