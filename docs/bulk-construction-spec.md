@@ -79,7 +79,7 @@ own eligibility rules, we drive the list the game already computed.
 
 ## 2. Engine findings (verified 2026-09-16 against the 1.13 game files)
 
-### The panel is a 33-line type, not a 5,212-line file
+### The panel is a 33-line type inside a 5,212-line file — and we must copy all of it
 
 The window is `build_building_map_list_panel`
 (`gui/map_list_panel.gui:1091-1123`), a derived type of `map_list_panel` with
@@ -87,11 +87,24 @@ just two blockoverrides, `headers` and `item`. The filters the player sees
 (Location All/Domestic/Abroad, List item, Workforce) are `construction_filters`
 (`:2433`).
 
-So the surface we touch is small even in the worst case. **Open question:** can
-a mod redefine a single `type` from its own `.gui` file and have the engine take
-the later definition, or must we override all 5,212 lines of
-`gui/map_list_panel.gui`? Test this first — it is the difference between a
-33-line patch-fragility surface and a whole-file one.
+**Settled 2026-09-16, by two live launches: there is no partial `.gui`
+override in this engine.** Redefining that one type from our own separate
+`.gui` file does nothing. The second launch had the file parsing with zero
+errors, this mod as the *only* enabled mod (confirmed from the launcher's
+playset database, not assumed), and the panel still rendered vanilla's version
+of the type. The engine keeps the first definition it read and never mentions
+the second — no warning, no duplicate-type error, nothing.
+
+So this mod ships a **whole-file override** of `gui/map_list_panel.gui`, which
+is exactly what Smart Notifications already does for `gui/message_settings.gui`
+and `gui/politics_panel_change_law.gui`. That precedent was in this repo the
+whole time and should have been the starting point rather than a fallback.
+
+The cost is the one the `better_decision_info` split exists to contain: 5,212
+vanilla lines we now carry and must re-sync after each patch.
+`check_full_overrides_match_installed_vanilla` now covers this mod too, so a
+patch that changes the vanilla file fails validation instead of silently
+reverting part of the panel for players.
 
 ### The game hands us the eligibility list for free
 

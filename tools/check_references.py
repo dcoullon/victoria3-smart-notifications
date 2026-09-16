@@ -403,6 +403,18 @@ FULL_OVERRIDE_FILES = [
     ("gui/politics_panel_change_law.gui", "reference/vanilla/1.13.x/gui/politics_panel_change_law.gui"),
 ]
 
+# Per-mod, because every mod in this repo that touches a vanilla panel has to
+# do it by copying the whole vanilla file -- there is no partial .gui override
+# in this engine (confirmed 2026-09-16; see docs/engine-notes.md § A `.gui`
+# `@constant` is file-scoped, and the note below). Every such copy needs the
+# drift check, or a game patch silently reverts part of the panel for players.
+FULL_OVERRIDES_BY_MOD = {
+    SMART_NOTIFICATIONS_ID: FULL_OVERRIDE_FILES,
+    "bulk_construction": [
+        ("gui/map_list_panel.gui", "reference/vanilla/1.13.x/gui/map_list_panel.gui"),
+    ],
+}
+
 
 # Lines this mod deliberately does NOT carry over from the vanilla file it
 # overrides. The full-override check below exists to catch a game patch adding
@@ -437,7 +449,7 @@ def check_full_overrides_match_installed_vanilla(root: Path) -> list[str]:
     hit here needs a human look at reference/vanilla/README.md's re-sync
     steps, not an automatic fix."""
     errs = []
-    for our_rel, snapshot_rel in FULL_OVERRIDE_FILES:
+    for our_rel, snapshot_rel in FULL_OVERRIDES_BY_MOD.get(read_mod_id(root), []):
         installed = VANILLA_ROOT / our_rel
         if not installed.is_file():
             _skip("check_full_overrides_match_installed_vanilla",
@@ -1099,39 +1111,6 @@ CHEAT_VERBS = {
 }
 
 
-def check_bc_panel_width_matches_vanilla(root: Path) -> list[str]:
-    """`@constant`s are file-scoped in this engine's GUI parser, confirmed the
-    hard way on 2026-09-16: referencing vanilla's `@panel_width` from our own
-    .gui file produced `Malformed token: @panel_width`, which killed the whole
-    redefined type. The panel then fell back to vanilla silently -- no missing
-    widget error, nothing on screen -- so the failure looked exactly like "the
-    mod did nothing".
-
-    So we declare our own copy, which means it can now drift from vanilla's
-    without anything complaining. This asserts it hasn't. Skipped (not failed)
-    without the game installed, like the other vanilla comparisons."""
-    ours = root / "gui" / "zz_bulk_construction_types.gui"
-    if not ours.is_file():
-        return []
-    vanilla = VANILLA_ROOT / "gui" / "map_list_panel.gui"
-    if not vanilla.is_file():
-        _skip("bc panel width", "Victoria 3 not installed on this machine")
-        return []
-
-    m = re.search(r"^@bc_panel_width\s*=\s*(\d+)", _read(ours), re.M)
-    if not m:
-        return ["gui/zz_bulk_construction_types.gui: @bc_panel_width is gone -- "
-                "it must stay declared here, never borrowed from vanilla "
-                "(a cross-file @constant is a parse error that kills the type)"]
-    v = re.search(r"^@panel_width\s*=\s*(\d+)", _read(vanilla), re.M)
-    if v and v.group(1) != m.group(1):
-        return [f"gui/zz_bulk_construction_types.gui: @bc_panel_width is "
-                f"{m.group(1)}, but vanilla's @panel_width is now {v.group(1)} "
-                f"(gui/map_list_panel.gui) -- the construction panel rows will "
-                f"be misaligned until this matches"]
-    return []
-
-
 def check_no_cheat_verbs(root: Path) -> list[str]:
     """Bulk Construction's hard rule, enforced rather than documented: fix the
     UX, never change the rules of the game (spec section 1a). The mod's whole
@@ -1184,7 +1163,7 @@ def run_all(root: Path) -> list[str]:
     # asserted on every run rather than remembered at release time.
     if read_mod_id(root) == BULK_CONSTRUCTION_ID:
         errs += check_no_cheat_verbs(root)
-        errs += check_bc_panel_width_matches_vanilla(root)
+        errs += check_full_overrides_match_installed_vanilla(root)
 
     return errs
 

@@ -43,6 +43,7 @@ in new code; `CLAUDE.md` only states the rule, not the reasoning.
 - [A law's effects are not readable as numbers — LawType exposes no modifiers](#a-laws-effects-are-not-readable-as-numbers-—-lawtype-exposes-no-modifiers)
 - [Taxation Capacity has no national total, anywhere](#taxation-capacity-has-no-national-total-anywhere)
 - [A .gui @constant is file-scoped, and borrowing one fails silently](#a-gui-constant-is-file-scoped-and-borrowing-one-fails-silently)
+- [There is no partial .gui override — redefining one type does nothing](#there-is-no-partial-gui-override-—-redefining-one-type-does-nothing)
 
 <!-- /TOC -->
 
@@ -1506,3 +1507,40 @@ this repo ships, whatever the engine called the problem — see
 a first occurrence. Related: `docs/engine-notes.md` § A degraded PASS is not a
 PASS, and the same failure shape in the memory note on verifying
 instrumentation before trusting it.
+
+## There is no partial `.gui` override — redefining one `type` does nothing
+
+Settled 2026-09-16 by two live launches, after the cheaper idea was tried
+first and cost a test run each.
+
+A mod `.gui` file that redefines a single `type` already defined in a vanilla
+`.gui` file has **no effect**. The engine keeps the first definition it read
+and never mentions the second: no duplicate-type warning, no error, nothing in
+`error.log` or `gui.log`. The panel simply renders vanilla's version.
+
+The evidence, because "it didn't work" is not evidence:
+
+- the mod's file parsed with zero errors (the earlier `@panel_width` failure
+  was fixed first, so this was a clean parse);
+- the mod was the **only** one enabled — read out of the launcher's own
+  `launcher-v2.sqlite` playset table rather than assumed;
+- the panel rendered vanilla exactly, screenshotted.
+
+**The mechanism is a whole-file override at the same path**, which is what
+this repo's Smart Notifications has always done for `gui/message_settings.gui`
+and `gui/politics_panel_change_law.gui`. When adding a widget to a vanilla
+panel, start by copying that vanilla file — do not spend a playtest looking
+for something cheaper.
+
+The cost is real and has to be paid deliberately: every overridden line is a
+line a game patch can change under you. Register the file in
+`check_references.FULL_OVERRIDES_BY_MOD` so
+`check_full_overrides_match_installed_vanilla` fails on drift, rather than the
+panel quietly losing whatever the patch added.
+
+### The process lesson
+
+Both of these findings came out of single-hypothesis launches, which is
+exactly what CLAUDE.md § 5 forbids, and the user called it out. The order that
+would have cost one run instead of two: look at what a shipped mod in this
+repo already does, *then* design the probe around the remaining unknowns.
