@@ -1,3 +1,5 @@
 ﻿l_english:
  BC_PROBE_FIRE_BUTTON:0 "BC probe: fire"
- BC_PROBE_FIRE_BUTTON_TOOLTIP:0 "Probe build. This builds nothing. It writes one line to debug.log per state this panel currently lists as valid, so the iteration can be counted."
+ BC_PROBE_FIRE_BUTTON_TOOLTIP:0 "Probe build. This builds nothing. It triggers one pass over the states this panel currently lists as valid and writes a line to debug.log for each, so the iteration can be counted."
+ BC_PROBE_MARK_BUTTON:0 "BC probe: mark"
+ BC_PROBE_MARK_BUTTON_TOOLTIP:0 "Writes a single line to debug.log. Nothing else. This exists only to prove a button in this panel can reach a scripted GUI at all."

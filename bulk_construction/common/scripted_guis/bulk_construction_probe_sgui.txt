@@ -4,17 +4,33 @@
 #
 #     python tools/scan_logs.py
 #
-# Expected clean result, per docs/bulk-construction-spec.md section 3, for a
-# single button press where the probe row reads "valid M":
+# FIRST PROBE RESULT, 2026-09-16 -- the creation-triggered version failed:
 #
-#   BC_PROBE|click       exactly 1
+#   BC_PROBE|state       229      one full pass every panel rebuild
+#   BC_PROBE|clickable   311
+#   BC_PROBE|hidden      237      <-- from a container hard-coded `visible = no`
+#   BC_PROBE|click         0
+#
+# 777 firings across four bursts with no click required. `visible` does not
+# gate widget creation, so the CanClick guard was decorative and the latch was
+# never a latch. Wired to OnClick that would have queued hundreds of buildings
+# unprompted -- the exact reason this probe logs instead of building.
+#
+# SECOND PROBE: the counters no longer fire on creation. They sit idle and are
+# triggered by hand, by name, from the button
+# (PdxGuiTriggerAllAnimations('bc_fire')). Expected for ONE press of "fire",
+# with the row reading "valid M":
+#
 #   BC_PROBE|state       exactly M
-#   BC_PROBE|clickable   exactly M   (fewer means valid != clickable)
-#   BC_PROBE|hidden      exactly 0   (anything else invalidates the design)
+#   BC_PROBE|clickable   exactly M, or fewer if valid != clickable
+#   BC_PROBE|hidden      exactly 0    <-- if non-zero, no GUI-side guard
+#                                         exists and we go to the script route
+#   and NOTHING AT ALL until a button is actually pressed.
 #
-# Any of these still arriving after the click -- hundreds, thousands, or one
-# per frame -- means the latch does not hold and the GUI-native architecture
-# is dead.
+# "mark" is a separate one-onclick button for BC_PROBE|click. The first probe
+# logged zero of those but could not say whether the scripted GUI call failed
+# or the button was simply never pressed, because that button carried a second
+# onclick as well.
 #
 # No state name is logged on purpose. A country's name in dynamic text is
 # GetNameNoFormatting and plain GetName errors outright (CLAUDE.md section 3);

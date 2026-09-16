@@ -36,59 +36,71 @@ types map_list_panel_types {
 		blockoverride "headers" {
 			direction = vertical
 
+			construction_filters = {}
 			### BC PROBE -- start ####################################
-			# Probe question 1: does this override render at all? If this row
-			# is visible, whole-file override works and the architecture is
-			# back on. Question 2: does GetDataModelSize over the panel's own
-			# datamodel match the rows the player sees?
+			# Placed BELOW the filters on purpose (user, 2026-09-16): the bulk
+			# action reads the filters, so it must not sit above them.
+			#
+			# FIRING MECHANISM CHANGED 2026-09-16 after the first probe came
+			# back fatal. The previous version fired items via
+			# `trigger_on_create` inside a container gated by `visible`.
+			# Measured result: 777 firings in four bursts, one full pass every
+			# time the panel rebuilt, with NO click -- and 237 of them from a
+			# container hard-coded `visible = no`. So `visible` does not gate
+			# widget creation, the CanClick guard was decorative and the latch
+			# was never a latch. With OnClick wired in, that would have queued
+			# hundreds of buildings unprompted.
+			#
+			# This version fires nothing on creation. The items sit idle and
+			# only act when the button triggers their named state by hand, via
+			# PdxGuiTriggerAllAnimations (vanilla: gui/character_panel.gui:582).
+			# A click should now produce exactly one pass, and no click should
+			# produce nothing at all.
 			flowcontainer = {
 				direction = horizontal
 				parentanchor = hcenter
 				spacing = 8
 				margin = { 10 4 }
-				# GetPlayer.MakeScope has no vanilla precedent; this is the
-				# pattern already proven in gui/message_settings.gui.
 				datacontext = "[GetMetaPlayer.GetPlayedOrObservedCountry]"
 
 				textbox = {
 					autoresize = yes
 					align = nobaseline
-					# The `|=` formatter is how vanilla prints a datamodel size
-					# (gui/building_details_panel.gui:4627).
-					raw_text = "#BOLD BC2#! valid [GetDataModelSize(MapListPanel.AccessValidOptions)|=] / failed [GetDataModelSize(MapListPanel.AccessFailedOptions)|=] / invalid [GetDataModelSize(MapListPanel.AccessInvalidOptions)|=]"
+					# No |= formatter: it renders the count as "+57".
+					raw_text = "#BOLD BC2#! valid [GetDataModelSize(MapListPanel.AccessValidOptions)] / failed [GetDataModelSize(MapListPanel.AccessFailedOptions)] / invalid [GetDataModelSize(MapListPanel.AccessInvalidOptions)]"
 				}
 
+				# Fires the three counters below, by triggering their state.
 				button = {
-					size = { 150 28 }
+					size = { 120 28 }
 					using = default_button
 					text = "BC_PROBE_FIRE_BUTTON"
 					tooltip = "BC_PROBE_FIRE_BUTTON_TOOLTIP"
+					onclick = "[PdxGuiTriggerAllAnimations('bc_fire')]"
+				}
+
+				# Separate button, one onclick only. The previous probe logged
+				# ZERO click markers, and could not distinguish "the scripted
+				# GUI call failed" from "the button was never pressed" because
+				# the same button also carried a second onclick. This one does
+				# nothing else, so a missing marker means the call itself.
+				button = {
+					size = { 120 28 }
+					using = default_button
+					text = "BC_PROBE_MARK_BUTTON"
+					tooltip = "BC_PROBE_MARK_BUTTON_TOOLTIP"
 					onclick = "[GetScriptedGui('bc_probe_click_sgui').Execute(GuiScope.SetRoot(Country.MakeScope).End)]"
-					onclick = "[GetVariableSystem.Set('bc_probe_fire', 'go')]"
 				}
 			}
 
-			# Probe question 3, the one that matters: does a datamodel
-			# container whose items fire on creation iterate the valid options
-			# EXACTLY ONCE per click, or free-run every frame? This container
-			# only exists while 'bc_probe_fire' is set, and clears it a
-			# fraction of a second after being created -- a latch, not a flag.
-			#
-			# Nothing here builds anything. The real version replaces the
-			# scripted GUI calls with [MapListOption.OnClick]; that
-			# substitution is NOT made until this probe comes back clean.
+			# All three counters share the state name 'bc_fire', so one button
+			# press triggers all of them and the three counts are directly
+			# comparable within a single pass.
 			widget = {
 				size = { 1 1 }
-				visible = "[GetVariableSystem.HasValue('bc_probe_fire', 'go')]"
 
-				state = {
-					name = bc_latch_clear
-					trigger_on_create = yes
-					duration = 0.05
-					on_finish = "[GetVariableSystem.Clear('bc_probe_fire')]"
-				}
-
-				### A -- every valid option, unguarded.
+				### A -- every valid option, unguarded. Expect: one line per
+				# valid state, per click, and nothing without a click.
 				flowcontainer = {
 					direction = vertical
 					datamodel = "[MapListPanel.AccessValidOptions]"
@@ -100,19 +112,15 @@ types map_list_panel_types {
 
 							state = {
 								name = bc_fire
-								trigger_on_create = yes
-								on_finish = "[GetScriptedGui('bc_probe_state_sgui').Execute(GuiScope.SetRoot(State.MakeScope).End)]"
+								on_start = "[GetScriptedGui('bc_probe_state_sgui').Execute(GuiScope.SetRoot(State.MakeScope).End)]"
 							}
 						}
 					}
 				}
 
-				### B -- probe question 5, and the reason this block exists.
-				# The vanilla + button gates on `enabled = [MapListOption.CanClick]`
-				# and `enabled` is a WIDGET property: it stops a human clicking,
-				# it does not stop us calling OnClick from a state. Counting B
-				# against A says whether valid implies clickable. The real build
-				# carries this guard regardless of the answer.
+				### B -- guarded by the same condition vanilla's + button uses.
+				# Fewer than A means the valid list contains options the player
+				# may not click, so the guard is load-bearing.
 				flowcontainer = {
 					direction = vertical
 					datamodel = "[MapListPanel.AccessValidOptions]"
@@ -124,19 +132,18 @@ types map_list_panel_types {
 							datacontext = "[MapListOption.AccessBuildingData.AccessState]"
 
 							state = {
-								name = bc_fire_clickable
-								trigger_on_create = yes
-								on_finish = "[GetScriptedGui('bc_probe_clickable_sgui').Execute(GuiScope.SetRoot(State.MakeScope).End)]"
+								name = bc_fire
+								on_start = "[GetScriptedGui('bc_probe_clickable_sgui').Execute(GuiScope.SetRoot(State.MakeScope).End)]"
 							}
 						}
 					}
 				}
 
-				### C -- probe question 4, and the control for B.
-				# Hard-coded invisible. If any BC_PROBE|hidden line appears,
-				# `visible` does NOT prevent trigger_on_create from firing --
-				# which would mean B's guard is decorative AND the latch above
-				# is not a latch. Expected count: zero.
+				### C -- the control, hard-coded invisible. `visible` already
+				# failed to gate creation; this asks the narrower question of
+				# whether it gates a hand-triggered state. Zero means B's guard
+				# works and the design is viable. Non-zero means no GUI-side
+				# guard exists and we go to the script route.
 				flowcontainer = {
 					direction = vertical
 					datamodel = "[MapListPanel.AccessValidOptions]"
@@ -148,9 +155,8 @@ types map_list_panel_types {
 							datacontext = "[MapListOption.AccessBuildingData.AccessState]"
 
 							state = {
-								name = bc_fire_hidden
-								trigger_on_create = yes
-								on_finish = "[GetScriptedGui('bc_probe_hidden_sgui').Execute(GuiScope.SetRoot(State.MakeScope).End)]"
+								name = bc_fire
+								on_start = "[GetScriptedGui('bc_probe_hidden_sgui').Execute(GuiScope.SetRoot(State.MakeScope).End)]"
 							}
 						}
 					}
@@ -158,7 +164,6 @@ types map_list_panel_types {
 			}
 			### BC PROBE -- end ######################################
 
-			construction_filters = {}
 			construction_headers_condensed = {
 				visible = "[Not(GetVariableSystem.Exists('construction_list_toggle_full_or_condensed'))]"
 			}
