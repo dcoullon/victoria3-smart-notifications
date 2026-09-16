@@ -66,7 +66,7 @@ types map_list_panel_types {
 			# dead and we fall back to the script route in the spec's section 2.
 			#
 			# Nothing here builds anything. The real version replaces the
-			# scripted GUI call below with [MapListOption.OnClick]; that
+			# scripted GUI calls below with [MapListOption.OnClick]; that
 			# substitution is NOT made until this probe comes back clean.
 			widget = {
 				size = { 1 1 }
@@ -79,6 +79,7 @@ types map_list_panel_types {
 					on_finish = "[GetVariableSystem.Clear('bc_probe_fire')]"
 				}
 
+				### A -- every valid option, unguarded.
 				flowcontainer = {
 					direction = vertical
 					datamodel = "[MapListPanel.AccessValidOptions]"
@@ -92,6 +93,60 @@ types map_list_panel_types {
 								name = bc_fire
 								trigger_on_create = yes
 								on_finish = "[GetScriptedGui('bc_probe_state_sgui').Execute(GuiScope.SetRoot(State.MakeScope).End)]"
+							}
+						}
+					}
+				}
+
+				### B -- probe question 5, and the reason this block exists.
+				# The vanilla + button gates on `enabled = [MapListOption.CanClick]`
+				# (map_list_panel.gui:229, inherited unchanged by the construction
+				# row). `enabled` is a WIDGET property: it stops a human clicking,
+				# it does not stop us calling OnClick from a state. So if the valid
+				# list can ever contain a non-clickable option, firing OnClick
+				# across the whole list would do something the player is not
+				# allowed to do -- which is the one thing this mod must never do.
+				# Counting B against A says whether valid implies clickable.
+				# The real build carries this guard regardless of the answer.
+				flowcontainer = {
+					direction = vertical
+					datamodel = "[MapListPanel.AccessValidOptions]"
+
+					item = {
+						widget = {
+							size = { 1 1 }
+							visible = "[MapListOption.CanClick]"
+							datacontext = "[MapListOption.AccessBuildingData.AccessState]"
+
+							state = {
+								name = bc_fire_clickable
+								trigger_on_create = yes
+								on_finish = "[GetScriptedGui('bc_probe_clickable_sgui').Execute(GuiScope.SetRoot(State.MakeScope).End)]"
+							}
+						}
+					}
+				}
+
+				### C -- probe question 4, and the control for B.
+				# Hard-coded invisible. If any BC_PROBE|hidden line appears,
+				# `visible` does NOT prevent trigger_on_create from firing --
+				# which would mean B's guard is decorative AND the latch above
+				# is not a latch at all. Expected count: zero. This is the
+				# single line in the log that would invalidate the design.
+				flowcontainer = {
+					direction = vertical
+					datamodel = "[MapListPanel.AccessValidOptions]"
+
+					item = {
+						widget = {
+							size = { 1 1 }
+							visible = no
+							datacontext = "[MapListOption.AccessBuildingData.AccessState]"
+
+							state = {
+								name = bc_fire_hidden
+								trigger_on_create = yes
+								on_finish = "[GetScriptedGui('bc_probe_hidden_sgui').Execute(GuiScope.SetRoot(State.MakeScope).End)]"
 							}
 						}
 					}

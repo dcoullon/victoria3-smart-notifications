@@ -24,9 +24,46 @@ which queues N levels of the selected building in every state the panel is
 currently listing as valid, through the normal construction queue, at normal
 cost.
 
-**Not a cheat mod.** No `create_building`, no instant buildings, no free
-buildings, no bypassing tech, laws, or the queue. Same constraint the Smart
-Notifications audience expects; it decides the whole design and is not relaxed.
+## 1a. The no-cheat guarantee
+
+**Hard rule, restated by the user 2026-09-16 and binding on every version of
+this mod: we fix the UX, we do not change the rules of the game.** No
+`create_building`, no instant buildings, no free buildings, no bypassing tech,
+laws, cost or the queue.
+
+The architecture makes this structural rather than a promise. The action we
+fire, `MapListOption.OnClick`, is *literally the same call the row's **+**
+button makes* — `gui/map_list_panel.gui:230`, inherited unchanged by the
+construction row. We do not reimplement building, pricing, funding or
+eligibility, so there is nothing to get wrong in our favour: N clicks of our
+button and N clicks of the player's **+** are the same N calls.
+
+### The one place it could leak, and the guard
+
+The **+** button is gated by `enabled = "[MapListOption.CanClick]"`
+(`:229`). **`enabled` is a widget property, not an engine check.** It stops a
+human clicking a greyed-out row; it does not stop us calling `OnClick` from a
+widget state. So if the panel's "valid" list can ever contain an option the
+player is not currently allowed to take, firing across the whole list blindly
+would do something the game said no to — the exact failure this rule exists to
+prevent.
+
+Therefore: **every firing item carries `visible = "[MapListOption.CanClick]"`,
+in every version, whether or not the probe shows it is load-bearing.** The
+probe measures two things about this directly — whether "valid" implies
+"clickable" (counts B vs A), and whether `visible` actually prevents a
+`trigger_on_create` state from firing at all (count C, which must be zero). If
+C is non-zero the guard is decorative and **the GUI-native design is abandoned**,
+not shipped with a weaker guard.
+
+Two further consequences of the same rule, for later versions:
+
+- The level stepper repeats the *same* gated pass N times. It never calls a
+  "build N levels" shortcut that skips per-level revalidation, because a state
+  can stop being buildable partway through a batch.
+- Nothing in this mod ever touches the treasury, construction points, or
+  build time — not to charge, and not to discount. Whatever the **+** costs is
+  what our button costs.
 
 ### Locked scope (user decisions, 2026-09-16)
 
@@ -137,8 +174,18 @@ drop the abroad case to Phase 2. **Do not ship a version that can fire twice.**
 5. With the Abroad filter selected, the states built in are the foreign ones
    the panel lists, and construction is funded the way a single **+** click on
    that same row would fund it.
-6. States under the "Failed" and "Invalid" headings are never built in.
+6. States under the "Failed" and "Invalid" headings are never built in, and
+   neither is any state whose **+** button is greyed out (§1a).
 7. Zero new `error.log` lines; zero new `.gui` errors on load.
+8. **No-cheat audit:** the mod contains no `create_building`, no
+   `add_building_level`, no `add_treasury` and no `add_modifier`. If the
+   GUI-native route holds, the mod's only verbs are `OnClick` and
+   `debug_log`. Enforced by `check_no_cheat_verbs` in
+   `tools/check_references.py` on every validation run, not remembered at
+   release time — and verified to fail on a planted cheat, not merely to pass.
+   `start_building_construction` is deliberately **not** on that list: it
+   starts a normal paid construction rather than conjuring a building, so it
+   stays available if we fall back to the script route (§2).
 
 **Automated as far as it goes, per CLAUDE.md §5:**
 

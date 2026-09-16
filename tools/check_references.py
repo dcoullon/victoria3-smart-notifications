@@ -1066,6 +1066,42 @@ def check_census_build_not_stale(root: Path) -> list[str]:
     return errs
 
 
+BULK_CONSTRUCTION_ID = "bulk_construction"
+
+# Effects that would hand the player something the game did not charge them
+# for. All four are real vanilla effect names (common/effect_localization/),
+# so a typo here fails loudly rather than silently passing.
+#
+# `start_building_construction` is deliberately NOT on this list: it starts a
+# normal, paid construction rather than conjuring a building, and it is the
+# honest fallback primitive if the GUI-native route fails (see
+# docs/bulk-construction-spec.md section 2). Banning it would flag a
+# legitimate design change as cheating.
+CHEAT_VERBS = {
+    "create_building": "creates a finished building instantly and free",
+    "add_building_level": "adds a building level instantly and free",
+    "add_treasury": "moves money the game did not agree to move",
+    "add_modifier": "a UX mod has no business altering construction cost, "
+                    "points, speed or anything else via a modifier",
+}
+
+
+def check_no_cheat_verbs(root: Path) -> list[str]:
+    """Bulk Construction's hard rule, enforced rather than documented: fix the
+    UX, never change the rules of the game (spec section 1a). The mod's whole
+    claim is that its button is the player's own + button, N times -- which
+    stops being true the moment any of these appears in a shipped file."""
+    errs = []
+    for path in _iter_mod_files(root):
+        text = _strip_comments(_read(path))
+        for verb, why in CHEAT_VERBS.items():
+            if re.search(r"(?<![a-z_])" + verb + r"\s*=", text):
+                rel = path.relative_to(root)
+                errs.append(f"{rel}: uses `{verb}` -- {why}. This mod does not "
+                            f"cheat (docs/bulk-construction-spec.md section 1a)")
+    return errs
+
+
 def run_all(root: Path) -> list[str]:
     SKIPPED.clear()
     defined_loc = load_defined_loc_keys(root)
@@ -1097,6 +1133,11 @@ def run_all(root: Path) -> list[str]:
         errs += check_watchlist_spec_group_isolation(root)
         errs += check_mod_group_labels_are_tagged(root)
         errs += check_census_build_not_stale(root)
+
+    # Bulk-Construction-only: its no-cheat rule is structural, so it is
+    # asserted on every run rather than remembered at release time.
+    if read_mod_id(root) == BULK_CONSTRUCTION_ID:
+        errs += check_no_cheat_verbs(root)
 
     return errs
 

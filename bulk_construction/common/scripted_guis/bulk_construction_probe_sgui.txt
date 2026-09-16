@@ -4,12 +4,17 @@
 #
 #     python tools/scan_logs.py
 #
-# Expected clean result, per docs/bulk-construction-spec.md section 3:
-# one BC_PROBE|click line per button press, followed by exactly M
-# BC_PROBE|state lines, where M is the "valid" count shown on the probe row.
-# Any BC_PROBE|state line that keeps arriving after the click -- hundreds,
-# thousands, or one per frame -- means the latch does not hold and the
-# GUI-native architecture is dead.
+# Expected clean result, per docs/bulk-construction-spec.md section 3, for a
+# single button press where the probe row reads "valid M":
+#
+#   BC_PROBE|click       exactly 1
+#   BC_PROBE|state       exactly M
+#   BC_PROBE|clickable   exactly M   (fewer means valid != clickable)
+#   BC_PROBE|hidden      exactly 0   (anything else invalidates the design)
+#
+# Any of these still arriving after the click -- hundreds, thousands, or one
+# per frame -- means the latch does not hold and the GUI-native architecture
+# is dead.
 #
 # No state name is logged on purpose. A country's name in dynamic text is
 # GetNameNoFormatting and plain GetName errors outright (CLAUDE.md section 3);
@@ -33,6 +38,37 @@ bc_probe_state_sgui = {
 
 	effect = {
 		debug_log = "BC_PROBE|state"
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+# Fired only from the item guarded by [MapListOption.CanClick]. If this count
+# is lower than BC_PROBE|state, the panel's "valid" list contains options the
+# player is not allowed to click, and firing OnClick blindly across the list
+# would build things the game says no to. The guard ships either way; this
+# just tells us whether it is load-bearing or belt and braces.
+bc_probe_clickable_sgui = {
+	scope = state
+
+	effect = {
+		debug_log = "BC_PROBE|clickable"
+	}
+
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+# Fired from an item hard-coded `visible = no`. MUST produce zero lines.
+# Any output here means `visible` does not gate trigger_on_create, so neither
+# the CanClick guard nor the one-shot latch actually holds, and the GUI-native
+# design is unusable as written.
+bc_probe_hidden_sgui = {
+	scope = state
+
+	effect = {
+		debug_log = "BC_PROBE|hidden"
 	}
 
 	ai_is_valid = { always = no }
