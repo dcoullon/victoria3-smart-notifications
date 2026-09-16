@@ -39,7 +39,10 @@ types map_list_panel_types {
 				textbox = {
 					autoresize = yes
 					align = nobaseline
-					raw_text = "#BOLD BC#! valid [GetDataModelSize(MapListPanel.AccessValidOptions)] / failed [GetDataModelSize(MapListPanel.AccessFailedOptions)] / invalid [GetDataModelSize(MapListPanel.AccessInvalidOptions)]"
+					# The `|=` formatter is how vanilla prints a datamodel size
+					# (gui/building_details_panel.gui:4627). Printing the raw
+					# int32 without it risks a "Data error in loc string".
+					raw_text = "#BOLD BC#! valid [GetDataModelSize(MapListPanel.AccessValidOptions)|=] / failed [GetDataModelSize(MapListPanel.AccessFailedOptions)|=] / invalid [GetDataModelSize(MapListPanel.AccessInvalidOptions)|=]"
 				}
 
 				button = {
@@ -166,6 +169,12 @@ types map_list_panel_types {
 		blockoverride "item" {
 			item = {
 				container = {
+					# @panel_width is declared at FILE scope in vanilla
+					# gui/map_list_panel.gui:3, not inside the types block, so
+					# it resolves here only because mod .gui files are parsed
+					# after vanilla ones. If error.log reports an unknown
+					# variable on load, this line is why -- replace with the
+					# literal 540 and note the drift risk.
 					min_width = @panel_width
 
 					construction_interaction_item_condensed = {
