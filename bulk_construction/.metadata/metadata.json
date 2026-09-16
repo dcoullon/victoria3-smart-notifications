@@ -1,9 +1,9 @@
 {
-	"name": "Bulk Construction - Dev",
+	"name": "Build All: Bulk Construction, One Click - Dev",
 	"id": "bulk_construction",
 	"version": "0.01",
 	"supported_game_version": "1.13.*",
-	"short_description": "Build in every state at once. Adds a bulk-build button and a level stepper to the construction panel you already use, queueing through the normal construction queue at normal cost.",
+	"short_description": "The build all button. Pick a building, press once, and it is queued in every state you could build it in, at any number of levels. Normal construction queue, normal cost, no automation, no cheating.",
 	"tags": [
 		"User Interface",
 		"Utilities",

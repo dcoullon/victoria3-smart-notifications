@@ -211,9 +211,35 @@ drop the abroad case to Phase 2. **Do not ship a version that can fire twice.**
 
 ## 6. Naming and distribution
 
-- The Workshop title must carry the search terms players actually use: *bulk*,
-  *build*, *construction*, *macro builder*. Working title **Bulk Construction**.
+**Title, chosen 2026-09-16: `Build All: Bulk Construction, One Click`.**
+(Mod id stays `bulk_construction` — internal, and painful to change after a
+publish.)
+
+Why, from a Workshop search survey the same day:
+
+- *"build all button"* is the community's own phrase for this feature — it is
+  the wording of the most-linked request thread on the Vic3 forums, and the
+  Gemini report independently surfaced it. Nothing on the Workshop claims it.
+  `Build All`, `Bulk Build` and `Mass Construction` were all unclaimed.
+- The category's top mods (`Auto-Apply PMs`, `Controllable Private
+  Construction`, `Supply Chain Semi-Auto Builder`, `Expanded Building List`)
+  all use plain functional names. Clever names lose here.
+- The subtitle earns the other high-traffic keywords (*bulk*, *construction*)
+  and, deliberately, pushes back on the category's autobuild association:
+  this shelf is crowded with `Autobuild` and `Semi-Auto Builder` entries, and
+  anything that reads as automated invites "is this a cheat?". *One Click*
+  says player-driven. §1a says the rest.
+- The title is pure ASCII on purpose. The launcher's metadata parser is the
+  one component here already known to be picky about encoding (a BOM breaks
+  it outright), so no em dash.
+
+Remaining distribution work:
+
+- **`tools/package_release.py` is hardcoded to `REPO_ROOT`** and will stage
+  Smart Notifications no matter which mod it is asked for. It has to take a
+  mod root before this mod can ship. Not urgent, but it is a release blocker,
+  not a nice-to-have.
 - No `(SN) ` prefix — that convention belongs to Smart Notifications
   (CLAUDE.md §3). This mod adds labels to a vanilla panel and needs its own
   answer before the first public build; decide at release, not now.
-- Release via `python tools/package_release.py`, never the dev junction.
+- Release via `package_release.py`, never the dev junction.
