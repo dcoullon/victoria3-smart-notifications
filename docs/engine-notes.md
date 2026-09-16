@@ -44,6 +44,7 @@ in new code; `CLAUDE.md` only states the rule, not the reasoning.
 - [Taxation Capacity has no national total, anywhere](#taxation-capacity-has-no-national-total-anywhere)
 - [A .gui @constant is file-scoped, and borrowing one fails silently](#a-gui-constant-is-file-scoped-and-borrowing-one-fails-silently)
 - [There is no partial .gui override — redefining one type does nothing](#there-is-no-partial-gui-override-—-redefining-one-type-does-nothing)
+- [visible does not gate widget creation, so it cannot guard an action](#visible-does-not-gate-widget-creation-so-it-cannot-guard-an-action)
 
 <!-- /TOC -->
 
@@ -1544,3 +1545,47 @@ Both of these findings came out of single-hypothesis launches, which is
 exactly what CLAUDE.md § 5 forbids, and the user called it out. The order that
 would have cost one run instead of two: look at what a shipped mod in this
 repo already does, *then* design the probe around the remaining unknowns.
+
+## `visible` does not gate widget creation, so it cannot guard an action
+
+Measured 2026-09-16, in a probe built specifically to find this out before
+anything irreversible was wired to it.
+
+A `.gui` container holding `datamodel = "[...]"` items, each with
+`state = { trigger_on_create = yes  on_finish = "[<some action>]" }`, fires
+that action **once per datamodel entry, every time the panel rebuilds** —
+with no user interaction at all. Wrapping it in `visible = "[<condition>]"`
+changes nothing: the children are still created, and still fire.
+
+The numbers from one short session, where the panel listed 57 valid states:
+
+```
+BC_PROBE|state       229     bursts of 74 / 57 / 123 / 57
+BC_PROBE|clickable   311
+BC_PROBE|hidden      237     <-- container hard-coded `visible = no`
+```
+
+The `hidden` counter is the result that matters: **237 firings from a widget
+that was never visible.** So `visible` is a render property, not a gate, and
+cannot be used to guard anything that has an effect.
+
+Two consequences:
+
+- **A "fire once on a variable, then clear it" latch built out of `visible`
+  is not a latch.** It never gates the first pass and never stops the rest.
+- **A vanilla `enabled = "[X.CanClick]"` condition cannot be reproduced by
+  putting `visible = "[X.CanClick]"` on a widget that drives the action** —
+  see § A `.gui` button's `enabled` is not an engine guard. The two findings
+  compound: the action is ungated *and* the guard is fake.
+
+Had `MapListOption.OnClick` been wired in place of the `debug_log` above, that
+session would have queued several hundred buildings into a live save, unasked.
+This is the case for making the first version of an irreversible feature
+*count* what it would have done instead of doing it.
+
+**The alternative to test is hand-triggered states:** give the items a named
+state with `on_start`, leave `trigger_on_create` off entirely, and fire them
+from the button with `PdxGuiTriggerAllAnimations('<name>')` (vanilla:
+`gui/character_panel.gui:582`). That runs on the existing widgets on demand
+rather than on every rebuild. Whether `visible` gates *that* is a separate
+question and is not yet answered.
