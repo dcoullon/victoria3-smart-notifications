@@ -23,6 +23,33 @@ time.
 | `02-tooltip.png` | the mod says out loud which states it will skip | optional, in the no-cheat section |
 | `03-location-filter.png` | the Location selector itself, Abroad active | optional, alternative to 04 |
 
+## The first 230 characters are the hover preview
+
+Steam shows the opening of the description when someone hovers a Workshop
+item in a list, before they click. Roughly 230 characters, BBCode stripped.
+
+That window is the whole pitch for anyone browsing, so the description opens
+with one self-contained sentence covering what it does, the scale, and the
+no-cheat point, and **nothing else is allowed into it**:
+
+- no `[h1]` repeating the title — Steam already shows the title above, so it
+  would spend the budget saying it twice;
+- **no image in the first paragraph.** Stripping `[img]...[/img]` leaves the
+  bare URL as text, so an image there puts `https://i.imgur.co` in the middle
+  of the preview. IMAGE 1 sits after the first Electricity paragraph for
+  exactly this reason, which also happens to be where it reads best — the
+  problem is stated, then the GIF answers it.
+
+Check it after any edit:
+
+```bash
+python - <<'EOF'
+import pathlib, re
+t = pathlib.Path("bulk_construction/STEAM_WORKSHOP_DESCRIPTION.bbcode").read_text(encoding="utf-8-sig")
+print(re.sub(r"\s+", " ", re.sub(r"\[[^\]]*\]", "", t)).strip()[:230])
+EOF
+```
+
 ## The GIF
 
 `build-all.gif` — 600x612, 85 frames, 8.9s, **1.3 MB**. Comfortably under
