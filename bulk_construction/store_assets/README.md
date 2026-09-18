@@ -6,21 +6,22 @@
 `thumbnail.png`, so this whole folder stays on the dev side. Built from the
 user's own 2026-09-18 captures of the **release** build.
 
-The numbered stills map onto the `>>> IMAGE n <<<` placeholders in
-[../STEAM_WORKSHOP_DESCRIPTION.bbcode](../STEAM_WORKSHOP_DESCRIPTION.bbcode).
-Host them somewhere (Imgur) and replace each placeholder with
-`[img]<url>[/img]`. Steam renders description images at roughly 627px wide,
-which is why nothing here is wider than ~605px — bigger only costs upload
-time.
+**The description carries no inline images** (decided 2026-09-18). These are
+for the Workshop item's own image gallery, which is uploaded separately on
+the Steam item page, and for the Reddit post. Nothing here is wider than
+~605px, which is about what Steam renders in a description — still a sensible
+ceiling for a gallery image, and it keeps the upload small.
 
-| file | what it proves | goes where |
-|---|---|---|
-| `build-all.gif` | the whole thing, in motion | IMAGE 1, above the Electricity section |
-| `01-hero-panel.png` | what is being built, where, how many | IMAGE 2, above "How it works" |
-| `04-filter-changes-count.png` | the filter decides: Domestic 47 vs Abroad 76 | IMAGE 3, under bullet 1 |
-| `05-queue-result.png` | the result — two existing buildings, then the flood, page 1 of 5 | IMAGE 4, under bullet 3 |
-| `06-japanese.png` | the eleven-language claim, in one glance | IMAGE 5, by the Languages section |
-| `02-tooltip.png` | the mod says out loud which states it will skip | optional, in the no-cheat section |
+If inline images are ever wanted again, note that a bare `[img]` URL in the
+first paragraph leaks into the hover preview (see below).
+
+| file | what it proves | priority |
+| `build-all.gif` | the whole thing, in motion | **first** — the one that sells it |
+| `01-hero-panel.png` | what is being built, where, how many | **second** — the still that explains it |
+| `04-filter-changes-count.png` | the filter decides: Domestic 47 vs Abroad 76 | third |
+| `05-queue-result.png` | the result — two existing buildings, then the flood, page 1 of 5 | fourth |
+| `06-japanese.png` | the eleven-language claim, in one glance | fifth |
+| `02-tooltip.png` | the mod says out loud which states it will skip | optional |
 | `03-location-filter.png` | the Location selector itself, Abroad active | optional, alternative to 04 |
 
 ## The first 230 characters are the hover preview
@@ -34,11 +35,11 @@ no-cheat point, and **nothing else is allowed into it**:
 
 - no `[h1]` repeating the title — Steam already shows the title above, so it
   would spend the budget saying it twice;
-- **no image in the first paragraph.** Stripping `[img]...[/img]` leaves the
-  bare URL as text, so an image there puts `https://i.imgur.co` in the middle
-  of the preview. IMAGE 1 sits after the first Electricity paragraph for
-  exactly this reason, which also happens to be where it reads best — the
-  problem is stated, then the GIF answers it.
+- **no image in the first paragraph**, if inline images ever come back.
+  Stripping `[img]...[/img]` leaves the bare URL as text, so an image there
+  puts `https://i.imgur.co` in the middle of the preview. Found by simulating
+  the finished page with real URLs substituted, not by reading the raw file —
+  the raw file looks fine.
 
 Check it after any edit:
 
