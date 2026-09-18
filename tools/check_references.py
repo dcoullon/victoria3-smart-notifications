@@ -1333,8 +1333,21 @@ def check_dev_only_files_are_consistent(root: Path) -> list[str]:
         return p.read_text(encoding="utf-8-sig")
 
     listed = set(DEV_ONLY_FILES)
+
+    # A RELEASE STAGING copy has had every one of these deleted on purpose
+    # (package_release.drop_dev_only_files), and validate_staging then runs
+    # this whole module against it -- so the rename arm below would fire on
+    # all of them and abort every package run. It did, from 17faaec until
+    # 2026-09-18: Smart Notifications could not be packaged at all, found
+    # while packaging its sibling. Absent-because-dropped is distinguishable
+    # from absent-because-renamed by whether ANY of them survived, and a
+    # rename leaves the rest in place.
+    all_dropped = listed and not any((root / rel).is_file() for rel in listed)
+
     for rel in sorted(listed):
         path = root / rel
+        if all_dropped:
+            continue
         if not path.is_file():
             errs.append(
                 f"{rel}: listed in DEV_ONLY_FILES but does not exist -- the "

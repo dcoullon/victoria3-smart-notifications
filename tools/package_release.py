@@ -327,9 +327,26 @@ def package(mod_root: Path, out_dir: Path):
     failed = []
     for name in SHIP_DIRS + SHIP_FILES:
         src = staging / name
-        if not src.exists():
-            continue
         dst = out_dir / name
+        if not src.exists():
+            # The mod no longer ships this item at all. The stale-item sweep
+            # below never sees that case -- it only runs INSIDE a directory
+            # that was staged -- so before 2026-09-18 a whole shipped
+            # directory dropped from a mod kept shipping forever. Found the
+            # day Bulk Construction lost its `common/`: the previous release
+            # folder still held the inert scripted GUI this cleanup exists to
+            # remove, and re-running the packager would not have taken it out.
+            # Same failure as the 2026-09-10 recursive fix below, one level up.
+            if dst.exists():
+                try:
+                    if dst.is_dir():
+                        shutil.rmtree(dst)
+                    else:
+                        dst.unlink()
+                    print(f"  Removed {name} -- this mod no longer ships it")
+                except PermissionError:
+                    failed.append(f"{name} (stale, still locked)")
+            continue
         try:
             if not dst.exists():
                 shutil.move(str(src), str(dst))
