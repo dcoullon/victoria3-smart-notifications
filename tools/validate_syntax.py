@@ -272,7 +272,7 @@ KNOWN_GOOD = [
 
 def check_known_good(root: Path):
     # Every KNOWN_GOOD entry names a Smart Notifications file, so against a
-    # sibling mod in this repo (see better_decision_info/README.md) they all report
+    # sibling mod in this repo (see docs/multi-mod-split.md) they all report
     # MISSING. Gated on the mod id, not the folder name, so a rename can't
     # quietly turn these regression guards off.
     if check_references.read_mod_id(root) != check_references.SMART_NOTIFICATIONS_ID:

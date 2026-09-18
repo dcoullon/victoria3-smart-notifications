@@ -1,8 +1,8 @@
-Smart Notifications
+﻿Smart Notifications
 ===================
 
 A Victoria 3 mod living in this repo alongside `bulk_construction/` and
-`better_decision_info/`. Own `metadata.json`, own mod id
+Build All. Own `metadata.json`, own mod id
 (`smart_notifications`), own Workshop entry. It shares this repo's `tools/`,
 `docs/` and `reference/` and follows the same CLAUDE.md protocol.
 

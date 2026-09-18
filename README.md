@@ -1,4 +1,4 @@
-# Victoria 3 mods
+﻿# Victoria 3 mods
 
 One repo, one folder per mod, shared tooling.
 
@@ -6,7 +6,6 @@ One repo, one folder per mod, shared tooling.
 |---|---|---|
 | [`smart_notifications/`](smart_notifications/) | **Smart Notifications** — an EU4-style country watchlist, less notification noise, and new alerts including one that names the exact law worth enacting | published, [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3799284646) |
 | [`bulk_construction/`](bulk_construction/) | **Build All: Bulk Construction, One Click** — one button queues a building in every state the construction panel is showing, at normal cost through the normal government queue | working, not yet published |
-| [`better_decision_info/`](better_decision_info/) | **Better Decision Info** — the missing numbers where you decide | stub |
 
 Each mod folder is self-contained — its own `.metadata/`, its own script
 directories, and its own README, changelog, backlog and Workshop assets. A

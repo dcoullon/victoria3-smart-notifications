@@ -9,7 +9,7 @@ plant; fuel is a production method, not a build-time choice); this one is the
 design we build.
 
 **Separate mod, sibling folder in this repo** (`bulk_construction/`, alongside
-`better_decision_info/`), own `metadata.json`, own Workshop entry, shares
+`smart_notifications/`), own `metadata.json`, own Workshop entry, shares
 `tools/` and `reference/`.
 
 ## 1. What it does

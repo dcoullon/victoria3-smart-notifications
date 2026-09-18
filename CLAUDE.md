@@ -15,7 +15,6 @@ the repo root.**
 ```
 smart_notifications/    published; the EU4-style watchlist and notification tuning
 bulk_construction/      "Build All": one button queues a building in every listed state
-better_decision_info/   stub
 docs/ reference/ tools/ .claude/   shared across all of them
 ```
 

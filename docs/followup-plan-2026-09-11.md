@@ -1,4 +1,4 @@
-# Implementation plan — post-launch follow-ups (2026-09-11)
+﻿# Implementation plan — post-launch follow-ups (2026-09-11)
 
 Written before any code, at the user's request, to avoid the
 build-test-rebuild churn of earlier sessions. Everything below is either
@@ -558,7 +558,7 @@ All three are one short playthrough with a scratch loc key, not three sessions.
 
 Everything in items 2a and 2b ships as a **second mod**, `better_decision_info/`, developed
 in this repo on branch `better-decision-info`. Full rationale in
-[better_decision_info/README.md](../better_decision_info/README.md); the short version:
+[multi-mod-split.md](multi-mod-split.md); the short version:
 
 - **The split line is risk profile, not theme.** Script and small
   self-contained `.gui` stay in Smart Notifications. Overrides of large vanilla

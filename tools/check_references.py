@@ -55,7 +55,7 @@ def _skip(check: str, reason: str) -> None:
         SKIPPED.append(entry)
 
 
-# This repo builds more than one mod (see better_decision_info/README.md for why the split
+# This repo builds more than one mod (see docs/multi-mod-split.md for why the split
 # exists). Checks that assert Smart Notifications' OWN required content is
 # present are meaningless against a sibling mod, so they are gated on the mod
 # id below rather than skipped by folder name -- a rename cannot then silently

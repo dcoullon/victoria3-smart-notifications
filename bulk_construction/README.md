@@ -2,7 +2,7 @@
 =======================================
 
 A separate Victoria 3 mod living in this repo alongside Smart Notifications and
-`better_decision_info/`. Own `metadata.json`, own mod id (`bulk_construction`),
+Smart Notifications. Own `metadata.json`, own mod id (`bulk_construction`),
 own Workshop entry. It shares this repo's `tools/` and `reference/` and follows
 the same CLAUDE.md protocol.
 

@@ -99,7 +99,7 @@ def shipped_file_names() -> set[str]:
                 and ".git" not in path.parts):
             names.add(path.name)
     return names
-# This repo now hosts more than one mod (see better_decision_info/ and
+# This repo now hosts more than one mod (see docs/multi-mod-split.md and
 # bulk_construction/), so the tag pattern covers every mod prefix in it:
 # SNW_ for Smart Notifications, BC_ for Bulk Construction. A new sibling
 # mod adds its prefix here, or its debug_log output is silently invisible

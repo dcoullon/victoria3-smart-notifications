@@ -1,4 +1,4 @@
-One-Click Electrification — spec for a separate mod
+﻿One-Click Electrification — spec for a separate mod
 ===================================================
 
 Written 2026-09-15. **Separate mod, not part of Smart Notifications** —
@@ -38,7 +38,7 @@ file, no compatibility surface, no re-diff burden on patches (§2). But the
 decisions panel is not somewhere Victoria 3 players look, and a one-click build
 tool that nobody finds is worthless. The building list and the bottom bar are
 where the intent actually occurs, and both cost a `.gui` override of a vanilla
-file, which is the risk profile the `better_decision_info` split exists to
+file, which is the risk profile the multi-mod split exists to
 contain.
 
 **So the real question is not "which is nicer" but "is the decisions panel
