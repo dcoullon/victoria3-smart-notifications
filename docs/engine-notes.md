@@ -1588,15 +1588,18 @@ already does, *then* design the probe around the remaining unknowns.
 
 ## The engine dumps its own datafunction list — grep that before probing
 
-**Found 2026-09-18, and it retires a whole class of playtest.** Victoria 3
-writes every registered data type and datafunction to
-`Documents/Paradox Interactive/Victoria 3/logs/data_types/`. A copy is
-snapshotted in [reference/data_types/](../reference/data_types/), with usage
-in its README.
+**Retires a whole class of playtest.** Victoria 3 can dump every registered
+data type and datafunction to
+`Documents/Paradox Interactive/Victoria 3/logs/data_types/`. **The user
+produced this dump on 2026-09-14** from a debug-mode launch — it is not
+something that appears by itself. A copy is snapshotted in
+[reference/data_types/](../reference/data_types/), with usage in its README.
 
 This repo has burned playtests on "is `X.Y` a real function?", answered by
-trying it and reading `error.log`. That is now a `grep`. The dump had been
-sitting in the logs folder since 2026-09-14 and nobody looked.
+trying it and reading `error.log`. That is now a `grep`. The dump sat in the
+logs folder for four days before any session thought to check it, which is
+the lesson worth keeping: **look at what the game has already written before
+asking it to write more.**
 
 **Absence is conclusive; presence is not.** A function missing from the dump
 does not exist — stop. A function present in it exists *somewhere*, but this

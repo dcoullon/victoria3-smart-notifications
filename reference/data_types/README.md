@@ -1,16 +1,22 @@
-Engine data-type dump — the authoritative list of datafunctions
+﻿Engine data-type dump — the authoritative list of datafunctions
 ===============================================================
 
 **What this is:** Victoria 3's own dump of every registered data type and
-datafunction, written by the game itself into
+datafunction. **The user generated it on 2026-09-14** by launching the game in
+debug mode and dumping the data types from the console; the game wrote it to
 `Documents/Paradox Interactive/Victoria 3/logs/data_types/`. Snapshotted here
-2026-09-18 from a dump the game wrote on 2026-09-14 (game 1.13). Copied into
-the repo because the `logs/` folder is rotated and cleared, and this is too
+2026-09-18 (game 1.13), because the `logs/` folder rotates and this is too
 useful to lose.
+
+**It does not appear on its own.** Nobody gets this by playing normally — it
+costs a debug-mode launch, so treat the snapshot as a scarce asset rather than
+something regenerable on a whim.
 
 **Why it matters:** this repo has spent multiple playtests answering "is
 `X.Y` a real function?" by trying it and reading `error.log`. That question is
-answerable here, instantly, with `grep`.
+answerable here, instantly, with `grep`. The dump existed for four days before
+any session thought to look at it — the miss was not that it was missing, but
+that nobody checked.
 
 ```bash
 # does this function exist at all?
@@ -69,6 +75,8 @@ dump, yet calling it from script-side dynamic text errors outright with
 
 ## Regenerating
 
-The game writes these in debug mode. Re-dump after a game patch and re-copy;
-a stale dump is worse than none, since "absence is conclusive" stops being
-true. The snapshot above is 1.13.
+Costs a debug-mode game launch by the user, so ask rather than assume. Re-dump
+after a game patch and re-copy: a stale dump is worse than none, because
+"absence is conclusive" quietly stops being true. The snapshot above is 1.13,
+and `supported_game_version` in each mod's `metadata.json` is the thing to
+check it against.

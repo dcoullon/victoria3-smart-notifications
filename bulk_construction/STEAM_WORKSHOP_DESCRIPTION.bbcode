@@ -1,0 +1,53 @@
+[h1]Build All: Bulk Construction, One Click[/h1]
+
+Pick a building. Press one button. It is queued in every state you can build it in.
+
+No more clicking [b]+[/b] forty times to put a Tooling Workshop across your empire.
+
+[hr][/hr]
+
+[h2]What it does[/h2]
+
+It adds two things to the construction panel you already use — the one that opens when you pick a building and it asks [i]"Select in which State to build"[/i]:
+
+[list]
+[*][b]A level stepper[/b] — 1, 5 or 10 levels.
+[*][b]One build button[/b] — queues that many levels in every state the panel is currently listing.
+[/list]
+
+It acts on [b]whatever your filters are showing[/b]. Set Location to Domestic and it stays home; set it to Abroad and it builds abroad; filter by workforce and it follows that. The panel's own filters are the controls — there are no new ones to learn.
+
+Levels are queued [b]level-by-level across states[/b], not state-by-state: every state gets its first level before any gets its second. If you change your mind and cancel halfway, your empire is evenly covered instead of three provinces deep and the rest untouched.
+
+[h2]It is not a cheat, and not an autobuilder[/h2]
+
+This shelf is crowded with automation, so to be exact about it:
+
+[list]
+[*][b]It presses the game's own + button.[/b] Not a copy of it — literally the same call, once per state. Normal construction queue, normal cost, normal build time, normal funding.
+[*][b]It cannot build anything you could not.[/b] The game refuses any state you could not click yourself. States already at their level cap, or where you have no right to build, are skipped automatically.
+[*][b]It never acts on its own.[/b] Nothing happens until you press the button. No monthly tick, no background queueing, no AI.
+[*][b]It does not touch your treasury[/b], construction points or build times — not to charge you, and not to discount you.
+[/list]
+
+If you would not call clicking [b]+[/b] forty times cheating, this is not cheating. It is the same forty clicks.
+
+[h2]About the number on the button[/h2]
+
+The button says [i]"in up to N states"[/i]. [b]Up to[/b] is doing real work there: N is how many states the panel is listing, and a few of those may refuse — usually because they are already at their maximum level for that building. The game's interface layer gives mods no way to count only the buildable ones, so the button states a ceiling and the tooltip tells you what gets skipped, rather than showing you a confident number that turns out to be wrong.
+
+[h2]Compatibility[/h2]
+
+[list]
+[*][b]Game version 1.13.[/b]
+[*][b]Ironman and achievements: fine.[/b] Mods do not disable achievements in Victoria 3.
+[*][b]Single-player.[/b] Not tested in multiplayer and not marked multiplayer-synchronised.
+[*][b]No vanilla file is overridden.[/b] It redefines one 35-line interface type rather than replacing the whole construction panel, so it is unusually light on conflicts — but any other mod that changes that same panel will clash. If you use one, load this one first and tell me what breaks.
+[*][b]Save-safe.[/b] Add it or remove it mid-campaign; it stores nothing in your save.
+[/list]
+
+[h2]Feedback[/h2]
+
+If something does not queue when you think it should, say which building and which filter you had set — that is usually enough to find it.
+
+[i]A "Max" option (fill every state to its cap) is the most likely next addition. I left it out deliberately rather than guessing at the right ceiling — if you want it, say so.[/i]
