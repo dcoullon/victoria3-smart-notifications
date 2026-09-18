@@ -3,6 +3,16 @@ from pathlib import Path
 
 import check_references
 
+# The languages Victoria 3 actually ships, read off
+# game/localization/ (and confirmed against languages.yml). A folder outside
+# this set is not a translation, it is a directory the game ignores -- which
+# looks identical to a translation that "did not work".
+VICTORIA_LANGUAGES = {
+    "english", "french", "german", "spanish", "braz_por", "polish",
+    "russian", "simp_chinese", "japanese", "korean", "turkish",
+}
+
+
 def validate_file(file_path: Path):
     errors = []
     if file_path.suffix == ".yml":
@@ -10,8 +20,22 @@ def validate_file(file_path: Path):
         if not raw.startswith(b'\xef\xbb\xbf'):
             errors.append("Localization YAML must be encoded as UTF-8 with BOM.")
         lines = raw.decode("utf-8-sig", errors="replace").splitlines()
-        if lines and not lines[0].strip().startswith("l_english:"):
-            errors.append("First line must start with 'l_english:'.")
+        # The header must name the language of the FOLDER the file sits in.
+        # This used to be hardcoded to `l_english:`, which was fine while
+        # every mod here shipped English only; it failed the moment Bulk
+        # Construction was translated (2026-09-18). Getting this wrong is not
+        # cosmetic -- the game keys the whole file off this line, so a
+        # mismatched header means the file is parsed as the wrong language
+        # and the translation silently never appears.
+        lang = file_path.parent.name
+        expected = "l_%s:" % lang
+        if lines and not lines[0].strip().startswith(expected):
+            errors.append("First line must start with '%s' (the folder is "
+                          "localization/%s/)." % (expected, lang))
+        if lang not in VICTORIA_LANGUAGES:
+            errors.append("localization/%s/ is not a language Victoria 3 "
+                          "ships; the game will not load it. Expected one of: "
+                          "%s." % (lang, ", ".join(sorted(VICTORIA_LANGUAGES))))
         return errors
 
     # Confirmed against the game's own lexer (2026-09-03): it logs

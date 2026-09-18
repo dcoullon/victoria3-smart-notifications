@@ -17,6 +17,7 @@ Each `check_*` function returns a list of human-readable error strings
 (empty list = pass) and never raises for a normal missing-reference case.
 """
 import json
+import unicodedata
 import re
 from pathlib import Path
 
@@ -1265,15 +1266,15 @@ def check_bc_loc_has_no_nested_arithmetic(root: Path) -> list[str]:
     GetDataModelSize / SkipFirst / SubSpan / First / Last), so the count shown
     can only ever be "rows listed", never "rows that will actually build" --
     which is why the label says "where possible" instead of a product."""
-    loc = root / "localization" / "english"
+    loc = root / "localization"
     if not loc.is_dir():
         return []
     errs = []
-    for path in loc.glob("*.yml"):
+    for path in sorted(loc.rglob("*.yml")):
         for i, line in enumerate(path.read_text(encoding="utf-8-sig").splitlines(), 1):
             if re.search(r"(Multiply|Add|Subtract|Divide)_\w+\(\s*\w+\(", line):
                 errs.append(
-                    f"localization/english/{path.name}:{i}: nested arithmetic in a loc "
+                    f"{path.relative_to(root).as_posix()}:{i}: nested arithmetic in a loc "
                     f"string. It fails at fetch time and renders the widget BLANK with "
                     f"no visible error -- see this check's docstring")
     return errs
@@ -1290,15 +1291,15 @@ def check_bc_loc_has_no_bracket_decoration(root: Path) -> list[str]:
     space and starting with a capital, with no `(` inside -- prose, in other
     words. Real calls carry parentheses, and vanilla's bare concept references
     (`[concept_state]`) are lowercase and spaceless, so neither trips it."""
-    loc = root / "localization" / "english"
+    loc = root / "localization"
     if not loc.is_dir():
         return []
     errs = []
-    for path in loc.glob("*.yml"):
+    for path in sorted(loc.rglob("*.yml")):
         for i, line in enumerate(path.read_text(encoding="utf-8-sig").splitlines(), 1):
             for m in re.finditer(r"\[([A-Z][^\[\]()]*\s[^\[\]()]*)\]", line):
                 errs.append(
-                    f"localization/english/{path.name}:{i}: '[{m.group(1)}]' reads as "
+                    f"{path.relative_to(root).as_posix()}:{i}: '[{m.group(1)}]' reads as "
                     f"decoration but will be parsed as a dynamic-text call and render "
                     f"the widget BLANK. Use parentheses: '({m.group(1)})'")
     return errs
@@ -1464,6 +1465,119 @@ def check_no_inert_scripted_gui(root: Path) -> list[str]:
     return errs
 
 
+def check_translations_match_english(root: Path) -> list[str]:
+    """Every non-English loc file must define exactly the keys English does,
+    and must preserve every datafunction call in the value.
+
+    Two failure modes, both silent in game:
+
+    - **A key missing from a translation** falls back to English, so the
+      button ends up half-translated and nobody reports it as a bug. The
+      moment English gains a key, all ten translations are out of date and
+      nothing says so.
+    - **A mangled `[...]` call** is worse. The count in these strings is
+      `[GetDataModelSize(MapListPanel.AccessValidOptions)]`, and a translator
+      (or a generator) that touches what is inside the brackets gets no error
+      -- dynamic text that does not resolve renders as nothing, so the button
+      silently loses its number in that language only.
+
+    Added 2026-09-18 with the first translations. Keyed off English as the
+    source of truth: extra keys in a translation are reported too, since they
+    are usually a rename that only landed in one file."""
+    errs = []
+    loc = root / "localization"
+    eng = loc / "english"
+    if not eng.is_dir():
+        return errs
+
+    def keys_and_calls(d: Path):
+        found = {}
+        for path in sorted(d.glob("*.yml")):
+            for line in _read(path).split(chr(10)):
+                m = re.match(r'\s*([A-Za-z0-9_]+):\d*\s*"(.*)"\s*$', line)
+                if m:
+                    found[m.group(1)] = set(re.findall(r"\[([^\]]*)\]", m.group(2)))
+        return found
+
+    english = keys_and_calls(eng)
+    if not english:
+        return errs
+
+    for d in sorted(x for x in loc.iterdir() if x.is_dir() and x.name != "english"):
+        theirs = keys_and_calls(d)
+        if not theirs:
+            continue
+        missing = sorted(set(english) - set(theirs))
+        extra = sorted(set(theirs) - set(english))
+        if missing:
+            errs.append("localization/%s/: missing %d key(s) English defines "
+                        "(%s) -- they will silently fall back to English"
+                        % (d.name, len(missing), ", ".join(missing[:5])))
+        if extra:
+            errs.append("localization/%s/: defines %d key(s) English does not "
+                        "(%s) -- likely a rename that only landed here"
+                        % (d.name, len(extra), ", ".join(extra[:5])))
+        for key in sorted(set(english) & set(theirs)):
+            if english[key] != theirs[key]:
+                lost = sorted(english[key] - theirs[key])
+                added = sorted(theirs[key] - english[key])
+                detail = []
+                if lost:
+                    detail.append("lost [%s]" % "], [".join(lost))
+                if added:
+                    detail.append("has unexpected [%s]" % "], [".join(added))
+                errs.append("localization/%s/: %s %s -- a dynamic-text call "
+                            "that does not resolve renders as nothing, so the "
+                            "value loses it silently in this language only"
+                            % (d.name, key, "; ".join(detail)))
+    return errs
+
+
+# Bulk Construction's build button is 500px wide (gui/00_bulk_construction_
+# map_list.gui). Measured 2026-09-18 by rendering every translated label:
+# English 327px, the longest (Russian) 395px, against ~480px usable after the
+# button's internal padding -- assuming a pessimistic three-digit state count.
+# 52 east-asian display columns is what that 395px worked out to, so 64 leaves
+# roughly a quarter more room again before anything can clip.
+BC_BUTTON_MAX_COLS = 64
+
+
+def check_bc_button_labels_fit(root: Path) -> list[str]:
+    """A build-button label must be short enough to fit the button.
+
+    Text that overruns a Jomini button is not reported anywhere -- it clips or
+    spills, in one language, on one screen nobody testing in English will
+    open. Translations run 10-20% longer than English as a rule (Russian and
+    Polish worst here), so this is the failure mode a translated UI invites.
+
+    Counted in display columns, not characters: CJK glyphs occupy two. That
+    approximation is deliberate -- the precise answer needs font rendering and
+    the game's own UI face, and the pixel measurement above already showed the
+    margin is wide enough that an approximation cannot miss a real overflow."""
+    errs = []
+    loc = root / "localization"
+    if not loc.is_dir():
+        return errs
+    call = re.compile(r"\[[^\]]*\]")
+    for path in sorted(loc.rglob("*.yml")):
+        for n, line in enumerate(_read(path).split(chr(10)), 1):
+            m = re.match(r'\s*(BC_BUILD_BUTTON_\d+):\d*\s*"(.*)"\s*$', line)
+            if not m:
+                continue
+            # The count renders as a number at runtime; assume three digits.
+            text = call.sub("999", m.group(2))
+            cols = sum(2 if unicodedata.east_asian_width(c) in ("W", "F") else 1
+                       for c in text)
+            if cols > BC_BUTTON_MAX_COLS:
+                errs.append(
+                    "%s:%d: %s is %d display columns, over the %d that fit the "
+                    "500px button -- it will clip in this language only, "
+                    "silently. Shorten it, or widen the button and re-measure"
+                    % (path.relative_to(root).as_posix(), n, m.group(1), cols,
+                       BC_BUTTON_MAX_COLS))
+    return errs
+
+
 def check_no_cheat_verbs(root: Path) -> list[str]:
     """Bulk Construction's hard rule, enforced rather than documented: fix the
     UX, never change the rules of the game (spec section 1a). The mod's whole
@@ -1499,6 +1613,7 @@ def run_all(root: Path) -> list[str]:
     errs += check_mixed_group_notification_types(root)
     errs += check_notification_loc_completeness(root, defined_loc)
     errs += check_loc_lines_are_well_formed(root)
+    errs += check_translations_match_english(root)
     errs += check_replaced_loc_still_matches_vanilla(root)
     errs += check_engine_notes_toc_is_current(root)
     errs += check_vanilla_reference_snapshot_is_complete(root)
@@ -1525,6 +1640,7 @@ def run_all(root: Path) -> list[str]:
         errs += check_bc_panel_width_matches_vanilla(root)
         errs += check_bc_loc_has_no_nested_arithmetic(root)
         errs += check_bc_loc_has_no_bracket_decoration(root)
+        errs += check_bc_button_labels_fit(root)
 
     return errs
 

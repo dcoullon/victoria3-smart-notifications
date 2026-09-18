@@ -109,9 +109,14 @@ types map_list_panel_types {
 					}
 				}
 
+				# 500 wide, not the original 420: the translations run up to ~11%%
+				# longer than English (Russian and Polish are the worst), and this
+				# label has to fit a three-digit count too. Vanilla's own filter row
+				# above sets minimumsize 554 (@panel_width_plus_14), so 500 is
+				# comfortably inside the panel.
 				button = {
 					visible = "[Not(Or(GetVariableSystem.HasValue('bc_levels', '5'), GetVariableSystem.HasValue('bc_levels', '10')))]"
-					size = { 420 30 }
+					size = { 500 30 }
 					using = default_button
 					text = "BC_BUILD_BUTTON_1"
 					tooltip = "BC_BUILD_TOOLTIP_1"
@@ -119,7 +124,7 @@ types map_list_panel_types {
 				}
 				button = {
 					visible = "[GetVariableSystem.HasValue('bc_levels', '5')]"
-					size = { 420 30 }
+					size = { 500 30 }
 					using = default_button
 					text = "BC_BUILD_BUTTON_5"
 					tooltip = "BC_BUILD_TOOLTIP_5"
@@ -131,7 +136,7 @@ types map_list_panel_types {
 				}
 				button = {
 					visible = "[GetVariableSystem.HasValue('bc_levels', '10')]"
-					size = { 420 30 }
+					size = { 500 30 }
 					using = default_button
 					text = "BC_BUILD_BUTTON_10"
 					tooltip = "BC_BUILD_TOOLTIP_10"

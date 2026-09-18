@@ -12,6 +12,28 @@ increment by `0.01` when something genuinely new ships **and is confirmed
 working**; bug fixes, fix-attempts on an unfinished feature, instrumentation
 and doc-only changes get a commit but no bump.
 
+## [Unreleased]
+
+### Added
+
+- **All 11 languages Victoria 3 ships**, not just English: French, German,
+  Spanish, Brazilian Portuguese, Polish, Russian, Simplified Chinese,
+  Japanese, Korean and Turkish.
+
+  Each language's words for *State*, *Building Level* and *Construction
+  Queue* were taken from the game's own localization rather than translated
+  afresh, so the button uses the same vocabulary as the interface around it.
+  The `(Build All)` tag stays in English everywhere on purpose -- it is the
+  mod's name, and its job is to say which mod added the row.
+
+  These are not native-speaker translations. If something reads badly in your
+  language, say so and it will be fixed.
+
+### Changed
+
+- The build button is wider (500px, was 420px) to fit translations, which run
+  10-20% longer than English.
+
 ## [0.03] - 2026-09-18
 
 ### Fixed
