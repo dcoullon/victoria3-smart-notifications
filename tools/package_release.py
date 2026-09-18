@@ -417,7 +417,8 @@ def tag_release_commit(mod_root: Path) -> str | None:
     release on this date") -- separate from the per-version-bump `v<version>`
     tags (CLAUDE.md), since not every version bump gets externally
     released, and packaging can happen more than once for the same
-    version. Returns the tag name, or None if it already existed.
+    version. Returns the tag name, or None if it already pointed at HEAD
+    or was moved onto it.
 
     The version comes from the mod being packaged. A sibling mod's tag also
     carries its id (`release-bulk_construction-v0.01-<date>`): one git repo
@@ -430,10 +431,27 @@ def tag_release_commit(mod_root: Path) -> str | None:
     scope = "" if mod_id == check_references.SMART_NOTIFICATIONS_ID else f"{mod_id}-"
     tag = f"release-{scope}v{version}-{date.today().isoformat()}"
 
+    # If the tag already exists but points somewhere else, MOVE it. This tag
+    # answers "what did we actually release on this date", so when a mod is
+    # packaged several times in one day -- which is the normal shape of a
+    # release day -- the answer is the last packaging, not the first.
+    #
+    # It used to return None instead, leaving the tag on the earliest build
+    # of the day. Found 2026-09-18, after Build All was packaged four times
+    # and published: the tag pointed at a build from that morning, three
+    # commits of shipped content out of date, so the one tag whose entire
+    # purpose is reproducing a release reproduced something never released.
     existing = subprocess.run(["git", "tag", "-l", tag], cwd=REPO_ROOT,
                                capture_output=True, text=True).stdout.strip()
+    moved_from = None
     if existing:
-        return None
+        head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=REPO_ROOT,
+                              capture_output=True, text=True).stdout.strip()
+        tagged = subprocess.run(["git", "rev-list", "-n1", tag], cwd=REPO_ROOT,
+                                capture_output=True, text=True).stdout.strip()
+        if tagged == head:
+            return None
+        moved_from = tagged[:7]
 
     status = subprocess.run(["git", "status", "--porcelain"], cwd=REPO_ROOT,
                              capture_output=True, text=True).stdout.strip()
@@ -441,10 +459,15 @@ def tag_release_commit(mod_root: Path) -> str | None:
         print("NOTE: working tree has uncommitted changes -- the tag will "
               "still point at the last commit, which may not include them.")
 
-    subprocess.run(["git", "tag", "-a", tag, "-m", f"Packaged for release: version {version}"],
+    subprocess.run(["git", "tag", "-f", "-a", tag,
+                    "-m", f"Packaged for release: version {version}"],
                     cwd=REPO_ROOT, check=True)
-    subprocess.run(["git", "push", "origin", tag], cwd=REPO_ROOT,
+    subprocess.run(["git", "push", "--force", "origin", tag], cwd=REPO_ROOT,
                     capture_output=True, text=True)
+    if moved_from:
+        print(f"Moved {tag} from {moved_from} to HEAD "
+              f"(repackaged the same day -- the tag tracks the LAST build).")
+        return None
     return tag
 
 
