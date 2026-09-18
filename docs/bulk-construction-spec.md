@@ -1,4 +1,4 @@
-Bulk Construction — spec
+﻿Bulk Construction — spec
 ========================
 
 Written 2026-09-16. Supersedes the entry-point question left open in
@@ -213,12 +213,26 @@ All verified by the user in a live game, against a real construction queue.
    needed, because the engine enforces it. Vanilla's own `+` greys out on
    existing *plus queued* levels, so the cap check already accounts for
    pending queue items and a multi-level press cannot overshoot a cap.
-4. **The displayed count means "rows listed", not "rows that will build".**
-   44 shown, 39 built. This engine has no datamodel-filtering function — only
-   `GetDataModelSize`, `DataModelSkipFirst`, `DataModelSubSpan`,
-   `DataModelFirst`, `DataModelLast` — so a filtered count is not obtainable
-   in GUI at all. The label says "in the N states below" and the tooltip says
-   "where possible" rather than showing a product that would be wrong.
+4. **The displayed count is a ceiling, not a promise.** 44 shown, 39 built;
+   and in an Abroad-filtered panel on 2026-09-18, 6 shown and 1 built. A
+   listed row can still refuse: `MapListPanel.AccessValidOptions` is what the
+   panel lists, but `MapListOption.CanClick` is the per-row "this one will
+   actually build" flag, and it can be false on a listed row.
+
+   **A filtered count is impossible in GUI. Settled 2026-09-18 against the
+   engine's own datafunction dump** (`reference/data_types/`), which replaced
+   the earlier inference from vanilla usage. The complete datamodel API is
+   nine functions and not one folds a predicate over the rows; `SkipLast`
+   was the only one the vanilla-usage survey had missed, and it does not
+   help. Accumulating per row fails too: `GetVariableSystem` has no
+   arithmetic, and a widget `state` has no condition field, so "run only
+   where `CanClick`" has no form. See engine-notes § The GUI layer cannot
+   count a filtered datamodel.
+
+   So the button reads **"Queue N levels in up to M states"** (changed
+   2026-09-18 after the user pointed out that "in 6 states" oversells a panel
+   where 5 are locked), and the tooltip names what gets skipped and why. The
+   number is honest as a ceiling; there is no honest exact number available.
 5. **One press is one pass.** Measured before `OnClick` was wired in: 123
    firings against a panel reading "valid 123", in a single burst, nothing
    before or after. See §3 for what the rejected design did instead.

@@ -44,6 +44,8 @@ in new code; `CLAUDE.md` only states the rule, not the reasoning.
 - [Taxation Capacity has no national total, anywhere](#taxation-capacity-has-no-national-total-anywhere)
 - [A .gui @constant is file-scoped, and borrowing one fails silently](#a-gui-constant-is-file-scoped-and-borrowing-one-fails-silently)
 - [A partial .gui override works — if the filename sorts before vanilla's](#a-partial-gui-override-works-—-if-the-filename-sorts-before-vanillas)
+- [The engine dumps its own datafunction list — grep that before probing](#the-engine-dumps-its-own-datafunction-list-—-grep-that-before-probing)
+- [The GUI layer cannot count a filtered datamodel](#the-gui-layer-cannot-count-a-filtered-datamodel)
 - [A missing texture draws nothing and logs nothing](#a-missing-texture-draws-nothing-and-logs-nothing)
 - [visible does not gate widget creation, so it cannot guard an action](#visible-does-not-gate-widget-creation-so-it-cannot-guard-an-action)
 
@@ -1583,6 +1585,60 @@ Both of the 2026-09-16 findings came out of single-hypothesis launches, which
 is exactly what CLAUDE.md § 5 forbids, and the user called it out. The order
 that would have cost one run instead of two: look at what a shipped mod
 already does, *then* design the probe around the remaining unknowns.
+
+## The engine dumps its own datafunction list — grep that before probing
+
+**Found 2026-09-18, and it retires a whole class of playtest.** Victoria 3
+writes every registered data type and datafunction to
+`Documents/Paradox Interactive/Victoria 3/logs/data_types/`. A copy is
+snapshotted in [reference/data_types/](../reference/data_types/), with usage
+in its README.
+
+This repo has burned playtests on "is `X.Y` a real function?", answered by
+trying it and reading `error.log`. That is now a `grep`. The dump had been
+sitting in the logs folder since 2026-09-14 and nobody looked.
+
+**Absence is conclusive; presence is not.** A function missing from the dump
+does not exist — stop. A function present in it exists *somewhere*, but this
+engine has more than one function table (see § Two separate function tables),
+so it may still fail in the context you want it in. `Country.GetName` is in
+the dump and still errors from script-side dynamic text, which is why
+CLAUDE.md § 3 mandates `GetNameNoFormatting`.
+
+## The GUI layer cannot count a filtered datamodel
+
+Settled 2026-09-18 against the dump above, after being inferred from vanilla
+usage in `docs/bulk-construction-spec.md` § 4.
+
+The engine's **entire** datamodel API is nine functions: `DataModelFirst`,
+`DataModelHasItems`, `DataModelLast`, `DataModelRepeatedItem`,
+`DataModelSkipFirst`, `DataModelSkipLast`, `DataModelSubSpan`,
+`GetDataModelSize`, `IsDataModelEmpty`. Not one of them folds a predicate
+over the rows. There is no `Count`, no `Filter`, no `Where`.
+
+The obvious workaround — sweep the rows and accumulate — does not exist
+either, twice over:
+
+- `GetVariableSystem` has no arithmetic. Its whole surface is `Clear`,
+  `Exists`, `HasValue`, `Set`, `SetIf`, `Toggle`; values are strings and
+  nothing increments them.
+- A per-row widget cannot be *conditionally* created or triggered. `visible`
+  does not gate widget creation (§ below), and a widget `state` has no
+  condition field, so "run this only for rows where `CanClick`" has no form.
+
+**Consequence for Bulk Construction**, and the reason its button reads *"in
+**up to** N states"*: `MapListPanel.AccessValidOptions` is what the panel
+lists, but `MapListOption.CanClick` — the per-row flag for "this one will
+actually build" — can be false on a listed row (state at its level cap, or no
+right to build abroad). Measured 44 listed / 39 built, and in another case 6
+listed / 1 built. The true number is knowable per row and uncountable in
+aggregate, so the label states a ceiling and the tooltip says what gets
+skipped. Do not spend another look for a way to count it.
+
+The script-side fallback is worse, not better: `can_construct_building` takes
+a bare literal key, so it needs one branch per building type (104 of them),
+and `every_scope_state` only iterates states you own — which excludes exactly
+the abroad case where the count is furthest off.
 
 ## A missing texture draws nothing and logs nothing
 

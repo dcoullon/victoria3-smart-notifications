@@ -12,7 +12,20 @@ increment by `0.01` when something genuinely new ships **and is confirmed
 working**; bug fixes, fix-attempts on an unfinished feature, instrumentation
 and doc-only changes get a commit but no bump.
 
-## [Unreleased]
+## [0.03] - 2026-09-18
+
+### Fixed
+
+- **The selected level (1 / 5 / 10) now actually shows as selected.** The
+  highlight had never drawn: it pointed at a texture file that does not exist
+  in the game, which this engine renders as nothing at all, silently.
+- **The button no longer overstates how many states it will build in.** It
+  reads *"in up to N states"*, and the tooltip explains that states already at
+  their maximum level, or where you have no right to build, are skipped. Some
+  states the panel lists cannot actually be built in — an Abroad-filtered
+  panel showing 6 states may queue only 1 — and the game's interface layer
+  offers modders no way to count only the buildable ones, so a ceiling plus an
+  explanation is the honest version.
 
 ### Removed
 
