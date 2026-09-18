@@ -1,23 +1,38 @@
-﻿[h1]Build All: Bulk Construction, One Click[/h1]
+[h1]Build All: Bulk Construction, One Click[/h1]
 
-Pick a building. Press one button. It is queued in every state you can build it in.
-
-No more clicking [b]+[/b] forty times to put a Tooling Workshop across your empire.
+[b]Pick a building. Press one button. It is queued in every state you can build it in.[/b]
 
 [hr][/hr]
 
-[h2]What it does[/h2]
+[h2]You just finished Electricity[/h2]
 
-It adds two things to the construction panel you already use — the one that opens when you pick a building and it asks [i]"Select in which State to build"[/i]:
+Now every state in your empire wants a Power Plant, and the ones you already have want another level. You open the construction panel, and there are ninety states in the list.
+
+So you click [b]+[/b]. Ninety times. Then you do it again next decade when coal power gives way to hydro, and again when your states outgrow what you built.
+
+That is the entire reason this mod exists. It is the same ninety clicks — the game just does the clicking.
+
+[i](It is not only power plants. Tooling Workshops after an industry tech, Railways across a new conquest, Urban Centres when the cities start choking — any building, any time you find yourself clicking the same [/i][b]+[/b][i] down a long list.)[/i]
+
+[h2]How it works[/h2]
+
+The mod adds two things to the construction panel you already use — the one that opens when you pick a building and it asks [i]"Select in which State to build"[/i]:
 
 [list]
 [*][b]A level stepper[/b] — 1, 5 or 10 levels.
-[*][b]One build button[/b] — queues that many levels in every state the panel is currently listing.
+[*][b]One build button[/b], reading [i]"Queue 10 levels in up to 47 states"[/i].
 [/list]
 
-It acts on [b]whatever your filters are showing[/b]. Set Location to Domestic and it stays home; set it to Abroad and it builds abroad; filter by workforce and it follows that. The panel's own filters are the controls — there are no new ones to learn.
+Three things about it are worth knowing, because they are what make it usable rather than a blunt instrument:
 
-Levels are queued [b]level-by-level across states[/b], not state-by-state: every state gets its first level before any gets its second. If you change your mind and cancel halfway, your empire is evenly covered instead of three provinces deep and the rest untouched.
+[b]1. It obeys the filters you already set.[/b]
+The panel's own [b]Location[/b] selector — [i]All / Domestic / Abroad[/i] — decides where it acts. Set it to Domestic and it stays home. Set it to Abroad and it builds only in other people's states, where you have investment rights. The workforce filters narrow it further. There are no new controls to learn: whatever the list is showing is what the button acts on, which is also why the button tells you how many states that currently is.
+
+[b]2. It builds in the order the list is showing.[/b]
+Sort the panel by Earnings and the queue is built richest-first. Sort by workforce and it follows that instead. The button walks the same list you are looking at, top to bottom, so you choose the priority by choosing the sort.
+
+[b]3. It spreads levels evenly, not one state at a time.[/b]
+Ask for 10 levels and every state gets its first level before any state gets its second. This matters more than it sounds: a bulk order is a long queue, and if you cancel it halfway — or a war arrives and you need the construction elsewhere — your empire is evenly covered instead of three provinces deep and the rest untouched.
 
 [h2]It is not a cheat, and not an autobuilder[/h2]
 
@@ -30,30 +45,30 @@ This shelf is crowded with automation, so to be exact about it:
 [*][b]It does not touch your treasury[/b], construction points or build times — not to charge you, and not to discount you.
 [/list]
 
-If you would not call clicking [b]+[/b] forty times cheating, this is not cheating. It is the same forty clicks.
+If you would not call clicking [b]+[/b] ninety times cheating, this is not cheating. It is the same ninety clicks.
 
-[h2]About the number on the button[/h2]
+[h2]Why the button says "up to"[/h2]
 
-The button says [i]"in up to N states"[/i]. [b]Up to[/b] is doing real work there: N is how many states the panel is listing, and a few of those may refuse — usually because they are already at their maximum level for that building. The game's interface layer gives mods no way to count only the buildable ones, so the button states a ceiling and the tooltip tells you what gets skipped, rather than showing you a confident number that turns out to be wrong.
+N is how many states the panel is listing, and a few of those may refuse — usually because they are already at their maximum level for that building. The game gives mods no way to count only the buildable ones, so the button states a ceiling and the tooltip says what gets skipped, rather than showing a confident number that turns out to be wrong.
 
 [h2]Languages[/h2]
 
-Translated into every language Victoria 3 supports: [b]English, French, German, Spanish, Brazilian Portuguese, Polish, Russian, 简体中文, 日本語, 한국어, Türkçe[/b].
+Every language Victoria 3 supports: [b]English, French, German, Spanish, Português do Brasil, Polski, Русский, 简体中文, 日本語, 한국어, Türkçe[/b].
 
-The wording for [i]State[/i], [i]Building Level[/i] and [i]Construction Queue[/i] is taken from the game's own text in each language, so the button should read like the rest of the interface. These are not native-speaker translations, though — [b]if something reads badly in your language, post the correction and I will put it in.[/b]
+The words for [i]State[/i], [i]Building Level[/i] and [i]Construction Queue[/i] are taken from the game's own text in each language, so the button reads like the rest of the interface. They are not native-speaker translations, though — [b]if something reads badly in your language, post the correction and it goes in.[/b]
 
 [h2]Compatibility[/h2]
 
 [list]
 [*][b]Game version 1.13.[/b]
 [*][b]Ironman and achievements: fine.[/b] Mods do not disable achievements in Victoria 3.
-[*][b]Single-player.[/b] Not tested in multiplayer and not marked multiplayer-synchronised.
-[*][b]No vanilla file is overridden.[/b] It redefines one 35-line interface type rather than replacing the whole construction panel, so it is unusually light on conflicts — but any other mod that changes that same panel will clash. If you use one, load this one first and tell me what breaks.
 [*][b]Save-safe.[/b] Add it or remove it mid-campaign; it stores nothing in your save.
+[*][b]Single-player.[/b] Not tested in multiplayer, and not marked multiplayer-synchronised.
+[*][b]Light on conflicts, but not immune.[/b] It replaces one small interface definition rather than the whole construction panel, so it should sit alongside most things — but any other mod that changes that same panel will clash. If you use one, load this first and tell me what breaks.
 [/list]
 
 [h2]Feedback[/h2]
 
-If something does not queue when you think it should, say which building and which filter you had set — that is usually enough to find it.
+If something does not queue when you think it should, say which building and which filter you had set. That is usually enough to find it.
 
-[i]A "Max" option (fill every state to its cap) is the most likely next addition. I left it out deliberately rather than guessing at the right ceiling — if you want it, say so.[/i]
+[i]A "Max" option — fill every state to its cap — is the most likely next addition. I left it out rather than guess at the right ceiling. If you want it, say so.[/i]
