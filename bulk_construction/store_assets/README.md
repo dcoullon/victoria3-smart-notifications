@@ -1,4 +1,4 @@
-Store assets — Workshop page and Reddit post
+﻿Store assets — Workshop page and Reddit post
 =============================================
 
 **Not shipped to subscribers.** `package_release.py` copies only
@@ -25,9 +25,27 @@ time.
 
 ## The GIF
 
-`build-all.gif` — 600x612, 98 frames, 9.8s, **1.5 MB**. Comfortably under
+`build-all.gif` — 600x612, 85 frames, 8.9s, **1.3 MB**. Comfortably under
 Imgur's 5MB threshold, above which it transcodes to MP4 and the direct `.gif`
 link stops animating on Steam.
+
+### The cut
+
+The source sat on a static panel for 1.3s after the build had already
+registered, so the gap between the rows flipping to `0+1` and the queue
+appearing was 1.8s of nothing. Frames 23-35 are dropped and frame 22 is held
+for 500ms instead: **the gap is now 0.7s**, with one deliberate beat on the
+result rather than a stare.
+
+The first attempt cut frames 17-35, which was wrong in a way worth recording
+— the rows do not flip until frame ~21, so that splice landed *on* the moment
+of change and removed the causal link between the click and the result. The
+join has to sit after the thing the viewer needs to see, not across it.
+Checked by rendering the frames either side: the surviving join is between
+two identical frames, so it is invisible.
+
+The queue paging that follows is still 6.2s. That is the payoff, but it is
+the obvious next trim if a shorter loop is wanted.
 
 `build-all-master.gif` is the untouched 1110x612 export, 14.8 MB. Kept only so
 the optimised one can be rebuilt at different settings; it is 15 MB of repo,
