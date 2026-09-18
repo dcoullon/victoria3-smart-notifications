@@ -57,6 +57,15 @@ types map_list_panel_types {
 					direction = horizontal
 					parentanchor = hcenter
 					spacing = 6
+					# The selected level is marked with vanilla's own
+					# `highlighted_square_selection` template (gui/shared/selections.gui),
+					# used the same way vanilla marks a selected default_button at
+					# gui/building_browser_panel.gui:961-976. Templates are global,
+					# unlike @constants -- confirmed by vanilla `using =` it across
+					# 10+ files. This used to point at a hand-written
+					# `buttons/button_selected_frame.dds`, which does not exist in the
+					# game: no texture, no error.log line, no highlight. Guarded now by
+					# check_references.check_gui_textures_exist.
 
 					textbox = {
 						autoresize = yes
@@ -73,10 +82,7 @@ types map_list_panel_types {
 
 						icon = {
 							visible = "[Not(Or(GetVariableSystem.HasValue('bc_levels', '5'), GetVariableSystem.HasValue('bc_levels', '10')))]"
-							texture = "gfx/interface/buttons/button_selected_frame.dds"
-							size = { 52 28 }
-							parentanchor = center
-							alwaystransparent = yes
+							using = highlighted_square_selection
 						}
 					}
 					button = {
@@ -87,10 +93,7 @@ types map_list_panel_types {
 
 						icon = {
 							visible = "[GetVariableSystem.HasValue('bc_levels', '5')]"
-							texture = "gfx/interface/buttons/button_selected_frame.dds"
-							size = { 52 28 }
-							parentanchor = center
-							alwaystransparent = yes
+							using = highlighted_square_selection
 						}
 					}
 					button = {
@@ -101,10 +104,7 @@ types map_list_panel_types {
 
 						icon = {
 							visible = "[GetVariableSystem.HasValue('bc_levels', '10')]"
-							texture = "gfx/interface/buttons/button_selected_frame.dds"
-							size = { 52 28 }
-							parentanchor = center
-							alwaystransparent = yes
+							using = highlighted_square_selection
 						}
 					}
 				}

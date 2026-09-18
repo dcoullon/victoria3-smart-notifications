@@ -1370,6 +1370,55 @@ def check_dev_only_files_are_consistent(root: Path) -> list[str]:
     return errs
 
 
+def check_gui_textures_exist(root: Path) -> list[str]:
+    """Every `texture = "gfx/..."` a mod .gui names must exist, in the mod or
+    in vanilla.
+
+    A texture path that resolves to nothing is the quietest bug this engine
+    has: nothing draws, and nothing is logged -- no error.log line, no
+    warning. The widget is simply invisible, which is indistinguishable from
+    a `visible` condition that is false, so it survives a playtest that was
+    looking at something else.
+
+    Found 2026-09-18. Bulk Construction's level stepper marked the selected
+    level with `gfx/interface/buttons/button_selected_frame.dds`, invented
+    rather than looked up. No such file ships with the game, so from 0.01
+    onward there was no selected-level highlight at all -- through a playtest
+    that confirmed the stepper's behaviour and never questioned its
+    appearance. The fix was vanilla's own `highlighted_square_selection`
+    template, which does this exact job at
+    gui/building_browser_panel.gui:961-976.
+
+    Scanned per line, so only literal single-line paths are checked; a path
+    built by a datafunction is skipped rather than guessed at."""
+    errs = []
+    gui_dir = root / "gui"
+    if not gui_dir.is_dir():
+        return errs
+    if not VANILLA_ROOT.is_dir():
+        _skip("gui texture paths", "Victoria 3 not installed on this machine")
+        return errs
+
+    pattern = re.compile('texture[^"]*"(gfx/[^"]+)"')
+    for path in sorted(gui_dir.rglob("*.gui")):
+        rel = path.relative_to(root).as_posix()
+        for lineno, line in enumerate(_read(path).split(chr(10)), 1):
+            m = pattern.search(line)
+            if not m:
+                continue
+            tex = m.group(1)
+            if "[" in tex:  # built at runtime by a datafunction
+                continue
+            if (root / tex).is_file() or (VANILLA_ROOT / tex).is_file():
+                continue
+            errs.append(
+                f"{rel}:{lineno}: texture `{tex}` exists neither in this mod "
+                f"nor in the installed game. Nothing will draw and nothing "
+                f"will be logged -- look up a real path, or reuse the vanilla "
+                f"template that already does this job")
+    return errs
+
+
 def check_no_inert_scripted_gui(root: Path) -> list[str]:
     """A scripted GUI whose `effect` block is empty is an inert shell: the
     engine still resolves the GetScriptedGui reference and still runs it, once
@@ -1441,6 +1490,7 @@ def run_all(root: Path) -> list[str]:
     errs += check_custom_tooltip_keys(root, defined_loc)
     errs += check_scripted_gui_references(root)
     errs += check_no_inert_scripted_gui(root)
+    errs += check_gui_textures_exist(root)
     errs += check_alert_loc_completeness(root, defined_loc)
     errs += check_alert_group_registration(root, defined_loc)
     errs += check_post_notification_targets(root, defined_loc)
