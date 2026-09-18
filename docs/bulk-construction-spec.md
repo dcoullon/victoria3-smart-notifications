@@ -237,6 +237,22 @@ All verified by the user in a live game, against a real construction queue.
    firings against a panel reading "valid 123", in a single burst, nothing
    before or after. See §3 for what the rejected design did instead.
 6. Zero `error.log` lines attributable to this mod.
+7. **The build order follows the panel's current sort.** Confirmed in game
+   2026-09-18. Sort the list by Earnings and the queue comes out
+   richest-first; change the sort and the order changes with it. This falls
+   out of the architecture rather than being designed: the per-row worker
+   container iterates `MapListPanel.AccessValidOptions`, the same datamodel
+   the visible list renders from (vanilla `gui/map_list_panel.gui:626`), so
+   our sweep walks the rows in exactly the order the player is looking at.
+
+   Worth stating as a criterion because it is a *feature* -- the player
+   chooses build priority by choosing the sort -- and because it is now
+   claimed in the Workshop description, so a future change that breaks it
+   would make the store page wrong.
+8. **The localization loads in every shipped language.** Confirmed in
+   Japanese 2026-09-18 against a 123-state panel: CJK glyphs render from a
+   mod-supplied `.yml`, and the 500px button holds a three-digit count in a
+   non-Latin script.
 
 ## 5. Explicitly out of the first build
 

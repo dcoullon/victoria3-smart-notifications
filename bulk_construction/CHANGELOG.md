@@ -14,6 +14,13 @@ and doc-only changes get a commit but no bump.
 
 ## [0.04] - 2026-09-18
 
+### Notes for players
+
+- **The build order follows however you have sorted the list.** Sort by
+  Earnings and it builds richest-first. You pick the priority by picking the
+  sort. (Confirmed in game; it was always true, it had just never been
+  written down.)
+
 ### Added
 
 - **All 11 languages Victoria 3 ships**, not just English: French, German,
