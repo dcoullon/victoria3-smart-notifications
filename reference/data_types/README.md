@@ -80,3 +80,21 @@ after a game patch and re-copy: a stale dump is worse than none, because
 "absence is conclusive" quietly stops being true. The snapshot above is 1.13,
 and `supported_game_version` in each mod's `metadata.json` is the thing to
 check it against.
+
+Launch in debug mode, open the console with `~`, and run:
+
+    dump_data_types
+
+That writes the five files above. **While you are in there, also run:**
+
+    script_docs
+
+which prints the script-side documentation -- the effects, triggers and
+scopes list. That is the other half of this repo's recurring question, since
+`dump_data_types` covers the dynamic-text/GUI function tables but not script
+syntax. Not captured yet as of 2026-09-18; grab it on the next debug launch.
+
+Other dump commands that exist and may be worth a pass if a question ever
+needs them: `exportbuildings` (all building type info),
+`create_state_region_data`, `create_building_history`, `debugstates`,
+`debugmarkets`. Source: the Victoria 3 wiki's console-commands page.
