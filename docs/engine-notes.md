@@ -43,7 +43,8 @@ in new code; `CLAUDE.md` only states the rule, not the reasoning.
 - [A law's effects are not readable as numbers — LawType exposes no modifiers](#a-laws-effects-are-not-readable-as-numbers-—-lawtype-exposes-no-modifiers)
 - [Taxation Capacity has no national total, anywhere](#taxation-capacity-has-no-national-total-anywhere)
 - [A .gui @constant is file-scoped, and borrowing one fails silently](#a-gui-constant-is-file-scoped-and-borrowing-one-fails-silently)
-- [There is no partial .gui override — redefining one type does nothing](#there-is-no-partial-gui-override-—-redefining-one-type-does-nothing)
+- [A partial .gui override works — if the filename sorts before vanilla's](#a-partial-gui-override-works-—-if-the-filename-sorts-before-vanillas)
+- [A missing texture draws nothing and logs nothing](#a-missing-texture-draws-nothing-and-logs-nothing)
 - [visible does not gate widget creation, so it cannot guard an action](#visible-does-not-gate-widget-creation-so-it-cannot-guard-an-action)
 
 <!-- /TOC -->
@@ -1509,42 +1510,111 @@ a first occurrence. Related: `docs/engine-notes.md` § A degraded PASS is not a
 PASS, and the same failure shape in the memory note on verifying
 instrumentation before trusting it.
 
-## There is no partial `.gui` override — redefining one `type` does nothing
+## A partial `.gui` override works — if the filename sorts before vanilla's
 
-Settled 2026-09-16 by two live launches, after the cheaper idea was tried
-first and cost a test run each.
+**Corrected 2026-09-16. This section previously said the opposite** ("there is
+no partial `.gui` override"), and that conclusion was wrong. It is left
+rewritten rather than deleted because a whole-file override of 5,212 lines was
+designed, written and shipped on the strength of it, and the way the wrong
+answer survived two playtests is the more useful lesson.
 
-A mod `.gui` file that redefines a single `type` already defined in a vanilla
-`.gui` file has **no effect**. The engine keeps the first definition it read
-and never mentions the second: no duplicate-type warning, no error, nothing in
-`error.log` or `gui.log`. The panel simply renders vanilla's version.
+A mod `.gui` file **can** redefine a single `type` already defined by vanilla,
+leaving the rest of the vanilla file alone. The engine keeps the **first**
+definition of a type that it reads, and it reads files in **name order**. So
+the override works if and only if the mod's filename sorts ahead of the
+vanilla file that also defines that type.
 
-The evidence, because "it didn't work" is not evidence:
+`bulk_construction/gui/00_bulk_construction_map_list.gui` redefines exactly
+one type, `build_building_map_list_panel`, out of vanilla's
+`gui/map_list_panel.gui`. `00_` sorts first, so it wins. This is also what the
+Community Mod Framework does, and how it names its files
+(`00_MPM_building_browser_panel.gui`).
 
-- the mod's file parsed with zero errors (the earlier `@panel_width` failure
-  was fixed first, so this was a clean parse);
+### Why the wrong conclusion looked so solid
+
+An identical earlier attempt named `zz_bulk_construction_types.gui` sorted
+*after* vanilla and silently lost. Everything that would normally count as
+evidence pointed the wrong way:
+
+- the file parsed with zero errors (the earlier `@panel_width` failure was
+  fixed first, so this was a clean parse);
 - the mod was the **only** one enabled — read out of the launcher's own
   `launcher-v2.sqlite` playset table rather than assumed;
-- the panel rendered vanilla exactly, screenshotted.
+- the panel rendered vanilla exactly, screenshotted;
+- no duplicate-type warning, no `error.log` line, no `gui.log` line. The
+  engine never mentions the definition it discarded.
 
-**The mechanism is a whole-file override at the same path**, which is what
-this repo's Smart Notifications has always done for `gui/message_settings.gui`
-and `gui/politics_panel_change_law.gui`. When adding a widget to a vanilla
-panel, start by copying that vanilla file — do not spend a playtest looking
-for something cheaper.
+A clean negative with no diagnostic is not evidence that a mechanism does not
+exist. It is evidence that *this attempt* did nothing, which is a much weaker
+claim, and the gap between the two cost a whole-file override.
 
-The cost is real and has to be paid deliberately: every overridden line is a
-line a game patch can change under you. Register the file in
-`check_references.FULL_OVERRIDES_BY_MOD` so
-`check_full_overrides_match_installed_vanilla` fails on drift, rather than the
-panel quietly losing whatever the patch added.
+**What closed it was reading a shipped framework**, not another probe. Before
+concluding an engine cannot do something, look at whether a published mod
+already does it.
+
+### Which to use
+
+Prefer the partial override. The patch-fragility surface becomes the one type
+you redefine (~35 lines for Bulk Construction) instead of every line of the
+vanilla file.
+
+- Name the file so it sorts first, and treat the name as load-bearing.
+  `check_bc_gui_filename_still_sorts_first` fails the build on a rename,
+  because a rename is the one edit that breaks the mod without breaking
+  anything else.
+- `@constants` are file-scoped, so vanilla's are not visible in your file (see
+  the `@constant` section above). Redeclare the ones you need and assert they
+  still match vanilla — `check_bc_panel_width_matches_vanilla` is the worked
+  example.
+- **`template`s are NOT file-scoped.** `using = highlighted_square_selection`
+  resolves from `gui/shared/selections.gui` in any file; vanilla `using =` it
+  across 10+ of its own. Reach for a vanilla template before writing a widget
+  by hand (see the missing-texture section below for what happens when you
+  don't).
+
+A whole-file override is still correct when you need to change many types in
+one vanilla file. Register it in `check_references.FULL_OVERRIDES_BY_MOD` so
+`check_full_overrides_match_installed_vanilla` fails on patch drift, rather
+than the panel quietly losing whatever the patch added.
 
 ### The process lesson
 
-Both of these findings came out of single-hypothesis launches, which is
-exactly what CLAUDE.md § 5 forbids, and the user called it out. The order that
-would have cost one run instead of two: look at what a shipped mod in this
-repo already does, *then* design the probe around the remaining unknowns.
+Both of the 2026-09-16 findings came out of single-hypothesis launches, which
+is exactly what CLAUDE.md § 5 forbids, and the user called it out. The order
+that would have cost one run instead of two: look at what a shipped mod
+already does, *then* design the probe around the remaining unknowns.
+
+## A missing texture draws nothing and logs nothing
+
+Found 2026-09-18, reviewing Bulk Construction for release.
+
+A `.gui` widget whose `texture = "gfx/..."` path does not resolve is **silent
+in every channel**. Nothing draws. There is no `error.log` line, no warning,
+no `gui.log` entry. The widget is simply not there.
+
+That makes it indistinguishable, by eye, from a widget whose `visible`
+condition is false — which is why this one survived a playtest. Bulk
+Construction's level stepper marked the selected level with an icon pointing
+at `gfx/interface/buttons/button_selected_frame.dds`, a path that was invented
+rather than looked up and has never existed in the game. From 0.01 onward
+there was no selected-level highlight at all, through an acceptance run that
+confirmed the stepper's *behaviour* (levels queued correctly) and never
+questioned its *appearance*.
+
+Two things follow, and both are now automated rather than remembered:
+
+- **Never write a `gfx/` path from memory.** `ls` the install, or find a
+  vanilla `.gui` doing the same job and copy its idiom. The fix here was
+  vanilla's own `highlighted_square_selection` template, used exactly as
+  `gui/building_browser_panel.gui:961-976` marks a selected `default_button`.
+- `check_references.check_gui_textures_exist` asserts every literal texture
+  path in a mod `.gui` resolves in the mod or in the install. Mod-agnostic;
+  skips datafunction-built paths; `_skip`s cleanly without the game installed.
+
+This belongs to the same family as the `§ Verify instrumentation` habit: an
+absent output is ambiguous evidence. "I don't see it" can mean the condition
+was false, the widget was never created, or the asset does not exist, and only
+the last one is invisible to every log this engine writes.
 
 ## `visible` does not gate widget creation, so it cannot guard an action
 
