@@ -115,7 +115,6 @@ types map_list_panel_types {
 					using = default_button
 					text = "BC_BUILD_BUTTON_1"
 					tooltip = "BC_BUILD_TOOLTIP_1"
-					onclick = "[PdxGuiTriggerAllAnimations('bc_log_1')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_build_1')]"
 				}
 				button = {
@@ -124,15 +123,10 @@ types map_list_panel_types {
 					using = default_button
 					text = "BC_BUILD_BUTTON_5"
 					tooltip = "BC_BUILD_TOOLTIP_5"
-					onclick = "[PdxGuiTriggerAllAnimations('bc_log_1')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_build_1')]"
-					onclick = "[PdxGuiTriggerAllAnimations('bc_log_2')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_build_2')]"
-					onclick = "[PdxGuiTriggerAllAnimations('bc_log_3')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_build_3')]"
-					onclick = "[PdxGuiTriggerAllAnimations('bc_log_4')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_build_4')]"
-					onclick = "[PdxGuiTriggerAllAnimations('bc_log_5')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_build_5')]"
 				}
 				button = {
@@ -141,25 +135,15 @@ types map_list_panel_types {
 					using = default_button
 					text = "BC_BUILD_BUTTON_10"
 					tooltip = "BC_BUILD_TOOLTIP_10"
-					onclick = "[PdxGuiTriggerAllAnimations('bc_log_1')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_build_1')]"
-					onclick = "[PdxGuiTriggerAllAnimations('bc_log_2')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_build_2')]"
-					onclick = "[PdxGuiTriggerAllAnimations('bc_log_3')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_build_3')]"
-					onclick = "[PdxGuiTriggerAllAnimations('bc_log_4')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_build_4')]"
-					onclick = "[PdxGuiTriggerAllAnimations('bc_log_5')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_build_5')]"
-					onclick = "[PdxGuiTriggerAllAnimations('bc_log_6')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_build_6')]"
-					onclick = "[PdxGuiTriggerAllAnimations('bc_log_7')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_build_7')]"
-					onclick = "[PdxGuiTriggerAllAnimations('bc_log_8')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_build_8')]"
-					onclick = "[PdxGuiTriggerAllAnimations('bc_log_9')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_build_9')]"
-					onclick = "[PdxGuiTriggerAllAnimations('bc_log_10')]"
 					onclick = "[PdxGuiTriggerAllAnimations('bc_build_10')]"
 				}
 			}
@@ -168,9 +152,12 @@ types map_list_panel_types {
 			# state per level. They do nothing until a button triggers a state
 			# by name -- there is deliberately no trigger_on_create anywhere.
 			#
-			# bc_log_N mirrors bc_build_N so the log says exactly how many
-			# build calls were issued, without asking anyone to count the
-			# construction queue by eye.
+			# Each of these carried a mirrored bc_log_N state that counted the
+			# build calls into debug.log while the mechanism was unproven. That
+			# question is settled (docs/bulk-construction-spec.md section 4) and
+			# the instrumentation is gone, so the build we playtest is now
+			# byte-identical to the build that ships. To count again:
+			# `git show 17faaec -- bulk_construction/` has it.
 			widget = {
 				size = { 1 1 }
 
@@ -188,89 +175,48 @@ types map_list_panel_types {
 							}
 
 							state = {
-								name = bc_log_1
-								on_start = "[GetScriptedGui('bc_built_log_sgui').Execute(GuiScope.SetRoot(MapListOption.AccessBuildingData.AccessState.MakeScope).End)]"
-							}
-							state = {
 								name = bc_build_2
 								on_start = "[MapListOption.OnClick]"
 							}
 
-							state = {
-								name = bc_log_2
-								on_start = "[GetScriptedGui('bc_built_log_sgui').Execute(GuiScope.SetRoot(MapListOption.AccessBuildingData.AccessState.MakeScope).End)]"
-							}
 							state = {
 								name = bc_build_3
 								on_start = "[MapListOption.OnClick]"
 							}
 
 							state = {
-								name = bc_log_3
-								on_start = "[GetScriptedGui('bc_built_log_sgui').Execute(GuiScope.SetRoot(MapListOption.AccessBuildingData.AccessState.MakeScope).End)]"
-							}
-							state = {
 								name = bc_build_4
 								on_start = "[MapListOption.OnClick]"
 							}
 
-							state = {
-								name = bc_log_4
-								on_start = "[GetScriptedGui('bc_built_log_sgui').Execute(GuiScope.SetRoot(MapListOption.AccessBuildingData.AccessState.MakeScope).End)]"
-							}
 							state = {
 								name = bc_build_5
 								on_start = "[MapListOption.OnClick]"
 							}
 
 							state = {
-								name = bc_log_5
-								on_start = "[GetScriptedGui('bc_built_log_sgui').Execute(GuiScope.SetRoot(MapListOption.AccessBuildingData.AccessState.MakeScope).End)]"
-							}
-							state = {
 								name = bc_build_6
 								on_start = "[MapListOption.OnClick]"
 							}
 
-							state = {
-								name = bc_log_6
-								on_start = "[GetScriptedGui('bc_built_log_sgui').Execute(GuiScope.SetRoot(MapListOption.AccessBuildingData.AccessState.MakeScope).End)]"
-							}
 							state = {
 								name = bc_build_7
 								on_start = "[MapListOption.OnClick]"
 							}
 
 							state = {
-								name = bc_log_7
-								on_start = "[GetScriptedGui('bc_built_log_sgui').Execute(GuiScope.SetRoot(MapListOption.AccessBuildingData.AccessState.MakeScope).End)]"
-							}
-							state = {
 								name = bc_build_8
 								on_start = "[MapListOption.OnClick]"
 							}
 
-							state = {
-								name = bc_log_8
-								on_start = "[GetScriptedGui('bc_built_log_sgui').Execute(GuiScope.SetRoot(MapListOption.AccessBuildingData.AccessState.MakeScope).End)]"
-							}
 							state = {
 								name = bc_build_9
 								on_start = "[MapListOption.OnClick]"
 							}
 
 							state = {
-								name = bc_log_9
-								on_start = "[GetScriptedGui('bc_built_log_sgui').Execute(GuiScope.SetRoot(MapListOption.AccessBuildingData.AccessState.MakeScope).End)]"
-							}
-							state = {
 								name = bc_build_10
 								on_start = "[MapListOption.OnClick]"
-							}
-
-							state = {
-								name = bc_log_10
-								on_start = "[GetScriptedGui('bc_built_log_sgui').Execute(GuiScope.SetRoot(MapListOption.AccessBuildingData.AccessState.MakeScope).End)]"
 							}
 						}
 					}

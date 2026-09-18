@@ -1,4 +1,4 @@
-"""
+﻿"""
 Cross-file reference integrity checks for the Smart Notifications mod.
 
 Added 2026-09-08 per the user: "add tests into your code so we know it's
@@ -1357,6 +1357,51 @@ def check_dev_only_files_are_consistent(root: Path) -> list[str]:
     return errs
 
 
+def check_no_inert_scripted_gui(root: Path) -> list[str]:
+    """A scripted GUI whose `effect` block is empty is an inert shell: the
+    engine still resolves the GetScriptedGui reference and still runs it, once
+    per call site, to do nothing.
+
+    This is mod-agnostic and matters most against a RELEASE STAGING copy,
+    which is where it actually fires: `package_release.validate_staging`
+    re-runs the validator after debug stripping, so a scripted GUI whose whole
+    body was a `debug_log` line shows up here rather than in the upload.
+
+    Found 2026-09-18 reviewing Bulk Construction for release. Its
+    `bc_built_log_sgui` existed only to count build calls into debug.log. The
+    dev tree was fine; the packaged copy shipped `effect = { }` still wired to
+    16 onclick triggers and 10 per-row widget states, so a 10-level press
+    across 44 states would have run 440 no-op scripted-GUI executions in every
+    subscriber's game. Smart Notifications already had DEV_ONLY_FILES for
+    exactly this failure, but that list is gated on its own mod id, so the
+    sibling mod inherited none of the protection. A check does not need to be
+    told which mod it is looking at."""
+    errs = []
+    sgui_dir = root / "common" / "scripted_guis"
+    if not sgui_dir.is_dir():
+        return errs
+    for path in sorted(sgui_dir.rglob("*.txt")):
+        text = _strip_comments(_read(path))
+        for m in re.finditer(r"(\w+)\s*=\s*\{", text):
+            name = m.group(1)
+            if name != "effect":
+                continue
+            # Walk to the matching close brace and see if anything is inside.
+            depth, i = 1, m.end()
+            while i < len(text) and depth:
+                depth += (text[i] == "{") - (text[i] == "}")
+                i += 1
+            if not text[m.end():i - 1].strip():
+                rel = path.relative_to(root)
+                errs.append(
+                    f"{rel}: a scripted GUI has an empty `effect` block -- it "
+                    f"would still be resolved and executed at every call site "
+                    f"to do nothing. If this is a diagnostic whose body was "
+                    f"stripped for release, drop the whole file and its call "
+                    f"sites instead of shipping the shell")
+    return errs
+
+
 def check_no_cheat_verbs(root: Path) -> list[str]:
     """Bulk Construction's hard rule, enforced rather than documented: fix the
     UX, never change the rules of the game (spec section 1a). The mod's whole
@@ -1382,6 +1427,7 @@ def run_all(root: Path) -> list[str]:
     # cleanly when the directory they inspect doesn't exist.
     errs += check_custom_tooltip_keys(root, defined_loc)
     errs += check_scripted_gui_references(root)
+    errs += check_no_inert_scripted_gui(root)
     errs += check_alert_loc_completeness(root, defined_loc)
     errs += check_alert_group_registration(root, defined_loc)
     errs += check_post_notification_targets(root, defined_loc)

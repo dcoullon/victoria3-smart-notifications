@@ -1,0 +1,56 @@
+﻿# Changelog
+
+All notable player-facing changes to this mod are recorded here, in the
+[Keep a Changelog](https://keepachangelog.com/) style: grouped by version, each
+version broken into **Added / Changed / Fixed / Removed**. This is the file to
+copy from when writing Steam Workshop update notes -- every entry here should
+already read like something a player (not a modder) can understand.
+
+Versions follow `metadata.json`'s `version` field, using the same convention as
+Smart Notifications (see that mod's CHANGELOG header): `0.XY`, hundredths
+increment by `0.01` when something genuinely new ships **and is confirmed
+working**; bug fixes, fix-attempts on an unfinished feature, instrumentation
+and doc-only changes get a commit but no bump.
+
+## [Unreleased]
+
+### Removed
+
+- The diagnostic that counted build calls into `debug.log`. It existed to prove
+  one press produced exactly one pass, which is now settled, and it was the
+  only reason this mod had a `common/` folder. Removing it also closes a real
+  release bug: the packaged copy stripped the log line but kept the empty
+  scripted GUI and all 26 of its call sites, so a 10-level press across 44
+  states would have run 440 no-op script executions in a subscriber's game.
+
+## [0.02] - 2026-09-16
+
+### Added
+
+- **The build-all button.** Pick a building in the construction panel; one
+  press queues it in every state the panel currently lists as valid -- foreign
+  states included, because the mod reads the game's own eligibility list rather
+  than re-deriving one.
+- **A 1 / 5 / 10 level stepper.** Levels are queued level-by-level across
+  states rather than state-by-state, so every state gets its first level before
+  any gets its second. A bulk order cancelled halfway leaves the empire evenly
+  covered.
+- The button label counts the states it is offering, live.
+
+### Notes for players
+
+- **It cannot build anything you could not.** The action is the row's own **+**
+  button, fired once per state; the engine silently refuses any row whose **+**
+  is greyed out. Observed in testing: 44 states offered, 39 queued, the 5
+  skipped being states already at their level cap.
+- The count in the label means "states listed", not "states that will build" --
+  hence *"where possible"* in the tooltip. The game's GUI layer offers no way
+  to count a filtered list, so showing a product would have meant showing a
+  wrong one.
+- Normal construction queue, normal cost, no automation.
+
+## [0.01] - 2026-09-16
+
+Probe build, never released. Rendered a diagnostic row in the construction
+panel and queued nothing, to settle the three engine unknowns the design rested
+on.
