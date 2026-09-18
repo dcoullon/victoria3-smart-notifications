@@ -3,7 +3,7 @@
 	"id": "bulk_construction",
 	"version": "0.04",
 	"supported_game_version": "1.13.*",
-	"short_description": "The build all button. Pick a building, press once, and it is queued in every state you could build it in, at any number of levels. Normal construction queue, normal cost, no automation, no cheating.",
+	"short_description": "The build all button. Pick a building, press once, and it is queued in every state you could build it in, 1, 5 or 10 levels at a time. Normal construction queue, normal cost, no automation, no cheating.",
 	"tags": [
 		"User Interface",
 		"Utilities",
