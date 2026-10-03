@@ -19,6 +19,7 @@ Each `check_*` function returns a list of human-readable error strings
 import json
 import unicodedata
 import re
+import sys
 from pathlib import Path
 
 TEXT_SUFFIXES = {".txt", ".gui"}
@@ -878,6 +879,9 @@ REPLACED_LOC_BASELINE = {
     "POP_EFFECT_FILTER_POP_TYPE": "2389a7c580434297",
     "ADD_RADICALS_IN_STATE_THIRD": "a234c3847df477e8",
     "ADD_LOYALISTS_IN_STATE_THIRD": "3576276f3952fa7f",
+    # Smart Trade appends its "Net treaty income" line to these (2026-10-03).
+    "TEMPORARY_EXPENSES_BREAKDOWN": "b5837369ea36d97b",
+    "BALANCE_WITHOUT_TEMPORARY_INCOME_AND_EXPENSES": "c9b8dbe17cfe9736",
 }
 
 
@@ -1253,6 +1257,27 @@ def check_type_overrides_sort_first(root: Path) -> list[str]:
                 errs.append(f"gui/{p.name}: redefines vanilla type `{name}` but sorts at or "
                             f"after vanilla's {home}, so vanilla's definition wins and the "
                             f"override silently does nothing. Rename with a 00_ prefix.")
+    return errs
+
+
+def check_st_generated_files_current(root: Path) -> list[str]:
+    """Smart Trade has two generated files: the GUI (expressions too nested to
+    hand-edit safely) and the per-good traded_quantity table (script cannot
+    read it, so it is copied from the game files). A hand edit to either, or a
+    game patch changing a good's traded_quantity, must fail the build rather
+    than ship a stale number."""
+    import subprocess
+    errs = []
+    gens = [("tools/gen_smart_trade_gui.py", False),
+            ("tools/gen_smart_trade_values.py", True)]
+    for script, needs_game in gens:
+        if needs_game and not VANILLA_ROOT.is_dir():
+            _skip(script, "Victoria 3 not installed on this machine")
+            continue
+        r = subprocess.run([sys.executable, str(REPO_ROOT / script), "--check"],
+                           capture_output=True, text=True)
+        if r.returncode != 0:
+            errs.append(f"{script}: {r.stdout.strip() or r.stderr.strip()}")
     return errs
 
 
@@ -1682,6 +1707,7 @@ def run_all(root: Path) -> list[str]:
     # Smart Trade: display only, so the same structural no-cheat rule applies.
     if read_mod_id(root) == SMART_TRADE_ID:
         errs += check_no_cheat_verbs(root)
+        errs += check_st_generated_files_current(root)
 
     return errs
 

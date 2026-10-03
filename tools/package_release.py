@@ -313,6 +313,11 @@ def package(mod_root: Path, out_dir: Path):
         # nothing, so refuse instead.
         debug_guis = sorted(p.name for p in (staging / "gui").glob("*_debug.gui")) \
             if (staging / "gui").is_dir() else []
+        # Smart Trade's exploration lines live inside the real file, tagged
+        # raw_text = "dev ...". Same rule: never ship them.
+        debug_guis += sorted(p.name for p in (staging / "gui").glob("*.gui")
+                             if 'raw_text = "dev ' in p.read_text(encoding="utf-8-sig")) \
+            if (staging / "gui").is_dir() else []
         if debug_guis:
             print(f"\nABORTED: debug GUI build(s) still present: {', '.join(debug_guis)}. "
                   f"Replace the exploration build with the real one before packaging.")

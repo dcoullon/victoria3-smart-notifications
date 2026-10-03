@@ -7,7 +7,7 @@ written so they can be pasted into Steam Workshop update notes. Versions follow
 
 ## [Unreleased]
 
-- 0.00, dev only: exploration build (`gui/00_smart_trade_debug.gui`), debug
-  tooltips on goods transfer articles in the treaty panel and on the treaty
-  draft's influence cost cell. Never shipped: `tools/package_release.py`
-  refuses to package while a `*_debug.gui` exists.
+- Dev only, exploration run 3: first real version. Net per goods transfer
+  and per treaty in the treaty panel, a "Net treaty income" line in the
+  treasury tooltip, and a predicted net range on goods transfer drafts.
+  Still carries "dev" diagnostic lines in its tooltips; strip before release.

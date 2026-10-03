@@ -1,3 +1,4 @@
 ﻿l_english:
  SMART_TRADE_YES: "yes"
  SMART_TRADE_NO: "no"
+ SMART_TRADE_TREATIES_TT: "#header Net treaty income by treaty#!\nGoods you send (sale minus purchase, minus shipping) and money transfers, per week. Treaties with no money effect are left out. Shipping in the total line is estimated at the short-route rate."

@@ -121,8 +121,14 @@ _ANY_TRIGGER_ONLY = [
     "any_scope_country", "any_active_law", "any_scope_play_involved",
     "any_scope_amendment", "any_character_in_exile_pool",
 ]
+# `save_temporary_scope_as` is NOT here: the game's own trigger docs
+# (Documents/Paradox Interactive/Victoria 3/docs/triggers.log, 1.13) list it
+# as a trigger, "Saves a temporary target for use during the trigger
+# execution", and vanilla uses it inside triggers. Removed 2026-10-03 when
+# Smart Trade's script values needed it in `limit`. `save_scope_as` (the
+# persistent one) stays: that one is effect-only.
 _EFFECT_ONLY_KEYWORDS = [
-    "save_scope_as", "save_temporary_scope_as", "set_variable",
+    "save_scope_as", "set_variable",
     "remove_variable", "post_notification", "trigger_event",
     "custom_tooltip", "hidden_effect", "add_variable",
 ]
