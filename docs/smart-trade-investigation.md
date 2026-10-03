@@ -76,35 +76,47 @@ No mod shows per-good, per-partner money or predicts treaty profit. About 25 Wor
 - merchant marine price: `GetGoods('merchant_marine').WithMarketContext(<market>).GetMarketPrice`
 - arithmetic: `Multiply_CFixedPoint`, `Subtract_CFixedPoint`, `Divide_CFixedPoint`
 
-**How shipping is decided** (game files, 1.13.11, unless marked):
+**How shipping is decided** (confirmed in game 2026-10-03 unless marked):
 
-- **Overland or by sea.** The deciding test is whether the two **markets** are adjacent, not the two countries. Vanilla's `goods_transfer` article allows a transfer when both sides have a port OR `market = { is_adjacent_to_market = scope:other_country.market }`, and its non-fulfillment rule exempts adjacent markets from the supply-network check (`common/treaty_articles/13_goods_transfer.txt`). An adjacent pair gets no lane and pays no shipping. That fits Germany: no lane listed, presumably because the German market reaches Portugal through a member next to it (unverified which).
-- **Lane cost.** Merchant marine demand × merchant marine price. Vanilla's own breakdown tooltip lists one entry per good, "N from Q goods (1 per MULT traded)", plus a "Travel Distance D: ×V (+×M per expected distance)" multiplier (loc `SHIPPING_LANE_CONVOY_COST_GOOD_ENTRY`, `SHIPPING_LANE_BREAKDOWN_TRAVEL_DISTANCE`). Defines: +0.15 per 1000 travel distance beyond the first 1000 (`SHIPPING_LANE_MERCHANT_MARINE_COST_SCALING`, `SEA_DISTANCE_EXPECTED_TRAVEL_DISTANCE`).
-- **MULT is the unknown.** The defines still say 1 merchant marine per unit, but 1.13.7 (2026-05-27) "reduced Merchant Marine cost for ... goods transfer treaties". At 1 per unit your Austria lane would need a distance factor of 0.83 even at the floor merchant-marine price (12.5), below the minimum of 1.0. A candidate that fits both your lanes: MULT = the good's `traded_quantity` (5 for tools, dye and coffee) with coffee's `convoy_cost_multiplier` 0.5 applied, at a merchant-marine price near 40. That gives distance factors of 1.30 (Austria) and 3.05 (Persia), a 4.9 distance ratio, plausible for Lisbon to Genoa against Lisbon to the Gulf of Oman via Suez (my estimate). A fit, not a confirmation.
-- **Endpoints.** Both your lanes start in Estremadura (Lisbon, your market capital), even for Persia, where Portuguese India is far closer. So the start is the market capital or its world-market hub, not the nearest port. The ends, Piemonte and Bampur, are neither partner's capital. That fits "the partner's port closest to the start", unverified.
-- **Effectiveness.** Since 1.9.3, goods-transfer income and expense scale with lane effectiveness (patch notes, 2025-06-25). Your supply network showed 100% usage, so effectiveness may be below 1.
+- **Overland or by sea.** The deciding test is whether the two **markets** are adjacent, not the two countries. Vanilla's `goods_transfer` article allows a transfer when both sides have a port OR `market = { is_adjacent_to_market = scope:other_country.market }`, and its non-fulfillment rule exempts adjacent markets from the supply-network check (`common/treaty_articles/13_goods_transfer.txt`). An adjacent pair gets no lane and pays no shipping. Germany fits: its market touches Portugal's in Africa (Damien's observation).
+- **Lane cost = merchant-marine demand × the home market's merchant-marine price.** Demand = Σ (quantity ÷ the good's `traded_quantity`) × distance multiplier. Vanilla's own breakdown for the Austria lane reads "+29.4 from 147 Dye (1 per 5 traded)", "+22.4 from 112 Coffee (1 per 5 traded)", "Travel Distance 528: ×1.00 (+×0.15 per expected distance)". The good's `convoy_cost_multiplier` is not applied (goods.md says it is for military supply). The rates live in `common/goods/00_goods.txt`: tools, dye and coffee 5, wood 10, grain 12.
+- **Distance multiplier.** ×1.00 up to the expected distance of 1000 (`SEA_DISTANCE_EXPECTED_TRAVEL_DISTANCE`), then +0.15 per expected distance (`SHIPPING_LANE_MERCHANT_MARINE_COST_SCALING`). Lisbon to Genoa is 528 (×1.00); Lisbon to the Gulf of Oman via Suez comes out at ×1.17 (4.92 ÷ 4.2). Whether the step above 1000 is continuous is unconfirmed; Persia's breakdown would settle it.
+- **Endpoints.** The lane starts at the home market capital (Estremadura: capital yes, hub no), even when a colony port is far closer. It ends at a port in the partner market, not its capital: Piemonte for Austria (hub no), Bampur for Persia (hub yes). Consistent with "the partner-market port nearest the start" (Damien's reading); unverified as a rule.
+- **Effectiveness.** Since 1.9.3, goods-transfer income and expense scale with lane effectiveness (patch notes, 2025-06-25). Both observed lanes ran at 1.00 despite 100% supply network usage, so the scaling is still untested.
 - **1.15 (open beta "1.14").** Multiple world-market hubs per market area, a bonus dev diary due the week of 2026-10-05, and hubs re-routing around tolls (Open Beta Update 4, 2026-09-30). Endpoints may move. So the mod reads endpoints from the lane (`GetBeginState`/`GetEndState`) and never hard-codes them.
 
-For a signed treaty the mod reads the lane's own figures. For a draft it needs the formula, which is what the exploration build pins down.
+For a signed treaty the mod reads the lane's own figures. A lane carrying several goods splits exactly: each good's share is its own quantity ÷ `traded_quantity`, the entries vanilla's breakdown lists.
 
-**A lane carrying several goods:** split its cost by each good's share of units carried. Austria's 8.52K splits 131 : 687 between dye and tools.
+**Draft prediction.** No distance is available to mods (cf run 1 results) and vanilla shows no merchant-marine prediction for a draft (run 2). The multiplier is narrow, though: ×1.00 within 1000 and ×1.17 for Lisbon to Persia via Suez. So the draft shows:
 
-**Draft prediction (v2).** The lane does not exist before signing, and no GUI function exposes the distance between two states. So the draft shows:
-
-- margin before shipping at current prices: quantity × (partner price − home price);
-- predicted shipping from the formula once MULT is confirmed, with the distance factor taken from vanilla's own prediction if the draft exposes one (exploration lines G5 to G7 test for a "Will use N merchant marine between X and Y" text), else from a live lane to the same partner, else shown as the floor (factor 1.0) and labelled "at least";
-- breakeven shipping per unit, which equals the margin per unit;
+- margin at current market prices: quantity × (partner price − home price);
+- zero shipping when the markets are adjacent, detected through a scripted GUI whose `is_shown` evaluates `is_adjacent_to_market` (untested);
+- otherwise shipping at ×1.00 to ×1.50, a range meant to cover the longest routes (assumption, to revisit as more lanes are read);
+- breakeven multiplier = (partner price − home price) × `traded_quantity` ÷ merchant-marine price. Below 1.0 the good loses on any sea route;
 - later, first-order price impact from the price formula (`PRICE_RANGE` 0.75, `BUY_SELL_DIFF_AT_MAX_FACTOR` 2). Trade centers arbitrage part of it away, so label it an upper bound.
-- Market adjacency (overland, zero shipping) is not exposed to GUI either; a scripted GUI's `is_shown` trigger can evaluate `is_adjacent_to_market` for it.
 
-**Placement:** v1 adds one per-treaty table (rows per good: units, sale, purchase, shipping share, net; treaty subtotal) inside the Treaties tooltip, via a partial `00_`-prefixed override of only the tooltip type (cf engine-notes.md § A partial `.gui` override works). That avoids replacing `budget_panel.gui`, which GORA UI+ also edits.
+On Damien's treaties: coffee → Persia breaks even at ×1.90 and runs at ×1.17 (+162/week); dye → Austria at ×1.07, runs at ×1.00 (+104); coffee → Austria at ×0.24 (−896, a loss at any distance).
 
-**Acceptance criteria (write before code):**
+**Design v1** (proposed 2026-10-03; mockup `docs/smart-trade-design-mockup.png`):
 
-- With any goods transfer in force where the player is the source, the Treaties tooltip shows one row per good with units, sale, purchase, shipping share and net, plus a treaty subtotal.
-- Sales summed over rows match vanilla's "Treaty Goods Transfer Income" within display rounding (3 significant figures); purchases match "Treaty Goods Transfer Expense"; each lane's shipping matches its Shipping Lanes line.
-- A treaty with no lane (overland) shows shipping 0, not blank.
-- No table appears when the player has no goods transfers.
+1. **Signed treaty, treaty panel.** Each goods transfer article gets a net-per-week chip in its header (green or red; "Austria pays" when the player receives). Hover: sale, purchase, shipping with lane and multiplier, net, per-unit net, a one-line verdict, and how much each unit renegotiated away saves. A treaty total sits under the header row.
+2. **Budget.** A table appended under vanilla's Treaties graph in both the income and expense tooltips, by redefining the small types `GraphTooltip_TreatyIncome` and `GraphTooltip_TreatyExpense` (`gui/graph_tooltips.gui`). One row per goods transfer the player sends: partner, good, quantity, net; a total line.
+3. **Draft.** A predicted net chip in each goods transfer article, updating with good and quantity; hover shows the prediction breakdown above. Needs a redefinition of vanilla's `article_draft` type (about 600 lines), so it gets a drift check against vanilla like Smart Notifications' full overrides.
+
+v2 candidates: a verdict per good inside the goods picker (where the choice of good is actually made), and price impact.
+
+**Constraints found while designing:**
+
+- GUI expressions cannot sum over a list, so both totals (treaty, budget) need `Scope.ScriptValue` with a script value iterating `every_scope_article` (both exist in the dump; untested). Without it, v1 shows rows only.
+- The money-transfer articles of a treaty would join the treaty total the same way.
+
+**Acceptance criteria (v1):**
+
+- With a goods transfer in force where the player is the source, its article shows net per week; the hover's sale, purchase and shipping match vanilla's budget lines within display rounding (3 significant figures), and shipping matches the lane's line times the good's share.
+- An overland article shows shipping 0 labelled "overland", not blank.
+- An article the player receives shows who pays and no net.
+- The budget table lists exactly the goods transfers the player sends; nothing appears when there are none.
+- A draft chip changes when the good or quantity changes, and shows zero shipping for an adjacent market.
 
 **First build is an exploration run** (mechanism partly unknown): `smart_trade/gui/00_smart_trade_debug.gui`. Hovering a goods transfer in the treaty panel prints our candidates next to vanilla's own budget text, one tagged line each (A1, B2...), so a few screenshots settle all of these:
 
@@ -123,17 +135,12 @@ For a signed treaty the mod reads the lane's own figures. For a draft it needs t
 - **All three legs use market prices.** Coffee → Persia: 21 × home market price 37.69 = 791.51 (vanilla line: 791); 21 × partner market price 57.81 = 1,214.03 (vanilla: 1.21K); merchant-marine demand 4.92 × home market merchant-marine price 52.91 = 260.56 (vanilla: −260). The state-price candidates (C8, C9, C10) all miss.
 - **Lane effectiveness was 1.00**, so whether it scales the flows is still untested.
 - **Vanilla totals add up.** Goods-transfer income lines sum to 43.19K (vanilla 43.2K), expense lines to 36.12K (36.1K). The Shipping Lanes total (13,106) now includes the Austria lane, so the earlier 10.3K was a lag until the weekly tick.
-- **Austria (recreated: dye 147, coffee 112):** −325 and −466 per week, −790 together, matching vanilla's lines. Germany +4.7K, Persia +162.
-- **Persia's lane ends at Persia's world-market hub** (Bampur, hub = yes, not the capital) and starts at Portugal's market capital (Estremadura, capital = yes, hub = no).
+- **Austria (recreated: dye 147, coffee 112):** +104 (dye) and −896 (coffee) per week, −792 together; vanilla's lines give −790. Germany +4.7K, Persia +162. (An earlier split of −325 / −466 wrongly applied coffee's convoy multiplier.)
+- **Lane endpoints:** both start at Portugal's market capital (Estremadura). Persia's ends at its world-market hub (Bampur), Austria's at a non-hub port (Piemonte, run 2), so the end is not simply the partner's hub.
 - **GUI:** nested arithmetic renders in `.gui` `raw_text` (E1 = 422.52), unlike the loc case in Build All. `Article.GetShippingLane` works, as does `Treaty.GetShippingLaneOf(<source country>)` (D2). `GetShippingLaneOf(<article>)` returns null (D1).
-- **The engine reads coffee as traded_quantity 5, convoy multiplier 0.5** (B3). If merchant-marine demand is qty ÷ traded_quantity × convoy multiplier × distance factor, coffee's base is 2.1 and Persia's distance factor is 2.34 (travel distance about 9,950); Austria's is 1.28 (about 2,840). Vanilla's breakdown behind C4 will confirm.
+- **The engine reads coffee as traded_quantity 5, convoy multiplier 0.5** (B3). Run 2's breakdown showed only the traded quantity matters.
+- **Run 2 (same day):** vanilla's breakdown confirmed the formula (cf "How shipping is decided"); the draft's G3/G4 prices resolve; vanilla's draft effects say only "transfers N goods every week" (G5) and G6/G7 are empty, so vanilla has no merchant-marine prediction for drafts.
 - **No travel distance is available to mods.** The script docs (`Documents/.../Victoria 3/docs/triggers.log`) have only military distance triggers, and the GUI exposes only camera-dependent screen positions. So a draft cannot compute its distance, not even a worst case from the partner's capital.
-
-**Draft prediction, revised: breakeven distance.** Margin per unit and the per-unit shipping base are both computable before signing, so the draft shows the distance factor at which the deal stops paying:
-
-    breakeven factor = (partner price − home price) × traded_quantity ÷ (convoy multiplier × merchant-marine price)
-
-Coffee → Persia breaks even at ×3.80 and runs at ×2.34: profitable. Dye → Austria breaks even at ×1.07 and runs at ×1.28: a loss. Coffee → Austria breaks even at ×0.49: a loss at any distance. Below 1.0 the deal loses on any sea route, so no distance is needed to judge it. Next to it, the draft lists the factors of the player's existing lanes ("your lane to Piemonte runs ×1.28") as reference points, plus vanilla's own prediction text if the draft has one (G5 to G7, untested).
 
 **Risks:** 1.15 (in open beta as "1.14") adds several world-market hubs and touches routing; treaty accounting looks untouched, but `budget_panel.gui` may change.
 
