@@ -99,15 +99,26 @@ On Damien's treaties: coffee → Persia breaks even at ×1.90 and runs at ×1.17
 
 **Design v1** (proposed 2026-10-03; mockup `docs/smart-trade-design-mockup.png`):
 
-1. **Signed treaty, treaty panel.** Each goods transfer article gets a net-per-week chip in its header (green or red; "Austria pays" when the player receives). Hover: sale, purchase, shipping with lane and multiplier, net, per-unit net, a one-line verdict, and how much each unit renegotiated away saves. A treaty total sits under the header row.
-2. **Budget.** A table appended under vanilla's Treaties graph in both the income and expense tooltips, by redefining the small types `GraphTooltip_TreatyIncome` and `GraphTooltip_TreatyExpense` (`gui/graph_tooltips.gui`). One row per goods transfer the player sends: partner, good, quantity, net; a total line.
-3. **Draft.** A predicted net chip in each goods transfer article, updating with good and quantity; hover shows the prediction breakdown above. Needs a redefinition of vanilla's `article_draft` type (about 600 lines), so it gets a drift check against vanilla like Smart Notifications' full overrides.
+Revised the same day after Damien's review:
 
-v2 candidates: a verdict per good inside the goods picker (where the choice of good is actually made), and price impact.
+1. **Signed treaty, treaty panel.** The headline is the treaty's net to the player, positive or negative, in the treaty header. Hover: one block per good the player sends (sale, purchase, shipping with lane and multiplier, net, per-unit net, saving per unit renegotiated away). No distance verdict: a signed lane's distance is known. Goods the partner sends cost the player's treasury nothing and show nothing. If the treaty total cannot be computed (see constraints), each article shows its own net instead.
+2. **Treasury tooltip (top bar money).** One "Net treaty income" line, labelled as already counted in the lines above. Hover: treaties with a non-zero impact, one row each, split into net trade (goods transfers) and money transfers; no per-good rows, so late-game treaty counts do not flood it. That tooltip is assembled by engine code from loc entries (`TEMPORARY_EXPENSES_BREAKDOWN`, `BALANCE_WITHOUT_TEMPORARY_INCOME_AND_EXPENSES`...), so the line is added by extending one entry via `localization/replace`, with no GUI file copied. The temporary-expenses entry may only show when temporary expenses exist; test which entry is always present.
+3. **Draft.** A predicted net tag on each goods transfer article plus the hover breakdown, both built for Damien to judge in game. Needs a redefinition of vanilla's `article_draft` type (about 600 lines), so it gets a drift check against vanilla like Smart Notifications' full overrides.
+
+The Budget panel's Treaties tooltips are left alone.
+
+**Why the draft cannot show an exact number:** the route length is computed inside the engine and exposed to neither GUI nor script, and after the first weeks the economy reacts (trade centers, production) in ways no mod can simulate. What it can do: first-week price impact from buy and sell orders and the price rule, and shipping exact at ×1.00 for any partner port within 1000 of the home capital, with a long-route figure beside it.
+
+**v2 backlog (Damien's ideas, 2026-10-03):**
+
+- Sort the goods picker by predicted profit, so the most profitable goods surface first (`ArticleDraft.SortGoods` exists; parameters unknown).
+- A smarter default quantity: the profit-maximising one, settable through `ArticleDraft.SetQuantity`. Vanilla's default often exceeds the receiving market's deficit.
+- Show what the AI actually values: its acceptance formula is readable in `common/treaty_articles/13_goods_transfer.txt`, and vanilla's "AI will accept" reading is often wrong at the default quantity.
+- A verdict per good inside the goods picker.
 
 **Constraints found while designing:**
 
-- GUI expressions cannot sum over a list, so both totals (treaty, budget) need `Scope.ScriptValue` with a script value iterating `every_scope_article` (both exist in the dump; untested). Without it, v1 shows rows only.
+- GUI expressions cannot sum over a list, so both totals need `GetPlayer.MakeScope.ScriptValue(...)` (vanilla uses it in loc and GUI) with a script value iterating `any_scope_treaty` / `every_scope_article`. Script has no absolute price value, only `market_goods_pricier` / `market_goods_cheaper` against base price, so prices are rebuilt from base prices generated out of `common/goods/00_goods.txt`; lane shipping in script is unverified. Without it, v1 shows rows only.
 - The money-transfer articles of a treaty would join the treaty total the same way.
 
 **Acceptance criteria (v1):**
