@@ -879,8 +879,7 @@ REPLACED_LOC_BASELINE = {
     "POP_EFFECT_FILTER_POP_TYPE": "2389a7c580434297",
     "ADD_RADICALS_IN_STATE_THIRD": "a234c3847df477e8",
     "ADD_LOYALISTS_IN_STATE_THIRD": "3576276f3952fa7f",
-    # Smart Trade appends its "Net treaty income" line to these (2026-10-03).
-    "TEMPORARY_EXPENSES_BREAKDOWN": "b5837369ea36d97b",
+    # Smart Trade appends its "Net treaty income" line to this (2026-10-03).
     "BALANCE_WITHOUT_TEMPORARY_INCOME_AND_EXPENSES": "c9b8dbe17cfe9736",
 }
 
@@ -1279,6 +1278,28 @@ def check_st_generated_files_current(root: Path) -> list[str]:
         if r.returncode != 0:
             errs.append(f"{script}: {r.stdout.strip() or r.stderr.strip()}")
     return errs
+
+
+def check_st_entry_width_matches_vanilla(root: Path) -> list[str]:
+    """Smart Trade redefines vanilla's outliner_compact_treaty_item, which
+    sizes itself with the file-scoped @entry_width; ours is @st_entry_width
+    and must stay equal to vanilla's (same trap as Bulk Construction's
+    @bc_panel_width, see check_bc_panel_width_matches_vanilla)."""
+    ours = root / "gui" / "00_smart_trade.gui"
+    vanilla = VANILLA_ROOT / "gui" / "outliner_pinnable_types.gui"
+    if not ours.is_file():
+        return []
+    if not vanilla.is_file():
+        _skip("st entry width", "Victoria 3 not installed on this machine")
+        return []
+    m_ours = re.search(r"^@st_entry_width\s*=\s*(\d+)", ours.read_text(encoding="utf-8-sig"), re.M)
+    m_van = re.search(r"^@entry_width\s*=\s*(\d+)", vanilla.read_text(encoding="utf-8-sig"), re.M)
+    if not (m_ours and m_van):
+        return [f"gui/00_smart_trade.gui: could not read @st_entry_width or vanilla's @entry_width"]
+    if m_ours.group(1) != m_van.group(1):
+        return [f"gui/00_smart_trade.gui: @st_entry_width = {m_ours.group(1)} but vanilla's "
+                f"@entry_width is now {m_van.group(1)}; update the generator's constant"]
+    return []
 
 
 def check_bc_panel_width_matches_vanilla(root: Path) -> list[str]:
@@ -1708,6 +1729,7 @@ def run_all(root: Path) -> list[str]:
     if read_mod_id(root) == SMART_TRADE_ID:
         errs += check_no_cheat_verbs(root)
         errs += check_st_generated_files_current(root)
+        errs += check_st_entry_width_matches_vanilla(root)
 
     return errs
 

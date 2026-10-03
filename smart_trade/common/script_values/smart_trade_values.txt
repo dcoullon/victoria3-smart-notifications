@@ -92,10 +92,18 @@ st_treaty_margin = {
 		add = st_article_margin
 	}
 }
+# Only goods that actually travel by lane: an overland transfer (markets that
+# border each other) has no lane and costs nothing to ship. Counting those
+# made run 3's treasury estimate charge Germany's overland tools as if
+# shipped by sea.
 st_treaty_lane_units = {
 	value = 0
 	every_scope_article = {
-		limit = { has_type = goods_transfer source_country = { is_player = yes } }
+		limit = {
+			has_type = goods_transfer
+			source_country = { is_player = yes }
+			exists = shipping_lane
+		}
 		add = st_article_lane_units
 	}
 }
@@ -141,14 +149,4 @@ st_player_lane_units = {
 st_player_mm_price = {
 	value = 0
 	market ?= { mg:merchant_marine ?= { add = st_price } }
-}
-# Estimate: lanes priced at distance x1.00, since script cannot read a lane.
-# Long routes (above 1000 travel distance) cost up to ~15% more per 1000.
-st_player_treaty_net_est = {
-	value = st_player_treaty_margin
-	add = st_player_treaty_money
-	subtract = {
-		value = st_player_lane_units
-		multiply = st_player_mm_price
-	}
 }
