@@ -1,0 +1,16 @@
+{
+	"name": "Smart Trade - Dev",
+	"id": "smart_trade",
+	"version": "0.00",
+	"supported_game_version": "1.13.*",
+	"short_description": "See what each goods transfer treaty earns or costs you, per good: sale, purchase, shipping and net, in one place. Display only, no automation, no cheating.",
+	"tags": [
+		"User Interface",
+		"Utilities",
+		"Economy and Buildings"
+	],
+	"relationships": [],
+	"game_custom_data": {
+		"multiplayer_synchronized": false
+	}
+}

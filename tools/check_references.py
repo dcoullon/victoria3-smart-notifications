@@ -1176,6 +1176,7 @@ def check_census_build_not_stale(root: Path) -> list[str]:
 
 
 BULK_CONSTRUCTION_ID = "bulk_construction"
+SMART_TRADE_ID = "smart_trade"
 
 # Effects that would hand the player something the game did not charge them
 # for. All four are real vanilla effect names (common/effect_localization/),
@@ -1218,6 +1219,41 @@ def check_bc_gui_filename_still_sorts_first(root: Path) -> list[str]:
                 f"so its type redefinition will lose and the mod will silently "
                 f"do nothing. Keep the 00_ prefix (see the file's own header)."]
     return []
+
+
+def check_type_overrides_sort_first(root: Path) -> list[str]:
+    """Any mod `.gui` that redefines a vanilla `type` must sort before the
+    vanilla file that defines it. The engine keeps the FIRST definition it
+    reads, in filename order, and a later one loses with no error at all
+    (docs/engine-notes.md, "A partial .gui override works").
+
+    The mod-agnostic version of check_bc_gui_filename_still_sorts_first, added
+    with Smart Trade (2026-10-03), which overrides types from two different
+    vanilla files. It derives the vanilla file from the type name rather than
+    hard-coding it, so a new override is covered the day it is written."""
+    gui_dir = root / "gui"
+    if not gui_dir.is_dir():
+        return []
+    vanilla_gui = VANILLA_ROOT / "gui"
+    if not vanilla_gui.is_dir():
+        _skip("type override sort order", "Victoria 3 not installed on this machine")
+        return []
+    type_re = re.compile(r"^\s*type\s+(\w+)\s*=", re.M)
+    vanilla_home: dict[str, str] = {}
+    for p in sorted(vanilla_gui.rglob("*.gui"), key=lambda p: p.name.lower()):
+        for name in type_re.findall(_read(p)):
+            vanilla_home.setdefault(name, p.name)
+    errs = []
+    for p in sorted(gui_dir.glob("*.gui")):
+        for name in type_re.findall(_read(p)):
+            home = vanilla_home.get(name)
+            # Same filename = a whole-file override (Smart Notifications'
+            # message_settings.gui): vanilla's copy never loads, so no race.
+            if home and p.name.lower() > home.lower():
+                errs.append(f"gui/{p.name}: redefines vanilla type `{name}` but sorts at or "
+                            f"after vanilla's {home}, so vanilla's definition wins and the "
+                            f"override silently does nothing. Rename with a 00_ prefix.")
+    return errs
 
 
 def check_bc_panel_width_matches_vanilla(root: Path) -> list[str]:
@@ -1589,7 +1625,7 @@ def check_no_cheat_verbs(root: Path) -> list[str]:
         for verb, why in CHEAT_VERBS.items():
             if re.search(r"(?<![a-z_])" + verb + r"\s*=", text):
                 rel = path.relative_to(root)
-                errs.append(f"{rel}: uses `{verb}` -- {why}. This mod does not "
+                errs.append(f"{rel}: uses `{verb}` -- {why}. Mods in this repo do not "
                             f"cheat (docs/bulk-construction-spec.md section 1a)")
     return errs
 
@@ -1618,6 +1654,7 @@ def run_all(root: Path) -> list[str]:
     errs += check_engine_notes_toc_is_current(root)
     errs += check_vanilla_reference_snapshot_is_complete(root)
     errs += check_markdown_links_resolve(root)
+    errs += check_type_overrides_sort_first(root)
 
     # Smart-Notifications-only: each asserts that specific files or message
     # keys THIS mod owns are present, so against a sibling mod every one of
@@ -1641,6 +1678,10 @@ def run_all(root: Path) -> list[str]:
         errs += check_bc_loc_has_no_nested_arithmetic(root)
         errs += check_bc_loc_has_no_bracket_decoration(root)
         errs += check_bc_button_labels_fit(root)
+
+    # Smart Trade: display only, so the same structural no-cheat rule applies.
+    if read_mod_id(root) == SMART_TRADE_ID:
+        errs += check_no_cheat_verbs(root)
 
     return errs
 

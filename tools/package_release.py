@@ -308,6 +308,17 @@ def package(mod_root: Path, out_dir: Path):
         for rel in dropped:
             print(f"Excluded dev-only file: {rel}")
 
+        # A `*_debug.gui` is an exploration build (Smart Trade's first one is
+        # gui/00_smart_trade_debug.gui). Dropping it would ship a mod that does
+        # nothing, so refuse instead.
+        debug_guis = sorted(p.name for p in (staging / "gui").glob("*_debug.gui")) \
+            if (staging / "gui").is_dir() else []
+        if debug_guis:
+            print(f"\nABORTED: debug GUI build(s) still present: {', '.join(debug_guis)}. "
+                  f"Replace the exploration build with the real one before packaging.")
+            shutil.rmtree(staging, ignore_errors=True)
+            sys.exit(1)
+
         stripped = strip_debug_logging(staging)
         print(f"Stripped {stripped} debug logging line(s) from the packaged copy.")
         if not validate_staging(staging):

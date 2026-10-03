@@ -6,7 +6,7 @@
 - **Your own save shows why it matters.** The Austria treaty books +£34.6K/week of sales and most likely loses about £3.9K/week once shipping is counted (cf § 1).
 - **Demand:** about 6 Steam threads complain specifically about treaty cost or shipping visibility. The adjacent demand is much bigger: Trade Partners, a units-only trade UI mod, has 12,703 subscribers after 128 days.
 - **Feasible as a read-only GUI mod**, the same pattern as Build All. Every engine function it needs exists in the 1.13 dump.
-- **Name:** "Smart Trade" is unused, but on this Workshop "Smart" means automation. I recommend **Trade Ledger**.
+- **Name: Smart Trade** (Damien's decision, 2026-10-03), matching Smart Notifications. Unused on the Workshop. "Smart" usually means automation there, so the Workshop title and first line must say it only displays (cf § 5).
 - **Workshop lesson:** about 75% of each mod's subscribers to date arrived in launch week. Have everything ready before the first upload.
 
 ## 1. Does vanilla already show it?
@@ -76,16 +76,26 @@ No mod shows per-good, per-partner money or predicts treaty profit. About 25 Wor
 - merchant marine price: `GetGoods('merchant_marine').WithMarketContext(<market>).GetMarketPrice`
 - arithmetic: `Multiply_CFixedPoint`, `Subtract_CFixedPoint`, `Divide_CFixedPoint`
 
-**Shipping must be read from the lane, not modelled.** The defines give 1 merchant marine per unit, +15% per 1000 travel distance beyond the first 1000 (`SHIPPING_LANE_MERCHANT_MARINE_COST_SCALING`, `SEA_DISTANCE_EXPECTED_TRAVEL_DISTANCE`). Your Austria lane would need a distance factor of 0.83 even at the floor merchant-marine price (12.5), and the formula's minimum is 1.0. Something else scales it, most likely lane effectiveness (1.9.3 made goods-transfer flows scale with it). So existing treaties use the lane's own figures.
+**How shipping is decided** (game files, 1.13.11, unless marked):
+
+- **Overland or by sea.** The deciding test is whether the two **markets** are adjacent, not the two countries. Vanilla's `goods_transfer` article allows a transfer when both sides have a port OR `market = { is_adjacent_to_market = scope:other_country.market }`, and its non-fulfillment rule exempts adjacent markets from the supply-network check (`common/treaty_articles/13_goods_transfer.txt`). An adjacent pair gets no lane and pays no shipping. That fits Germany: no lane listed, presumably because the German market reaches Portugal through a member next to it (unverified which).
+- **Lane cost.** Merchant marine demand × merchant marine price. Vanilla's own breakdown tooltip lists one entry per good, "N from Q goods (1 per MULT traded)", plus a "Travel Distance D: ×V (+×M per expected distance)" multiplier (loc `SHIPPING_LANE_CONVOY_COST_GOOD_ENTRY`, `SHIPPING_LANE_BREAKDOWN_TRAVEL_DISTANCE`). Defines: +0.15 per 1000 travel distance beyond the first 1000 (`SHIPPING_LANE_MERCHANT_MARINE_COST_SCALING`, `SEA_DISTANCE_EXPECTED_TRAVEL_DISTANCE`).
+- **MULT is the unknown.** The defines still say 1 merchant marine per unit, but 1.13.7 (2026-05-27) "reduced Merchant Marine cost for ... goods transfer treaties". At 1 per unit your Austria lane would need a distance factor of 0.83 even at the floor merchant-marine price (12.5), below the minimum of 1.0. A candidate that fits both your lanes: MULT = the good's `traded_quantity` (5 for tools, dye and coffee) with coffee's `convoy_cost_multiplier` 0.5 applied, at a merchant-marine price near 40. That gives distance factors of 1.30 (Austria) and 3.05 (Persia), a 4.9 distance ratio, plausible for Lisbon to Genoa against Lisbon to the Gulf of Oman via Suez (my estimate). A fit, not a confirmation.
+- **Endpoints.** Both your lanes start in Estremadura (Lisbon, your market capital), even for Persia, where Portuguese India is far closer. So the start is the market capital or its world-market hub, not the nearest port. The ends, Piemonte and Bampur, are neither partner's capital. That fits "the partner's port closest to the start", unverified.
+- **Effectiveness.** Since 1.9.3, goods-transfer income and expense scale with lane effectiveness (patch notes, 2025-06-25). Your supply network showed 100% usage, so effectiveness may be below 1.
+- **1.15 (open beta "1.14").** Multiple world-market hubs per market area, a bonus dev diary due the week of 2026-10-05, and hubs re-routing around tolls (Open Beta Update 4, 2026-09-30). Endpoints may move. So the mod reads endpoints from the lane (`GetBeginState`/`GetEndState`) and never hard-codes them.
+
+For a signed treaty the mod reads the lane's own figures. For a draft it needs the formula, which is what the exploration build pins down.
 
 **A lane carrying several goods:** split its cost by each good's share of units carried. Austria's 8.52K splits 131 : 687 between dye and tools.
 
-**Draft prediction (v2).** Shipping is unknowable before signing because the lane does not exist yet. The draft can still show:
+**Draft prediction (v2).** The lane does not exist before signing, and no GUI function exposes the distance between two states. So the draft shows:
 
 - margin before shipping at current prices: quantity × (partner price − home price);
-- breakeven shipping per unit, which equals that margin per unit;
-- actual shipping per unit on any live lane to the same partner, as a reference;
+- predicted shipping from the formula once MULT is confirmed, with the distance factor taken from vanilla's own prediction if the draft exposes one (exploration lines G5 to G7 test for a "Will use N merchant marine between X and Y" text), else from a live lane to the same partner, else shown as the floor (factor 1.0) and labelled "at least";
+- breakeven shipping per unit, which equals the margin per unit;
 - later, first-order price impact from the price formula (`PRICE_RANGE` 0.75, `BUY_SELL_DIFF_AT_MAX_FACTOR` 2). Trade centers arbitrage part of it away, so label it an upper bound.
+- Market adjacency (overland, zero shipping) is not exposed to GUI either; a scripted GUI's `is_shown` trigger can evaluate `is_adjacent_to_market` for it.
 
 **Placement:** v1 adds one per-treaty table (rows per good: units, sale, purchase, shipping share, net; treaty subtotal) inside the Treaties tooltip, via a partial `00_`-prefixed override of only the tooltip type (cf engine-notes.md § A partial `.gui` override works). That avoids replacing `budget_panel.gui`, which GORA UI+ also edits.
 
@@ -96,22 +106,27 @@ No mod shows per-good, per-partner money or predicts treaty profit. About 25 Wor
 - A treaty with no lane (overland) shows shipping 0, not blank.
 - No table appears when the player has no goods transfers.
 
-**First build is an exploration run** (mechanism partly unknown). A dev-only panel prints our candidates next to vanilla's own text, so one screenshot settles all of these:
+**First build is an exploration run** (mechanism partly unknown): `smart_trade/gui/00_smart_trade_debug.gui`. Hovering a goods transfer in the treaty panel prints our candidates next to vanilla's own budget text, one tagged line each (A1, B2...), so a few screenshots settle all of these:
 
-1. purchase price: home market price vs origin-state price, with and without lane effectiveness;
-2. sale price: partner market price vs destination-state price;
-3. shipping: lane merchant-marine demand × merchant-marine price, market vs state price;
-4. whether the Shipping Lanes total lags a week;
-5. whether the data chain resolves inside the budget tooltip context at all.
+1. purchase price: home market price (B2) vs origin-state price (C9), and whether lane effectiveness (C3) scales it;
+2. sale price: partner market price (B5) vs destination-state price (C10);
+3. shipping: merchant-marine demand × merchant-marine price, market (C6) vs state (C8);
+4. MULT and the distance multiplier, from vanilla's own breakdown behind C4;
+5. lane endpoints: capital or world-market hub on each end (B6, C2);
+6. which lane accessor works: `Article.GetShippingLane` (C) or `Treaty.GetShippingLaneOf` (D1, D2);
+7. whether nested arithmetic renders in `raw_text` (E1);
+8. whether vanilla predicts a draft's merchant marine (G5 to G7, on the draft's influence cost cell);
+9. whether the Shipping Lanes total lags a week (F3 against the lane lines).
 
 **Risks:** 1.15 (in open beta as "1.14") adds several world-market hubs and touches routing; treaty accounting looks untouched, but `budget_panel.gui` may change.
 
 ## 5. Name
 
-- **"Smart Trade":** 0 hits on the Victoria 3 Workshop, none on Paradox Mods. A RimWorld mod of that name is an auto-trader, and on this Workshop "Smart" mostly means automation (Smart Economy auto-sets tariffs, Smart AI Construction, Smart Private Economy). Players would expect it to trade for them.
-- **Trade Ledger** (recommended): 0 hits, matches a search for "trade", and "ledger" says it reports.
-- **Other free names:** Trade Profits, Trade Margins, Trade Breakdown, Smart Trade Ledger (keeps the brand).
-- **Mod id:** it is permanent from the first upload; the display title is not. Pick the folder name (`trade_ledger/` at the repo root, next to `bulk_construction/`) before scaffolding.
+**Decided: Smart Trade**, mod id `smart_trade` (folder `smart_trade/`). The id is permanent from the first upload; the display title is not.
+
+- **Availability:** 0 hits on the Victoria 3 Workshop, none on Paradox Mods. A RimWorld mod of that name is an auto-trader.
+- **Mitigation for the automation reading:** on this Workshop "Smart" mostly means automation (Smart Economy auto-sets tariffs, Smart AI Construction, Smart Private Economy). So the Workshop title carries a subtitle that says it reports, e.g. "Smart Trade: Treaty Profit per Good", and the description's first line says it changes nothing in the game.
+- **Alternatives considered:** Trade Ledger, Trade Profits, Trade Margins, Trade Breakdown, all unused.
 
 ## 6. Discovery
 
@@ -142,6 +157,6 @@ Sources: Damien's sheet "Mod subscribers daily" to 2026-09-25, plus a Steam API 
 ## Next steps
 
 1. Check Reddit for "goods transfer" and "shipping lane cost" (2 min, you).
-2. Pick the name; I scaffold `trade_ledger/` (or your choice) and write the exploration build.
-3. One exploration run: open the budget's Treaties tooltip with your current save, take one screenshot.
+2. Done 2026-10-03: `smart_trade/` scaffolded and junctioned, exploration build `gui/00_smart_trade_debug.gui` written (§ 4).
+3. One exploration run (recipe in the commit that added the build).
 4. Build v1 against the confirmed formulas; one confirmation run; ship.

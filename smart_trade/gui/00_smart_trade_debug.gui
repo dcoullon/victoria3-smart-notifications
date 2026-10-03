@@ -1,0 +1,207 @@
+﻿# Smart Trade -- EXPLORATION BUILD, 2026-10-03. Dev only, never ship this file.
+#
+# Purpose: one test run answers every open question about how vanilla books a
+# goods transfer treaty, before any real feature is written against a guess.
+# The questions and what each line answers are in
+# docs/smart-trade-investigation.md (section 4, "First build is an
+# exploration run").
+#
+# It redefines two small vanilla types from our own file; no vanilla file is
+# copied:
+#   goods_transfer_article        vanilla gui/treaty_panel.gui:1213
+#   article_draft_influence_cost  vanilla gui/treaty_draft_panel.gui:884
+#
+# THE FILENAME IS LOAD-BEARING. The engine keeps the FIRST definition of a type
+# it reads, in filename order, so `00_` must sort ahead of treaty_panel.gui and
+# treaty_draft_panel.gui. See docs/engine-notes.md, "A partial .gui override
+# works".
+#
+# Every value sits on its own line, tagged A1, B2... A line whose expression
+# cannot resolve renders blank and the engine names it in error.log, so a blank
+# line is itself an answer (e.g. nested arithmetic in raw_text not supported).
+# Read-only: nothing here calls an effect or changes game state.
+
+types smart_trade_types {
+	type smart_trade_debug_article_tooltip = RegularTooltip {
+		blockoverride "tooltip_content" {
+			flowcontainer = {
+				direction = vertical
+				minimumsize = { 520 -1 }
+
+				custom_tooltip_textbox = { raw_text = "#header SMART TRADE DEBUG (treaty article)#!" }
+				custom_tooltip_textbox = { raw_text = "A1 good=[Article.GetGoods.GetNameNoFormatting] qty=[Article.GetQuantity|2]" }
+				custom_tooltip_textbox = { raw_text = "A2 source=[Article.GetSourceCountry.GetNameNoFormatting] target=[Article.GetTargetCountry.GetNameNoFormatting] sourceIsPlayer=[SelectLocalization(Article.GetSourceCountry.IsLocalPlayer, 'SMART_TRADE_YES', 'SMART_TRADE_NO')]" }
+
+				# B: the good's price in each MARKET, and quantity x price.
+				flowcontainer = {
+					direction = vertical
+					datacontext = "[Article.GetGoods.WithMarketContext(Article.GetSourceCountry.GetMarket.Self)]"
+					custom_tooltip_textbox = { raw_text = "B1 home market price=[Goods.GetMarketPrice|2]" }
+					custom_tooltip_textbox = { raw_text = "B2 qty x home market price=[Multiply_CFixedPoint(Article.GetQuantity, Goods.GetMarketPrice)|2]" }
+					custom_tooltip_textbox = { raw_text = "B3 tradedQty=[Goods.GetTradedQuantity|2] convoyMult=[Goods.GetShippingConvoyCostMultiplier|2]" }
+				}
+				flowcontainer = {
+					direction = vertical
+					datacontext = "[Article.GetGoods.WithMarketContext(Article.GetTargetCountry.GetMarket.Self)]"
+					custom_tooltip_textbox = { raw_text = "B4 partner market price=[Goods.GetMarketPrice|2]" }
+					custom_tooltip_textbox = { raw_text = "B5 qty x partner market price=[Multiply_CFixedPoint(Article.GetQuantity, Goods.GetMarketPrice)|2]" }
+				}
+				custom_tooltip_textbox = { raw_text = "B6 home capital=[Article.GetSourceCountry.GetMarket.GetMarketCapital.GetName] hub=[SelectLocalization(Article.GetSourceCountry.GetMarket.GetMarketCapital.IsWorldMarketHub, 'SMART_TRADE_YES', 'SMART_TRADE_NO')] | partner capital=[Article.GetTargetCountry.GetMarket.GetMarketCapital.GetName] hub=[SelectLocalization(Article.GetTargetCountry.GetMarket.GetMarketCapital.IsWorldMarketHub, 'SMART_TRADE_YES', 'SMART_TRADE_NO')]" }
+
+				tooltip_divider = {}
+
+				# C: the shipping lane, read through Article.GetShippingLane
+				# (exists in the engine dump, never called by vanilla GUI).
+				# Blank C lines = no lane (overland) or the accessor fails.
+				flowcontainer = {
+					direction = vertical
+					datacontext = "[Article.GetShippingLane]"
+					custom_tooltip_textbox = { raw_text = "C1 lane from [ShippingLane.GetBeginState.GetName] to [ShippingLane.GetEndState.GetName]" }
+					custom_tooltip_textbox = { raw_text = "C2 begin capital=[SelectLocalization(ShippingLane.GetBeginState.IsMarketCapital, 'SMART_TRADE_YES', 'SMART_TRADE_NO')] hub=[SelectLocalization(ShippingLane.GetBeginState.IsWorldMarketHub, 'SMART_TRADE_YES', 'SMART_TRADE_NO')] | end capital=[SelectLocalization(ShippingLane.GetEndState.IsMarketCapital, 'SMART_TRADE_YES', 'SMART_TRADE_NO')] hub=[SelectLocalization(ShippingLane.GetEndState.IsWorldMarketHub, 'SMART_TRADE_YES', 'SMART_TRADE_NO')]" }
+					custom_tooltip_textbox = { raw_text = "C3 MM demand raw=[ShippingLane.GetMerchantMarineDemandRaw|2] effectiveness=[ShippingLane.GetEffectivenessRaw|2] convoyRaw=[ShippingLane.GetConvoyCostRaw]" }
+					custom_tooltip_textbox = {
+						default_format = "#tooltippable"
+						raw_text = "C4 vanilla MM demand (lock tooltip, hover for formula)=[ShippingLane.GetMerchantMarineDemandFormatted]"
+					}
+					flowcontainer = {
+						direction = vertical
+						datacontext = "[GetGoods('merchant_marine').WithMarketContext(Article.GetSourceCountry.GetMarket.Self)]"
+						custom_tooltip_textbox = { raw_text = "C5 MM home market price=[Goods.GetMarketPrice|2]" }
+						custom_tooltip_textbox = { raw_text = "C6 MM demand x MM market price=[Multiply_CFixedPoint(ShippingLane.GetMerchantMarineDemandRaw, Goods.GetMarketPrice)|2]" }
+					}
+					flowcontainer = {
+						direction = vertical
+						datacontext = "[GetGoods('merchant_marine').WithStateContext(ShippingLane.GetBeginState.Self)]"
+						custom_tooltip_textbox = { raw_text = "C7 MM begin-state price=[Goods.GetStatePrice|2]" }
+						custom_tooltip_textbox = { raw_text = "C8 MM demand x MM state price=[Multiply_CFixedPoint(ShippingLane.GetMerchantMarineDemandRaw, Goods.GetStatePrice)|2]" }
+					}
+					flowcontainer = {
+						direction = vertical
+						datacontext = "[Article.GetGoods.WithStateContext(ShippingLane.GetBeginState.Self)]"
+						custom_tooltip_textbox = { raw_text = "C9 good begin-state price=[Goods.GetStatePrice|2] qty x price=[Multiply_CFixedPoint(Article.GetQuantity, Goods.GetStatePrice)|2]" }
+					}
+					flowcontainer = {
+						direction = vertical
+						datacontext = "[Article.GetGoods.WithStateContext(ShippingLane.GetEndState.Self)]"
+						custom_tooltip_textbox = { raw_text = "C10 good end-state price=[Goods.GetStatePrice|2] qty x price=[Multiply_CFixedPoint(Article.GetQuantity, Goods.GetStatePrice)|2]" }
+					}
+				}
+
+				# D: two other ways to reach the lane, in case C is blank.
+				custom_tooltip_textbox = { raw_text = "D1 GetShippingLaneOf(article): from [Article.GetTreaty.GetShippingLaneOf(Article.Self).GetBeginState.GetName] MM=[Article.GetTreaty.GetShippingLaneOf(Article.Self).GetMerchantMarineDemandRaw|2]" }
+				custom_tooltip_textbox = { raw_text = "D2 GetShippingLaneOf(source): from [Article.GetTreaty.GetShippingLaneOf(Article.GetSourceCountry.Self).GetBeginState.GetName] MM=[Article.GetTreaty.GetShippingLaneOf(Article.GetSourceCountry.Self).GetMerchantMarineDemandRaw|2]" }
+
+				# E: nested arithmetic in raw_text. Blank = not supported, and
+				# the real build has to avoid it.
+				custom_tooltip_textbox = { raw_text = "E1 nested margin before shipping=[Subtract_CFixedPoint(Multiply_CFixedPoint(Article.GetQuantity, Article.GetGoods.WithMarketContext(Article.GetTargetCountry.GetMarket.Self).GetMarketPrice), Multiply_CFixedPoint(Article.GetQuantity, Article.GetGoods.WithMarketContext(Article.GetSourceCountry.GetMarket.Self).GetMarketPrice))|2]" }
+
+				tooltip_divider = {}
+
+				# F: vanilla's own numbers, at the same instant, to compare against.
+				custom_tooltip_textbox = { raw_text = "F1 vanilla Treaties income=[GetPlayer.PredictTreatyIncome|2]" }
+				custom_tooltip_textbox = { raw_text = "[GetPlayer.PredictTreatyIncomeDesc]" }
+				custom_tooltip_textbox = { raw_text = "F2 vanilla Treaties expense=[GetPlayer.PredictTreatyExpenses|2]" }
+				custom_tooltip_textbox = { raw_text = "[GetPlayer.PredictTreatyExpensesDesc]" }
+				custom_tooltip_textbox = { raw_text = "F3 vanilla Shipping Lanes total=[GetPlayer.GetPortConnectionExpenses|2]" }
+				custom_tooltip_textbox = { raw_text = "[GetPlayer.GetPortConnectionExpensesDesc]" }
+			}
+		}
+	}
+
+	type smart_trade_debug_draft_tooltip = RegularTooltip {
+		blockoverride "tooltip_content" {
+			flowcontainer = {
+				direction = vertical
+				minimumsize = { 520 -1 }
+
+				custom_tooltip_textbox = { raw_text = "#header SMART TRADE DEBUG (draft article)#!" }
+				custom_tooltip_textbox = { raw_text = "G1 type goods transfer=[SelectLocalization(ArticleDraft.HasType('goods_transfer'), 'SMART_TRADE_YES', 'SMART_TRADE_NO')] good=[ArticleDraft.GetGoods.GetNameNoFormatting] qty=[ArticleDraft.GetQuantity|2]" }
+				custom_tooltip_textbox = { raw_text = "G2 source=[ArticleDraft.GetFirstOrSource.GetNameNoFormatting] target=[ArticleDraft.GetSecondOrTarget.GetNameNoFormatting]" }
+				flowcontainer = {
+					direction = vertical
+					datacontext = "[ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self)]"
+					custom_tooltip_textbox = { raw_text = "G3 home market price=[Goods.GetMarketPrice|2] qty x price=[Multiply_CFixedPoint(ArticleDraft.GetQuantity, Goods.GetMarketPrice)|2]" }
+				}
+				flowcontainer = {
+					direction = vertical
+					datacontext = "[ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self)]"
+					custom_tooltip_textbox = { raw_text = "G4 partner market price=[Goods.GetMarketPrice|2] qty x price=[Multiply_CFixedPoint(ArticleDraft.GetQuantity, Goods.GetMarketPrice)|2]" }
+				}
+
+				tooltip_divider = {}
+
+				# G5..G7: does vanilla already predict the lane's merchant
+				# marine for a draft ("Will use N ... between X and Y")?
+				custom_tooltip_textbox = { raw_text = "G5 article effects:" }
+				custom_tooltip_textbox = { raw_text = "[ArticleDraft.GetEffectsDesc]" }
+				custom_tooltip_textbox = { raw_text = "G6 article immediate effects:" }
+				custom_tooltip_textbox = { raw_text = "[ArticleDraft.GetImmediateEffectsDesc]" }
+				custom_tooltip_textbox = { raw_text = "G7 treaty immediate effects:" }
+				custom_tooltip_textbox = { raw_text = "[TreatyDraft.GetImmediateEffectsDesc]" }
+			}
+		}
+	}
+}
+
+types treaty_panel_types {
+	# Vanilla body unchanged (gui/treaty_panel.gui:1213-1241); added: the
+	# debug tooltip and a small "ST" marker proving this override won.
+	type goods_transfer_article = widget {
+		visible = "[Article.HasType('goods_transfer')]"
+		size = { 145 40 }
+		using = tooltip_ne
+
+		tooltipwidget = {
+			smart_trade_debug_article_tooltip = {}
+		}
+
+		flowcontainer = {
+			datacontext = "[Article.GetGoods]"
+			parentanchor = vcenter
+			spacing = 2
+
+			icon = {
+				parentanchor = vcenter
+				size = { 30 30 }
+				texture = "[Goods.GetTexture]"
+			}
+
+			textbox = {
+				parentanchor = vcenter
+				autoresize = yes
+				align = nobaseline
+				max_width = 130
+				using = elide_fontsize_min
+				text = "TREATY_SELECTED_ARTICLE_AMOUNT"
+
+				block "text_format" {
+					default_format = "#black"
+				}
+			}
+		}
+
+		textbox = {
+			parentanchor = top|right
+			autoresize = yes
+			raw_text = "#v ST#!"
+		}
+	}
+}
+
+types treaty_draft_panel_types {
+	# Vanilla body unchanged (gui/treaty_draft_panel.gui:884-892); added: the
+	# debug tooltip. Hover the influence cost cell of a goods transfer draft.
+	type article_draft_influence_cost = article_influence_cost {
+		blockoverride "influence_cost_alpha" {
+			alpha = "[TransparentIfZero(ArticleDraft.GetCostFor(Country.Self))]"
+		}
+
+		blockoverride "influence_cost_text" {
+			raw_text = "#v [ArticleDraft.GetCostFor(Country.Self)|0]#!"
+		}
+
+		tooltipwidget = {
+			smart_trade_debug_draft_tooltip = {}
+		}
+	}
+}
