@@ -133,7 +133,7 @@ For a signed treaty the mod reads the lane's own figures. For a draft it needs t
 
     breakeven factor = (partner price − home price) × traded_quantity ÷ (convoy multiplier × merchant-marine price)
 
-Coffee → Persia breaks even at ×3.80 and runs at ×2.34: profitable. Dye → Austria breaks even at ×1.07 and runs at ×1.28: a loss. Coffee → Austria breaks even at ×0.49: a loss at any distance. Below 1.0 means the deal loses even overland-adjacent by sea, which needs no distance at all to judge. Next to it, the draft lists the factors of the player's existing lanes ("your lane to Piemonte runs ×1.28") as reference points, plus vanilla's own prediction text if the draft has one (G5 to G7, untested).
+Coffee → Persia breaks even at ×3.80 and runs at ×2.34: profitable. Dye → Austria breaks even at ×1.07 and runs at ×1.28: a loss. Coffee → Austria breaks even at ×0.49: a loss at any distance. Below 1.0 the deal loses on any sea route, so no distance is needed to judge it. Next to it, the draft lists the factors of the player's existing lanes ("your lane to Piemonte runs ×1.28") as reference points, plus vanilla's own prediction text if the draft has one (G5 to G7, untested).
 
 **Risks:** 1.15 (in open beta as "1.14") adds several world-market hubs and touches routing; treaty accounting looks untouched, but `budget_panel.gui` may change.
 
