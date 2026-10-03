@@ -118,6 +118,23 @@ For a signed treaty the mod reads the lane's own figures. For a draft it needs t
 8. whether vanilla predicts a draft's merchant marine (G5 to G7, on the draft's influence cost cell);
 9. whether the Shipping Lanes total lags a week (F3 against the lane lines).
 
+**Exploration run 1 results (2026-10-03, game date 1918-04-19, paused):**
+
+- **All three legs use market prices.** Coffee → Persia: 21 × home market price 37.69 = 791.51 (vanilla line: 791); 21 × partner market price 57.81 = 1,214.03 (vanilla: 1.21K); merchant-marine demand 4.92 × home market merchant-marine price 52.91 = 260.56 (vanilla: −260). The state-price candidates (C8, C9, C10) all miss.
+- **Lane effectiveness was 1.00**, so whether it scales the flows is still untested.
+- **Vanilla totals add up.** Goods-transfer income lines sum to 43.19K (vanilla 43.2K), expense lines to 36.12K (36.1K). The Shipping Lanes total (13,106) now includes the Austria lane, so the earlier 10.3K was a lag until the weekly tick.
+- **Austria (recreated: dye 147, coffee 112):** −325 and −466 per week, −790 together, matching vanilla's lines. Germany +4.7K, Persia +162.
+- **Persia's lane ends at Persia's world-market hub** (Bampur, hub = yes, not the capital) and starts at Portugal's market capital (Estremadura, capital = yes, hub = no).
+- **GUI:** nested arithmetic renders in `.gui` `raw_text` (E1 = 422.52), unlike the loc case in Build All. `Article.GetShippingLane` works, as does `Treaty.GetShippingLaneOf(<source country>)` (D2). `GetShippingLaneOf(<article>)` returns null (D1).
+- **The engine reads coffee as traded_quantity 5, convoy multiplier 0.5** (B3). If merchant-marine demand is qty ÷ traded_quantity × convoy multiplier × distance factor, coffee's base is 2.1 and Persia's distance factor is 2.34 (travel distance about 9,950); Austria's is 1.28 (about 2,840). Vanilla's breakdown behind C4 will confirm.
+- **No travel distance is available to mods.** The script docs (`Documents/.../Victoria 3/docs/triggers.log`) have only military distance triggers, and the GUI exposes only camera-dependent screen positions. So a draft cannot compute its distance, not even a worst case from the partner's capital.
+
+**Draft prediction, revised: breakeven distance.** Margin per unit and the per-unit shipping base are both computable before signing, so the draft shows the distance factor at which the deal stops paying:
+
+    breakeven factor = (partner price − home price) × traded_quantity ÷ (convoy multiplier × merchant-marine price)
+
+Coffee → Persia breaks even at ×3.80 and runs at ×2.34: profitable. Dye → Austria breaks even at ×1.07 and runs at ×1.28: a loss. Coffee → Austria breaks even at ×0.49: a loss at any distance. Below 1.0 means the deal loses even overland-adjacent by sea, which needs no distance at all to judge. Next to it, the draft lists the factors of the player's existing lanes ("your lane to Piemonte runs ×1.28") as reference points, plus vanilla's own prediction text if the draft has one (G5 to G7, untested).
+
 **Risks:** 1.15 (in open beta as "1.14") adds several world-market hubs and touches routing; treaty accounting looks untouched, but `budget_panel.gui` may change.
 
 ## 5. Name
