@@ -14,7 +14,8 @@ from the repository root. Scans `error.log` and `debug.log` in the
 default Victoria 3 logs directory
 (`Documents/Paradox Interactive/Victoria 3/logs`) for:
 
-- This mod's own tagged `debug_log` lines (`SNW_<NAME>|...`).
+- The mods' own tagged `debug_log` lines (`SNW_<NAME>|...` for Smart
+  Notifications, `BC_...` for Bulk Construction).
 - Known engine-error signatures this project has hit before (see
   docs/engine-notes.md) — "Could not find data system function", "Could
   not find promote for", "This scope doesn't support variables", "Data

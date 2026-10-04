@@ -21,11 +21,11 @@ bare aborts and lists the mods available.
 Each mod gets its own output folder, `<mod id>_release`, and its own
 launcher entry. Copies only `.metadata/`, `common/`, `events/`,
 `gui/`, `localization/`, and `thumbnail.png` (if present) into
-`Documents/Paradox Interactive/Victoria 3/mod/<mod id>_release`
-— never the dev repo's `tools/`, `docs/`, `reference/`, `.claude/`,
-`.git/`, or root-level `.md`/`.bbcode` files, which the Paradox Launcher's
-Mod Tools would otherwise bundle wholesale if uploaded straight from the
-dev junction.
+`Documents/Paradox Interactive/Victoria 3/mod/<mod id>_release`,
+then strips dev-only files and every `debug_log` line. The dev junction
+points at the mod folder, which also holds `CHANGELOG.md`, the `.bbcode`
+and those diagnostics; the Paradox Launcher's Mod Tools would bundle all
+of it if uploaded from there.
 
 Refuses to run if `tools/validate_syntax.py --strict` fails on the mod
 being packaged — never package known-broken content, and never package
