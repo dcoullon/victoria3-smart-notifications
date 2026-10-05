@@ -7,21 +7,11 @@
 # treasury buys the goods in its own market at that market's price and sells
 # them in the partner's market at the partner's price. Shipping (merchant
 # marine) is read from the lane in the GUI, because script cannot see lanes.
-#
-# EXPLORATION RUN 3: the st_price_* candidates exist only to be compared with
-# the GUI's own price on screen; st_price is what the totals use.
 
 # --- Market price, root: market_goods ------------------------------------
 # Script has no absolute price, only "% pricier / cheaper than base price".
-st_price_a = {
-	value = goods.base_price
-	multiply = { value = 1 add = market_goods_pricier }
-}
-st_price_b = {
-	value = goods.base_price
-	multiply = { value = 1 subtract = market_goods_cheaper }
-}
-# Correct whether the two values are signed or floored at zero.
+# Correct whether the two values are signed or floored at zero (run 3 showed
+# this matches the market's own price).
 st_price = {
 	value = goods.base_price
 	multiply = {
@@ -39,7 +29,7 @@ st_article_lane_units = {
 	divide = st_article_traded_quantity
 }
 
-# Home and partner market price of this article's good, for the debug lines.
+# Home and partner market price of this article's good.
 st_article_home_price = {
 	value = 0
 	if = {
@@ -52,22 +42,6 @@ st_article_partner_price = {
 	if = {
 		limit = { target_country = { save_temporary_scope_as = st_tgt } }
 		add = { "input_market_goods(scope:st_tgt)" ?= { add = st_price } }
-	}
-}
-
-# Debug only: the same home price through the two other reconstructions.
-st_article_home_price_a = {
-	value = 0
-	if = {
-		limit = { source_country = { save_temporary_scope_as = st_src } }
-		add = { "input_market_goods(scope:st_src)" ?= { add = st_price_a } }
-	}
-}
-st_article_home_price_b = {
-	value = 0
-	if = {
-		limit = { source_country = { save_temporary_scope_as = st_src } }
-		add = { "input_market_goods(scope:st_src)" ?= { add = st_price_b } }
 	}
 }
 
