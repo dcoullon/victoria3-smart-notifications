@@ -503,13 +503,6 @@ types smart_trade_types {
 					visible = "[Not(@@D_ADJ@@)]"
 					raw_text = "#bold Net: ~@money![@@D_NET_MID@@|D+=] a week#!"
 				}
-				flowcontainer = {
-					visible = "[@@D_PAYS@@]"
-					spacing = 4
-					custom_tooltip_textbox = { raw_text = "Best: about" }
-					smart_trade_best_gain = { datacontext = "[ArticleDraft.GetGoods]" }
-					custom_tooltip_textbox = { raw_text = "a week (Best button). [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting] accepts up to [@@D_QAI@@|0]." }
-				}
 				custom_tooltip_textbox = {
 					visible = "[Not(@@D_PAYS@@)]"
 					raw_text = "No quantity makes a profit."
@@ -881,7 +874,7 @@ types pinnable_outliner_items {
 					autoresize = yes
 					align = nobaseline
 					using = elide_fontsize_min
-					max_width = 195
+					max_width = 165  # SMART TRADE: same as the row with days; the figure sits at -52 either way (195 ran into it: Vietnamese-Portuguese Treaty, Workshop shot)
 					margin_left = 2
 					text = "[Treaty.GetNameNoFormatting]"
 				}
