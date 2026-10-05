@@ -46,16 +46,43 @@ st_q_best = {
 		}
 		add = 0
 	}
-	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
-	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = scope:st_slhm multiply = { value = 1 subtract = { value = { value = scope:st_rhm min = -2 max = 2 } min = { value = { value = scope:st_rhm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slpm value = { value = scope:st_slpm multiply = { value = 1 subtract = { value = { value = scope:st_rpm min = -2 max = 2 } min = { value = { value = scope:st_rpm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
 		}
 		add = 0
 	}
-	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
-	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_go value = { value = scope:st_mm multiply = 1000 min = 0 max = 1 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo2 value = { value = scope:st_lo add = { value = scope:st_mid subtract = scope:st_lo multiply = scope:st_go } } }
+			save_temporary_scope_value_as = { name = st_hi value = { value = scope:st_mid add = { value = scope:st_hi subtract = scope:st_mid multiply = scope:st_go } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo value = scope:st_lo2 }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
@@ -83,16 +110,43 @@ st_q_best = {
 		}
 		add = 0
 	}
-	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
-	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = scope:st_slhm multiply = { value = 1 subtract = { value = { value = scope:st_rhm min = -2 max = 2 } min = { value = { value = scope:st_rhm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slpm value = { value = scope:st_slpm multiply = { value = 1 subtract = { value = { value = scope:st_rpm min = -2 max = 2 } min = { value = { value = scope:st_rpm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
 		}
 		add = 0
 	}
-	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
-	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_go value = { value = scope:st_mm multiply = 1000 min = 0 max = 1 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo2 value = { value = scope:st_lo add = { value = scope:st_mid subtract = scope:st_lo multiply = scope:st_go } } }
+			save_temporary_scope_value_as = { name = st_hi value = { value = scope:st_mid add = { value = scope:st_hi subtract = scope:st_mid multiply = scope:st_go } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo value = scope:st_lo2 }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
@@ -120,16 +174,43 @@ st_q_best = {
 		}
 		add = 0
 	}
-	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
-	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = scope:st_slhm multiply = { value = 1 subtract = { value = { value = scope:st_rhm min = -2 max = 2 } min = { value = { value = scope:st_rhm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slpm value = { value = scope:st_slpm multiply = { value = 1 subtract = { value = { value = scope:st_rpm min = -2 max = 2 } min = { value = { value = scope:st_rpm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
 		}
 		add = 0
 	}
-	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
-	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_go value = { value = scope:st_mm multiply = 1000 min = 0 max = 1 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo2 value = { value = scope:st_lo add = { value = scope:st_mid subtract = scope:st_lo multiply = scope:st_go } } }
+			save_temporary_scope_value_as = { name = st_hi value = { value = scope:st_mid add = { value = scope:st_hi subtract = scope:st_mid multiply = scope:st_go } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo value = scope:st_lo2 }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
@@ -157,16 +238,43 @@ st_q_best = {
 		}
 		add = 0
 	}
-	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
-	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = scope:st_slhm multiply = { value = 1 subtract = { value = { value = scope:st_rhm min = -2 max = 2 } min = { value = { value = scope:st_rhm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slpm value = { value = scope:st_slpm multiply = { value = 1 subtract = { value = { value = scope:st_rpm min = -2 max = 2 } min = { value = { value = scope:st_rpm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
 		}
 		add = 0
 	}
-	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
-	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_go value = { value = scope:st_mm multiply = 1000 min = 0 max = 1 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo2 value = { value = scope:st_lo add = { value = scope:st_mid subtract = scope:st_lo multiply = scope:st_go } } }
+			save_temporary_scope_value_as = { name = st_hi value = { value = scope:st_mid add = { value = scope:st_hi subtract = scope:st_mid multiply = scope:st_go } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo value = scope:st_lo2 }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
@@ -194,16 +302,43 @@ st_q_best = {
 		}
 		add = 0
 	}
-	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
-	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = scope:st_slhm multiply = { value = 1 subtract = { value = { value = scope:st_rhm min = -2 max = 2 } min = { value = { value = scope:st_rhm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slpm value = { value = scope:st_slpm multiply = { value = 1 subtract = { value = { value = scope:st_rpm min = -2 max = 2 } min = { value = { value = scope:st_rpm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
 		}
 		add = 0
 	}
-	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
-	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_go value = { value = scope:st_mm multiply = 1000 min = 0 max = 1 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo2 value = { value = scope:st_lo add = { value = scope:st_mid subtract = scope:st_lo multiply = scope:st_go } } }
+			save_temporary_scope_value_as = { name = st_hi value = { value = scope:st_mid add = { value = scope:st_hi subtract = scope:st_mid multiply = scope:st_go } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo value = scope:st_lo2 }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
@@ -231,16 +366,43 @@ st_q_best = {
 		}
 		add = 0
 	}
-	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
-	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = scope:st_slhm multiply = { value = 1 subtract = { value = { value = scope:st_rhm min = -2 max = 2 } min = { value = { value = scope:st_rhm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slpm value = { value = scope:st_slpm multiply = { value = 1 subtract = { value = { value = scope:st_rpm min = -2 max = 2 } min = { value = { value = scope:st_rpm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
 		}
 		add = 0
 	}
-	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
-	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_go value = { value = scope:st_mm multiply = 1000 min = 0 max = 1 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo2 value = { value = scope:st_lo add = { value = scope:st_mid subtract = scope:st_lo multiply = scope:st_go } } }
+			save_temporary_scope_value_as = { name = st_hi value = { value = scope:st_mid add = { value = scope:st_hi subtract = scope:st_mid multiply = scope:st_go } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo value = scope:st_lo2 }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
@@ -268,16 +430,43 @@ st_q_best = {
 		}
 		add = 0
 	}
-	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
-	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = scope:st_slhm multiply = { value = 1 subtract = { value = { value = scope:st_rhm min = -2 max = 2 } min = { value = { value = scope:st_rhm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slpm value = { value = scope:st_slpm multiply = { value = 1 subtract = { value = { value = scope:st_rpm min = -2 max = 2 } min = { value = { value = scope:st_rpm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
 		}
 		add = 0
 	}
-	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
-	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_go value = { value = scope:st_mm multiply = 1000 min = 0 max = 1 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo2 value = { value = scope:st_lo add = { value = scope:st_mid subtract = scope:st_lo multiply = scope:st_go } } }
+			save_temporary_scope_value_as = { name = st_hi value = { value = scope:st_mid add = { value = scope:st_hi subtract = scope:st_mid multiply = scope:st_go } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo value = scope:st_lo2 }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
@@ -305,16 +494,43 @@ st_q_best = {
 		}
 		add = 0
 	}
-	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
-	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = scope:st_slhm multiply = { value = 1 subtract = { value = { value = scope:st_rhm min = -2 max = 2 } min = { value = { value = scope:st_rhm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slpm value = { value = scope:st_slpm multiply = { value = 1 subtract = { value = { value = scope:st_rpm min = -2 max = 2 } min = { value = { value = scope:st_rpm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
 		}
 		add = 0
 	}
-	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
-	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_go value = { value = scope:st_mm multiply = 1000 min = 0 max = 1 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo2 value = { value = scope:st_lo add = { value = scope:st_mid subtract = scope:st_lo multiply = scope:st_go } } }
+			save_temporary_scope_value_as = { name = st_hi value = { value = scope:st_mid add = { value = scope:st_hi subtract = scope:st_mid multiply = scope:st_go } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo value = scope:st_lo2 }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
@@ -342,16 +558,43 @@ st_q_best = {
 		}
 		add = 0
 	}
-	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
-	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = scope:st_slhm multiply = { value = 1 subtract = { value = { value = scope:st_rhm min = -2 max = 2 } min = { value = { value = scope:st_rhm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slpm value = { value = scope:st_slpm multiply = { value = 1 subtract = { value = { value = scope:st_rpm min = -2 max = 2 } min = { value = { value = scope:st_rpm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
 		}
 		add = 0
 	}
-	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
-	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_go value = { value = scope:st_mm multiply = 1000 min = 0 max = 1 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo2 value = { value = scope:st_lo add = { value = scope:st_mid subtract = scope:st_lo multiply = scope:st_go } } }
+			save_temporary_scope_value_as = { name = st_hi value = { value = scope:st_mid add = { value = scope:st_hi subtract = scope:st_mid multiply = scope:st_go } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo value = scope:st_lo2 }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
@@ -379,16 +622,43 @@ st_q_best = {
 		}
 		add = 0
 	}
-	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
-	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = scope:st_slhm multiply = { value = 1 subtract = { value = { value = scope:st_rhm min = -2 max = 2 } min = { value = { value = scope:st_rhm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slpm value = { value = scope:st_slpm multiply = { value = 1 subtract = { value = { value = scope:st_rpm min = -2 max = 2 } min = { value = { value = scope:st_rpm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
 		}
 		add = 0
 	}
-	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
-	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_go value = { value = scope:st_mm multiply = 1000 min = 0 max = 1 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo2 value = { value = scope:st_lo add = { value = scope:st_mid subtract = scope:st_lo multiply = scope:st_go } } }
+			save_temporary_scope_value_as = { name = st_hi value = { value = scope:st_mid add = { value = scope:st_hi subtract = scope:st_mid multiply = scope:st_go } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo value = scope:st_lo2 }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
@@ -416,16 +686,43 @@ st_q_best = {
 		}
 		add = 0
 	}
-	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
-	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = scope:st_slhm multiply = { value = 1 subtract = { value = { value = scope:st_rhm min = -2 max = 2 } min = { value = { value = scope:st_rhm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slpm value = { value = scope:st_slpm multiply = { value = 1 subtract = { value = { value = scope:st_rpm min = -2 max = 2 } min = { value = { value = scope:st_rpm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
 		}
 		add = 0
 	}
-	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
-	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_go value = { value = scope:st_mm multiply = 1000 min = 0 max = 1 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo2 value = { value = scope:st_lo add = { value = scope:st_mid subtract = scope:st_lo multiply = scope:st_go } } }
+			save_temporary_scope_value_as = { name = st_hi value = { value = scope:st_mid add = { value = scope:st_hi subtract = scope:st_mid multiply = scope:st_go } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo value = scope:st_lo2 }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
@@ -453,16 +750,43 @@ st_q_best = {
 		}
 		add = 0
 	}
-	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
-	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = scope:st_slhm multiply = { value = 1 subtract = { value = { value = scope:st_rhm min = -2 max = 2 } min = { value = { value = scope:st_rhm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slpm value = { value = scope:st_slpm multiply = { value = 1 subtract = { value = { value = scope:st_rpm min = -2 max = 2 } min = { value = { value = scope:st_rpm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
 		}
 		add = 0
 	}
-	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
-	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_go value = { value = scope:st_mm multiply = 1000 min = 0 max = 1 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo2 value = { value = scope:st_lo add = { value = scope:st_mid subtract = scope:st_lo multiply = scope:st_go } } }
+			save_temporary_scope_value_as = { name = st_hi value = { value = scope:st_mid add = { value = scope:st_hi subtract = scope:st_mid multiply = scope:st_go } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo value = scope:st_lo2 }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
@@ -490,16 +814,43 @@ st_q_best = {
 		}
 		add = 0
 	}
-	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
-	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = scope:st_slhm multiply = { value = 1 subtract = { value = { value = scope:st_rhm min = -2 max = 2 } min = { value = { value = scope:st_rhm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slpm value = { value = scope:st_slpm multiply = { value = 1 subtract = { value = { value = scope:st_rpm min = -2 max = 2 } min = { value = { value = scope:st_rpm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
 		}
 		add = 0
 	}
-	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
-	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_go value = { value = scope:st_mm multiply = 1000 min = 0 max = 1 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo2 value = { value = scope:st_lo add = { value = scope:st_mid subtract = scope:st_lo multiply = scope:st_go } } }
+			save_temporary_scope_value_as = { name = st_hi value = { value = scope:st_mid add = { value = scope:st_hi subtract = scope:st_mid multiply = scope:st_go } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo value = scope:st_lo2 }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
@@ -527,16 +878,43 @@ st_q_best = {
 		}
 		add = 0
 	}
-	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
-	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = scope:st_slhm multiply = { value = 1 subtract = { value = { value = scope:st_rhm min = -2 max = 2 } min = { value = { value = scope:st_rhm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slpm value = { value = scope:st_slpm multiply = { value = 1 subtract = { value = { value = scope:st_rpm min = -2 max = 2 } min = { value = { value = scope:st_rpm min = -2 max = 2 } multiply = -1 } } multiply = 1000000 min = 0 max = 1 } } }
+		}
+		add = 0
+	}
 	if = {
 		limit = {
 			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
 		}
 		add = 0
 	}
-	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
-	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_go value = { value = scope:st_mm multiply = 1000 min = 0 max = 1 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo2 value = { value = scope:st_lo add = { value = scope:st_mid subtract = scope:st_lo multiply = scope:st_go } } }
+			save_temporary_scope_value_as = { name = st_hi value = { value = scope:st_mid add = { value = scope:st_hi subtract = scope:st_mid multiply = scope:st_go } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_lo value = scope:st_lo2 }
+		}
+		add = 0
+	}
 	value = { value = scope:st_lo add = scope:st_hi divide = 2 }
 }
 

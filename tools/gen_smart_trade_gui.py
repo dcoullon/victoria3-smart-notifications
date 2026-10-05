@@ -1015,8 +1015,14 @@ def step(*saves):
 
 
 def zero_if_capped(slope, ratio):
-    return (f"\tif = {{ limit = {{ OR = {{ scope:{ratio} >= 1 scope:{ratio} <= -1 }} "
-            f"{save(slope, 0)} }} add = 0 }}")
+    """Slope x (1 if |ratio| < 1 else 0), as arithmetic rather than a
+    conditional save, so nothing depends on limits short-circuiting
+    (untested in game; review 2026-10-05). The ratio is clamped to +-2 first
+    so the x1e6 step cannot overflow."""
+    r = sv(f"value = scope:{ratio}", "min = -2", "max = 2")
+    abs_r = sv(f"value = {r}", f"min = {sv(f'value = {r}', 'multiply = -1')}")
+    inside = sv("value = 1", f"subtract = {abs_r}", "multiply = 1000000", "min = 0", "max = 1")
+    return step(save(slope, sv(f"value = scope:{slope}", f"multiply = {inside}")))
 
 
 def prices_at(q, tag):
@@ -1049,8 +1055,15 @@ def bisect_round():
         zero_if_capped("st_slpm", "st_rpm"),
         step(save("st_mm", sv("value = scope:st_ppm", "subtract = scope:st_phm", "subtract = scope:st_ship",
                               f"subtract = {sv('value = scope:st_mid', f'multiply = {sv('value = scope:st_slhm', 'add = scope:st_slpm')}')}"))),
-        f"\tif = {{ limit = {{ scope:st_mm > 0 {save('st_lo', 'scope:st_mid')} }} add = 0 }}",
-        f"\tif = {{ limit = {{ scope:st_mm <= 0 {save('st_hi', 'scope:st_mid')} }} add = 0 }}",
+        # go = 1 when the marginal gain is positive, 0 otherwise, as
+        # arithmetic (x1000 then clamp; margins are money per unit, so no
+        # overflow): lo moves to mid when go = 1, hi moves to mid when go = 0.
+        step(save("st_go", sv("value = scope:st_mm", "multiply = 1000", "min = 0", "max = 1"))),
+        step(save("st_lo2", sv("value = scope:st_lo",
+                               f"add = {sv('value = scope:st_mid', 'subtract = scope:st_lo', 'multiply = scope:st_go')}")),
+             save("st_hi", sv("value = scope:st_mid",
+                              f"add = {sv('value = scope:st_hi', 'subtract = scope:st_mid', 'multiply = scope:st_go')}"))),
+        step(save("st_lo", "scope:st_lo2")),
     ]
 
 
