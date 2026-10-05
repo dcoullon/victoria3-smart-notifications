@@ -116,25 +116,35 @@ class Market:
         self.ship_unit = sel(D_ADJ, fx(0), mul(div(MMP, self.tq), fx(ROUTE_EST)))
         # First-unit margin after shipping: the deal pays only if this is > 0.
         self.edge = sub(sub(self.pp, self.ph), self.ship_unit)
-        # How fast each extra unit moves each price (derivative of the price
-        # rule at today's orders; zero where the price is already at its cap).
-        unsat = lambda b, s: f"And({lt(ratio(b, s), fx(1))}, {gt(ratio(b, s), fx(-1))})"
-        k = mul(self.base, fx(0.75))
-        self.slope_h = sel(unsat(self.bh, self.sh),
-                           mul(k, mx(div(fx(1), safe(self.sh)), div(self.sh, safe(mul(self.bh, self.bh))))), fx(0))
-        self.slope_p = sel(unsat(self.bp, self.sp),
-                           mul(k, mx(div(self.bp, safe(mul(self.sp, self.sp))), div(fx(1), safe(self.bp)))), fx(0))
-        # The AI's acceptance for goods it receives grows with quantity up to
-        # its shortage + 10, then loses 0.3 per extra unit
-        # (common/treaty_articles/13_goods_transfer.txt, inherent_accept_score).
-        self.q_ai = mx(fx(10), add(sub(self.bp, self.sp), fx(10)))
-        # Profit-maximising quantity of the linearised first-week gain,
-        # capped at what the AI wants, floored at vanilla's minimum of 10.
-        q_raw = div(self.edge, mx(mul(fx(2), add(self.slope_h, self.slope_p)), fx(0.0001)))
-        # No rounding: IntToFixedPoint nested in another call fails silently
-        # (run 6 error.log; same trap as Bulk Construction). Displays use |0.
-        self.q_best = mx(fx(10), mn(q_raw, self.q_ai))
+        # "h" is always the SENDER's market, "p" the receiver's (the article's
+        # source and target), whichever side the player is on.
+        #
+        # What the AI accepts (common/treaty_articles/13_goods_transfer.txt,
+        # inherent_accept_score): an AI RECEIVING goods scores quantity up to
+        # its shortage + 10 and loses 0.3 per unit beyond; an AI SENDING goods
+        # scores quantity up to 30% of its surplus + 10 and loses 0.25 per unit
+        # beyond (x6 for grain, x3 for fish, meat, fruit, groceries).
+        # "Accept" = the top of that range: the most quantity the AI still
+        # fully values. "Max" = Accept, capped by what the player's own market
+        # can spare (sending) or use (receiving): Damien's min(their need, our
+        # side), 2026-10-05. Both floored at vanilla's minimum of 10.
+        self.q_accept_send = mx(fx(10), add(sub(self.bp, self.sp), fx(10)))
+        self.q_max_send = mx(fx(10), mn(self.q_accept_send, sub(self.sh, self.bh)))
+        self.q_accept_recv = mx(fx(10), add(mul(fx(0.3), sub(self.sh, self.bh)), fx(10)))
+        self.q_max_recv = mx(fx(10), mn(self.q_accept_recv, add(sub(self.bp, self.sp), fx(10))))
+        self.q_ai = self.q_accept_send
+        # Best quantity: computed in script (see "Best quantity, computed in
+        # SCRIPT" below), capped at Accept so the AI never sees "too much".
+        self.q_best = self.script("st_q_best")
+        self.best_gain = self.script("st_best_gain")
         self.pays = gt(self.edge, fx(0))
+
+    def script(self, name):
+        inputs = [("st_bh", self.bh), ("st_sh", self.sh), ("st_bp", self.bp), ("st_sp", self.sp),
+                  ("st_ph", self.ph), ("st_pp", self.pp), ("st_base", self.base),
+                  ("st_ship", self.ship_unit), ("st_cap", self.q_accept_send)]
+        chain = "".join(f".AddScope('{k}', MakeScopeValue({v}))" for k, v in inputs)
+        return f"GuiScope.SetRoot(GetPlayer.MakeScope){chain}.ScriptValue('{name}')"
 
     def ph1(self, q):
         return add(self.ph, mul(self.base, sub(f_imb(add(self.bh, q), self.sh), f_imb(self.bh, self.sh))))
@@ -149,9 +159,6 @@ class Market:
         """First-week gain on a short route (exact price rule)."""
         return sub(self.margin(q), mul(q, self.ship_unit))
 
-    def gain_lin(self, q):
-        """Cheap linear estimate, for the goods cards (dozens per frame)."""
-        return mul(q, sub(self.edge, mul(add(self.slope_h, self.slope_p), q)))
 
 
 D = Market("ArticleDraft.GetGoods")
@@ -166,25 +173,19 @@ D_SHIP_MID = mul(D_SHIP_LO, fx(ROUTE_EST))
 D_NET_LO = sub(D_MARGIN, D_SHIP_HI)
 D_NET_HI = sub(D_MARGIN, D_SHIP_LO)
 D_NET_MID = sub(D_MARGIN, D_SHIP_MID)
-# Vanilla's AI quantity rule caps at 35% of the partner's consumption; if the
-# player's default comes from it, this matches the slider's first value.
-D_VANILLA_GUESS = mul(fx(0.35), D.bp)
 D_QAI = D.q_ai
 D_QBEST = D.q_best
-# Linear estimate on purpose: the exact version is a 32,788-character
-# expression (q_best repeated five times). Once Best is clicked, the Net
-# figure shows the exact first-week value at that quantity anyway.
-D_BEST_GAIN = D.gain_lin(D_QBEST)
+D_BEST_GAIN = D.best_gain
+D_QMAX_SEND, D_QACC_SEND = D.q_max_send, D.q_accept_send
+D_QMAX_RECV, D_QACC_RECV = D.q_max_recv, D.q_accept_recv
 D_PAYS = D.pays
 D_SHOW = "And(ArticleDraft.HasType('goods_transfer'), Country.IsLocalPlayer)"
-# Same test without relying on the widget's Country context (the goods popup).
+# Same tests without relying on the widget's Country context (the goods popup).
 D_MINE_SRC = "And(ArticleDraft.HasType('goods_transfer'), ArticleDraft.GetFirstOrSource.IsLocalPlayer)"
-D_DEV = (f"Select test [{sel(gt(fx(1), fx(0)), fx(1), fx(2))}|0] (1 = cond, then, else); "
-         f"edge [{D.edge}|2] slopes [{D.slope_h}|5] / [{D.slope_p}|5] qAI [{D.q_ai}|0]; "
-         f"35% of partner buy orders [{D_VANILLA_GUESS}|0] (compare with the default quantity right after picking a good)")
+D_MINE_TGT = "And(ArticleDraft.HasType('goods_transfer'), ArticleDraft.GetSecondOrTarget.IsLocalPlayer)"
 
 C_QBEST = C.q_best
-C_GAIN = C.gain_lin(C_QBEST)
+C_GAIN = C.best_gain
 # Only goods that gain at their own best quantity (run 7: dye showed -0.76,
 # because the first unit paid but the floor of 10 units did not).
 C_SHOW = (f"And(And(ArticleDraft.HasType('goods_transfer'), "
@@ -347,7 +348,7 @@ types smart_trade_types {
 
 	type smart_trade_best_button = button {
 		using = default_button
-		size = { 74 22 }
+		size = { 70 22 }
 		enabled = "[ArticleDraft.CanBeModified]"
 		block "action" {
 			onclick = "[ArticleDraft.SetQuantity(@@D_QBEST@@)]"
@@ -362,7 +363,7 @@ types smart_trade_types {
 			align = nobaseline
 			using = fontsize_small
 			block "label" {
-				raw_text = "Best: [@@D_QBEST@@|0]"
+				raw_text = "Best [@@D_QBEST@@|0]"
 			}
 		}
 	}
@@ -734,7 +735,10 @@ LOC = r'''l_english:
  EXPENSES_BREAKDOWN:0 "#bold (ST) Net treaty income:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],SMART_TRADE_TREATIES_TT ~@money![@@P_NET@@|D+=]#!#! (already in revenue and expenses)\n\n#bold National Expenses:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],TOTAL_EXPENSES_BREAKDOWN,TotalExpensesTooltip #bold #N @money!-[GetPlayer.GetWeeklyExpenses|D-]#!#!#!#!"
  SMART_TRADE_TREATIES_TT:0 "#header Net treaty income, per week#!\nGoods you send: @money![@@P_TRADE@@|D+=]\nTheir shipping: @money![@@NEG_P_SHIP@@|D+=] (estimate)\nMoney transfers: @money![@@P_MONEY@@|D+=]\nShipping is paid in merchant marine at your market price; more ports lower it.\nPer treaty: see the outliner's Treaties list."
  SMART_TRADE_BEST_TT:0 "Set the quantity to [@@D_QBEST@@|0]: the best weekly result that [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting] still wants."
- SMART_TRADE_MAX_TT:0 "Set the quantity to [@@D_QAI@@|0]: the most [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting] wants, its shortage plus 10. Above that it likes the deal less."
+ SMART_TRADE_MAX_SEND_TT:0 "Set the quantity to [@@D_QMAX_SEND@@|0]: the most you can spare that [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting] still fully values (the lower of your surplus and its shortage plus 10)."
+ SMART_TRADE_ACCEPT_SEND_TT:0 "Set the quantity to [@@D_QACC_SEND@@|0]: [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting]'s shortage plus 10, where it likes this good most. Each unit above costs 0.3 acceptance."
+ SMART_TRADE_MAX_RECV_TT:0 "Set the quantity to [@@D_QMAX_RECV@@|0]: the most you can use that [ArticleDraft.GetFirstOrSource.GetNameNoFormatting] still gives freely (the lower of your shortage plus 10 and 30% of its surplus plus 10)."
+ SMART_TRADE_ACCEPT_RECV_TT:0 "Set the quantity to [@@D_QACC_RECV@@|0]: 30% of [ArticleDraft.GetFirstOrSource.GetNameNoFormatting]'s surplus plus 10, the most it sends without liking the deal less."
  SMART_TRADE_OVERLAND_TT:0 "Your markets border each other: goods transfers go overland and pay no shipping."
 '''
 
@@ -756,7 +760,7 @@ CARD_CHIP = '''blockoverride "entire_icon_button" {
 						button = {
 							name = "interaction_icon"
 							size = { 60 60 }
-							position = { 0 14 }
+							position = { 0 13 }
 							gfxtype = buttongfx
 							parentanchor = hcenter
 							alwaystransparent = yes
@@ -764,7 +768,7 @@ CARD_CHIP = '''blockoverride "entire_icon_button" {
 							block "highlight_glow" {}
 
 							button = {
-								size = { 38 38 }
+								size = { 40 40 }
 								parentanchor = hcenter
 								alwaystransparent = yes
 
@@ -826,6 +830,7 @@ ROW_BEST = ROW_ANCHOR + '''
 					raw_text = "Net ~@money![@@D_NET_MID@@|D+=]"
 					tooltipwidget = { smart_trade_draft_tooltip = {} }
 				}
+				### Goods the player sends: Best, Max, Accept
 				smart_trade_best_button = {
 					visible = "[@@D_MINE_SRC@@]"
 					parentanchor = vcenter
@@ -833,9 +838,31 @@ ROW_BEST = ROW_ANCHOR + '''
 				smart_trade_best_button = {
 					visible = "[@@D_MINE_SRC@@]"
 					parentanchor = vcenter
-					blockoverride "action" { onclick = "[ArticleDraft.SetQuantity(@@D_QAI@@)]" }
-					blockoverride "label" { raw_text = "Max: [@@D_QAI@@|0]" }
-					blockoverride "tip" { tooltip = "SMART_TRADE_MAX_TT" }
+					blockoverride "action" { onclick = "[ArticleDraft.SetQuantity(@@D_QMAX_SEND@@)]" }
+					blockoverride "label" { raw_text = "Max [@@D_QMAX_SEND@@|0]" }
+					blockoverride "tip" { tooltip = "SMART_TRADE_MAX_SEND_TT" }
+				}
+				smart_trade_best_button = {
+					visible = "[@@D_MINE_SRC@@]"
+					parentanchor = vcenter
+					blockoverride "action" { onclick = "[ArticleDraft.SetQuantity(@@D_QACC_SEND@@)]" }
+					blockoverride "label" { raw_text = "Accept [@@D_QACC_SEND@@|0]" }
+					blockoverride "tip" { tooltip = "SMART_TRADE_ACCEPT_SEND_TT" }
+				}
+				### Goods the partner sends: Max, Accept (no treasury effect)
+				smart_trade_best_button = {
+					visible = "[@@D_MINE_TGT@@]"
+					parentanchor = vcenter
+					blockoverride "action" { onclick = "[ArticleDraft.SetQuantity(@@D_QMAX_RECV@@)]" }
+					blockoverride "label" { raw_text = "Max [@@D_QMAX_RECV@@|0]" }
+					blockoverride "tip" { tooltip = "SMART_TRADE_MAX_RECV_TT" }
+				}
+				smart_trade_best_button = {
+					visible = "[@@D_MINE_TGT@@]"
+					parentanchor = vcenter
+					blockoverride "action" { onclick = "[ArticleDraft.SetQuantity(@@D_QACC_RECV@@)]" }
+					blockoverride "label" { raw_text = "Accept [@@D_QACC_RECV@@|0]" }
+					blockoverride "tip" { tooltip = "SMART_TRADE_ACCEPT_RECV_TT" }
 				}'''
 
 PICKER_TYPES = [
@@ -887,7 +914,132 @@ def expand(text: str) -> str:
     return "﻿" + text
 
 
-OUTPUTS = {OUT_GUI: GUI + picker_block(), OUT_LOC: LOC}
+# --- Best quantity, computed in SCRIPT ---------------------------------------
+# The GUI has no variables, so the corrected optimum written as one GUI
+# expression is 142,364 characters. Script can store intermediate results
+# (save_temporary_scope_value_as inside a limit, the same trick the treaty
+# totals use), so the GUI passes the inputs in as value scopes and reads one
+# number back:
+#   GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('st_bh', MakeScopeValue(...))
+#       ...AddScope('st_cap', ...).ScriptValue('st_q_best')
+# Inputs: st_bh st_sh (home buy/sell orders), st_bp st_sp (partner), st_ph
+# st_pp (today's prices), st_base, st_ship (shipping per unit), st_cap.
+#
+# Method (checked in Python against brute force on five market shapes,
+# 2026-10-05): a linear first guess from the price rule's slopes at today's
+# orders, then one Newton step using the exact prices and slopes at that
+# guess. Within ~1% of the true optimum in every case, including the one the
+# linear guess alone gets badly wrong (partner price already at its cap:
+# linear recommends a loss of ~8K/wk, one step finds +7.8K vs a best of +7.9K).
+# Squares are avoided (S / B / B, not S / (B x B)): fixed point overflows
+# around 2 billion, i.e. buy orders above ~46K units.
+
+OUT_SCRIPT = REPO / "smart_trade" / "common" / "script_values" / "smart_trade_best_quantity.txt"
+
+
+def sv(*ops):
+    return "{ " + " ".join(ops) + " }"
+
+
+def sv_min(a, b): return sv(f"value = {a}", f"max = {b}")      # min(a, b)
+def sv_max(a, b): return sv(f"value = {a}", f"min = {b}")      # max(a, b)
+
+
+def sv_ratio(b, s):
+    """(buy - sell) / min(buy, sell): the price rule's imbalance."""
+    return sv(f"value = {b}", f"subtract = {s}", f"divide = {sv_max(sv_min(b, s), 0.01)}")
+
+
+def sv_clamp1(x): return sv(f"value = {x}", "min = -1", "max = 1")
+
+
+def sv_slope_home(b, s):
+    """Price rise per unit bought: k x max(1/S, S/B/B)."""
+    return sv(f"value = {sv_max(sv('value = 1', f'divide = {sv_max(s, 0.01)}'), sv(f'value = {s}', f'divide = {sv_max(b, 0.01)}', f'divide = {sv_max(b, 0.01)}'))}",
+              "multiply = scope:st_k")
+
+
+def sv_slope_partner(b, s):
+    """Price fall per unit supplied: k x max(B/S/S, 1/B)."""
+    return sv(f"value = {sv_max(sv(f'value = {b}', f'divide = {sv_max(s, 0.01)}', f'divide = {sv_max(s, 0.01)}'), sv('value = 1', f'divide = {sv_max(b, 0.01)}'))}",
+              "multiply = scope:st_k")
+
+
+def save(name, value):
+    return f"save_temporary_scope_value_as = {{ name = {name} value = {value} }}"
+
+
+def step(*saves):
+    """An if-block whose limit only saves values (run in order, always true)."""
+    body = "\n\t\t\t".join(saves)
+    return f"\tif = {{\n\t\tlimit = {{\n\t\t\t{body}\n\t\t}}\n\t\tadd = 0\n\t}}"
+
+
+def zero_if_capped(slope, ratio):
+    return (f"\tif = {{ limit = {{ OR = {{ scope:{ratio} >= 1 scope:{ratio} <= -1 }} "
+            f"{save(slope, 0)} }} add = 0 }}")
+
+
+def prices_at(q, tag):
+    """Save st_rh{tag} st_rp{tag} st_ph{tag} st_pp{tag} for quantity q."""
+    bh_q = sv("value = scope:st_bh", f"add = {q}")
+    sp_q = sv("value = scope:st_sp", f"add = {q}")
+    return [
+        step(save(f"st_rh{tag}", sv_ratio(bh_q, "scope:st_sh")),
+             save(f"st_rp{tag}", sv_ratio("scope:st_bp", sp_q))),
+        step(save(f"st_ph{tag}", sv("value = scope:st_ph", f"add = {sv(f'value = {sv_clamp1(f'scope:st_rh{tag}')}', f'subtract = {sv_clamp1('scope:st_rh0')}', 'multiply = scope:st_k')}")),
+             save(f"st_pp{tag}", sv("value = scope:st_pp", f"add = {sv(f'value = {sv_clamp1(f'scope:st_rp{tag}')}', f'subtract = {sv_clamp1('scope:st_rp0')}', 'multiply = scope:st_k')}"))),
+    ]
+
+
+def clamp_q(x): return sv(f"value = {x}", "max = scope:st_cap", "min = 10")
+
+
+SCRIPT_LINES = [
+    "# GENERATED by tools/gen_smart_trade_gui.py. Edit the generator, not this file.",
+    "# Best weekly quantity for a goods transfer the player sends, and its gain.",
+    "# See the generator's comment block for inputs and method. Read-only.",
+    "",
+    "st_q_best = {",
+    "\tvalue = 0",
+    step(save("st_k", sv("value = scope:st_base", "multiply = 0.75")),
+         save("st_rh0", sv_ratio("scope:st_bh", "scope:st_sh")),
+         save("st_rp0", sv_ratio("scope:st_bp", "scope:st_sp"))),
+    step(save("st_slh", sv_slope_home("scope:st_bh", "scope:st_sh")),
+         save("st_slp", sv_slope_partner("scope:st_bp", "scope:st_sp"))),
+    zero_if_capped("st_slh", "st_rh0"),
+    zero_if_capped("st_slp", "st_rp0"),
+    step(save("st_q1", clamp_q(sv(f"value = {sv('value = scope:st_pp', 'subtract = scope:st_ph', 'subtract = scope:st_ship')}",
+                                  f"divide = {sv_max(sv('value = scope:st_slh', 'add = scope:st_slp', 'multiply = 2'), 0.0001)}")))),
+    *prices_at("scope:st_q1", "1"),
+    step(save("st_slh1", sv_slope_home(sv("value = scope:st_bh", "add = scope:st_q1"), "scope:st_sh")),
+         save("st_slp1", sv_slope_partner("scope:st_bp", sv("value = scope:st_sp", "add = scope:st_q1")))),
+    zero_if_capped("st_slh1", "st_rh1"),
+    zero_if_capped("st_slp1", "st_rp1"),
+    step(save("st_d1", sv("value = scope:st_slh1", "add = scope:st_slp1")),
+         save("st_spread1", sv("value = scope:st_pp1", "subtract = scope:st_ph1", "subtract = scope:st_ship"))),
+    step(save("st_q2", clamp_q(sv("value = scope:st_q1",
+                                  f"add = {sv(f'value = {sv('value = scope:st_spread1', f'subtract = {sv('value = scope:st_q1', 'multiply = scope:st_d1')}')}', f'divide = {sv_max(sv('value = scope:st_d1', 'multiply = 2'), 0.0001)}')}")))),
+    "\tvalue = scope:st_q2",
+    "}",
+    "",
+    "st_best_gain = {",
+    "\tvalue = 0",
+    # Recomputed here rather than trusting temporary values saved inside the
+    # nested st_q_best call to survive into this one.
+    step(save("st_qb", "st_q_best")),
+    step(save("st_k", sv("value = scope:st_base", "multiply = 0.75")),
+         save("st_rh0", sv_ratio("scope:st_bh", "scope:st_sh")),
+         save("st_rp0", sv_ratio("scope:st_bp", "scope:st_sp"))),
+    *prices_at("scope:st_qb", "b"),
+    "\tvalue = scope:st_qb",
+    "\tmultiply = { value = scope:st_ppb subtract = scope:st_phb subtract = scope:st_ship }",
+    "}",
+    "",
+]
+SCRIPT = "\n".join(SCRIPT_LINES)
+
+OUTPUTS = {OUT_GUI: GUI + picker_block(), OUT_LOC: LOC, OUT_SCRIPT: SCRIPT}
 
 if __name__ == "__main__":
     stale = []
