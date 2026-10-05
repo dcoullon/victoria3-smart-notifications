@@ -138,6 +138,8 @@ Later option (Damien): a "max volume" choice next to "max profit".
 
 **Draft treaty total:** not feasible as built. GUI expressions cannot sum the draft's articles, and script cannot see drafts at all (no `MakeScope` on `TreatyDraft` or `ArticleDraft` in the dump). Signed treaties have a total because script iterates in-force articles.
 
+**Before publishing, translations** (Damien, 2026-10-05): most player-facing text is hard-coded `raw_text` in the generated GUI; move it into loc keys, then translate into the languages Bulk Construction ships (braz_por, french, german, japanese, korean, polish, russian, simp_chinese, spanish, turkish).
+
 **Before publishing:** remove the "dev" line from the goods-transfer hover (Damien's reminder, 2026-10-05); `tools/package_release.py` refuses to package while it is there.
 
 **Constraints found while designing:**
