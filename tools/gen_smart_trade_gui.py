@@ -357,13 +357,29 @@ types smart_trade_types {
 			tooltip = "SMART_TRADE_BEST_TT"
 		}
 
-		textbox = {
+		flowcontainer = {
 			parentanchor = center
-			autoresize = yes
-			align = nobaseline
-			using = fontsize_small
-			block "label" {
-				raw_text = "Best [@@D_QBEST@@|0]"
+			spacing = 2
+
+			# The "acceptance" buttons show vanilla's own thumbs-up (the icon
+			# the goods cards use for "AI likes this") instead of a word.
+			icon = {
+				block "thumb" {
+					visible = no
+				}
+				parentanchor = vcenter
+				size = { 16 16 }
+				texture = "gfx/interface/icons/generic_icons/approval_icon.dds"
+			}
+
+			textbox = {
+				parentanchor = vcenter
+				autoresize = yes
+				align = nobaseline
+				using = fontsize_small
+				block "label" {
+					raw_text = "Best [@@D_QBEST@@|0]"
+				}
 			}
 		}
 	}
@@ -846,7 +862,8 @@ ROW_BEST = ROW_ANCHOR + '''
 					visible = "[@@D_MINE_SRC@@]"
 					parentanchor = vcenter
 					blockoverride "action" { onclick = "[ArticleDraft.SetQuantity(@@D_QACC_SEND@@)]" }
-					blockoverride "label" { raw_text = "Accept [@@D_QACC_SEND@@|0]" }
+					blockoverride "label" { raw_text = "[@@D_QACC_SEND@@|0]" }
+					blockoverride "thumb" { visible = yes }
 					blockoverride "tip" { tooltip = "SMART_TRADE_ACCEPT_SEND_TT" }
 				}
 				### Goods the partner sends: Max, Accept (no treasury effect)
@@ -861,7 +878,8 @@ ROW_BEST = ROW_ANCHOR + '''
 					visible = "[@@D_MINE_TGT@@]"
 					parentanchor = vcenter
 					blockoverride "action" { onclick = "[ArticleDraft.SetQuantity(@@D_QACC_RECV@@)]" }
-					blockoverride "label" { raw_text = "Accept [@@D_QACC_RECV@@|0]" }
+					blockoverride "label" { raw_text = "[@@D_QACC_RECV@@|0]" }
+					blockoverride "thumb" { visible = yes }
 					blockoverride "tip" { tooltip = "SMART_TRADE_ACCEPT_RECV_TT" }
 				}'''
 
