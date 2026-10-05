@@ -879,8 +879,9 @@ REPLACED_LOC_BASELINE = {
     "POP_EFFECT_FILTER_POP_TYPE": "2389a7c580434297",
     "ADD_RADICALS_IN_STATE_THIRD": "a234c3847df477e8",
     "ADD_LOYALISTS_IN_STATE_THIRD": "3576276f3952fa7f",
-    # Smart Trade appends its "Net treaty income" line to this (2026-10-03).
-    "BALANCE_WITHOUT_TEMPORARY_INCOME_AND_EXPENSES": "c9b8dbe17cfe9736",
+    # Smart Trade prepends its "Net treaty income" line to these (2026-10-05).
+    "FIXED_EXPENSES_BREAKDOWN": "5d735b175307f973",
+    "EXPENSES_BREAKDOWN": "b5a24de94d3fea5c",
 }
 
 

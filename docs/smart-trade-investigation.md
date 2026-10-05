@@ -115,6 +115,14 @@ The Budget panel's Treaties tooltips are left alone.
 - A smarter default quantity: the profit-maximising one, settable through `ArticleDraft.SetQuantity`. Vanilla's default often exceeds the receiving market's deficit.
 - Show what the AI actually values: its acceptance formula is readable in `common/treaty_articles/13_goods_transfer.txt`, and vanilla's "AI will accept" reading is often wrong at the default quantity.
 - A verdict per good inside the goods picker.
+- (2026-10-05) Default quantity = the one that maximises the player's gain while the AI still accepts; plain max gain if that is too hard. The picker's AI yes/no should then reflect that quantity. Goods ordered by expected max gain, ideally only those the AI accepts.
+- (later) Show which countries need no shipping lane (markets that border the player's), since overland is what makes goods transfers pay.
+
+**Why sea transfers rarely pay (2026-10-05):** shipping costs one merchant marine per `traded_quantity` units, and Paradox set `traded_quantity` roughly inverse to price. At base merchant-marine price (50) every good's shipping costs 17% to 28% of its own base value (tools 25%, automobiles 17%), so a sea transfer needs a price gap of about a fifth of the good's value just to break even. Cheaper merchant marine is the lever: at the floor price (12.5) the same 960 tools to Austria go from about −£6.4K to +£1.2K a week.
+
+**Draft treaty total:** not feasible as built. GUI expressions cannot sum the draft's articles, and script cannot see drafts at all (no `MakeScope` on `TreatyDraft` or `ArticleDraft` in the dump). Signed treaties have a total because script iterates in-force articles.
+
+**Before publishing:** remove the "dev" line from the goods-transfer hover (Damien's reminder, 2026-10-05); `tools/package_release.py` refuses to package while it is there.
 
 **Constraints found while designing:**
 
