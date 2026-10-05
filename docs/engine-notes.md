@@ -45,6 +45,7 @@ in new code; `CLAUDE.md` only states the rule, not the reasoning.
 - [A .gui @constant is file-scoped, and borrowing one fails silently](#a-gui-constant-is-file-scoped-and-borrowing-one-fails-silently)
 - [A partial .gui override works — if the filename sorts before vanilla's](#a-partial-gui-override-works-—-if-the-filename-sorts-before-vanillas)
 - [The engine dumps its own datafunction list — grep that before probing](#the-engine-dumps-its-own-datafunction-list-—-grep-that-before-probing)
+- [The GUI cannot pass a number to a script value](#the-gui-cannot-pass-a-number-to-a-script-value)
 - [The GUI layer cannot count a filtered datamodel](#the-gui-layer-cannot-count-a-filtered-datamodel)
 - [A missing texture draws nothing and logs nothing](#a-missing-texture-draws-nothing-and-logs-nothing)
 - [visible does not gate widget creation, so it cannot guard an action](#visible-does-not-gate-widget-creation-so-it-cannot-guard-an-action)
@@ -1601,12 +1602,46 @@ logs folder for four days before any session thought to check it, which is
 the lesson worth keeping: **look at what the game has already written before
 asking it to write more.**
 
-**Absence is conclusive; presence is not.** A function missing from the dump
-does not exist — stop. A function present in it exists *somewhere*, but this
+**Absence is nearly conclusive; presence is not.** A *member* function
+missing from the dump does not exist: all 6.3 MB of vanilla GUI never calls
+one (2026-10-05). A handful of *global* functions are missing yet real
+(`NotZero`, `IsZero_CFixedPoint`, `GreaterThanZero`, `Negate` and a few more;
+vanilla uses them). A function present in it exists *somewhere*, but this
 engine has more than one function table (see § Two separate function tables),
 so it may still fail in the context you want it in. `Country.GetName` is in
 the dump and still errors from script-side dynamic text, which is why
 CLAUDE.md § 3 mandates `GetNameNoFormatting`.
+
+**Now enforced, link by link.** The dump also gives each function's return
+type, so `check_gui_datafunction_chains` (tools/check_references.py) follows
+every `[...]` chain in a mod's `.gui` files: each `.Name` must exist on the
+type the previous link returned. Gaps are learned by running the same check
+over vanilla's GUI and ignoring whatever vanilla itself trips. It would have
+caught Smart Trade run 10 (`.End.ScriptValue`, see § The GUI cannot pass a
+number to a script value) before the launch.
+
+## The GUI cannot pass a number to a script value
+
+Smart Trade runs 9 and 10 (2026-10-05) tried to compute the best quantity in
+script, handing it the market numbers as value scopes:
+`GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('st_bh', MakeScopeValue(x))...ScriptValue('st_q_best')`.
+
+- Without `.End`: the call runs, but every value input reaches the script
+  as 'none' (run 9).
+- With `.End` before `.ScriptValue`: the expression does not parse
+  ("Could not find promote for 'End'"), and every widget using it goes
+  blank (run 10: the goods-card gains, the Best button, the default
+  quantity).
+
+What does work: `X.MakeScope.ScriptValue('name')` with a real scope as the
+only input, and scope OBJECTS (a country's `MakeScope`) passed through
+`GetScriptedGui(...).IsValid(GuiScope...AddScope(...).End)`. So arithmetic on
+GUI-only numbers stays in the GUI. Without variables, Smart Trade does it in
+two ways (tools/gen_smart_trade_gui.py, `Market.chain` and
+`Market.register`): nested `visible` containers that pick the decade the
+answer lies in, and, in an onclick, the draft's own quantity used as the one
+variable the GUI has, climbed step by step. `check_no_gui_value_passing`
+blocks `MakeScopeValue(` and `.End.ScriptValue(`.
 
 ## The GUI layer cannot count a filtered datamodel
 

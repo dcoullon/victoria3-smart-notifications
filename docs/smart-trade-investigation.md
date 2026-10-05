@@ -136,6 +136,17 @@ The Budget panel's Treaties tooltips are left alone.
 
 **Run 9 (2026-10-05): best quantity in script, three buttons.** The linear best quantity stopped short (52 coffee vs a true best of 60) and failed badly when the partner's price sat at its cap (it recommended a ~8K/wk loss). One Newton step on the exact prices fixes both (within ~1% in five tested market shapes), but as a GUI expression it is 142K characters, so it moved to script (`st_q_best`, `st_best_gain`): the GUI passes orders, prices, base, shipping and cap as value scopes (`MakeScopeValue`) and reads one number. Buttons under the slider: Best / Max / Accept for goods the player sends, Max / Accept for goods the partner sends. Accept is the top of the quantity range the AI fully values (receiver: shortage + 10; sender: 30% of surplus + 10); Max caps that by the player's own side (surplus when sending, shortage + 10 when receiving). None of them can guarantee overall acceptance: relations and the treaty's other articles also count, and the game's acceptance figure for the draft is the authority.
 
+**Run 10 result (2026-10-05): the script route is dead.** `.End.ScriptValue` does not parse, so the card gains, the Best button and the default quantity all went blank or inert (coffee to Austria stayed at vanilla's 347, −£5.12K, against about +£306 at 47). The GUI cannot pass numbers to script at all (engine-notes § The GUI cannot pass a number to a script value).
+
+**Run 11 build: best quantity in the GUI only.** Card gains and the "Best: about" figure use `Market.chain` (nested decade containers, max over 11 points per decade plus the two kinks and the cap; worst 1.31% below the true best on 5,000 random market shapes). The card click and the Best button use `Market.register` (the draft's quantity climbed in ratio steps while the marginal gain stays positive; 0.76% of shapes more than 2% short, all small kinks). The register depends on one unknown: whether `GetQuantity` reads back a `SetQuantity` from the same click. Also: the button row's popup height (70 → 92, it ran into the divider), "Shipping lanes costs" in the treasury hover, and a dev line comparing the price rule with the market's price (the search uses the rule).
+
+Acceptance criteria, run 11:
+- Every profitable good the player could send shows a positive figure top-left on its card; unprofitable ones show nothing.
+- Clicking coffee (Austria) sets about 47 to 60, not 347, and the row's Net is within 2% of the card's figure.
+- Moving the slider then clicking Best returns to that quantity. If the quantity does not move or lands far off, `GetQuantity` is not read back within one click: the register fails and the fallback is per-decade Best buttons.
+- The dev line's rule and market prices match to the penny on both sides.
+- `python tools/scan_logs.py` shows no new Smart Trade errors; the button row no longer touches the divider.
+
 **Known limits, deferred (independent review, 2026-10-05):**
 
 - Multiplayer: treaty totals select "the player's" articles with the script trigger `is_player`, which is true for every human. In a treaty between two humans both sides' goods would be counted. Fix if multiplayer ever matters: pass the local player in as a scope.

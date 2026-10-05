@@ -1304,6 +1304,179 @@ def check_no_nested_int_to_fixed_point(root: Path) -> list[str]:
     return errs
 
 
+def check_no_gui_value_passing(root: Path) -> list[str]:
+    """The GUI cannot hand a computed number to a script value. Smart Trade
+    runs 9-10 (2026-10-05): `GuiScope...AddScope('x', MakeScopeValue(...))
+    .ScriptValue(...)` delivered 'none' for every input, and adding `.End`
+    before `.ScriptValue` failed to parse ("Could not find promote for
+    'End'"), blanking the best quantity, the card gains and the Best button.
+    Scope objects (MakeScope of a country) through IsValid(... .End) do work."""
+    errs = []
+    pats = [(re.compile(r"\.End\.ScriptValue\("), "`.End.ScriptValue(` does not parse"),
+            (re.compile(r"MakeScopeValue\("), "`MakeScopeValue(` never reached script intact")]
+    for sub in ("gui", "localization"):
+        base = root / sub
+        if not base.is_dir():
+            continue
+        for path in sorted(list(base.rglob("*.gui")) + list(base.rglob("*.yml"))):
+            for i, line in enumerate(path.read_text(encoding="utf-8-sig").splitlines(), 1):
+                for pat, why in pats:
+                    if pat.search(line):
+                        errs.append(f"{path.relative_to(root).as_posix()}:{i}: {why}; the GUI cannot pass "
+                                    f"values to script (see this check's docstring)")
+    return errs
+
+
+# --- GUI expression chains, type-checked against the engine's own dump -------
+# reference/data_types lists every datafunction with its return type, so a
+# chain like `Goods.WithMarketContext(...).GetMarketPrice` can be followed
+# link by link: each `.Name` must exist on the type the previous link
+# returned. That catches the run-10 class of bug (a call that does not exist
+# where it is used) before a launch. The dump has a few gaps (NotZero and
+# friends exist but are not listed), so whatever vanilla's own GUI trips is
+# learned as a gap and ignored. Calibrated 2026-10-05: all 6.3 MB of vanilla
+# GUI produce 15 distinct issues, every one an unlisted global, and no
+# "has no .X" at all; our three mods produce none.
+DATA_TYPES_DIR = REPO_ROOT / "reference" / "data_types"
+_DF_TOKEN = re.compile(r"\s*(?:('[^']*')|([A-Za-z_]\w*)|(-?\d+(?:\.\d+)?)|(.))")
+_DF_CACHE: dict = {}
+
+
+def _df_load():
+    if "funcs" not in _DF_CACHE:
+        funcs: dict[str, set] = {}
+        for p in sorted(DATA_TYPES_DIR.glob("data_types_*.txt")):
+            name = None
+            for line in p.read_text(encoding="utf-8-sig", errors="replace").splitlines():
+                m = re.match(r"^([A-Za-z_][\w.]*?)(\(.*\))?\s*$", line)
+                if m and not line.startswith(("Definition", "Return", "Description", "---")):
+                    name = m.group(1)
+                    continue
+                m = re.match(r"^Return type: (.*)$", line)
+                if m and name:
+                    funcs.setdefault(name, set()).add(m.group(1).strip())
+        _DF_CACHE["funcs"] = funcs
+        _DF_CACHE["types"] = {k.split(".")[0] for k in funcs if "." in k}
+    return _DF_CACHE["funcs"], _DF_CACHE["types"]
+
+
+class _DfParser:
+    """Recursive descent over one `[...]` body; records problems in errs."""
+    ANY = "?"
+
+    def __init__(self, body, where, errs):
+        self.t = []
+        for m in _DF_TOKEN.finditer(body):
+            if m.group(1) or m.group(3):
+                self.t.append(("lit", m.group(0).strip()))
+            elif m.group(2):
+                self.t.append(("id", m.group(2)))
+            elif m.group(4) and not m.group(4).isspace():
+                self.t.append(("op", m.group(4)))
+        self.i, self.where, self.errs = 0, where, errs
+        self.funcs, self.types = _df_load()
+
+    def peek(self, k=0):
+        return self.t[self.i + k] if self.i + k < len(self.t) else ("eof", "")
+
+    def take(self):
+        self.i += 1
+        return self.t[self.i - 1] if self.i - 1 < len(self.t) else ("eof", "")
+
+    def args(self):
+        if self.peek() == ("op", ")"):
+            self.take()
+            return
+        while True:
+            self.expr()
+            t = self.take()
+            if t == ("op", ")") or t[0] == "eof":
+                return
+            if t != ("op", ","):
+                self.errs.append(f"{self.where}: parse trouble near {t[1]!r}")
+                return
+
+    def expr(self):
+        t = self.take()
+        if t[0] != "id":
+            return {self.ANY}
+        name, call = t[1], self.peek() == ("op", "(")
+        if call:
+            self.take()
+            self.args()
+        if name in self.types and not call:
+            cur = {name}
+        elif name in self.funcs:
+            cur = self.funcs[name]
+        else:
+            self.errs.append(f"{self.where}: unknown function `{name}`")
+            cur = {self.ANY}
+        while self.peek() == ("op", "."):
+            self.take()
+            n = self.take()[1]
+            if self.peek() == ("op", "("):
+                self.take()
+                self.args()
+            if n == "End":
+                # Closes a scope-builder ARGUMENT (IsValid(GuiScope...End));
+                # nothing may follow it (run 10: `.End.ScriptValue` failed).
+                if self.peek() == ("op", "."):
+                    self.errs.append(f"{self.where}: `.End.{self.peek(1)[1]}`: End only closes "
+                                     f"a scope argument, nothing can follow it")
+                cur = {self.ANY}
+                continue
+            known = [r for r in cur if r not in (self.ANY, "[unregistered]", "void")]
+            if not known:
+                cur = {self.ANY}
+                continue
+            nxt = set()
+            for r in known:
+                nxt |= self.funcs.get(f"{r}.{n}", set())
+            if not nxt:
+                self.errs.append(f"{self.where}: `{'/'.join(sorted(known))}` has no `.{n}`")
+                nxt = {self.ANY}
+            cur = nxt
+        return cur
+
+
+def _df_scan(files, label) -> list[str]:
+    errs = []
+    for f in files:
+        for i, line in enumerate(f.read_text(encoding="utf-8-sig", errors="replace").splitlines(), 1):
+            quoted, code = False, []
+            for ch in line:              # drop a # comment outside quotes
+                if ch == '"':
+                    quoted = not quoted
+                if ch == "#" and not quoted:
+                    break
+                code.append(ch)
+            for q in re.findall(r'"([^"]*)"', "".join(code)):
+                for m in re.finditer(r"\[([^\[\]]*)\]", q):
+                    body = m.group(1).split("|")[0]
+                    if re.match(r"\s*[A-Za-z_]", body):
+                        _DfParser(body, f"{label(f)}:{i}", errs).expr()
+    return errs
+
+
+def check_gui_datafunction_chains(root: Path) -> list[str]:
+    """Every `[...]` chain in this mod's .gui files, type-checked link by
+    link against reference/data_types (see the block comment above)."""
+    gui = root / "gui"
+    if not gui.is_dir():
+        return []
+    if not DATA_TYPES_DIR.is_dir():
+        _skip("gui datafunction chains", "reference/data_types missing")
+        return []
+    vanilla = VANILLA_ROOT / "gui"
+    if not vanilla.is_dir():
+        _skip("gui datafunction chains", "Victoria 3 not installed (needed to learn the dump's gaps)")
+        return []
+    if "gaps" not in _DF_CACHE:
+        _DF_CACHE["gaps"] = {e.split(": ", 1)[1] for e in _df_scan(sorted(vanilla.rglob("*.gui")), lambda f: f.name)}
+    return [e for e in _df_scan(sorted(gui.rglob("*.gui")), lambda f: f.relative_to(root).as_posix())
+            if e.split(": ", 1)[1] not in _DF_CACHE["gaps"]]
+
+
 def check_st_entry_width_matches_vanilla(root: Path) -> list[str]:
     """Smart Trade redefines vanilla's outliner_compact_treaty_item, which
     sizes itself with the file-scoped @entry_width; ours is @st_entry_width
@@ -1726,6 +1899,8 @@ def run_all(root: Path) -> list[str]:
     errs += check_markdown_links_resolve(root)
     errs += check_type_overrides_sort_first(root)
     errs += check_no_nested_int_to_fixed_point(root)
+    errs += check_no_gui_value_passing(root)
+    errs += check_gui_datafunction_chains(root)
 
     # Smart-Notifications-only: each asserts that specific files or message
     # keys THIS mod owns are present, so against a sibling mod every one of
