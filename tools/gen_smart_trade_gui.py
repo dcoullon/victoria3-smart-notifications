@@ -183,9 +183,12 @@ D_DEV = (f"Select test [{sel(gt(fx(1), fx(0)), fx(1), fx(2))}|0] (1 = cond, then
          f"edge [{D.edge}|2] slopes [{D.slope_h}|5] / [{D.slope_p}|5] qAI [{D.q_ai}|0]; "
          f"35% of partner buy orders [{D_VANILLA_GUESS}|0] (compare with the default quantity right after picking a good)")
 
-C_SHOW = f"And(And(ArticleDraft.HasType('goods_transfer'), ArticleDraft.GetFirstOrSource.IsLocalPlayer), {C.pays})"
 C_QBEST = C.q_best
 C_GAIN = C.gain_lin(C_QBEST)
+# Only goods that gain at their own best quantity (run 7: dye showed -0.76,
+# because the first unit paid but the floor of 10 units did not).
+C_SHOW = (f"And(And(ArticleDraft.HasType('goods_transfer'), "
+          f"ArticleDraft.GetFirstOrSource.IsLocalPlayer), {gt(C_GAIN, fx(0))})")
 
 # Draft header: does the partner's market border ours? (Context: Country is
 # one side of the header, TreatyDraft present.)
@@ -328,7 +331,6 @@ types smart_trade_types {
 					visible = "[Not(@@D_ADJ@@)]"
 					raw_text = "@@D_MM_NOTE@@"
 				}
-				custom_tooltip_textbox = { raw_text = "dev: @@D_DEV@@" }
 			}
 		}
 	}
@@ -345,12 +347,14 @@ types smart_trade_types {
 
 	type smart_trade_best_button = button {
 		using = default_button
-		size = { 96 22 }
+		size = { 74 22 }
 		enabled = "[ArticleDraft.CanBeModified]"
 		block "action" {
 			onclick = "[ArticleDraft.SetQuantity(@@D_QBEST@@)]"
 		}
-		tooltip = "SMART_TRADE_BEST_TT"
+		block "tip" {
+			tooltip = "SMART_TRADE_BEST_TT"
+		}
 
 		textbox = {
 			parentanchor = center
@@ -553,6 +557,26 @@ types treaty_draft_panel_types {
 }
 
 types pinnable_outliner_items {
+	# Vanilla body (gui/outliner_pinnable_types.gui:1660-1671); added: the
+	# estimated net of all treaties after the group's title, the same figure
+	# as the treasury tooltip's (ST) line.
+	type outliner_treaties = pinnable_outliner_group {
+		datacontext = "[Outliner.AccessCategory('treaties')]"
+
+		blockoverride "title_text" {
+			raw_text = "[OutlinerEntry.GetTitle]  ~@money![@@P_NET@@|D+=]/wk"
+		}
+
+		blockoverride "fixedgridbox_cell_size" {
+			addcolumn = @st_entry_width
+			addrow = 30
+		}
+
+		blockoverride "item" {
+			treaty_outliner_item = {}
+		}
+	}
+
 	# Vanilla body (gui/outliner_pinnable_types.gui:366-439); added: the
 	# treaty's net to the player at the right, left of the time remaining.
 	# Names get a narrower max width only on rows that show a net.
@@ -709,7 +733,8 @@ LOC = r'''l_english:
  FIXED_EXPENSES_BREAKDOWN:0 "#bold (ST) Net treaty income:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],SMART_TRADE_TREATIES_TT ~@money![@@P_NET@@|D+=]#!#! (already in revenue and expenses)\n\n#bold Fixed National Expenses:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],TOTAL_EXPENSES_BREAKDOWN,TotalExpensesTooltip #bold #N @money!-[GetPlayer.GetWeeklyFixedExpenses|D-]#!#!#!#!"
  EXPENSES_BREAKDOWN:0 "#bold (ST) Net treaty income:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],SMART_TRADE_TREATIES_TT ~@money![@@P_NET@@|D+=]#!#! (already in revenue and expenses)\n\n#bold National Expenses:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],TOTAL_EXPENSES_BREAKDOWN,TotalExpensesTooltip #bold #N @money!-[GetPlayer.GetWeeklyExpenses|D-]#!#!#!#!"
  SMART_TRADE_TREATIES_TT:0 "#header Net treaty income, per week#!\nGoods you send: @money![@@P_TRADE@@|D+=]\nTheir shipping: @money![@@NEG_P_SHIP@@|D+=] (estimate)\nMoney transfers: @money![@@P_MONEY@@|D+=]\nShipping is paid in merchant marine at your market price; more ports lower it.\nPer treaty: see the outliner's Treaties list."
- SMART_TRADE_BEST_TT:0 "Set the quantity to [@@D_QBEST@@|0], the most profitable amount [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting] still wants."
+ SMART_TRADE_BEST_TT:0 "Set the quantity to [@@D_QBEST@@|0]: the best weekly result that [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting] still wants."
+ SMART_TRADE_MAX_TT:0 "Set the quantity to [@@D_QAI@@|0]: the most [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting] wants, its shortage plus 10. Above that it likes the deal less."
  SMART_TRADE_OVERLAND_TT:0 "Your markets border each other: goods transfers go overland and pay no shipping."
 '''
 
@@ -721,13 +746,41 @@ GAME = Path(r"C:\Program Files (x86)\Steam\steamapps\common\Victoria 3\game")
 PICKER_SRC = GAME / "gui" / "right_click_menu.gui"
 
 # 1. Each goods card: the estimated best weekly gain, top-left.
+#    The goods icon is shrunk 45 -> 38px and lowered 5 -> 14px so the figure
+#    in the top-left corner no longer overlaps it (run 7 screenshot). This
+#    is grid_button's own "entire_icon_button" block with only those numbers
+#    changed (vanilla gui/right_click_menu.gui, type grid_button); the card's
+#    "texture" override still lands in the inner block "texture".
 CARD_ANCHOR = 'blockoverride "additional_widgets" {'
-CARD_CHIP = CARD_ANCHOR + '''
+CARD_CHIP = '''blockoverride "entire_icon_button" {
+						button = {
+							name = "interaction_icon"
+							size = { 60 60 }
+							position = { 0 14 }
+							gfxtype = buttongfx
+							parentanchor = hcenter
+							alwaystransparent = yes
+
+							block "highlight_glow" {}
+
+							button = {
+								size = { 38 38 }
+								parentanchor = hcenter
+								alwaystransparent = yes
+
+								block "texture" {
+									texture = "gfx/interface/icons/generic_icons/generic_concept_icon.dds"
+								}
+							}
+						}
+					}
+
+					''' + CARD_ANCHOR + '''
 						### SMART TRADE: best weekly gain for this good (estimate)
 						textbox = {
 							visible = "[@@C_SHOW@@]"
 							parentanchor = top|left
-							position = { 5 4 }
+							position = { 5 2 }
 							autoresize = yes
 							align = nobaseline
 							using = fontsize_small
@@ -749,17 +802,40 @@ PICK_BEST = PICK_ANCHOR + '''
 ROW_ANCHOR = 'text = "SLASH_PER_WEEK"\n\t\t\t\t}'
 ROW_BEST = ROW_ANCHOR + '''
 
-				### SMART TRADE: back to the best quantity
+				### SMART TRADE: live net at the current quantity, then the
+				### Best and Max buttons. Shown for every good the player sends,
+				### profitable or not (Damien: consistent UX; the player may
+				### take a loss on purpose).
+				textbox = {
+					visible = "[And(@@D_MINE_SRC@@, @@D_ADJ@@)]"
+					parentanchor = vcenter
+					autoresize = yes
+					align = nobaseline
+					using = fontsize_small
+					margin_left = 6
+					raw_text = "Net @money![@@D_MARGIN@@|D+=]"
+					tooltipwidget = { smart_trade_draft_tooltip = {} }
+				}
+				textbox = {
+					visible = "[And(@@D_MINE_SRC@@, Not(@@D_ADJ@@))]"
+					parentanchor = vcenter
+					autoresize = yes
+					align = nobaseline
+					using = fontsize_small
+					margin_left = 6
+					raw_text = "Net ~@money![@@D_NET_MID@@|D+=]"
+					tooltipwidget = { smart_trade_draft_tooltip = {} }
+				}
 				smart_trade_best_button = {
-					visible = "[And(@@D_MINE_SRC@@, @@D_PAYS@@)]"
+					visible = "[@@D_MINE_SRC@@]"
 					parentanchor = vcenter
 				}
-				### dev: same, passing an integer, in case SetQuantity wants one
 				smart_trade_best_button = {
-					visible = "[And(@@D_MINE_SRC@@, @@D_PAYS@@)]"
+					visible = "[@@D_MINE_SRC@@]"
 					parentanchor = vcenter
-					blockoverride "action" { onclick = "[ArticleDraft.SetQuantity(FixedPointToInt(@@D_QBEST@@))]" }
-					blockoverride "label" { raw_text = "dev int" }
+					blockoverride "action" { onclick = "[ArticleDraft.SetQuantity(@@D_QAI@@)]" }
+					blockoverride "label" { raw_text = "Max: [@@D_QAI@@|0]" }
+					blockoverride "tip" { tooltip = "SMART_TRADE_MAX_TT" }
 				}'''
 
 PICKER_TYPES = [
