@@ -1268,7 +1268,9 @@ def check_st_generated_files_current(root: Path) -> list[str]:
     than ship a stale number."""
     import subprocess
     errs = []
-    gens = [("tools/gen_smart_trade_gui.py", False),
+    # Both read the installed game: the GUI generator copies vanilla's goods
+    # picker list, so a patch that changes it shows up here as STALE.
+    gens = [("tools/gen_smart_trade_gui.py", True),
             ("tools/gen_smart_trade_values.py", True)]
     for script, needs_game in gens:
         if needs_game and not VANILLA_ROOT.is_dir():

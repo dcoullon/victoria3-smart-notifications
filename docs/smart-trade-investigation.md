@@ -120,6 +120,16 @@ The Budget panel's Treaties tooltips are left alone.
 
 **Why sea transfers rarely pay (2026-10-05):** shipping costs one merchant marine per `traded_quantity` units, and Paradox set `traded_quantity` roughly inverse to price. At base merchant-marine price (50) every good's shipping costs 17% to 28% of its own base value (tools 25%, automobiles 17%), so a sea transfer needs a price gap of about a fifth of the good's value just to break even. Cheaper merchant marine is the lever: at the floor price (12.5) the same 960 tools to Austria go from about −£6.4K to +£1.2K a week.
 
+**Vanilla's quantity and acceptance logic** (`common/treaty_articles/13_goods_transfer.txt`, read 2026-10-05):
+
+- **Allowed range:** at least 10; at most the smaller of the partner market's import cap and the sender market's export cap, minus what treaties already move (`quantity_max_value`).
+- **Suggested quantity** (`ai.quantity_input_value`): starts from the AI's export value minus the partner's import value, capped at about 35% of the partner market's consumption, floor 10. It ignores the partner's shortage. That the player's default slider comes from it is an inference: 960 tools was 4% of the 25,764 maximum.
+- **What a receiving AI accepts:** its score rises with quantity up to its market's shortage + 10 (buy orders minus sell orders, plus 10), scaled by its import value and consumption and capped. Every unit beyond loses 0.3 points. So a default sized off consumption routinely overshoots the shortage, which is why the AI thumbs disagree with the deal you actually propose.
+- **The thumbs on each goods card** come from `TreatyDraft.GetArticleTypeAcceptanceWithGood(type, country, goods)`, which takes no quantity: the engine evaluates its own. A mod cannot make them follow another quantity; the article's own acceptance figure does update live with the quantity.
+- **Sorting** (`ArticleDraft.SortGoods`) accepts only vanilla's keys (`'name'`, `'own_price'`, `'other_balance'`...), so goods cannot be ordered by gain.
+
+**Best quantity (built 2026-10-05, run 6 tests it):** the profit-maximising quantity of the linearised first-week gain, (price gap minus shipping per unit) ÷ (2 × combined price slope), where each slope is the price rule's derivative at today's buy and sell orders (zero where the price sits at its cap). It is capped at the partner's shortage + 10, so it never triggers the AI's "too much" penalty, and floored at 10. A "Best: N" button under the draft's Net sets it through `ArticleDraft.SetQuantity`; each goods card shows the estimated weekly gain at its own best quantity.
+
 **Draft treaty total:** not feasible as built. GUI expressions cannot sum the draft's articles, and script cannot see drafts at all (no `MakeScope` on `TreatyDraft` or `ArticleDraft` in the dump). Signed treaties have a total because script iterates in-force articles.
 
 **Before publishing:** remove the "dev" line from the goods-transfer hover (Damien's reminder, 2026-10-05); `tools/package_release.py` refuses to package while it is there.
