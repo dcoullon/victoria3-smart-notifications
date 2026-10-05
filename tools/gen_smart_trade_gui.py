@@ -542,7 +542,7 @@ LOC = r'''l_english:
  # temporary-expenses entry: it splits that section from its own sub-lines).
  # Vanilla's text comes first, verbatim; REPLACED_LOC_BASELINE in
  # tools/check_references.py catches a patch changing it.
- BALANCE_WITHOUT_TEMPORARY_INCOME_AND_EXPENSES:0 "\nBalance (excluding Temporary Income and Expenses): #v @money![GetPlayer.PredictBalanceWithoutTemporaryIncomeAndExpenses|D+=]#!\n#bold Net treaty income:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],SMART_TRADE_TREATIES_TT @money![@@P_NET@@|D+=]#!#! (already counted above)"
+ BALANCE_WITHOUT_TEMPORARY_INCOME_AND_EXPENSES:0 "\nBalance (excluding Temporary Income and Expenses): #v @money![GetPlayer.PredictBalanceWithoutTemporaryIncomeAndExpenses|D+=]#!\n#bold (Smart Trade) Net treaty income:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],SMART_TRADE_TREATIES_TT ~@money![@@P_NET@@|D+=]#!#! (already counted above)"
  SMART_TRADE_TREATIES_TT:0 "#header Net treaty income, per week#!\nGoods you send, sale minus purchase: @money![@@P_TRADE@@|D+=]\nShipping lanes for them: @money![@@NEG_P_SHIP@@|D+=] (estimated at the short-route rate)\nMoney transfers: @money![@@P_MONEY@@|D+=]\n\nPer treaty: the Treaties list in the outliner."
 '''
 
