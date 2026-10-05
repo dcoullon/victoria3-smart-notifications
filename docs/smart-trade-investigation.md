@@ -157,6 +157,15 @@ Acceptance criteria, run 12:
 - A profitable good (coffee): thumbs-up gives the same or a larger quantity than Best, at the top acceptance.
 - If thumbs-up lands at 10 or at Best's quantity regardless of acceptance, the game does not refresh acceptance within a click; the fallback is vanilla's top of range.
 
+**Run 12 result (2026-10-05):** all passed. No good picked: no Net, no buttons. Tools thumbs-up 264 at +12 (vanilla's range ends at 2,330), so `GetAcceptance` also reads back within one click. Coffee thumbs-up fine, tobacco Best 20. Damien's change: Best should maximise profit subject to the partner's net acceptance of that good staying positive, not stop at shortage + 10 (tea at 104: +9 from quantity, −3 "too high", net +5).
+
+**Run 13 build.** After the usual climb, Best and the card click keep climbing past shortage + 10 in powers of two while the profit still rises, and step back from any quantity the game's acceptance figure puts at 0 or below. Simulated on 200 cases (with and without whole-unit rounding) against vanilla's acceptance formula: within 0.25% of the best quantity with positive acceptance; 77 of 400 runs ended past the cap, none with acceptance at or below 0. The card figures and the Best tooltip's "about" still stop at shortage + 10, because acceptance is only readable for the good being drafted; past the cap they understate slightly. GUI file: 1.16 MB.
+
+Acceptance criteria, run 13:
+- Tea to Austria: picking it and clicking Best both land at about 104, with the article's acceptance still positive.
+- A good whose profit peaks below shortage + 10 (coffee at about 47 to 60) is unchanged.
+- Tools: Best stays at 10 (a loss at every quantity), thumbs-up still about 264.
+
 **Known limits, deferred (independent review, 2026-10-05):**
 
 - Multiplayer: treaty totals select "the player's" articles with the script trigger `is_player`, which is true for every human. In a treaty between two humans both sides' goods would be counted. Fix if multiplayer ever matters: pass the local player in as a scope.

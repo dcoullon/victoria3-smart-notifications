@@ -256,6 +256,26 @@ class Market:
         out.append(f"ArticleDraft.SetQuantity({sel(g(ok), up, q)})")
         return out
 
+    def past_cap(self, guard=None):
+        """Best may go past shortage + 10 while the partner's net acceptance
+        of this good stays positive (Damien, run 12: tea at 104 is +9 from
+        quantity, -3 "too high", still +5). Runs after register(): if the
+        profit was still rising at the cap, climb on in powers of two, and
+        step back from any quantity the game's own acceptance figure puts at
+        0 or below. A step back is allowed only above the cap, so a good the
+        AI never wanted (acceptance <= 0 at the cap) stays where it was."""
+        q = "ArticleDraft.GetQuantity"
+        acc = "ArticleDraft.GetAcceptance(TreatyDraft.GetRightCountry.Self)"
+        g = (lambda c: f"And({guard}, {c})") if guard else (lambda c: c)
+        above = gt(q, add(self.cap, fx(0.5)))
+        out = []
+        for e in range(ACCEPT_STEPS - 1, -1, -1):
+            d = fx(2 ** e)
+            up = add(q, d)
+            out.append(f"ArticleDraft.SetQuantity({sel(g(gt(self.marginal(up), fx(0))), up, q)})")
+            out.append(f"ArticleDraft.SetQuantity({sel(g(f'And(Not(GreaterThan_int32({acc}, {chr(39)}(int32)0{chr(39)})), {above})'), sub(q, d), q)})")
+        return out
+
     def accept_search(self):
         """onclick statements for the thumbs-up when the PLAYER sends: the
         smallest quantity that still gets the AI's full acceptance, then the
@@ -352,11 +372,13 @@ C_SHOW = f"And({C_MINE}, {C.pays10})"
 # The chain is only ever shown for a good the PLAYER sends, inside a type
 # whose datacontext is the partner's market: shorter names, ~12% smaller.
 C_CHAIN = Market("Goods", home="GetPlayer.GetMarket.Self", partner="Market.Self").chain()
-C_PICK_ONCLICKS = "\n".join(f'onclick = "[{s}]"' for s in C.register(C_MINE))
+# Picking a good lands where Best would (Damien: the default IS Best),
+# including past the cap while acceptance stays positive.
+C_PICK_ONCLICKS = "\n".join(f'onclick = "[{s}]"' for s in C.register(C_MINE) + C.past_cap(C_MINE))
 # Best and thumbs-up only show when the player sends, and both buttons carry
 # datacontext = the partner's market: short names again.
 DB = Market("ArticleDraft.GetGoods", home="GetPlayer.GetMarket.Self", partner="Market.Self")
-D_BEST_ONCLICKS = "\n".join(f'onclick = "[{s}]"' for s in DB.register())
+D_BEST_ONCLICKS = "\n".join(f'onclick = "[{s}]"' for s in DB.register() + DB.past_cap())
 D_ACCEPT_ONCLICKS = "\n".join(f'onclick = "[{s}]"' for s in DB.accept_search())
 
 # Draft header: does the partner's market border ours? (Context: Country is
