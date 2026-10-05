@@ -132,7 +132,9 @@ The Budget panel's Treaties tooltips are left alone.
 
 **Route estimate for drafts (Damien, 2026-10-05):** sea drafts assume ×1.25, the middle of ×1.00 to ×1.50, on the view that partners whose markets do not touch ours are usually far. Applies to the draft Net, best quantity and card gains; the hover still shows the ×1.00 to ×1.50 range. The treasury total keeps ×1.00, because it prices lanes that exist and Portugal's run at ×1.00 and ×1.17.
 
-**Cards are clickable (2026-10-05):** clicking a card's gain picks that good and sets its best quantity in one go (`SetGood` then `SetQuantity`). Vanilla's default quantity cannot be changed by a mod; this replaces "pick, then fix the quantity".
+**Best quantity as the default (run 7, 2026-10-05):** vanilla's card click is copied with a second command after `SetGood`: `SetQuantity(best)` for goods the player sends at a profit, otherwise the quantity the pick produced. If it works, picking a good starts at the best quantity with no button (Damien's preferred option 1). A "Best: N" button also sits next to "/ week" in the goods popup's quantity row (option 3), for after the slider has moved; the button inside the treaty article is gone. Run 6 showed why the first Best button did nothing: its quantity was rounded with `IntToFixedPoint`, which fails when nested in another call (now a repo-wide static check). Vanilla's defaults seen in run 6: coffee 347 (Austria's shortage about 149, acceptance −45) and tobacco 1,239, both about a quarter of the slider's range.
+
+Later option (Damien): a "max volume" choice next to "max profit".
 
 **Draft treaty total:** not feasible as built. GUI expressions cannot sum the draft's articles, and script cannot see drafts at all (no `MakeScope` on `TreatyDraft` or `ArticleDraft` in the dump). Signed treaties have a total because script iterates in-force articles.
 

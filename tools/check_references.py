@@ -1283,6 +1283,27 @@ def check_st_generated_files_current(root: Path) -> list[str]:
     return errs
 
 
+def check_no_nested_int_to_fixed_point(root: Path) -> list[str]:
+    """`IntToFixedPoint(...)` used as an argument of another call fails at
+    fetch time and blanks the widget (or silently does nothing in an
+    onclick), with only an error.log line. Hit twice: Bulk Construction's
+    level buttons (2026-09-16) and Smart Trade's best quantity (run 6,
+    2026-10-05: the goods-card gain blank, the Best button inert). Checks
+    .gui and .yml in every mod; the loc-only BC check predates it."""
+    errs = []
+    pat = re.compile(r"[(,]\s*IntToFixedPoint\(")
+    for sub in ("gui", "localization"):
+        base = root / sub
+        if not base.is_dir():
+            continue
+        for path in sorted(list(base.rglob("*.gui")) + list(base.rglob("*.yml"))):
+            for i, line in enumerate(path.read_text(encoding="utf-8-sig").splitlines(), 1):
+                if pat.search(line):
+                    errs.append(f"{path.relative_to(root).as_posix()}:{i}: IntToFixedPoint nested "
+                                f"inside another call; it fails at fetch time (see this check's docstring)")
+    return errs
+
+
 def check_st_entry_width_matches_vanilla(root: Path) -> list[str]:
     """Smart Trade redefines vanilla's outliner_compact_treaty_item, which
     sizes itself with the file-scoped @entry_width; ours is @st_entry_width
@@ -1704,6 +1725,7 @@ def run_all(root: Path) -> list[str]:
     errs += check_vanilla_reference_snapshot_is_complete(root)
     errs += check_markdown_links_resolve(root)
     errs += check_type_overrides_sort_first(root)
+    errs += check_no_nested_int_to_fixed_point(root)
 
     # Smart-Notifications-only: each asserts that specific files or message
     # keys THIS mod owns are present, so against a sibling mod every one of

@@ -131,7 +131,9 @@ class Market:
         # Profit-maximising quantity of the linearised first-week gain,
         # capped at what the AI wants, floored at vanilla's minimum of 10.
         q_raw = div(self.edge, mx(mul(fx(2), add(self.slope_h, self.slope_p)), fx(0.0001)))
-        self.q_best = f"IntToFixedPoint(FixedPointToInt({mx(fx(10), mn(q_raw, self.q_ai))}))"
+        # No rounding: IntToFixedPoint nested in another call fails silently
+        # (run 6 error.log; same trap as Bulk Construction). Displays use |0.
+        self.q_best = mx(fx(10), mn(q_raw, self.q_ai))
         self.pays = gt(self.edge, fx(0))
 
     def ph1(self, q):
@@ -175,6 +177,8 @@ D_QBEST = D.q_best
 D_BEST_GAIN = D.gain_lin(D_QBEST)
 D_PAYS = D.pays
 D_SHOW = "And(ArticleDraft.HasType('goods_transfer'), Country.IsLocalPlayer)"
+# Same test without relying on the widget's Country context (the goods popup).
+D_MINE_SRC = "And(ArticleDraft.HasType('goods_transfer'), ArticleDraft.GetFirstOrSource.IsLocalPlayer)"
 D_DEV = (f"Select test [{sel(gt(fx(1), fx(0)), fx(1), fx(2))}|0] (1 = cond, then, else); "
          f"edge [{D.edge}|2] slopes [{D.slope_h}|5] / [{D.slope_p}|5] qAI [{D.q_ai}|0]; "
          f"35% of partner buy orders [{D_VANILLA_GUESS}|0] (compare with the default quantity right after picking a good)")
@@ -334,7 +338,7 @@ types smart_trade_types {
 			flowcontainer = {
 				direction = vertical
 				minimumsize = { 300 -1 }
-				custom_tooltip_textbox = { raw_text = "About @money![@@C_GAIN@@|D+=] at [@@C_QBEST@@|0] a week, the most profitable amount [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting] still wants (estimate). Click to pick this good at that quantity." }
+				custom_tooltip_textbox = { raw_text = "About @money![@@C_GAIN@@|D+=] at [@@C_QBEST@@|0] a week, the most profitable amount [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting] still wants (estimate). Picking this good starts at that quantity." }
 			}
 		}
 	}
@@ -343,7 +347,9 @@ types smart_trade_types {
 		using = default_button
 		size = { 96 22 }
 		enabled = "[ArticleDraft.CanBeModified]"
-		onclick = "[ArticleDraft.SetQuantity(@@D_QBEST@@)]"
+		block "action" {
+			onclick = "[ArticleDraft.SetQuantity(@@D_QBEST@@)]"
+		}
 		tooltip = "SMART_TRADE_BEST_TT"
 
 		textbox = {
@@ -351,7 +357,9 @@ types smart_trade_types {
 			autoresize = yes
 			align = nobaseline
 			using = fontsize_small
-			raw_text = "Best: [@@D_QBEST@@|0]"
+			block "label" {
+				raw_text = "Best: [@@D_QBEST@@|0]"
+			}
 		}
 	}
 }
@@ -541,11 +549,6 @@ types treaty_draft_panel_types {
 			raw_text = "Net ~@money![@@D_NET_MID@@|D+=]/wk"
 			tooltipwidget = { smart_trade_draft_tooltip = {} }
 		}
-
-		smart_trade_best_button = {
-			visible = "[And(@@D_SHOW@@, @@D_PAYS@@)]"
-			margin_bottom = 4
-		}
 	}
 }
 
@@ -710,52 +713,85 @@ LOC = r'''l_english:
  SMART_TRADE_OVERLAND_TT:0 "Your markets border each other: goods transfers go overland and pay no shipping."
 '''
 
-# --- Goods picker: vanilla's list, copied from the installed game ----------
+# --- Goods picker: vanilla types copied from the installed game ------------
+# Each is copied verbatim at generation time with named insertions, so a game
+# patch that changes them makes --check fail (the output would differ) and an
+# insertion point that disappears makes generation fail outright.
 GAME = Path(r"C:\Program Files (x86)\Steam\steamapps\common\Victoria 3\game")
-GOODS_LIST_SRC = GAME / "gui" / "right_click_menu.gui"
-GOODS_LIST_ANCHOR = 'blockoverride "additional_widgets" {'
-CARD_CHIP = '''blockoverride "additional_widgets" {
-						### SMART TRADE: best weekly gain for this good (estimate).
-						### Clicking it picks the good AND sets its best quantity,
-						### the same two things the player would do by hand.
-						button = {
+PICKER_SRC = GAME / "gui" / "right_click_menu.gui"
+
+# 1. Each goods card: the estimated best weekly gain, top-left.
+CARD_ANCHOR = 'blockoverride "additional_widgets" {'
+CARD_CHIP = CARD_ANCHOR + '''
+						### SMART TRADE: best weekly gain for this good (estimate)
+						textbox = {
 							visible = "[@@C_SHOW@@]"
 							parentanchor = top|left
-							position = { 3 3 }
-							size = { 64 18 }
-							onclick = "[ArticleDraft.SetGood(Goods.Self)]"
-							onclick = "[ArticleDraft.SetQuantity(@@C_QBEST@@)]"
+							position = { 5 4 }
+							autoresize = yes
+							align = nobaseline
+							using = fontsize_small
+							raw_text = "@money![@@C_GAIN@@|D+=]"
 							tooltipwidget = { smart_trade_card_tooltip = {} }
+						}'''
 
-							textbox = {
-								parentanchor = vcenter|left
-								position = { 2 0 }
-								autoresize = yes
-								align = nobaseline
-								using = fontsize_small
-								raw_text = "@money![@@C_GAIN@@|D+=]"
-							}
-						}
-'''
+# 2. The card's own click: vanilla picks the good; we then set the best
+#    quantity, so the default IS the best quantity (Damien's option 1). On
+#    goods that do not pay, or that the partner sends, it re-sets whatever
+#    quantity the pick produced, which leaves vanilla's default in place.
+PICK_ANCHOR = 'onclick = "[ArticleDraft.SetGood(Goods.Self)]"'
+PICK_BEST = PICK_ANCHOR + '''
+						### SMART TRADE: start from the best quantity
+						onclick = "[ArticleDraft.SetQuantity(Select_CFixedPoint(@@C_SHOW@@, @@C_QBEST@@, ArticleDraft.GetQuantity))]"'''
+
+# 3. The quantity row under the goods: a Best button next to "/ week", for
+#    after the player has moved the slider (Damien's option 3).
+ROW_ANCHOR = 'text = "SLASH_PER_WEEK"\n\t\t\t\t}'
+ROW_BEST = ROW_ANCHOR + '''
+
+				### SMART TRADE: back to the best quantity
+				smart_trade_best_button = {
+					visible = "[And(@@D_MINE_SRC@@, @@D_PAYS@@)]"
+					parentanchor = vcenter
+				}
+				### dev: same, passing an integer, in case SetQuantity wants one
+				smart_trade_best_button = {
+					visible = "[And(@@D_MINE_SRC@@, @@D_PAYS@@)]"
+					parentanchor = vcenter
+					blockoverride "action" { onclick = "[ArticleDraft.SetQuantity(FixedPointToInt(@@D_QBEST@@))]" }
+					blockoverride "label" { raw_text = "dev int" }
+				}'''
+
+PICKER_TYPES = [
+    ("article_input_goods_list", [(CARD_ANCHOR, CARD_CHIP), (PICK_ANCHOR, PICK_BEST)]),
+    ("selected_goods_and_amount", [(ROW_ANCHOR, ROW_BEST)]),
+]
 
 
-def goods_list_block() -> str:
+def copy_vanilla_type(lines, name, inserts):
     import re
-    lines = GOODS_LIST_SRC.read_text(encoding="utf-8-sig").split("\n")
-    start = next(i for i, l in enumerate(lines) if l.strip().startswith("type article_input_goods_list"))
+    start = next(i for i, l in enumerate(lines) if l.strip().startswith(f"type {name} "))
     depth = 0
     for i in range(start, len(lines)):
-        depth += re.sub(r"#.*", "", lines[i]).count("{") - re.sub(r"#.*", "", lines[i]).count("}")
+        stripped = re.sub(r"#.*", "", lines[i])
+        depth += stripped.count("{") - stripped.count("}")
         if depth == 0:
             end = i
             break
     body = "\n".join(lines[start:end + 1])
-    assert body.count(GOODS_LIST_ANCHOR) == 1, "vanilla goods list changed shape; review the insertion"
-    body = body.replace(GOODS_LIST_ANCHOR, CARD_CHIP.rstrip("\n"), 1)
+    for anchor, replacement in inserts:
+        assert body.count(anchor) == 1, f"vanilla {name} changed shape near {anchor!r}; review the insertion"
+        body = body.replace(anchor, replacement, 1)
+    return (f"\t# Vanilla {name}, copied verbatim at generation time from\n"
+            f"\t# gui/right_click_menu.gui:{start + 1}-{end + 1}, with Smart Trade insertions.\n"
+            f"{body}\n")
+
+
+def picker_block() -> str:
+    lines = PICKER_SRC.read_text(encoding="utf-8-sig").split("\n")
     return ("\ntypes article_input_types {\n"
-            "\t# Vanilla's goods picker list, copied verbatim at generation time from\n"
-            f"\t# gui/right_click_menu.gui:{start + 1}-{end + 1}, plus the gain figure.\n"
-            f"{body}\n}}\n")
+            + "\n".join(copy_vanilla_type(lines, n, ins) for n, ins in PICKER_TYPES)
+            + "}\n")
 
 # Derived tokens used by the templates.
 TOKENS.update({
@@ -775,7 +811,7 @@ def expand(text: str) -> str:
     return "﻿" + text
 
 
-OUTPUTS = {OUT_GUI: GUI + goods_list_block(), OUT_LOC: LOC}
+OUTPUTS = {OUT_GUI: GUI + picker_block(), OUT_LOC: LOC}
 
 if __name__ == "__main__":
     stale = []
