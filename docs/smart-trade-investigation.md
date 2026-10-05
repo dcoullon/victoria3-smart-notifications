@@ -136,6 +136,11 @@ The Budget panel's Treaties tooltips are left alone.
 
 **Run 9 (2026-10-05): best quantity in script, three buttons.** The linear best quantity stopped short (52 coffee vs a true best of 60) and failed badly when the partner's price sat at its cap (it recommended a ~8K/wk loss). One Newton step on the exact prices fixes both (within ~1% in five tested market shapes), but as a GUI expression it is 142K characters, so it moved to script (`st_q_best`, `st_best_gain`): the GUI passes orders, prices, base, shipping and cap as value scopes (`MakeScopeValue`) and reads one number. Buttons under the slider: Best / Max / Accept for goods the player sends, Max / Accept for goods the partner sends. Accept is the top of the quantity range the AI fully values (receiver: shortage + 10; sender: 30% of surplus + 10); Max caps that by the player's own side (surplus when sending, shortage + 10 when receiving). None of them can guarantee overall acceptance: relations and the treaty's other articles also count, and the game's acceptance figure for the draft is the authority.
 
+**Known limits, deferred (independent review, 2026-10-05):**
+
+- Multiplayer: treaty totals select "the player's" articles with the script trigger `is_player`, which is true for every human. In a treaty between two humans both sides' goods would be counted. Fix if multiplayer ever matters: pass the local player in as a scope.
+- The best, max and accept quantities are not capped by the slider's own maximum (`ArticleDraft.GetMaxValidQuantity`, the import/export caps minus existing treaty flows). Late game, with several treaties on one good, a suggested quantity can exceed what the slider allows; `SetQuantity` then clamps it and the shown gain no longer matches. The int32 return type would need converting, and `IntToFixedPoint` nested in a call fails.
+
 **For the Reddit post:** two modding limits worth naming: the picker's AI thumbs use the game's own default quantity; and route length is not exposed until signing.
 
 **Draft treaty total:** not feasible as built. GUI expressions cannot sum the draft's articles, and script cannot see drafts at all (no `MakeScope` on `TreatyDraft` or `ArticleDraft` in the dump). Signed treaties have a total because script iterates in-force articles.
