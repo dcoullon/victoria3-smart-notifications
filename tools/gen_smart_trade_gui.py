@@ -191,7 +191,9 @@ D_QBEST = D.q_best
 D_BEST_GAIN = D.best_gain
 D_QMAX_SEND, D_QACC_SEND = D.q_max_send, D.q_accept_send
 D_QMAX_RECV, D_QACC_RECV = D.q_max_recv, D.q_accept_recv
-D_PAYS = D.pays
+# Profitable at its own best quantity, not merely on the first unit (the
+# floor of 10 units can turn a positive first-unit margin into a loss).
+D_PAYS = gt(D_BEST_GAIN, fx(0))
 D_SHOW = "And(ArticleDraft.HasType('goods_transfer'), Country.IsLocalPlayer)"
 # Same tests without relying on the widget's Country context (the goods popup).
 D_MINE_SRC = "And(ArticleDraft.HasType('goods_transfer'), ArticleDraft.GetFirstOrSource.IsLocalPlayer)"
