@@ -135,8 +135,21 @@ class Market:
         self.q_ai = self.q_accept_send
         # Best quantity: computed in script (see "Best quantity, computed in
         # SCRIPT" below), capped at Accept so the AI never sees "too much".
-        self.q_best = self.script("st_q_best")
-        self.best_gain = self.script("st_best_gain")
+        # Fallback when the script returns nothing: the run 8 linear estimate,
+        # with the squares removed (S / B / B; fixed point overflows near 2e9).
+        unsat = lambda b, s: f"And({lt(ratio(b, s), fx(1))}, {gt(ratio(b, s), fx(-1))})"
+        k = mul(self.base, fx(0.75))
+        slope_h = sel(unsat(self.bh, self.sh),
+                      mul(k, mx(div(fx(1), safe(self.sh)), div(div(self.sh, safe(self.bh)), safe(self.bh)))), fx(0))
+        slope_p = sel(unsat(self.bp, self.sp),
+                      mul(k, mx(div(div(self.bp, safe(self.sp)), safe(self.sp)), div(fx(1), safe(self.bp)))), fx(0))
+        q_lin = mx(fx(10), mn(div(self.edge, mx(mul(fx(2), add(slope_h, slope_p)), fx(0.0001))), self.q_accept_send))
+        gain_lin = mul(q_lin, sub(self.edge, mul(add(slope_h, slope_p), q_lin)))
+        q_script = self.script("st_q_best")
+        ok = gt(q_script, fx(0))     # the script floors at 10 when it works
+        self.q_best = sel(ok, q_script, q_lin)
+        self.best_gain = sel(ok, self.script("st_best_gain"), gain_lin)
+        self.script_ok = ok
         self.pays = gt(self.edge, fx(0))
 
     def script(self, name):
@@ -144,7 +157,7 @@ class Market:
                   ("st_ph", self.ph), ("st_pp", self.pp), ("st_base", self.base),
                   ("st_ship", self.ship_unit), ("st_cap", self.q_accept_send)]
         chain = "".join(f".AddScope('{k}', MakeScopeValue({v}))" for k, v in inputs)
-        return f"GuiScope.SetRoot(GetPlayer.MakeScope){chain}.ScriptValue('{name}')"
+        return f"GuiScope.SetRoot(GetPlayer.MakeScope){chain}.End.ScriptValue('{name}')"
 
     def ph1(self, q):
         return add(self.ph, mul(self.base, sub(f_imb(add(self.bh, q), self.sh), f_imb(self.bh, self.sh))))
@@ -185,6 +198,7 @@ D_MINE_SRC = "And(ArticleDraft.HasType('goods_transfer'), ArticleDraft.GetFirstO
 D_MINE_TGT = "And(ArticleDraft.HasType('goods_transfer'), ArticleDraft.GetSecondOrTarget.IsLocalPlayer)"
 
 C_QBEST = C.q_best
+C_MINE = "And(ArticleDraft.HasType('goods_transfer'), ArticleDraft.GetFirstOrSource.IsLocalPlayer)"
 C_GAIN = C.best_gain
 # Only goods that gain at their own best quantity (run 7: dye showed -0.76,
 # because the first unit paid but the floor of 10 units did not).
@@ -348,7 +362,7 @@ types smart_trade_types {
 
 	type smart_trade_best_button = button {
 		using = default_button
-		size = { 70 22 }
+		size = { 46 22 }
 		enabled = "[ArticleDraft.CanBeModified]"
 		block "action" {
 			onclick = "[ArticleDraft.SetQuantity(@@D_QBEST@@)]"
@@ -378,7 +392,7 @@ types smart_trade_types {
 				align = nobaseline
 				using = fontsize_small
 				block "label" {
-					raw_text = "Best [@@D_QBEST@@|0]"
+					raw_text = "Best"
 				}
 			}
 		}
@@ -504,7 +518,7 @@ types treaty_panel_types {
 				align = nobaseline
 				using = fontsize_small
 				margin_top = -3
-				raw_text = "Net @money![@@T_NET_LANE@@|D+=]/wk"
+				raw_text = "Net @money![@@T_NET_LANE@@|D+=]"
 				tooltipwidget = { smart_trade_treaty_tooltip = {} }
 			}
 			textbox = {
@@ -513,7 +527,7 @@ types treaty_panel_types {
 				align = nobaseline
 				using = fontsize_small
 				margin_top = -3
-				raw_text = "Net @money![@@T_NET_LAND@@|D+=]/wk"
+				raw_text = "Net @money![@@T_NET_LAND@@|D+=]"
 				tooltipwidget = { smart_trade_treaty_tooltip = {} }
 			}
 
@@ -558,7 +572,7 @@ types treaty_draft_panel_types {
 			align = right|nobaseline
 			using = fontsize_small
 			margin_bottom = 4
-			raw_text = "Net @money![@@D_MARGIN@@|D+=]/wk"
+			raw_text = "Net @money![@@D_MARGIN@@|D+=]"
 			tooltipwidget = { smart_trade_draft_tooltip = {} }
 		}
 		textbox = {
@@ -567,7 +581,7 @@ types treaty_draft_panel_types {
 			align = right|nobaseline
 			using = fontsize_small
 			margin_bottom = 4
-			raw_text = "Net ~@money![@@D_NET_MID@@|D+=]/wk"
+			raw_text = "Net ~@money![@@D_NET_MID@@|D+=]"
 			tooltipwidget = { smart_trade_draft_tooltip = {} }
 		}
 	}
@@ -581,7 +595,7 @@ types pinnable_outliner_items {
 		datacontext = "[Outliner.AccessCategory('treaties')]"
 
 		blockoverride "title_text" {
-			raw_text = "[OutlinerEntry.GetTitle]  ~@money![@@P_NET@@|D+=]/wk"
+			raw_text = "[OutlinerEntry.GetTitle]  ~@money![@@P_NET@@|D+=]"
 		}
 
 		blockoverride "fixedgridbox_cell_size" {
@@ -747,14 +761,14 @@ LOC = r'''l_english:
  # checks). Appending to a section header instead puts the line between the
  # header and its own sub-lines (run 3). Vanilla's text follows, verbatim;
  # REPLACED_LOC_BASELINE in tools/check_references.py catches a patch changing it.
- FIXED_EXPENSES_BREAKDOWN:0 "#bold (ST) Net treaty income:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],SMART_TRADE_TREATIES_TT ~@money![@@P_NET@@|D+=]#!#! (already in revenue and expenses)\n\n#bold Fixed National Expenses:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],TOTAL_EXPENSES_BREAKDOWN,TotalExpensesTooltip #bold #N @money!-[GetPlayer.GetWeeklyFixedExpenses|D-]#!#!#!#!"
- EXPENSES_BREAKDOWN:0 "#bold (ST) Net treaty income:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],SMART_TRADE_TREATIES_TT ~@money![@@P_NET@@|D+=]#!#! (already in revenue and expenses)\n\n#bold National Expenses:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],TOTAL_EXPENSES_BREAKDOWN,TotalExpensesTooltip #bold #N @money!-[GetPlayer.GetWeeklyExpenses|D-]#!#!#!#!"
+ FIXED_EXPENSES_BREAKDOWN:0 "#bold (ST) Net treaty income:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],SMART_TRADE_TREATIES_TT ~@money![@@P_NET@@|D+=]#!#!\n\n#bold Fixed National Expenses:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],TOTAL_EXPENSES_BREAKDOWN,TotalExpensesTooltip #bold #N @money!-[GetPlayer.GetWeeklyFixedExpenses|D-]#!#!#!#!"
+ EXPENSES_BREAKDOWN:0 "#bold (ST) Net treaty income:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],SMART_TRADE_TREATIES_TT ~@money![@@P_NET@@|D+=]#!#!\n\n#bold National Expenses:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],TOTAL_EXPENSES_BREAKDOWN,TotalExpensesTooltip #bold #N @money!-[GetPlayer.GetWeeklyExpenses|D-]#!#!#!#!"
  SMART_TRADE_TREATIES_TT:0 "#header Net treaty income, per week#!\nGoods you send: @money![@@P_TRADE@@|D+=]\nTheir shipping: @money![@@NEG_P_SHIP@@|D+=] (estimate)\nMoney transfers: @money![@@P_MONEY@@|D+=]\nShipping is paid in merchant marine at your market price; more ports lower it.\nPer treaty: see the outliner's Treaties list."
- SMART_TRADE_BEST_TT:0 "Set the quantity to [@@D_QBEST@@|0]: the best weekly result that [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting] still wants."
- SMART_TRADE_MAX_SEND_TT:0 "Set the quantity to [@@D_QMAX_SEND@@|0]: the most you can spare that [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting] still fully values (the lower of your surplus and its shortage plus 10)."
- SMART_TRADE_ACCEPT_SEND_TT:0 "Set the quantity to [@@D_QACC_SEND@@|0]: [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting]'s shortage plus 10, where it likes this good most. Each unit above costs 0.3 acceptance."
- SMART_TRADE_MAX_RECV_TT:0 "Set the quantity to [@@D_QMAX_RECV@@|0]: the most you can use that [ArticleDraft.GetFirstOrSource.GetNameNoFormatting] still gives freely (the lower of your shortage plus 10 and 30% of its surplus plus 10)."
- SMART_TRADE_ACCEPT_RECV_TT:0 "Set the quantity to [@@D_QACC_RECV@@|0]: 30% of [ArticleDraft.GetFirstOrSource.GetNameNoFormatting]'s surplus plus 10, the most it sends without liking the deal less."
+ SMART_TRADE_BEST_TT:0 "Set the quantity to [@@D_QBEST@@|0], the most profitable volume."
+ SMART_TRADE_MAX_SEND_TT:0 "Set the quantity to [@@D_QMAX_SEND@@|0], filling [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting]'s shortage without going over your surplus."
+ SMART_TRADE_ACCEPT_SEND_TT:0 "Set the quantity to [@@D_QACC_SEND@@|0] for the highest acceptance."
+ SMART_TRADE_MAX_RECV_TT:0 "Set the quantity to [@@D_QMAX_RECV@@|0], filling your shortage without going over what [ArticleDraft.GetFirstOrSource.GetNameNoFormatting] spares."
+ SMART_TRADE_ACCEPT_RECV_TT:0 "Set the quantity to [@@D_QACC_RECV@@|0] for the highest acceptance."
  SMART_TRADE_OVERLAND_TT:0 "Your markets border each other: goods transfers go overland and pay no shipping."
 '''
 
@@ -815,12 +829,18 @@ CARD_CHIP = '''blockoverride "entire_icon_button" {
 PICK_ANCHOR = 'onclick = "[ArticleDraft.SetGood(Goods.Self)]"'
 PICK_BEST = PICK_ANCHOR + '''
 						### SMART TRADE: start from the best quantity
-						onclick = "[ArticleDraft.SetQuantity(Select_CFixedPoint(@@C_SHOW@@, @@C_QBEST@@, ArticleDraft.GetQuantity))]"'''
+						onclick = "[ArticleDraft.SetQuantity(Select_CFixedPoint(@@C_MINE@@, @@C_QBEST@@, ArticleDraft.GetQuantity))]"'''
 
 # 3. The quantity row under the goods: a Best button next to "/ week", for
 #    after the player has moved the slider (Damien's option 3).
-ROW_ANCHOR = 'text = "SLASH_PER_WEEK"\n\t\t\t\t}'
+ROW_ANCHOR = 'text = "SLASH_PER_WEEK"\n\t\t\t\t}\n\t\t\t}'
 ROW_BEST = ROW_ANCHOR + '''
+
+			### SMART TRADE: its own row under the quantity
+			flowcontainer = {
+				parentanchor = hcenter
+				spacing = 4
+				margin_top = -2
 
 				### SMART TRADE: live net at the current quantity, then the
 				### Best and Max buttons. Shown for every good the player sends,
@@ -832,7 +852,6 @@ ROW_BEST = ROW_ANCHOR + '''
 					autoresize = yes
 					align = nobaseline
 					using = fontsize_small
-					margin_left = 6
 					raw_text = "Net @money![@@D_MARGIN@@|D+=]"
 					tooltipwidget = { smart_trade_draft_tooltip = {} }
 				}
@@ -842,7 +861,6 @@ ROW_BEST = ROW_ANCHOR + '''
 					autoresize = yes
 					align = nobaseline
 					using = fontsize_small
-					margin_left = 6
 					raw_text = "Net ~@money![@@D_NET_MID@@|D+=]"
 					tooltipwidget = { smart_trade_draft_tooltip = {} }
 				}
@@ -855,14 +873,14 @@ ROW_BEST = ROW_ANCHOR + '''
 					visible = "[@@D_MINE_SRC@@]"
 					parentanchor = vcenter
 					blockoverride "action" { onclick = "[ArticleDraft.SetQuantity(@@D_QMAX_SEND@@)]" }
-					blockoverride "label" { raw_text = "Max [@@D_QMAX_SEND@@|0]" }
+					blockoverride "label" { raw_text = "Max" }
 					blockoverride "tip" { tooltip = "SMART_TRADE_MAX_SEND_TT" }
 				}
 				smart_trade_best_button = {
 					visible = "[@@D_MINE_SRC@@]"
 					parentanchor = vcenter
 					blockoverride "action" { onclick = "[ArticleDraft.SetQuantity(@@D_QACC_SEND@@)]" }
-					blockoverride "label" { raw_text = "[@@D_QACC_SEND@@|0]" }
+					blockoverride "label" { raw_text = "" }
 					blockoverride "thumb" { visible = yes }
 					blockoverride "tip" { tooltip = "SMART_TRADE_ACCEPT_SEND_TT" }
 				}
@@ -871,17 +889,18 @@ ROW_BEST = ROW_ANCHOR + '''
 					visible = "[@@D_MINE_TGT@@]"
 					parentanchor = vcenter
 					blockoverride "action" { onclick = "[ArticleDraft.SetQuantity(@@D_QMAX_RECV@@)]" }
-					blockoverride "label" { raw_text = "Max [@@D_QMAX_RECV@@|0]" }
+					blockoverride "label" { raw_text = "Max" }
 					blockoverride "tip" { tooltip = "SMART_TRADE_MAX_RECV_TT" }
 				}
 				smart_trade_best_button = {
 					visible = "[@@D_MINE_TGT@@]"
 					parentanchor = vcenter
 					blockoverride "action" { onclick = "[ArticleDraft.SetQuantity(@@D_QACC_RECV@@)]" }
-					blockoverride "label" { raw_text = "[@@D_QACC_RECV@@|0]" }
+					blockoverride "label" { raw_text = "" }
 					blockoverride "thumb" { visible = yes }
 					blockoverride "tip" { tooltip = "SMART_TRADE_ACCEPT_RECV_TT" }
-				}'''
+				}
+			}'''
 
 PICKER_TYPES = [
     ("article_input_goods_list", [(CARD_ANCHOR, CARD_CHIP), (PICK_ANCHOR, PICK_BEST)]),

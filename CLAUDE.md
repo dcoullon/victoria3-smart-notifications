@@ -15,7 +15,7 @@ the repo root.**
 ```
 smart_notifications/    published; the EU4-style watchlist and notification tuning
 bulk_construction/      "Build All": one button queues a building in every listed state
-smart_trade/            in development; per-good P&L of goods transfer treaties (docs/smart-trade-investigation.md)
+smart_trade/            in development as "Smart Treaties" (id stays smart_trade); per-good P&L of goods transfer treaties (docs/smart-trade-investigation.md)
 docs/ reference/ tools/ .claude/   shared across all of them
 ```
 
