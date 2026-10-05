@@ -140,9 +140,9 @@ class Market:
         unsat = lambda b, s: f"And({lt(ratio(b, s), fx(1))}, {gt(ratio(b, s), fx(-1))})"
         k = mul(self.base, fx(0.75))
         slope_h = sel(unsat(self.bh, self.sh),
-                      mul(k, mx(div(fx(1), safe(self.sh)), div(div(self.sh, safe(self.bh)), safe(self.bh)))), fx(0))
+                      mx(div(k, safe(self.sh)), div(div(mul(k, self.sh), safe(self.bh)), safe(self.bh))), fx(0))
         slope_p = sel(unsat(self.bp, self.sp),
-                      mul(k, mx(div(div(self.bp, safe(self.sp)), safe(self.sp)), div(fx(1), safe(self.bp)))), fx(0))
+                      mx(div(div(mul(k, self.bp), safe(self.sp)), safe(self.sp)), div(k, safe(self.bp))), fx(0))
         q_lin = mx(fx(10), mn(div(self.edge, mx(mul(fx(2), add(slope_h, slope_p)), fx(0.0001))), self.q_accept_send))
         gain_lin = mul(q_lin, sub(self.edge, mul(add(slope_h, slope_p), q_lin)))
         q_script = self.script("st_q_best")
@@ -825,9 +825,9 @@ CARD_CHIP = '''blockoverride "entire_icon_button" {
 						}'''
 
 # 2. The card's own click: vanilla picks the good; we then set the best
-#    quantity, so the default IS the best quantity (Damien's option 1). On
-#    goods that do not pay, or that the partner sends, it re-sets whatever
-#    quantity the pick produced, which leaves vanilla's default in place.
+#    quantity, so the default IS the best quantity (Damien's option 1), for
+#    every good the player sends. For goods the partner sends it re-sets
+#    whatever quantity the pick produced, leaving vanilla's default.
 PICK_ANCHOR = 'onclick = "[ArticleDraft.SetGood(Goods.Self)]"'
 PICK_BEST = PICK_ANCHOR + '''
 						### SMART TRADE: start from the best quantity
@@ -964,12 +964,12 @@ def expand(text: str) -> str:
 # Inputs: st_bh st_sh (home buy/sell orders), st_bp st_sp (partner), st_ph
 # st_pp (today's prices), st_base, st_ship (shipping per unit), st_cap.
 #
-# Method (checked in Python against brute force on five market shapes,
-# 2026-10-05): a linear first guess from the price rule's slopes at today's
-# orders, then one Newton step using the exact prices and slopes at that
-# guess. Within ~1% of the true optimum in every case, including the one the
-# linear guess alone gets badly wrong (partner price already at its cap:
-# linear recommends a loss of ~8K/wk, one step finds +7.8K vs a best of +7.9K).
+# Method: bisection (14 rounds) on the marginal gain over [10, hi]. The
+# earlier linear guess + one Newton step was within ~1% when both markets
+# start mid-range but collapsed when one starts at a price cap (independent
+# review, 2026-10-05: 7% of profitable shapes more than 50% short, e.g. a
+# cheap home market and a starved partner gave 10 units / 620 against a
+# true 1400 / 36,460). Bisection: worst 0.87% on 2,421 random shapes.
 # Squares are avoided (S / B / B, not S / (B x B)): fixed point overflows
 # around 2 billion, i.e. buy orders above ~46K units.
 
@@ -993,15 +993,15 @@ def sv_clamp1(x): return sv(f"value = {x}", "min = -1", "max = 1")
 
 
 def sv_slope_home(b, s):
-    """Price rise per unit bought: k x max(1/S, S/B/B)."""
-    return sv(f"value = {sv_max(sv('value = 1', f'divide = {sv_max(s, 0.01)}'), sv(f'value = {s}', f'divide = {sv_max(b, 0.01)}', f'divide = {sv_max(b, 0.01)}'))}",
-              "multiply = scope:st_k")
+    """Price rise per unit bought: max(k/S, k x S/B/B), k first for precision."""
+    return sv_max(sv("value = scope:st_k", f"divide = {sv_max(s, 0.01)}"),
+                  sv("value = scope:st_k", f"multiply = {s}", f"divide = {sv_max(b, 0.01)}", f"divide = {sv_max(b, 0.01)}"))
 
 
 def sv_slope_partner(b, s):
-    """Price fall per unit supplied: k x max(B/S/S, 1/B)."""
-    return sv(f"value = {sv_max(sv(f'value = {b}', f'divide = {sv_max(s, 0.01)}', f'divide = {sv_max(s, 0.01)}'), sv('value = 1', f'divide = {sv_max(b, 0.01)}'))}",
-              "multiply = scope:st_k")
+    """Price fall per unit supplied: max(k x B/S/S, k/B), k first for precision."""
+    return sv_max(sv("value = scope:st_k", f"multiply = {b}", f"divide = {sv_max(s, 0.01)}", f"divide = {sv_max(s, 0.01)}"),
+                  sv("value = scope:st_k", f"divide = {sv_max(b, 0.01)}"))
 
 
 def save(name, value):
@@ -1034,6 +1034,26 @@ def prices_at(q, tag):
 def clamp_q(x): return sv(f"value = {x}", "max = scope:st_cap", "min = 10")
 
 
+BISECT_ROUNDS = 14
+
+
+def bisect_round():
+    """One halving: marginal gain M at the midpoint decides which half keeps
+    the optimum. M(q) = spread(q) - q x (slope_home(q) + slope_partner(q))."""
+    return [
+        step(save("st_mid", sv("value = scope:st_lo", "add = scope:st_hi", "divide = 2"))),
+        *prices_at("scope:st_mid", "m"),
+        step(save("st_slhm", sv_slope_home(sv("value = scope:st_bh", "add = scope:st_mid"), "scope:st_sh")),
+             save("st_slpm", sv_slope_partner("scope:st_bp", sv("value = scope:st_sp", "add = scope:st_mid")))),
+        zero_if_capped("st_slhm", "st_rhm"),
+        zero_if_capped("st_slpm", "st_rpm"),
+        step(save("st_mm", sv("value = scope:st_ppm", "subtract = scope:st_phm", "subtract = scope:st_ship",
+                              f"subtract = {sv('value = scope:st_mid', f'multiply = {sv('value = scope:st_slhm', 'add = scope:st_slpm')}')}"))),
+        f"\tif = {{ limit = {{ scope:st_mm > 0 {save('st_lo', 'scope:st_mid')} }} add = 0 }}",
+        f"\tif = {{ limit = {{ scope:st_mm <= 0 {save('st_hi', 'scope:st_mid')} }} add = 0 }}",
+    ]
+
+
 SCRIPT_LINES = [
     "# GENERATED by tools/gen_smart_trade_gui.py. Edit the generator, not this file.",
     "# Best weekly quantity for a goods transfer the player sends, and its gain.",
@@ -1044,22 +1064,16 @@ SCRIPT_LINES = [
     step(save("st_k", sv("value = scope:st_base", "multiply = 0.75")),
          save("st_rh0", sv_ratio("scope:st_bh", "scope:st_sh")),
          save("st_rp0", sv_ratio("scope:st_bp", "scope:st_sp"))),
-    step(save("st_slh", sv_slope_home("scope:st_bh", "scope:st_sh")),
-         save("st_slp", sv_slope_partner("scope:st_bp", "scope:st_sp"))),
-    zero_if_capped("st_slh", "st_rh0"),
-    zero_if_capped("st_slp", "st_rp0"),
-    step(save("st_q1", clamp_q(sv(f"value = {sv('value = scope:st_pp', 'subtract = scope:st_ph', 'subtract = scope:st_ship')}",
-                                  f"divide = {sv_max(sv('value = scope:st_slh', 'add = scope:st_slp', 'multiply = 2'), 0.0001)}")))),
-    *prices_at("scope:st_q1", "1"),
-    step(save("st_slh1", sv_slope_home(sv("value = scope:st_bh", "add = scope:st_q1"), "scope:st_sh")),
-         save("st_slp1", sv_slope_partner("scope:st_bp", sv("value = scope:st_sp", "add = scope:st_q1")))),
-    zero_if_capped("st_slh1", "st_rh1"),
-    zero_if_capped("st_slp1", "st_rp1"),
-    step(save("st_d1", sv("value = scope:st_slh1", "add = scope:st_slp1")),
-         save("st_spread1", sv("value = scope:st_pp1", "subtract = scope:st_ph1", "subtract = scope:st_ship"))),
-    step(save("st_q2", clamp_q(sv("value = scope:st_q1",
-                                  f"add = {sv(f'value = {sv('value = scope:st_spread1', f'subtract = {sv('value = scope:st_q1', 'multiply = scope:st_d1')}')}', f'divide = {sv_max(sv('value = scope:st_d1', 'multiply = 2'), 0.0001)}')}")))),
-    "\tvalue = scope:st_q2",
+    # Search [10, hi]. Beyond 2S - B of extra buying the home price is at its
+    # cap, beyond 2B - S of extra supply the partner's is at its floor; past
+    # either the spread can only shrink.
+    step(save("st_lo", "10"),
+         save("st_hi", sv_max(sv_min(sv_min("scope:st_cap",
+                                            sv("value = scope:st_sh", "multiply = 2", "subtract = scope:st_bh", "subtract = 0.5")),
+                                     sv("value = scope:st_bp", "multiply = 2", "subtract = scope:st_sp", "subtract = 0.5")),
+                              10))),
+    *[line for _ in range(BISECT_ROUNDS) for line in bisect_round()],
+    "\tvalue = { value = scope:st_lo add = scope:st_hi divide = 2 }",
     "}",
     "",
     "st_best_gain = {",

@@ -14,56 +14,530 @@ st_q_best = {
 	}
 	if = {
 		limit = {
-			save_temporary_scope_value_as = { name = st_slh value = { value = { value = { value = 1 divide = { value = scope:st_sh min = 0.01 } } min = { value = scope:st_sh divide = { value = scope:st_bh min = 0.01 } divide = { value = scope:st_bh min = 0.01 } } } multiply = scope:st_k } }
-			save_temporary_scope_value_as = { name = st_slp value = { value = { value = { value = scope:st_bp divide = { value = scope:st_sp min = 0.01 } divide = { value = scope:st_sp min = 0.01 } } min = { value = 1 divide = { value = scope:st_bp min = 0.01 } } } multiply = scope:st_k } }
-		}
-		add = 0
-	}
-	if = { limit = { OR = { scope:st_rh0 >= 1 scope:st_rh0 <= -1 } save_temporary_scope_value_as = { name = st_slh value = 0 } } add = 0 }
-	if = { limit = { OR = { scope:st_rp0 >= 1 scope:st_rp0 <= -1 } save_temporary_scope_value_as = { name = st_slp value = 0 } } add = 0 }
-	if = {
-		limit = {
-			save_temporary_scope_value_as = { name = st_q1 value = { value = { value = { value = scope:st_pp subtract = scope:st_ph subtract = scope:st_ship } divide = { value = { value = scope:st_slh add = scope:st_slp multiply = 2 } min = 0.0001 } } max = scope:st_cap min = 10 } }
+			save_temporary_scope_value_as = { name = st_lo value = 10 }
+			save_temporary_scope_value_as = { name = st_hi value = { value = { value = { value = scope:st_cap max = { value = scope:st_sh multiply = 2 subtract = scope:st_bh subtract = 0.5 } } max = { value = scope:st_bp multiply = 2 subtract = scope:st_sp subtract = 0.5 } } min = 10 } }
 		}
 		add = 0
 	}
 	if = {
 		limit = {
-			save_temporary_scope_value_as = { name = st_rh1 value = { value = { value = scope:st_bh add = scope:st_q1 } subtract = scope:st_sh divide = { value = { value = { value = scope:st_bh add = scope:st_q1 } max = scope:st_sh } min = 0.01 } } }
-			save_temporary_scope_value_as = { name = st_rp1 value = { value = scope:st_bp subtract = { value = scope:st_sp add = scope:st_q1 } divide = { value = { value = scope:st_bp max = { value = scope:st_sp add = scope:st_q1 } } min = 0.01 } } }
+			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
 		}
 		add = 0
 	}
 	if = {
 		limit = {
-			save_temporary_scope_value_as = { name = st_ph1 value = { value = scope:st_ph add = { value = { value = scope:st_rh1 min = -1 max = 1 } subtract = { value = scope:st_rh0 min = -1 max = 1 } multiply = scope:st_k } } }
-			save_temporary_scope_value_as = { name = st_pp1 value = { value = scope:st_pp add = { value = { value = scope:st_rp1 min = -1 max = 1 } subtract = { value = scope:st_rp0 min = -1 max = 1 } multiply = scope:st_k } } }
+			save_temporary_scope_value_as = { name = st_rhm value = { value = { value = scope:st_bh add = scope:st_mid } subtract = scope:st_sh divide = { value = { value = { value = scope:st_bh add = scope:st_mid } max = scope:st_sh } min = 0.01 } } }
+			save_temporary_scope_value_as = { name = st_rpm value = { value = scope:st_bp subtract = { value = scope:st_sp add = scope:st_mid } divide = { value = { value = scope:st_bp max = { value = scope:st_sp add = scope:st_mid } } min = 0.01 } } }
 		}
 		add = 0
 	}
 	if = {
 		limit = {
-			save_temporary_scope_value_as = { name = st_slh1 value = { value = { value = { value = 1 divide = { value = scope:st_sh min = 0.01 } } min = { value = scope:st_sh divide = { value = { value = scope:st_bh add = scope:st_q1 } min = 0.01 } divide = { value = { value = scope:st_bh add = scope:st_q1 } min = 0.01 } } } multiply = scope:st_k } }
-			save_temporary_scope_value_as = { name = st_slp1 value = { value = { value = { value = scope:st_bp divide = { value = { value = scope:st_sp add = scope:st_q1 } min = 0.01 } divide = { value = { value = scope:st_sp add = scope:st_q1 } min = 0.01 } } min = { value = 1 divide = { value = scope:st_bp min = 0.01 } } } multiply = scope:st_k } }
-		}
-		add = 0
-	}
-	if = { limit = { OR = { scope:st_rh1 >= 1 scope:st_rh1 <= -1 } save_temporary_scope_value_as = { name = st_slh1 value = 0 } } add = 0 }
-	if = { limit = { OR = { scope:st_rp1 >= 1 scope:st_rp1 <= -1 } save_temporary_scope_value_as = { name = st_slp1 value = 0 } } add = 0 }
-	if = {
-		limit = {
-			save_temporary_scope_value_as = { name = st_d1 value = { value = scope:st_slh1 add = scope:st_slp1 } }
-			save_temporary_scope_value_as = { name = st_spread1 value = { value = scope:st_pp1 subtract = scope:st_ph1 subtract = scope:st_ship } }
+			save_temporary_scope_value_as = { name = st_phm value = { value = scope:st_ph add = { value = { value = scope:st_rhm min = -1 max = 1 } subtract = { value = scope:st_rh0 min = -1 max = 1 } multiply = scope:st_k } } }
+			save_temporary_scope_value_as = { name = st_ppm value = { value = scope:st_pp add = { value = { value = scope:st_rpm min = -1 max = 1 } subtract = { value = scope:st_rp0 min = -1 max = 1 } multiply = scope:st_k } } }
 		}
 		add = 0
 	}
 	if = {
 		limit = {
-			save_temporary_scope_value_as = { name = st_q2 value = { value = { value = scope:st_q1 add = { value = { value = scope:st_spread1 subtract = { value = scope:st_q1 multiply = scope:st_d1 } } divide = { value = { value = scope:st_d1 multiply = 2 } min = 0.0001 } } } max = scope:st_cap min = 10 } }
+			save_temporary_scope_value_as = { name = st_slhm value = { value = { value = scope:st_k divide = { value = scope:st_sh min = 0.01 } } min = { value = scope:st_k multiply = scope:st_sh divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } } } }
+			save_temporary_scope_value_as = { name = st_slpm value = { value = { value = scope:st_k multiply = scope:st_bp divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } } min = { value = scope:st_k divide = { value = scope:st_bp min = 0.01 } } } }
 		}
 		add = 0
 	}
-	value = scope:st_q2
+	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
+	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
+		}
+		add = 0
+	}
+	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
+	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_rhm value = { value = { value = scope:st_bh add = scope:st_mid } subtract = scope:st_sh divide = { value = { value = { value = scope:st_bh add = scope:st_mid } max = scope:st_sh } min = 0.01 } } }
+			save_temporary_scope_value_as = { name = st_rpm value = { value = scope:st_bp subtract = { value = scope:st_sp add = scope:st_mid } divide = { value = { value = scope:st_bp max = { value = scope:st_sp add = scope:st_mid } } min = 0.01 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_phm value = { value = scope:st_ph add = { value = { value = scope:st_rhm min = -1 max = 1 } subtract = { value = scope:st_rh0 min = -1 max = 1 } multiply = scope:st_k } } }
+			save_temporary_scope_value_as = { name = st_ppm value = { value = scope:st_pp add = { value = { value = scope:st_rpm min = -1 max = 1 } subtract = { value = scope:st_rp0 min = -1 max = 1 } multiply = scope:st_k } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = { value = scope:st_k divide = { value = scope:st_sh min = 0.01 } } min = { value = scope:st_k multiply = scope:st_sh divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } } } }
+			save_temporary_scope_value_as = { name = st_slpm value = { value = { value = scope:st_k multiply = scope:st_bp divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } } min = { value = scope:st_k divide = { value = scope:st_bp min = 0.01 } } } }
+		}
+		add = 0
+	}
+	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
+	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
+		}
+		add = 0
+	}
+	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
+	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_rhm value = { value = { value = scope:st_bh add = scope:st_mid } subtract = scope:st_sh divide = { value = { value = { value = scope:st_bh add = scope:st_mid } max = scope:st_sh } min = 0.01 } } }
+			save_temporary_scope_value_as = { name = st_rpm value = { value = scope:st_bp subtract = { value = scope:st_sp add = scope:st_mid } divide = { value = { value = scope:st_bp max = { value = scope:st_sp add = scope:st_mid } } min = 0.01 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_phm value = { value = scope:st_ph add = { value = { value = scope:st_rhm min = -1 max = 1 } subtract = { value = scope:st_rh0 min = -1 max = 1 } multiply = scope:st_k } } }
+			save_temporary_scope_value_as = { name = st_ppm value = { value = scope:st_pp add = { value = { value = scope:st_rpm min = -1 max = 1 } subtract = { value = scope:st_rp0 min = -1 max = 1 } multiply = scope:st_k } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = { value = scope:st_k divide = { value = scope:st_sh min = 0.01 } } min = { value = scope:st_k multiply = scope:st_sh divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } } } }
+			save_temporary_scope_value_as = { name = st_slpm value = { value = { value = scope:st_k multiply = scope:st_bp divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } } min = { value = scope:st_k divide = { value = scope:st_bp min = 0.01 } } } }
+		}
+		add = 0
+	}
+	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
+	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
+		}
+		add = 0
+	}
+	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
+	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_rhm value = { value = { value = scope:st_bh add = scope:st_mid } subtract = scope:st_sh divide = { value = { value = { value = scope:st_bh add = scope:st_mid } max = scope:st_sh } min = 0.01 } } }
+			save_temporary_scope_value_as = { name = st_rpm value = { value = scope:st_bp subtract = { value = scope:st_sp add = scope:st_mid } divide = { value = { value = scope:st_bp max = { value = scope:st_sp add = scope:st_mid } } min = 0.01 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_phm value = { value = scope:st_ph add = { value = { value = scope:st_rhm min = -1 max = 1 } subtract = { value = scope:st_rh0 min = -1 max = 1 } multiply = scope:st_k } } }
+			save_temporary_scope_value_as = { name = st_ppm value = { value = scope:st_pp add = { value = { value = scope:st_rpm min = -1 max = 1 } subtract = { value = scope:st_rp0 min = -1 max = 1 } multiply = scope:st_k } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = { value = scope:st_k divide = { value = scope:st_sh min = 0.01 } } min = { value = scope:st_k multiply = scope:st_sh divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } } } }
+			save_temporary_scope_value_as = { name = st_slpm value = { value = { value = scope:st_k multiply = scope:st_bp divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } } min = { value = scope:st_k divide = { value = scope:st_bp min = 0.01 } } } }
+		}
+		add = 0
+	}
+	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
+	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
+		}
+		add = 0
+	}
+	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
+	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_rhm value = { value = { value = scope:st_bh add = scope:st_mid } subtract = scope:st_sh divide = { value = { value = { value = scope:st_bh add = scope:st_mid } max = scope:st_sh } min = 0.01 } } }
+			save_temporary_scope_value_as = { name = st_rpm value = { value = scope:st_bp subtract = { value = scope:st_sp add = scope:st_mid } divide = { value = { value = scope:st_bp max = { value = scope:st_sp add = scope:st_mid } } min = 0.01 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_phm value = { value = scope:st_ph add = { value = { value = scope:st_rhm min = -1 max = 1 } subtract = { value = scope:st_rh0 min = -1 max = 1 } multiply = scope:st_k } } }
+			save_temporary_scope_value_as = { name = st_ppm value = { value = scope:st_pp add = { value = { value = scope:st_rpm min = -1 max = 1 } subtract = { value = scope:st_rp0 min = -1 max = 1 } multiply = scope:st_k } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = { value = scope:st_k divide = { value = scope:st_sh min = 0.01 } } min = { value = scope:st_k multiply = scope:st_sh divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } } } }
+			save_temporary_scope_value_as = { name = st_slpm value = { value = { value = scope:st_k multiply = scope:st_bp divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } } min = { value = scope:st_k divide = { value = scope:st_bp min = 0.01 } } } }
+		}
+		add = 0
+	}
+	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
+	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
+		}
+		add = 0
+	}
+	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
+	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_rhm value = { value = { value = scope:st_bh add = scope:st_mid } subtract = scope:st_sh divide = { value = { value = { value = scope:st_bh add = scope:st_mid } max = scope:st_sh } min = 0.01 } } }
+			save_temporary_scope_value_as = { name = st_rpm value = { value = scope:st_bp subtract = { value = scope:st_sp add = scope:st_mid } divide = { value = { value = scope:st_bp max = { value = scope:st_sp add = scope:st_mid } } min = 0.01 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_phm value = { value = scope:st_ph add = { value = { value = scope:st_rhm min = -1 max = 1 } subtract = { value = scope:st_rh0 min = -1 max = 1 } multiply = scope:st_k } } }
+			save_temporary_scope_value_as = { name = st_ppm value = { value = scope:st_pp add = { value = { value = scope:st_rpm min = -1 max = 1 } subtract = { value = scope:st_rp0 min = -1 max = 1 } multiply = scope:st_k } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = { value = scope:st_k divide = { value = scope:st_sh min = 0.01 } } min = { value = scope:st_k multiply = scope:st_sh divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } } } }
+			save_temporary_scope_value_as = { name = st_slpm value = { value = { value = scope:st_k multiply = scope:st_bp divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } } min = { value = scope:st_k divide = { value = scope:st_bp min = 0.01 } } } }
+		}
+		add = 0
+	}
+	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
+	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
+		}
+		add = 0
+	}
+	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
+	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_rhm value = { value = { value = scope:st_bh add = scope:st_mid } subtract = scope:st_sh divide = { value = { value = { value = scope:st_bh add = scope:st_mid } max = scope:st_sh } min = 0.01 } } }
+			save_temporary_scope_value_as = { name = st_rpm value = { value = scope:st_bp subtract = { value = scope:st_sp add = scope:st_mid } divide = { value = { value = scope:st_bp max = { value = scope:st_sp add = scope:st_mid } } min = 0.01 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_phm value = { value = scope:st_ph add = { value = { value = scope:st_rhm min = -1 max = 1 } subtract = { value = scope:st_rh0 min = -1 max = 1 } multiply = scope:st_k } } }
+			save_temporary_scope_value_as = { name = st_ppm value = { value = scope:st_pp add = { value = { value = scope:st_rpm min = -1 max = 1 } subtract = { value = scope:st_rp0 min = -1 max = 1 } multiply = scope:st_k } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = { value = scope:st_k divide = { value = scope:st_sh min = 0.01 } } min = { value = scope:st_k multiply = scope:st_sh divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } } } }
+			save_temporary_scope_value_as = { name = st_slpm value = { value = { value = scope:st_k multiply = scope:st_bp divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } } min = { value = scope:st_k divide = { value = scope:st_bp min = 0.01 } } } }
+		}
+		add = 0
+	}
+	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
+	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
+		}
+		add = 0
+	}
+	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
+	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_rhm value = { value = { value = scope:st_bh add = scope:st_mid } subtract = scope:st_sh divide = { value = { value = { value = scope:st_bh add = scope:st_mid } max = scope:st_sh } min = 0.01 } } }
+			save_temporary_scope_value_as = { name = st_rpm value = { value = scope:st_bp subtract = { value = scope:st_sp add = scope:st_mid } divide = { value = { value = scope:st_bp max = { value = scope:st_sp add = scope:st_mid } } min = 0.01 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_phm value = { value = scope:st_ph add = { value = { value = scope:st_rhm min = -1 max = 1 } subtract = { value = scope:st_rh0 min = -1 max = 1 } multiply = scope:st_k } } }
+			save_temporary_scope_value_as = { name = st_ppm value = { value = scope:st_pp add = { value = { value = scope:st_rpm min = -1 max = 1 } subtract = { value = scope:st_rp0 min = -1 max = 1 } multiply = scope:st_k } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = { value = scope:st_k divide = { value = scope:st_sh min = 0.01 } } min = { value = scope:st_k multiply = scope:st_sh divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } } } }
+			save_temporary_scope_value_as = { name = st_slpm value = { value = { value = scope:st_k multiply = scope:st_bp divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } } min = { value = scope:st_k divide = { value = scope:st_bp min = 0.01 } } } }
+		}
+		add = 0
+	}
+	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
+	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
+		}
+		add = 0
+	}
+	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
+	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_rhm value = { value = { value = scope:st_bh add = scope:st_mid } subtract = scope:st_sh divide = { value = { value = { value = scope:st_bh add = scope:st_mid } max = scope:st_sh } min = 0.01 } } }
+			save_temporary_scope_value_as = { name = st_rpm value = { value = scope:st_bp subtract = { value = scope:st_sp add = scope:st_mid } divide = { value = { value = scope:st_bp max = { value = scope:st_sp add = scope:st_mid } } min = 0.01 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_phm value = { value = scope:st_ph add = { value = { value = scope:st_rhm min = -1 max = 1 } subtract = { value = scope:st_rh0 min = -1 max = 1 } multiply = scope:st_k } } }
+			save_temporary_scope_value_as = { name = st_ppm value = { value = scope:st_pp add = { value = { value = scope:st_rpm min = -1 max = 1 } subtract = { value = scope:st_rp0 min = -1 max = 1 } multiply = scope:st_k } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = { value = scope:st_k divide = { value = scope:st_sh min = 0.01 } } min = { value = scope:st_k multiply = scope:st_sh divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } } } }
+			save_temporary_scope_value_as = { name = st_slpm value = { value = { value = scope:st_k multiply = scope:st_bp divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } } min = { value = scope:st_k divide = { value = scope:st_bp min = 0.01 } } } }
+		}
+		add = 0
+	}
+	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
+	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
+		}
+		add = 0
+	}
+	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
+	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_rhm value = { value = { value = scope:st_bh add = scope:st_mid } subtract = scope:st_sh divide = { value = { value = { value = scope:st_bh add = scope:st_mid } max = scope:st_sh } min = 0.01 } } }
+			save_temporary_scope_value_as = { name = st_rpm value = { value = scope:st_bp subtract = { value = scope:st_sp add = scope:st_mid } divide = { value = { value = scope:st_bp max = { value = scope:st_sp add = scope:st_mid } } min = 0.01 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_phm value = { value = scope:st_ph add = { value = { value = scope:st_rhm min = -1 max = 1 } subtract = { value = scope:st_rh0 min = -1 max = 1 } multiply = scope:st_k } } }
+			save_temporary_scope_value_as = { name = st_ppm value = { value = scope:st_pp add = { value = { value = scope:st_rpm min = -1 max = 1 } subtract = { value = scope:st_rp0 min = -1 max = 1 } multiply = scope:st_k } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = { value = scope:st_k divide = { value = scope:st_sh min = 0.01 } } min = { value = scope:st_k multiply = scope:st_sh divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } } } }
+			save_temporary_scope_value_as = { name = st_slpm value = { value = { value = scope:st_k multiply = scope:st_bp divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } } min = { value = scope:st_k divide = { value = scope:st_bp min = 0.01 } } } }
+		}
+		add = 0
+	}
+	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
+	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
+		}
+		add = 0
+	}
+	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
+	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_rhm value = { value = { value = scope:st_bh add = scope:st_mid } subtract = scope:st_sh divide = { value = { value = { value = scope:st_bh add = scope:st_mid } max = scope:st_sh } min = 0.01 } } }
+			save_temporary_scope_value_as = { name = st_rpm value = { value = scope:st_bp subtract = { value = scope:st_sp add = scope:st_mid } divide = { value = { value = scope:st_bp max = { value = scope:st_sp add = scope:st_mid } } min = 0.01 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_phm value = { value = scope:st_ph add = { value = { value = scope:st_rhm min = -1 max = 1 } subtract = { value = scope:st_rh0 min = -1 max = 1 } multiply = scope:st_k } } }
+			save_temporary_scope_value_as = { name = st_ppm value = { value = scope:st_pp add = { value = { value = scope:st_rpm min = -1 max = 1 } subtract = { value = scope:st_rp0 min = -1 max = 1 } multiply = scope:st_k } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = { value = scope:st_k divide = { value = scope:st_sh min = 0.01 } } min = { value = scope:st_k multiply = scope:st_sh divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } } } }
+			save_temporary_scope_value_as = { name = st_slpm value = { value = { value = scope:st_k multiply = scope:st_bp divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } } min = { value = scope:st_k divide = { value = scope:st_bp min = 0.01 } } } }
+		}
+		add = 0
+	}
+	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
+	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
+		}
+		add = 0
+	}
+	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
+	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_rhm value = { value = { value = scope:st_bh add = scope:st_mid } subtract = scope:st_sh divide = { value = { value = { value = scope:st_bh add = scope:st_mid } max = scope:st_sh } min = 0.01 } } }
+			save_temporary_scope_value_as = { name = st_rpm value = { value = scope:st_bp subtract = { value = scope:st_sp add = scope:st_mid } divide = { value = { value = scope:st_bp max = { value = scope:st_sp add = scope:st_mid } } min = 0.01 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_phm value = { value = scope:st_ph add = { value = { value = scope:st_rhm min = -1 max = 1 } subtract = { value = scope:st_rh0 min = -1 max = 1 } multiply = scope:st_k } } }
+			save_temporary_scope_value_as = { name = st_ppm value = { value = scope:st_pp add = { value = { value = scope:st_rpm min = -1 max = 1 } subtract = { value = scope:st_rp0 min = -1 max = 1 } multiply = scope:st_k } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = { value = scope:st_k divide = { value = scope:st_sh min = 0.01 } } min = { value = scope:st_k multiply = scope:st_sh divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } } } }
+			save_temporary_scope_value_as = { name = st_slpm value = { value = { value = scope:st_k multiply = scope:st_bp divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } } min = { value = scope:st_k divide = { value = scope:st_bp min = 0.01 } } } }
+		}
+		add = 0
+	}
+	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
+	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
+		}
+		add = 0
+	}
+	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
+	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_rhm value = { value = { value = scope:st_bh add = scope:st_mid } subtract = scope:st_sh divide = { value = { value = { value = scope:st_bh add = scope:st_mid } max = scope:st_sh } min = 0.01 } } }
+			save_temporary_scope_value_as = { name = st_rpm value = { value = scope:st_bp subtract = { value = scope:st_sp add = scope:st_mid } divide = { value = { value = scope:st_bp max = { value = scope:st_sp add = scope:st_mid } } min = 0.01 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_phm value = { value = scope:st_ph add = { value = { value = scope:st_rhm min = -1 max = 1 } subtract = { value = scope:st_rh0 min = -1 max = 1 } multiply = scope:st_k } } }
+			save_temporary_scope_value_as = { name = st_ppm value = { value = scope:st_pp add = { value = { value = scope:st_rpm min = -1 max = 1 } subtract = { value = scope:st_rp0 min = -1 max = 1 } multiply = scope:st_k } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = { value = scope:st_k divide = { value = scope:st_sh min = 0.01 } } min = { value = scope:st_k multiply = scope:st_sh divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } } } }
+			save_temporary_scope_value_as = { name = st_slpm value = { value = { value = scope:st_k multiply = scope:st_bp divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } } min = { value = scope:st_k divide = { value = scope:st_bp min = 0.01 } } } }
+		}
+		add = 0
+	}
+	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
+	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
+		}
+		add = 0
+	}
+	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
+	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mid value = { value = scope:st_lo add = scope:st_hi divide = 2 } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_rhm value = { value = { value = scope:st_bh add = scope:st_mid } subtract = scope:st_sh divide = { value = { value = { value = scope:st_bh add = scope:st_mid } max = scope:st_sh } min = 0.01 } } }
+			save_temporary_scope_value_as = { name = st_rpm value = { value = scope:st_bp subtract = { value = scope:st_sp add = scope:st_mid } divide = { value = { value = scope:st_bp max = { value = scope:st_sp add = scope:st_mid } } min = 0.01 } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_phm value = { value = scope:st_ph add = { value = { value = scope:st_rhm min = -1 max = 1 } subtract = { value = scope:st_rh0 min = -1 max = 1 } multiply = scope:st_k } } }
+			save_temporary_scope_value_as = { name = st_ppm value = { value = scope:st_pp add = { value = { value = scope:st_rpm min = -1 max = 1 } subtract = { value = scope:st_rp0 min = -1 max = 1 } multiply = scope:st_k } } }
+		}
+		add = 0
+	}
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_slhm value = { value = { value = scope:st_k divide = { value = scope:st_sh min = 0.01 } } min = { value = scope:st_k multiply = scope:st_sh divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_bh add = scope:st_mid } min = 0.01 } } } }
+			save_temporary_scope_value_as = { name = st_slpm value = { value = { value = scope:st_k multiply = scope:st_bp divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } divide = { value = { value = scope:st_sp add = scope:st_mid } min = 0.01 } } min = { value = scope:st_k divide = { value = scope:st_bp min = 0.01 } } } }
+		}
+		add = 0
+	}
+	if = { limit = { OR = { scope:st_rhm >= 1 scope:st_rhm <= -1 } save_temporary_scope_value_as = { name = st_slhm value = 0 } } add = 0 }
+	if = { limit = { OR = { scope:st_rpm >= 1 scope:st_rpm <= -1 } save_temporary_scope_value_as = { name = st_slpm value = 0 } } add = 0 }
+	if = {
+		limit = {
+			save_temporary_scope_value_as = { name = st_mm value = { value = scope:st_ppm subtract = scope:st_phm subtract = scope:st_ship subtract = { value = scope:st_mid multiply = { value = scope:st_slhm add = scope:st_slpm } } } }
+		}
+		add = 0
+	}
+	if = { limit = { scope:st_mm > 0 save_temporary_scope_value_as = { name = st_lo value = scope:st_mid } } add = 0 }
+	if = { limit = { scope:st_mm <= 0 save_temporary_scope_value_as = { name = st_hi value = scope:st_mid } } add = 0 }
+	value = { value = scope:st_lo add = scope:st_hi divide = 2 }
 }
 
 st_best_gain = {

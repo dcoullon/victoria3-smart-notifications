@@ -37,8 +37,10 @@ def goods_quantities() -> dict[str, int]:
                 depth += (text[i] == "{") - (text[i] == "}")
                 i += 1
             body = text[m.end():i - 1]
-            q = re.search(r"^\s*traded_quantity\s*=\s*(\d+)", body, re.M)
-            out[m.group(1)] = int(q.group(1)) if q else None
+            # Decimals matter: ships and porcelain are 3.5, fine art 1.5 (a
+            # bare \d+ truncated them to 3 and 1; independent review 2026-10-05).
+            q = re.search(r"^\s*traded_quantity\s*=\s*([\d.]+)", body, re.M)
+            out[m.group(1)] = float(q.group(1)) if q else None
     return out
 
 
@@ -57,7 +59,7 @@ def render() -> str:
     ]
     for name, q in sorted(goods.items()):
         if q is not None and q != default:
-            lines.append(f"\tif = {{ limit = {{ input_goods = g:{name} }} value = {q} }}")
+            lines.append(f"\tif = {{ limit = {{ input_goods = g:{name} }} value = {q:g} }}")
     lines += ["}", ""]
     return "\n".join(lines)
 
