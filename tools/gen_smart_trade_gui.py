@@ -92,6 +92,11 @@ def f_imb(b, s):
     return mul(fx(0.75), clamp1(ratio(b, s)))
 
 
+# Route multiplier assumed for drafts that go by sea (Damien, 2026-10-05):
+# the middle of x1.00 (under 1000 travel distance) and x1.50 (long routes),
+# on the view that most partners whose markets do not touch ours are far.
+ROUTE_EST = 1.25
+
 D_ADJ = ("GetScriptedGui('st_markets_adjacent_sgui').IsValid(GuiScope.SetRoot("
          "ArticleDraft.GetFirstOrSource.MakeScope).AddScope('st_other', "
          "ArticleDraft.GetSecondOrTarget.MakeScope).End)")
@@ -108,7 +113,7 @@ class Market:
         self.ph, self.pp = f"{gh}.GetMarketPrice", f"{gp}.GetMarketPrice"
         self.base, self.tq = f"{g}.GetBasePrice", f"{g}.GetTradedQuantity"
         # Shipping per unit on a short route (x1.00); zero overland.
-        self.ship_unit = sel(D_ADJ, fx(0), div(MMP, self.tq))
+        self.ship_unit = sel(D_ADJ, fx(0), mul(div(MMP, self.tq), fx(ROUTE_EST)))
         # First-unit margin after shipping: the deal pays only if this is > 0.
         self.edge = sub(sub(self.pp, self.ph), self.ship_unit)
         # How fast each extra unit moves each price (derivative of the price
@@ -155,8 +160,13 @@ D_MARGIN = D.margin(D_Q)
 D_TQ = D.tq
 D_SHIP_LO = mul(div(D_Q, D_TQ), MMP)
 D_SHIP_HI = mul(D_SHIP_LO, fx(1.5))
+D_SHIP_MID = mul(D_SHIP_LO, fx(ROUTE_EST))
 D_NET_LO = sub(D_MARGIN, D_SHIP_HI)
 D_NET_HI = sub(D_MARGIN, D_SHIP_LO)
+D_NET_MID = sub(D_MARGIN, D_SHIP_MID)
+# Vanilla's AI quantity rule caps at 35% of the partner's consumption; if the
+# player's default comes from it, this matches the slider's first value.
+D_VANILLA_GUESS = mul(fx(0.35), D.bp)
 D_QAI = D.q_ai
 D_QBEST = D.q_best
 # Linear estimate on purpose: the exact version is a 32,788-character
@@ -166,7 +176,8 @@ D_BEST_GAIN = D.gain_lin(D_QBEST)
 D_PAYS = D.pays
 D_SHOW = "And(ArticleDraft.HasType('goods_transfer'), Country.IsLocalPlayer)"
 D_DEV = (f"Select test [{sel(gt(fx(1), fx(0)), fx(1), fx(2))}|0] (1 = cond, then, else); "
-         f"edge [{D.edge}|2] slopes [{D.slope_h}|5] / [{D.slope_p}|5] qAI [{D.q_ai}|0]")
+         f"edge [{D.edge}|2] slopes [{D.slope_h}|5] / [{D.slope_p}|5] qAI [{D.q_ai}|0]; "
+         f"35% of partner buy orders [{D_VANILLA_GUESS}|0] (compare with the default quantity right after picking a good)")
 
 C_SHOW = f"And(And(ArticleDraft.HasType('goods_transfer'), ArticleDraft.GetFirstOrSource.IsLocalPlayer), {C.pays})"
 C_QBEST = C.q_best
@@ -233,7 +244,7 @@ types smart_trade_types {
 					custom_tooltip_textbox = { raw_text = "Purchase: @money![@@NEG_A_BUY@@|D+=] ([Article.GetQuantity|0] x @money![@@A_PH@@|2])" }
 					custom_tooltip_textbox = {
 						visible = "[@@A_HAS_LANE@@]"
-						raw_text = "Shipping: @money![@@NEG_A_SHIP@@|D+=] ([Article.GetShippingLane.GetBeginState.GetName] to [Article.GetShippingLane.GetEndState.GetName], x[@@A_DIST@@|2])"
+						raw_text = "Shipping: @money![@@NEG_A_SHIP@@|D+=] ([Article.GetShippingLane.GetBeginState.GetName] to [Article.GetShippingLane.GetEndState.GetName])"
 					}
 					custom_tooltip_textbox = {
 						visible = "[Not(@@A_HAS_LANE@@)]"
@@ -291,7 +302,7 @@ types smart_trade_types {
 				}
 				custom_tooltip_textbox = {
 					visible = "[Not(@@D_ADJ@@)]"
-					raw_text = "Shipping: @money![@@NEG_D_SHIP_LO@@|D+=] to @money![@@NEG_D_SHIP_HI@@|D+=] (short to long route)"
+					raw_text = "Shipping: ~@money![@@NEG_D_SHIP_MID@@|D+=] (@money![@@NEG_D_SHIP_LO@@|D+=] to @money![@@NEG_D_SHIP_HI@@|D+=] by route length, known once signed)"
 				}
 				custom_tooltip_textbox = {
 					visible = "[@@D_ADJ@@]"
@@ -299,7 +310,7 @@ types smart_trade_types {
 				}
 				custom_tooltip_textbox = {
 					visible = "[Not(@@D_ADJ@@)]"
-					raw_text = "#bold Net: @money![@@D_NET_LO@@|D+=] to @money![@@D_NET_HI@@|D+=] a week#!"
+					raw_text = "#bold Net: ~@money![@@D_NET_MID@@|D+=] a week#!"
 				}
 				custom_tooltip_textbox = {
 					visible = "[@@D_PAYS@@]"
@@ -323,7 +334,7 @@ types smart_trade_types {
 			flowcontainer = {
 				direction = vertical
 				minimumsize = { 300 -1 }
-				custom_tooltip_textbox = { raw_text = "About @money![@@C_GAIN@@|D+=] a week at [@@C_QBEST@@|0] a week, the most [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting] wants or the most profitable, whichever is lower. Estimate on a short route." }
+				custom_tooltip_textbox = { raw_text = "About @money![@@C_GAIN@@|D+=] at [@@C_QBEST@@|0] a week, the most profitable amount [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting] still wants (estimate). Click to pick this good at that quantity." }
 			}
 		}
 	}
@@ -527,7 +538,7 @@ types treaty_draft_panel_types {
 			align = right|nobaseline
 			using = fontsize_small
 			margin_bottom = 4
-			raw_text = "Net @money![@@D_NET_LO@@|D+=] to [@@D_NET_HI@@|D+=]"
+			raw_text = "Net ~@money![@@D_NET_MID@@|D+=]/wk"
 			tooltipwidget = { smart_trade_draft_tooltip = {} }
 		}
 
@@ -704,16 +715,26 @@ GAME = Path(r"C:\Program Files (x86)\Steam\steamapps\common\Victoria 3\game")
 GOODS_LIST_SRC = GAME / "gui" / "right_click_menu.gui"
 GOODS_LIST_ANCHOR = 'blockoverride "additional_widgets" {'
 CARD_CHIP = '''blockoverride "additional_widgets" {
-						### SMART TRADE: best weekly gain for this good (estimate)
-						textbox = {
+						### SMART TRADE: best weekly gain for this good (estimate).
+						### Clicking it picks the good AND sets its best quantity,
+						### the same two things the player would do by hand.
+						button = {
 							visible = "[@@C_SHOW@@]"
 							parentanchor = top|left
-							position = { 5 4 }
-							autoresize = yes
-							align = nobaseline
-							using = fontsize_small
-							raw_text = "@money![@@C_GAIN@@|D+=]"
+							position = { 3 3 }
+							size = { 64 18 }
+							onclick = "[ArticleDraft.SetGood(Goods.Self)]"
+							onclick = "[ArticleDraft.SetQuantity(@@C_QBEST@@)]"
 							tooltipwidget = { smart_trade_card_tooltip = {} }
+
+							textbox = {
+								parentanchor = vcenter|left
+								position = { 2 0 }
+								autoresize = yes
+								align = nobaseline
+								using = fontsize_small
+								raw_text = "@money![@@C_GAIN@@|D+=]"
+							}
 						}
 '''
 
@@ -741,6 +762,7 @@ TOKENS.update({
     "NEG_A_BUY": neg(A_BUY), "NEG_A_SHIP": neg(A_SHIP),
     "PU_LANE": div(A_NET_LANE, A_Q), "PU_LAND": div(A_NET_LAND, A_Q),
     "NEG_D_SHIP_LO": neg(D_SHIP_LO), "NEG_D_SHIP_HI": neg(D_SHIP_HI),
+    "NEG_D_SHIP_MID": neg(D_SHIP_MID),
     "NEG_P_SHIP": neg(P_SHIP),
 })
 

@@ -130,6 +130,10 @@ The Budget panel's Treaties tooltips are left alone.
 
 **Best quantity (built 2026-10-05, run 6 tests it):** the profit-maximising quantity of the linearised first-week gain, (price gap minus shipping per unit) ÷ (2 × combined price slope), where each slope is the price rule's derivative at today's buy and sell orders (zero where the price sits at its cap). It is capped at the partner's shortage + 10, so it never triggers the AI's "too much" penalty, and floored at 10. A "Best: N" button under the draft's Net sets it through `ArticleDraft.SetQuantity`; each goods card shows the estimated weekly gain at its own best quantity.
 
+**Route estimate for drafts (Damien, 2026-10-05):** sea drafts assume ×1.25, the middle of ×1.00 to ×1.50, on the view that partners whose markets do not touch ours are usually far. Applies to the draft Net, best quantity and card gains; the hover still shows the ×1.00 to ×1.50 range. The treasury total keeps ×1.00, because it prices lanes that exist and Portugal's run at ×1.00 and ×1.17.
+
+**Cards are clickable (2026-10-05):** clicking a card's gain picks that good and sets its best quantity in one go (`SetGood` then `SetQuantity`). Vanilla's default quantity cannot be changed by a mod; this replaces "pick, then fix the quantity".
+
 **Draft treaty total:** not feasible as built. GUI expressions cannot sum the draft's articles, and script cannot see drafts at all (no `MakeScope` on `TreatyDraft` or `ArticleDraft` in the dump). Signed treaties have a total because script iterates in-force articles.
 
 **Before publishing:** remove the "dev" line from the goods-transfer hover (Damien's reminder, 2026-10-05); `tools/package_release.py` refuses to package while it is there.
