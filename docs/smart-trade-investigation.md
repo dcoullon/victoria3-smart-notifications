@@ -147,6 +147,16 @@ Acceptance criteria, run 11:
 - The dev line's rule and market prices match to the penny on both sides.
 - `python tools/scan_logs.py` shows no new Smart Trade errors; the button row no longer touches the divider.
 
+**Run 11 result (2026-10-05):** card gains show (coffee +321, tea +592, tobacco +10.4), Best and the card click land on the best quantity, so `GetQuantity` reads back within one click. Damien's findings: buttons and "Net" showed before any good was picked; tobacco 19 where 20 earns slightly more (whole-unit rounding); tea 92 where 102 earns more, which is Austria's shortage (82) + 10, the acceptance cap by design (102 would cost −3 acceptance); tools' thumbs-up picked 2,330 (−£37K) when 300 already gives the same +12.
+
+**Run 12 build.** The row's Net and buttons need a picked good. Best and the card click end with "+1 if it pays" (Best within 0.09% of the best whole quantity on 150 shapes). The thumbs-up, for goods the player sends, now finds the smallest quantity with the full acceptance by reading the game's own acceptance figure (vanilla's score stops rising well before shortage + 10; the cap point depends on an engine-only import value), then climbs to Best if Best is larger. Simulated against vanilla's formula on 292 cases, with and without whole-unit rounding: always at full acceptance; loss-making goods at the smallest such quantity ±1; profitable ones within 0.05% of the best fully-accepted quantity. Cost: the GUI file is 956 KB (vanilla's largest is 423 KB), mostly the 612-statement search.
+
+Acceptance criteria, run 12:
+- With no good picked, the row shows no Net and no buttons.
+- Tools to Austria: thumbs-up lands near 300 (not 2,330) with the same +12; the loss shown is about −£2.45K.
+- A profitable good (coffee): thumbs-up gives the same or a larger quantity than Best, at the top acceptance.
+- If thumbs-up lands at 10 or at Best's quantity regardless of acceptance, the game does not refresh acceptance within a click; the fallback is vanilla's top of range.
+
 **Known limits, deferred (independent review, 2026-10-05):**
 
 - Multiplayer: treaty totals select "the player's" articles with the script trigger `is_player`, which is true for every human. In a treaty between two humans both sides' goods would be counted. Fix if multiplayer ever matters: pass the local player in as a scope.

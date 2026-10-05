@@ -1643,6 +1643,12 @@ answer lies in, and, in an onclick, the draft's own quantity used as the one
 variable the GUI has, climbed step by step. `check_no_gui_value_passing`
 blocks `MakeScopeValue(` and `.End.ScriptValue(`.
 
+**Confirmed run 11 (2026-10-05):** several `onclick` lines on one button
+run in order, and `ArticleDraft.GetQuantity` reads back a `SetQuantity` made
+by an earlier line of the same click (the Best button and the card click
+both landed on the computed best). The thumbs-up search (run 12) relies on
+the same holding for `ArticleDraft.GetAcceptance`.
+
 ## The GUI layer cannot count a filtered datamodel
 
 Settled 2026-09-18 against the dump above, after being inferred from vanilla

@@ -100,6 +100,12 @@ ROUTE_EST = 1.25
 # Best-quantity search shapes (see Market.chain / Market.register).
 CHAIN_DECADES = 5          # 10 to 1,000,000 units
 CHAIN_POINTS = 10          # points per decade: 10 -> worst 1.31% low, 8 -> 2.04%
+# Acceptance search (Market.accept_search): one walk per acceptance value
+# 1..KMAX. The quantity score tops out near 10 x 1.375 (pricier) x 1.25
+# (AI strategy) = 17.2, so 18 covers it; above that the button keeps
+# vanilla's top of range. 17 power-of-two steps reach down from 131,071.
+ACCEPT_KMAX = 18
+ACCEPT_STEPS = 17
 REGISTER_FACTORS = [2 ** e for e in (12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0.5, 0.25, 0.125, 0.0625, 0.03125)]
 
 D_ADJ = ("GetScriptedGui('st_markets_adjacent_sgui').IsValid(GuiScope.SetRoot("
@@ -225,11 +231,15 @@ class Market:
             out = "container = {\n" + vis + "\t" + body.replace("\n", "\n\t") + "\n}"
         return out
 
-    def register(self, guard=None):
-        """onclick statements that leave the draft at the best quantity."""
+    def register(self, guard=None, reset=True):
+        """onclick statements that leave the draft at the best quantity.
+        reset=False climbs from wherever the quantity already is (the
+        acceptance button: from the smallest fully-accepted quantity)."""
         q = "ArticleDraft.GetQuantity"
         g = (lambda c: f"And({guard}, {c})") if guard else (lambda c: c)
-        out = [f"ArticleDraft.SetQuantity({sel(guard, fx(10), q) if guard else fx(10)})"]
+        out = []
+        if reset:
+            out.append(f"ArticleDraft.SetQuantity({sel(guard, fx(10), q) if guard else fx(10)})")
         for f in REGISTER_FACTORS:
             t = mx(add(q, fx(1)), mul(q, fx(round(f, 5))))
             ok = f"And(Not({gt(t, self.cap)}), {gt(self.marginal(t), fx(0))})"
@@ -239,7 +249,54 @@ class Market:
             near = f"And({gt(kk, q)}, Not({gt(kk, mn(self.cap, add(mul(q, fx(1.2)), fx(2))))}))"
             ok = f"And({near}, {gt(self.gain(kk), self.gain(q))})"
             out.append(f"ArticleDraft.SetQuantity({sel(g(ok), kk, q)})")
+        # One more unit if it pays: whole-unit rounding left tobacco at 19
+        # where 20 earned a little more (run 11).
+        up = add(q, fx(1))
+        ok = f"And(Not({gt(up, self.cap)}), {gt(self.gain(up), self.gain(q))})"
+        out.append(f"ArticleDraft.SetQuantity({sel(g(ok), up, q)})")
         return out
+
+    def accept_search(self):
+        """onclick statements for the thumbs-up when the PLAYER sends: the
+        smallest quantity that still gets the AI's full acceptance, then the
+        profit climb from there (so a profitable good ends at the larger of
+        that and Best).
+
+        Why a search: the AI's quantity score (13_goods_transfer.txt,
+        receiver block) is min(q, shortage + 10) x import value / 2 /
+        consumption, capped at min(import value / 2, 10), so it stops rising
+        well before the shortage + 10 that vanilla's range ends at (run 11:
+        tools gave +12 at 300 and at 2,330, for -2.45K vs -37K a week). The
+        import value is engine-only, so the cap point cannot be computed;
+        the game's own acceptance figure is read instead.
+
+        How, without variables: start at shortage + 10 (full acceptance A),
+        then walk down in powers of two, keeping a step while acceptance
+        stays at A. A is not stored anywhere, so there is one copy of the
+        walk per possible A (1..ACCEPT_KMAX), each moving only while the
+        acceptance equals its own A. A copy for a higher A, run before any
+        step, must not undo a step that never happened: its "step back" is
+        allowed only once the quantity has left shortage + 10."""
+        q = "ArticleDraft.GetQuantity"
+        acc = "ArticleDraft.GetAcceptance(TreatyDraft.GetRightCountry.Self)"
+        # The button carries datacontext = the partner's market, so these
+        # 612 statements can use the short names (the file is ~40% smaller).
+        g = "ArticleDraft.GetGoods.WithMarketContext(Market.Self)"
+        shortage = sub(f"{g}.GetMarketBuyOrders", f"{g}.GetMarketSellOrders")
+        # "Has left shortage + 10": q < cap - 0.999, written without the
+        # cap's Max(10, ...) (when the cap is 10 no step can move anyway).
+        # 0.999, not less: if the game keeps whole units, the start is
+        # floor(cap), up to 0.999 below cap, and must still read as "not
+        # moved" (simulated: 0.9 sent 14 of 150 cases to 65,000+ units).
+        moved = lt(add(q, fx(-9.001)), shortage)
+        out = [f"ArticleDraft.SetQuantity({self.cap})"]
+        for k in range(ACCEPT_KMAX, 0, -1):
+            for e in range(ACCEPT_STEPS - 1, -1, -1):
+                d = fx(2 ** e)
+                down = sub(q, d)
+                out.append(f"ArticleDraft.SetQuantity({sel(f'And(EqualTo_int32({acc}, {chr(39)}(int32){k}{chr(39)}), {gt(down, fx(9.9))})', down, q)})")
+                out.append(f"ArticleDraft.SetQuantity({sel(f'And(LessThan_int32({acc}, {chr(39)}(int32){k}{chr(39)}), {moved})', add(q, d), q)})")
+        return out + self.register(reset=False)
 
     def ph1(self, q):
         return add(self.ph, mul(self.base, sub(f_imb(add(self.bh, q), self.sh), f_imb(self.bh, self.sh))))
@@ -280,9 +337,13 @@ D_RULE_PH = add(D.base, mul(D.k, clamp1(D.rh(fx(0)))))
 D_RULE_PP = add(D.base, mul(D.k, clamp1(D.rp(fx(0)))))
 D_PH0, D_PP0 = D.ph, D.pp
 D_SHOW = "And(ArticleDraft.HasType('goods_transfer'), Country.IsLocalPlayer)"
-# Same tests without relying on the widget's Country context (the goods popup).
-D_MINE_SRC = "And(ArticleDraft.HasType('goods_transfer'), ArticleDraft.GetFirstOrSource.IsLocalPlayer)"
-D_MINE_TGT = "And(ArticleDraft.HasType('goods_transfer'), ArticleDraft.GetSecondOrTarget.IsLocalPlayer)"
+# Same tests without relying on the widget's Country context (the goods
+# popup), and only once a good is picked (run 11: the row showed "Net -80.1"
+# and the buttons beside "Select a Good").
+D_MINE_SRC = ("And(And(ArticleDraft.HasType('goods_transfer'), ArticleDraft.HasInputValue('goods')), "
+              "ArticleDraft.GetFirstOrSource.IsLocalPlayer)")
+D_MINE_TGT = ("And(And(ArticleDraft.HasType('goods_transfer'), ArticleDraft.HasInputValue('goods')), "
+              "ArticleDraft.GetSecondOrTarget.IsLocalPlayer)")
 
 C_MINE = "And(ArticleDraft.HasType('goods_transfer'), ArticleDraft.GetFirstOrSource.IsLocalPlayer)"
 # Only goods that gain at their own best quantity (run 7: dye showed -0.76,
@@ -292,7 +353,11 @@ C_SHOW = f"And({C_MINE}, {C.pays10})"
 # whose datacontext is the partner's market: shorter names, ~12% smaller.
 C_CHAIN = Market("Goods", home="GetPlayer.GetMarket.Self", partner="Market.Self").chain()
 C_PICK_ONCLICKS = "\n".join(f'onclick = "[{s}]"' for s in C.register(C_MINE))
-D_BEST_ONCLICKS = "\n".join(f'onclick = "[{s}]"' for s in D.register())
+# Best and thumbs-up only show when the player sends, and both buttons carry
+# datacontext = the partner's market: short names again.
+DB = Market("ArticleDraft.GetGoods", home="GetPlayer.GetMarket.Self", partner="Market.Self")
+D_BEST_ONCLICKS = "\n".join(f'onclick = "[{s}]"' for s in DB.register())
+D_ACCEPT_ONCLICKS = "\n".join(f'onclick = "[{s}]"' for s in DB.accept_search())
 
 # Draft header: does the partner's market border ours? (Context: Country is
 # one side of the header, TreatyDraft present.)
@@ -881,7 +946,7 @@ LOC = r'''l_english:
  EXPENSES_BREAKDOWN:0 "#bold (ST) Net treaty income:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],SMART_TRADE_TREATIES_TT ~@money![@@P_NET@@|D+=]#!#!\n\n#bold National Expenses:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],TOTAL_EXPENSES_BREAKDOWN,TotalExpensesTooltip #bold #N @money!-[GetPlayer.GetWeeklyExpenses|D-]#!#!#!#!"
  SMART_TRADE_TREATIES_TT:0 "#header Net treaty income, per week#!\nGoods you send: @money![@@P_TRADE@@|D+=]\nShipping lanes costs: @money![@@NEG_P_SHIP@@|D+=] (estimate)\nMoney transfers: @money![@@P_MONEY@@|D+=]\nShipping is paid in merchant marine at your market price; more ports lower it.\nPer treaty: see the outliner's Treaties list."
  SMART_TRADE_MAX_SEND_TT:0 "Set the quantity to [@@D_QMAX_SEND@@|0], filling [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting]'s shortage without going over your surplus."
- SMART_TRADE_ACCEPT_SEND_TT:0 "Set the quantity to [@@D_QACC_SEND@@|0] for the highest acceptance."
+ SMART_TRADE_ACCEPT_SEND_TT:0 "Set the quantity for the highest acceptance, at the best profit or the smallest loss."
  SMART_TRADE_MAX_RECV_TT:0 "Set the quantity to [@@D_QMAX_RECV@@|0], filling your shortage without going over what [ArticleDraft.GetFirstOrSource.GetNameNoFormatting] spares."
  SMART_TRADE_ACCEPT_RECV_TT:0 "Set the quantity to [@@D_QACC_RECV@@|0] for the highest acceptance."
  SMART_TRADE_OVERLAND_TT:0 "Your markets border each other: goods transfers go overland and pay no shipping."
@@ -983,6 +1048,7 @@ ROW_BEST = ROW_ANCHOR + '''
 				smart_trade_best_button = {
 					visible = "[@@D_MINE_SRC@@]"
 					parentanchor = vcenter
+					datacontext = "[ArticleDraft.GetSecondOrTarget.GetMarket]"
 				}
 				smart_trade_best_button = {
 					visible = "[@@D_MINE_SRC@@]"
@@ -994,7 +1060,10 @@ ROW_BEST = ROW_ANCHOR + '''
 				smart_trade_best_button = {
 					visible = "[@@D_MINE_SRC@@]"
 					parentanchor = vcenter
-					blockoverride "action" { onclick = "[ArticleDraft.SetQuantity(@@D_QACC_SEND@@)]" }
+					datacontext = "[ArticleDraft.GetSecondOrTarget.GetMarket]"
+					blockoverride "action" {
+						@@D_ACCEPT_ONCLICKS@@
+					}
 					blockoverride "label" { raw_text = "" }
 					blockoverride "thumb" { visible = yes }
 					blockoverride "tip" { tooltip = "SMART_TRADE_ACCEPT_SEND_TT" }
