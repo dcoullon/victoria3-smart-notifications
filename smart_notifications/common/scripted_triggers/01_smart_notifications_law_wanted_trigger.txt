@@ -194,8 +194,22 @@ smart_notifications_law_matches_wanted_flag = {
 #
 # Called as `smart_notifications_law_ready_to_enact = yes` from a context
 # where THIS is the law being checked (e.g. inside `any_law`/`every_law`).
+#
+# REVISED 2026-10-06, two Workshop bug reports (Dave Cheese Wizzard):
+# - `can_be_enacted` stays true for the law already in force, so a wanted
+#   flag that outlives the law's enactment (any save from before the
+#   2026-09-15 on_law_activated flag clear) kept the alert up. Hence the
+#   has_law guard; same `has_law = <law>.type` shape as vanilla's
+#   00_impose_law.txt.
+# - `can_be_enacted` ignores the 730-day lockout after a failed enactment.
+#   The mod records that lockout itself; see
+#   common/on_actions/17_smart_notifications_law_cooldown.txt.
+# Both guards are cheap variable/law lookups, so they run before the
+# 99-step sweep.
 smart_notifications_law_ready_to_enact = {
+	NOT = { smart_notifications_law_on_cooldown = yes }
 	THIS.owner = {
+		NOT = { has_law = prev.type }
 		OR = {
 			AND = {
 				enactment_chance_for_law = { target = prev.type  value > 0.01 }

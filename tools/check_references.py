@@ -350,6 +350,8 @@ LAW_TYPE_DISPATCH_FILES = [
     "common/scripted_guis/smart_notifications_law_commitment_list_sgui.txt",
     "common/on_actions/09_smart_notifications_law_ready_toast.txt",
     "common/on_actions/15_smart_notifications_law_flag_clear.txt",
+    "common/scripted_triggers/02_smart_notifications_law_cooldown_trigger.txt",
+    "common/on_actions/17_smart_notifications_law_cooldown.txt",
 ]
 
 

@@ -169,10 +169,11 @@ smart_notifications_law_commitment_alert = {
 	#   trigger, true if THIS (the iterated law) matches one of the
 	#   country's flagged law types.
 	# - can_be_enacted = yes (law scope) -- "checks if a law could be
-	#   enacted by its country, considering its current situation";
-	#   excludes the already-active law in its group and anything
-	#   currently blocked, so this alert self-cleans once a flagged law
-	#   passes or becomes unavailable, with no separate reset needed.
+	#   enacted by its country, considering its current situation".
+	#   CORRECTED 2026-10-06: it does NOT exclude the law already in
+	#   force, nor the 730-day lockout after a failed enactment (both
+	#   shown by live bug reports). smart_notifications_law_ready_to_enact
+	#   carries those two guards instead.
 	valid = {
 		any_law = {
 			smart_notifications_law_matches_wanted_flag = yes
