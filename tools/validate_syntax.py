@@ -3,14 +3,9 @@ from pathlib import Path
 
 import check_references
 
-# The languages Victoria 3 actually ships, read off
-# game/localization/ (and confirmed against languages.yml). A folder outside
-# this set is not a translation, it is a directory the game ignores -- which
-# looks identical to a translation that "did not work".
-VICTORIA_LANGUAGES = {
-    "english", "french", "german", "spanish", "braz_por", "polish",
-    "russian", "simp_chinese", "japanese", "korean", "turkish",
-}
+# Lives in check_references, which also needs it (every mod must ship all of
+# them -- check_translations_match_english).
+VICTORIA_LANGUAGES = check_references.VICTORIA_LANGUAGES
 
 
 def validate_file(file_path: Path):
@@ -328,6 +323,10 @@ def run_checks_for(target: Path) -> bool:
 
 
 if __name__ == "__main__":
+    # Error messages quote loc values, which are Cyrillic or CJK in ten of the
+    # eleven languages. The Windows console's default cp1252 cannot encode
+    # them, so the first such error would crash the run instead of reporting.
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     # --strict turns a DEGRADED pass (vanilla-dependent checks skipped because
     # the game isn't installed on this machine) into a failure. Use it before
     # a playtest or a release; a plain run stays green so a cloud session can

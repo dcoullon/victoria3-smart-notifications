@@ -672,8 +672,12 @@ types message_settings {
 					textbox = {
 						text = "SMART_NOTIFICATIONS_WATCHLIST_COLUMN_COUNTRY"
 						autoresize = yes
-						minimumsize = { 590 -1 }
-						maximumsize = { 590 -1 }
+						# 590 -> 550 and Watched 60 -> 100 (2026-10-06): same total,
+						# same right edge over the checkboxes, but room for the
+						# translated header (Obserwowane, Beobachtet, Наблюдение are
+						# 10-11 characters; English Watched is 7).
+						minimumsize = { 550 -1 }
+						maximumsize = { 550 -1 }
 						align = nobaseline
 						default_format = "#title"
 						elide = right
@@ -683,8 +687,8 @@ types message_settings {
 					textbox = {
 						text = "SMART_NOTIFICATIONS_WATCHLIST_COLUMN_WATCHED"
 						autoresize = yes
-						minimumsize = { 60 -1 }
-						maximumsize = { 60 -1 }
+						minimumsize = { 100 -1 }
+						maximumsize = { 100 -1 }
 						align = right|nobaseline
 						default_format = "#title"
 						elide = right

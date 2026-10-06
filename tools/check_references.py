@@ -63,6 +63,15 @@ def _skip(check: str, reason: str) -> None:
 # disable them.
 SMART_NOTIFICATIONS_ID = "smart_notifications"
 
+# The languages Victoria 3 actually ships, read off
+# game/localization/ (and confirmed against languages.yml). A folder outside
+# this set is not a translation, it is a directory the game ignores -- which
+# looks identical to a translation that "did not work".
+VICTORIA_LANGUAGES = {
+    "english", "french", "german", "spanish", "braz_por", "polish",
+    "russian", "simp_chinese", "japanese", "korean", "turkish",
+}
+
 # Diagnostic-only files, dropped whole from a release by
 # tools/package_release.py. Stripping their debug_log lines is not enough --
 # what would remain is a pile of empty on_action handlers the game still calls
@@ -772,16 +781,27 @@ def check_mod_group_labels_are_tagged(root: Path) -> list[str]:
     that label to exist at all. CLAUDE.md requires the prefix on any
     Message-Settings-visible label the mod introduces; a missing label shows the
     raw key name in the settings list, the same silent-ugly failure class as a
-    missing notification loc key."""
+    missing notification loc key.
+
+    Checked per language file (2026-10-06, when translations arrived): one
+    merged dict let the last file read decide, so a translation that dropped
+    the prefix could hide behind English or the reverse. Whether each
+    language defines the label at all is check_translations_match_english's
+    job; here only English must."""
     errs = []
-    loc_values = {}
+    per_file = {}
     loc_dir = root / "localization"
     if loc_dir.is_dir():
         for path in sorted(loc_dir.rglob("*.yml")):
+            values = per_file.setdefault(path.relative_to(root).as_posix(), {})
             for line in _read(path).splitlines():
                 m = re.match(r'\s*([A-Za-z0-9_]+):\d*\s*"(.*)"\s*$', line)
                 if m:
-                    loc_values[m.group(1)] = m.group(2)
+                    values[m.group(1)] = m.group(2)
+    english = {}
+    for rel, values in per_file.items():
+        if "/english/" in rel:
+            english.update(values)
 
     for key, block in _message_blocks(root).items():
         if not key.startswith("smart_notifications_"):
@@ -790,16 +810,18 @@ def check_mod_group_labels_are_tagged(root: Path) -> list[str]:
         if not gm:
             continue
         group = gm.group(1)
-        if group not in loc_values:
+        if group not in english:
             errs.append(
-                f"mod group '{group}' (from '{key}') has no loc label -- "
+                f"mod group '{group}' (from '{key}') has no English loc label -- "
                 f"Message Settings would show the raw key"
             )
-        elif not loc_values[group].startswith("(SN) "):
-            errs.append(
-                f"mod group '{group}' label is {loc_values[group]!r} -- CLAUDE.md requires "
-                f'the "(SN) " prefix on every Message-Settings-visible label this mod adds'
-            )
+        for rel, values in sorted(per_file.items()):
+            if group in values and not values[group].startswith("(SN) "):
+                errs.append(
+                    f"{rel}: mod group '{group}' label is {values[group]!r} -- CLAUDE.md "
+                    f'requires the "(SN) " prefix on every Message-Settings-visible label '
+                    f"this mod adds, in every language"
+                )
     return errs
 
 
@@ -1747,29 +1769,33 @@ def check_no_inert_scripted_gui(root: Path) -> list[str]:
 
 
 def check_translations_match_english(root: Path) -> list[str]:
-    """Every non-English loc file must define exactly the keys English does,
-    and must preserve every datafunction call in the value.
+    """Every language Victoria 3 ships must have a loc folder, defining
+    exactly the keys English does and preserving every `[...]` call and
+    `$...$` reference in each value.
 
-    Two failure modes, both silent in game:
+    Three failure modes, all silent in game:
 
+    - **A language with no folder at all** shows raw keys or blank text for
+      every mod label. Smart Notifications shipped English-only until
+      2026-10-06, when a Russian launch logged 139 "Unknown loc key" errors
+      and an "Unlocalized text" for the Watchlist tab. Nothing flagged it,
+      because the parity check below only compared folders that existed.
     - **A key missing from a translation** falls back to English, so the
       button ends up half-translated and nobody reports it as a bug. The
       moment English gains a key, all ten translations are out of date and
       nothing says so.
-    - **A mangled `[...]` call** is worse. The count in these strings is
-      `[GetDataModelSize(MapListPanel.AccessValidOptions)]`, and a translator
-      (or a generator) that touches what is inside the brackets gets no error
-      -- dynamic text that does not resolve renders as nothing, so the button
-      silently loses its number in that language only.
+    - **A mangled `[...]` call or `$...$` reference** is worse. Dynamic text
+      that does not resolve renders as nothing, and a reference to a key
+      that does not exist renders the raw key -- in that language only.
 
     Added 2026-09-18 with the first translations. Keyed off English as the
     source of truth: extra keys in a translation are reported too, since they
-    are usually a rename that only landed in one file."""
+    are usually a rename that only landed in one file. localization/replace/
+    is compared the same way, but only for the languages it has: a mod may
+    replace a vanilla key in English alone and leave vanilla's own text in
+    place elsewhere (Smart Notifications' event-tooltip enrichment does)."""
     errs = []
     loc = root / "localization"
-    eng = loc / "english"
-    if not eng.is_dir():
-        return errs
 
     def keys_and_calls(d: Path):
         found = {}
@@ -1777,40 +1803,55 @@ def check_translations_match_english(root: Path) -> list[str]:
             for line in _read(path).split(chr(10)):
                 m = re.match(r'\s*([A-Za-z0-9_]+):\d*\s*"(.*)"\s*$', line)
                 if m:
-                    found[m.group(1)] = set(re.findall(r"\[([^\]]*)\]", m.group(2)))
+                    found[m.group(1)] = (set(re.findall(r"\[([^\]]*)\]", m.group(2)))
+                                         | set(re.findall(r"(\$[^$]*\$)", m.group(2))))
         return found
 
-    english = keys_and_calls(eng)
-    if not english:
-        return errs
+    def compare(base: Path, langs, required: bool):
+        english = keys_and_calls(base / "english")
+        if not english:
+            return
+        rel_base = base.relative_to(root).as_posix()
+        for lang in langs:
+            theirs = keys_and_calls(base / lang)
+            if not theirs:
+                if required:
+                    errs.append("%s/%s/: missing -- Victoria 3 ships this language, "
+                                "and every one of the %d keys English defines shows "
+                                "as a raw key or blank text in it"
+                                % (rel_base, lang, len(english)))
+                continue
+            missing = sorted(set(english) - set(theirs))
+            extra = sorted(set(theirs) - set(english))
+            if missing:
+                errs.append("%s/%s/: missing %d key(s) English defines "
+                            "(%s) -- they will silently fall back to English"
+                            % (rel_base, lang, len(missing), ", ".join(missing[:5])))
+            if extra:
+                errs.append("%s/%s/: defines %d key(s) English does not "
+                            "(%s) -- likely a rename that only landed here"
+                            % (rel_base, lang, len(extra), ", ".join(extra[:5])))
+            for key in sorted(set(english) & set(theirs)):
+                if english[key] != theirs[key]:
+                    lost = sorted(english[key] - theirs[key])
+                    added = sorted(theirs[key] - english[key])
+                    detail = []
+                    if lost:
+                        detail.append("lost %s" % ", ".join(lost))
+                    if added:
+                        detail.append("has unexpected %s" % ", ".join(added))
+                    errs.append("%s/%s/: %s %s -- a dynamic-text call or loc "
+                                "reference that does not resolve renders as "
+                                "nothing or a raw key, in this language only"
+                                % (rel_base, lang, key, "; ".join(detail)))
 
-    for d in sorted(x for x in loc.iterdir() if x.is_dir() and x.name != "english"):
-        theirs = keys_and_calls(d)
-        if not theirs:
-            continue
-        missing = sorted(set(english) - set(theirs))
-        extra = sorted(set(theirs) - set(english))
-        if missing:
-            errs.append("localization/%s/: missing %d key(s) English defines "
-                        "(%s) -- they will silently fall back to English"
-                        % (d.name, len(missing), ", ".join(missing[:5])))
-        if extra:
-            errs.append("localization/%s/: defines %d key(s) English does not "
-                        "(%s) -- likely a rename that only landed here"
-                        % (d.name, len(extra), ", ".join(extra[:5])))
-        for key in sorted(set(english) & set(theirs)):
-            if english[key] != theirs[key]:
-                lost = sorted(english[key] - theirs[key])
-                added = sorted(theirs[key] - english[key])
-                detail = []
-                if lost:
-                    detail.append("lost [%s]" % "], [".join(lost))
-                if added:
-                    detail.append("has unexpected [%s]" % "], [".join(added))
-                errs.append("localization/%s/: %s %s -- a dynamic-text call "
-                            "that does not resolve renders as nothing, so the "
-                            "value loses it silently in this language only"
-                            % (d.name, key, "; ".join(detail)))
+    others = sorted(VICTORIA_LANGUAGES - {"english"})
+    if loc.is_dir():
+        compare(loc, others, required=True)
+    rep = loc / "replace"
+    if rep.is_dir():
+        compare(rep, [d.name for d in sorted(rep.iterdir())
+                      if d.is_dir() and d.name != "english"], required=False)
     return errs
 
 

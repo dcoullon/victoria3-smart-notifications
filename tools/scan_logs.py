@@ -84,7 +84,10 @@ REPO_FILE_SUFFIXES = (".txt", ".gui", ".yml")
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
-LOC_KEY_PREFIXES = ("SNW_", "BC_", "SMART_NOTIFICATIONS_")
+# Lowercase smart_notifications_ added 2026-10-06: a Russian launch logged
+# "Unknown loc key smart_notifications_law_entry_law_*" for every law, and
+# most of this mod's loc keys are lowercase.
+LOC_KEY_PREFIXES = ("SNW_", "BC_", "SMART_NOTIFICATIONS_", "smart_notifications_")
 
 
 def shipped_file_names() -> set[str]:
