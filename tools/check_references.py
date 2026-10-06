@@ -1859,6 +1859,64 @@ def check_bc_button_labels_fit(root: Path) -> list[str]:
     return errs
 
 
+ST_BUTTON_MAX_COLS = 8   # the 58px Best/Max button at fontsize_small
+
+
+def check_st_button_labels_fit(root: Path) -> list[str]:
+    """Smart Treaties' Best/Max labels must fit their 58px button in every
+    language (same failure as check_bc_button_labels_fit: an overrun clips in
+    one language, silently). English "Best" is 4 columns; "Optimal" and
+    "Оптимум" are 7, CJK labels 4."""
+    errs = []
+    loc = root / "localization"
+    if not loc.is_dir():
+        return errs
+    for path in sorted(loc.rglob("*.yml")):
+        for n, line in enumerate(_read(path).split(chr(10)), 1):
+            m = re.match(r'\s*(ST_BTN_[A-Z]+):\d*\s*"(.*)"\s*$', line)
+            if not m:
+                continue
+            cols = sum(2 if unicodedata.east_asian_width(c) in ("W", "F") else 1 for c in m.group(2))
+            if cols > ST_BUTTON_MAX_COLS:
+                errs.append(f"{path.relative_to(root).as_posix()}:{n}: {m.group(1)} is {cols} display "
+                            f"columns, over the {ST_BUTTON_MAX_COLS} that fit the 58px button")
+    return errs
+
+
+_VANILLA_EN_KEYS: set = set()
+
+
+def check_gui_text_keys_defined(root: Path, defined_loc: set[str]) -> list[str]:
+    """Every `text = "KEY"` / `tooltip = "KEY"` in a mod's .gui must be a loc
+    key the mod or vanilla (English) defines. A missing key shows the raw key
+    name on screen, in every language, with nothing in error.log. Added
+    2026-10-06 when Smart Treaties moved ~40 strings out of the .gui into
+    loc for translation."""
+    gui = root / "gui"
+    if not gui.is_dir():
+        return []
+    van = VANILLA_ROOT / "localization" / "english"
+    if not van.is_dir():
+        _skip("gui text keys", "Victoria 3 not installed (vanilla keys unknown)")
+        return []
+    if not _VANILLA_EN_KEYS:
+        for p in van.rglob("*.yml"):
+            _VANILLA_EN_KEYS.update(re.findall(r'(?m)^\s*([A-Za-z0-9_.\-]+):\d*\s*"', _read(p)))
+    mine = set(defined_loc)
+    rep = root / "localization" / "replace" / "english"
+    if rep.is_dir():
+        for p in rep.glob("*.yml"):
+            mine.update(re.findall(r'(?m)^\s*([A-Za-z0-9_.\-]+):\d*\s*"', _read(p)))
+    errs = []
+    for path in sorted(gui.rglob("*.gui")):
+        for n, line in enumerate(_read(path).split(chr(10)), 1):
+            for m in re.finditer(r'\b(?:text|tooltip)\s*=\s*"([A-Z][A-Z0-9_]+)"', line):
+                if m.group(1) not in mine and m.group(1) not in _VANILLA_EN_KEYS:
+                    errs.append(f"{path.relative_to(root).as_posix()}:{n}: loc key '{m.group(1)}' is "
+                                f"defined neither by this mod nor by vanilla; it would show as raw text")
+    return errs
+
+
 def check_no_cheat_verbs(root: Path) -> list[str]:
     """Bulk Construction's hard rule, enforced rather than documented: fix the
     UX, never change the rules of the game (spec section 1a). The mod's whole
@@ -1903,6 +1961,8 @@ def run_all(root: Path) -> list[str]:
     errs += check_no_nested_int_to_fixed_point(root)
     errs += check_no_gui_value_passing(root)
     errs += check_gui_datafunction_chains(root)
+    errs += check_gui_text_keys_defined(root, defined_loc)
+    errs += check_st_button_labels_fit(root)
 
     # Smart-Notifications-only: each asserts that specific files or message
     # keys THIS mod owns are present, so against a sibling mod every one of

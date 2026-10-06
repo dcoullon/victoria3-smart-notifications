@@ -1,7 +1,7 @@
 {
 	"name": "Smart Treaties - Dev",
 	"id": "smart_trade",
-	"version": "0.00",
+	"version": "0.10",
 	"supported_game_version": "1.13.*",
 	"short_description": "See what each goods transfer treaty earns or costs you, per good: sale, purchase, shipping and net, in one place. Display only, no automation, no cheating.",
 	"tags": [

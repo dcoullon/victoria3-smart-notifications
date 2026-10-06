@@ -31,35 +31,35 @@ types smart_trade_types {
 				direction = vertical
 				minimumsize = { 380 -1 }
 
-				custom_tooltip_textbox = { raw_text = "#header [Article.GetGoods.GetName], [Article.GetQuantity|0] a week to [Article.GetTargetCountry.GetNameNoFormatting]#!" }
+				custom_tooltip_textbox = { text = "ST_A_HEADER" }
 				custom_tooltip_textbox = {
 					visible = "[Not(Article.GetSourceCountry.IsLocalPlayer)]"
-					raw_text = "Paid for by [Article.GetSourceCountry.GetNameNoFormatting]. No cost to you."
+					text = "ST_A_PAID_BY"
 				}
 				flowcontainer = {
 					direction = vertical
 					visible = "[Article.GetSourceCountry.IsLocalPlayer]"
-					custom_tooltip_textbox = { raw_text = "Sale: @money![Multiply_CFixedPoint(Article.GetQuantity, Article.GetGoods.WithMarketContext(Article.GetTargetCountry.GetMarket.Self).GetMarketPrice)|D+=] ([Article.GetQuantity|0] x @money![Article.GetGoods.WithMarketContext(Article.GetTargetCountry.GetMarket.Self).GetMarketPrice|2])" }
-					custom_tooltip_textbox = { raw_text = "Purchase: @money![Negate_CFixedPoint(Multiply_CFixedPoint(Article.GetQuantity, Article.GetGoods.WithMarketContext(Article.GetSourceCountry.GetMarket.Self).GetMarketPrice))|D+=] ([Article.GetQuantity|0] x @money![Article.GetGoods.WithMarketContext(Article.GetSourceCountry.GetMarket.Self).GetMarketPrice|2])" }
+					custom_tooltip_textbox = { text = "ST_A_SALE" }
+					custom_tooltip_textbox = { text = "ST_A_PURCHASE" }
 					custom_tooltip_textbox = {
 						visible = "[GreaterThan_CFixedPoint(Article.MakeScope.ScriptValue('st_article_has_lane'), '(CFixedPoint)0')]"
-						raw_text = "Shipping: @money![Negate_CFixedPoint(Multiply_CFixedPoint(Divide_CFixedPoint(Article.MakeScope.ScriptValue('st_article_lane_units'), Article.GetTreaty.MakeScope.ScriptValue('st_treaty_lane_units')), Multiply_CFixedPoint(Article.GetShippingLane.GetMerchantMarineDemandRaw, GetGoods('merchant_marine').WithMarketContext(GetPlayer.GetMarket.Self).GetMarketPrice)))|D+=] ([Article.GetShippingLane.GetBeginState.GetName] to [Article.GetShippingLane.GetEndState.GetName])"
+						text = "ST_A_SHIP"
 					}
 					custom_tooltip_textbox = {
 						visible = "[Not(GreaterThan_CFixedPoint(Article.MakeScope.ScriptValue('st_article_has_lane'), '(CFixedPoint)0'))]"
-						raw_text = "Shipping: none, the markets touch"
+						text = "ST_SHIP_NONE"
 					}
 					custom_tooltip_textbox = {
 						visible = "[GreaterThan_CFixedPoint(Article.MakeScope.ScriptValue('st_article_has_lane'), '(CFixedPoint)0')]"
-						raw_text = "#bold Net: @money![Subtract_CFixedPoint(Multiply_CFixedPoint(Article.GetQuantity, Subtract_CFixedPoint(Article.GetGoods.WithMarketContext(Article.GetTargetCountry.GetMarket.Self).GetMarketPrice, Article.GetGoods.WithMarketContext(Article.GetSourceCountry.GetMarket.Self).GetMarketPrice)), Multiply_CFixedPoint(Divide_CFixedPoint(Article.MakeScope.ScriptValue('st_article_lane_units'), Article.GetTreaty.MakeScope.ScriptValue('st_treaty_lane_units')), Multiply_CFixedPoint(Article.GetShippingLane.GetMerchantMarineDemandRaw, GetGoods('merchant_marine').WithMarketContext(GetPlayer.GetMarket.Self).GetMarketPrice)))|D+=] a week#! (@money![Divide_CFixedPoint(Subtract_CFixedPoint(Multiply_CFixedPoint(Article.GetQuantity, Subtract_CFixedPoint(Article.GetGoods.WithMarketContext(Article.GetTargetCountry.GetMarket.Self).GetMarketPrice, Article.GetGoods.WithMarketContext(Article.GetSourceCountry.GetMarket.Self).GetMarketPrice)), Multiply_CFixedPoint(Divide_CFixedPoint(Article.MakeScope.ScriptValue('st_article_lane_units'), Article.GetTreaty.MakeScope.ScriptValue('st_treaty_lane_units')), Multiply_CFixedPoint(Article.GetShippingLane.GetMerchantMarineDemandRaw, GetGoods('merchant_marine').WithMarketContext(GetPlayer.GetMarket.Self).GetMarketPrice))), Article.GetQuantity)|2+=] a unit)"
+						text = "ST_A_NET_LANE"
 					}
 					custom_tooltip_textbox = {
 						visible = "[Not(GreaterThan_CFixedPoint(Article.MakeScope.ScriptValue('st_article_has_lane'), '(CFixedPoint)0'))]"
-						raw_text = "#bold Net: @money![Multiply_CFixedPoint(Article.GetQuantity, Subtract_CFixedPoint(Article.GetGoods.WithMarketContext(Article.GetTargetCountry.GetMarket.Self).GetMarketPrice, Article.GetGoods.WithMarketContext(Article.GetSourceCountry.GetMarket.Self).GetMarketPrice))|D+=] a week#! (@money![Divide_CFixedPoint(Multiply_CFixedPoint(Article.GetQuantity, Subtract_CFixedPoint(Article.GetGoods.WithMarketContext(Article.GetTargetCountry.GetMarket.Self).GetMarketPrice, Article.GetGoods.WithMarketContext(Article.GetSourceCountry.GetMarket.Self).GetMarketPrice)), Article.GetQuantity)|2+=] a unit)"
+						text = "ST_A_NET_LAND"
 					}
 					custom_tooltip_textbox = {
 						visible = "[GreaterThan_CFixedPoint(Article.MakeScope.ScriptValue('st_article_has_lane'), '(CFixedPoint)0')]"
-						raw_text = "Shipping costs 1 merchant marine per [Article.GetGoods.GetTradedQuantity|0] units, at @money![GetGoods('merchant_marine').WithMarketContext(GetPlayer.GetMarket.Self).GetMarketPrice|2] each in your market. More ports at home lower that price."
+						text = "ST_A_MM_NOTE"
 					}
 				}
 			}
@@ -72,16 +72,16 @@ types smart_trade_types {
 				direction = vertical
 				minimumsize = { 300 -1 }
 
-				custom_tooltip_textbox = { raw_text = "#header Net to your treasury, per week#!" }
+				custom_tooltip_textbox = { text = "ST_T_HEADER" }
 				custom_tooltip_textbox = {
 					visible = "[GreaterThan_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_has_lane'), '(CFixedPoint)0')]"
-					raw_text = "Goods you send: @money![Subtract_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_margin'), Multiply_CFixedPoint(Treaty.GetShippingLaneOf(GetPlayer.Self).GetMerchantMarineDemandRaw, GetGoods('merchant_marine').WithMarketContext(GetPlayer.GetMarket.Self).GetMarketPrice))|D+=] (after shipping)"
+					text = "ST_T_GOODS_LANE"
 				}
 				custom_tooltip_textbox = {
 					visible = "[Not(GreaterThan_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_has_lane'), '(CFixedPoint)0'))]"
-					raw_text = "Goods you send: @money![Treaty.MakeScope.ScriptValue('st_treaty_margin')|D+=]"
+					text = "ST_T_GOODS_LAND"
 				}
-				custom_tooltip_textbox = { raw_text = "Money transfers: @money![Treaty.MakeScope.ScriptValue('st_treaty_money')|D+=]" }
+				custom_tooltip_textbox = { text = "ST_T_MONEY" }
 			}
 		}
 	}
@@ -92,31 +92,31 @@ types smart_trade_types {
 				direction = vertical
 				minimumsize = { 380 -1 }
 
-				custom_tooltip_textbox = { raw_text = "#header [ArticleDraft.GetGoods.GetName], [ArticleDraft.GetQuantity|0] a week to [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting]#!" }
-				custom_tooltip_textbox = { raw_text = "Sale minus purchase: @money![Multiply_CFixedPoint(ArticleDraft.GetQuantity, Subtract_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketPrice, Multiply_CFixedPoint(ArticleDraft.GetGoods.GetBasePrice, Subtract_CFixedPoint(Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders, ArticleDraft.GetQuantity)), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders, ArticleDraft.GetQuantity)), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')), Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1'))))), Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketPrice, Multiply_CFixedPoint(ArticleDraft.GetGoods.GetBasePrice, Subtract_CFixedPoint(Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetQuantity), ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetQuantity), ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')), Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')))))))|D+=] (@money![Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketPrice, Multiply_CFixedPoint(ArticleDraft.GetGoods.GetBasePrice, Subtract_CFixedPoint(Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders, ArticleDraft.GetQuantity)), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders, ArticleDraft.GetQuantity)), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')), Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')))))|2] vs @money![Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketPrice, Multiply_CFixedPoint(ArticleDraft.GetGoods.GetBasePrice, Subtract_CFixedPoint(Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetQuantity), ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetQuantity), ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')), Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')))))|2] a unit, first-week prices)" }
+				custom_tooltip_textbox = { text = "ST_D_HEADER" }
+				custom_tooltip_textbox = { text = "ST_D_MARGIN" }
 				custom_tooltip_textbox = {
 					visible = "[GetScriptedGui('st_markets_adjacent_sgui').IsValid(GuiScope.SetRoot(ArticleDraft.GetFirstOrSource.MakeScope).AddScope('st_other', ArticleDraft.GetSecondOrTarget.MakeScope).End)]"
-					raw_text = "Shipping: none, the markets touch"
+					text = "ST_SHIP_NONE"
 				}
 				custom_tooltip_textbox = {
 					visible = "[Not(GetScriptedGui('st_markets_adjacent_sgui').IsValid(GuiScope.SetRoot(ArticleDraft.GetFirstOrSource.MakeScope).AddScope('st_other', ArticleDraft.GetSecondOrTarget.MakeScope).End))]"
-					raw_text = "Shipping: ~@money![Negate_CFixedPoint(Multiply_CFixedPoint(Multiply_CFixedPoint(Divide_CFixedPoint(ArticleDraft.GetQuantity, ArticleDraft.GetGoods.GetTradedQuantity), GetGoods('merchant_marine').WithMarketContext(GetPlayer.GetMarket.Self).GetMarketPrice), '(CFixedPoint)1.25'))|D+=] (@money![Negate_CFixedPoint(Multiply_CFixedPoint(Divide_CFixedPoint(ArticleDraft.GetQuantity, ArticleDraft.GetGoods.GetTradedQuantity), GetGoods('merchant_marine').WithMarketContext(GetPlayer.GetMarket.Self).GetMarketPrice))|D+=] to @money![Negate_CFixedPoint(Multiply_CFixedPoint(Multiply_CFixedPoint(Divide_CFixedPoint(ArticleDraft.GetQuantity, ArticleDraft.GetGoods.GetTradedQuantity), GetGoods('merchant_marine').WithMarketContext(GetPlayer.GetMarket.Self).GetMarketPrice), '(CFixedPoint)1.5'))|D+=] by route length, known once signed)"
+					text = "ST_D_SHIP_SEA"
 				}
 				custom_tooltip_textbox = {
 					visible = "[GetScriptedGui('st_markets_adjacent_sgui').IsValid(GuiScope.SetRoot(ArticleDraft.GetFirstOrSource.MakeScope).AddScope('st_other', ArticleDraft.GetSecondOrTarget.MakeScope).End)]"
-					raw_text = "#bold Net: @money![Multiply_CFixedPoint(ArticleDraft.GetQuantity, Subtract_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketPrice, Multiply_CFixedPoint(ArticleDraft.GetGoods.GetBasePrice, Subtract_CFixedPoint(Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders, ArticleDraft.GetQuantity)), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders, ArticleDraft.GetQuantity)), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')), Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1'))))), Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketPrice, Multiply_CFixedPoint(ArticleDraft.GetGoods.GetBasePrice, Subtract_CFixedPoint(Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetQuantity), ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetQuantity), ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')), Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')))))))|D+=] a week#!"
+					text = "ST_D_NET_LAND"
 				}
 				custom_tooltip_textbox = {
 					visible = "[Not(GetScriptedGui('st_markets_adjacent_sgui').IsValid(GuiScope.SetRoot(ArticleDraft.GetFirstOrSource.MakeScope).AddScope('st_other', ArticleDraft.GetSecondOrTarget.MakeScope).End))]"
-					raw_text = "#bold Net: ~@money![Subtract_CFixedPoint(Multiply_CFixedPoint(ArticleDraft.GetQuantity, Subtract_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketPrice, Multiply_CFixedPoint(ArticleDraft.GetGoods.GetBasePrice, Subtract_CFixedPoint(Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders, ArticleDraft.GetQuantity)), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders, ArticleDraft.GetQuantity)), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')), Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1'))))), Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketPrice, Multiply_CFixedPoint(ArticleDraft.GetGoods.GetBasePrice, Subtract_CFixedPoint(Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetQuantity), ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetQuantity), ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')), Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1'))))))), Multiply_CFixedPoint(Multiply_CFixedPoint(Divide_CFixedPoint(ArticleDraft.GetQuantity, ArticleDraft.GetGoods.GetTradedQuantity), GetGoods('merchant_marine').WithMarketContext(GetPlayer.GetMarket.Self).GetMarketPrice), '(CFixedPoint)1.25'))|D+=] a week#!"
+					text = "ST_D_NET_SEA"
 				}
 				custom_tooltip_textbox = {
 					visible = "[Not(GreaterThan_CFixedPoint(Multiply_CFixedPoint('(CFixedPoint)10', Subtract_CFixedPoint(Multiply_CFixedPoint(Multiply_CFixedPoint(ArticleDraft.GetGoods.GetBasePrice, '(CFixedPoint)0.75'), Subtract_CFixedPoint(Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders, '(CFixedPoint)10')), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders, '(CFixedPoint)10')), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1'), Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, '(CFixedPoint)10'), ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, '(CFixedPoint)10'), ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1'))), Select_CFixedPoint(GetScriptedGui('st_markets_adjacent_sgui').IsValid(GuiScope.SetRoot(ArticleDraft.GetFirstOrSource.MakeScope).AddScope('st_other', ArticleDraft.GetSecondOrTarget.MakeScope).End), '(CFixedPoint)0', Multiply_CFixedPoint(Divide_CFixedPoint(GetGoods('merchant_marine').WithMarketContext(GetPlayer.GetMarket.Self).GetMarketPrice, ArticleDraft.GetGoods.GetTradedQuantity), '(CFixedPoint)1.25')))), '(CFixedPoint)0'))]"
-					raw_text = "No quantity makes a profit."
+					text = "ST_D_NO_PROFIT"
 				}
 				custom_tooltip_textbox = {
 					visible = "[Not(GetScriptedGui('st_markets_adjacent_sgui').IsValid(GuiScope.SetRoot(ArticleDraft.GetFirstOrSource.MakeScope).AddScope('st_other', ArticleDraft.GetSecondOrTarget.MakeScope).End))]"
-					raw_text = "Shipping costs 1 merchant marine per [ArticleDraft.GetGoods.GetTradedQuantity|0] units, at @money![GetGoods('merchant_marine').WithMarketContext(GetPlayer.GetMarket.Self).GetMarketPrice|2] each in your market. More ports at home lower that price."
+					text = "ST_D_MM_NOTE"
 				}
 			}
 		}
@@ -127,7 +127,7 @@ types smart_trade_types {
 			flowcontainer = {
 				direction = vertical
 				minimumsize = { 300 -1 }
-				custom_tooltip_textbox = { raw_text = "The most you can earn a week sending [Goods.GetName] to [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting], at the most profitable quantity they accept (estimate). Picking it starts at that quantity." }
+				custom_tooltip_textbox = { text = "ST_C_TIP" }
 			}
 		}
 	}
@@ -198,18 +198,25 @@ types smart_trade_types {
 
 	type smart_trade_best_tip = RegularTooltip {
 		blockoverride "tooltip_content" {
+			# Two lines, the figure alone after a label, so no language has
+			# to wrap its sentence around a widget.
 			flowcontainer = {
-				spacing = 4
-				custom_tooltip_textbox = { raw_text = "Set the quantity to the most profitable volume, about" }
-				smart_trade_best_gain = { datacontext = "[ArticleDraft.GetGoods]" }
-				custom_tooltip_textbox = { raw_text = "a week." }
+				direction = vertical
+				custom_tooltip_textbox = { text = "ST_BEST_TIP" }
+				flowcontainer = {
+					spacing = 4
+					custom_tooltip_textbox = { text = "ST_BEST_TIP_GAIN" }
+					smart_trade_best_gain = { datacontext = "[ArticleDraft.GetGoods]" }
+				}
 			}
 		}
 	}
 
+	# 58 wide (was 46) so translated labels fit: "Optimal", "Оптимум"
+	# (check_st_button_labels_fit).
 	type smart_trade_best_button = button {
 		using = default_button
-		size = { 46 22 }
+		size = { 58 22 }
 		enabled = "[ArticleDraft.CanBeModified]"
 		block "action" {
 			onclick = "[ArticleDraft.SetQuantity('(CFixedPoint)10')]"
@@ -294,7 +301,7 @@ onclick = "[ArticleDraft.SetQuantity(Select_CFixedPoint(And(Not(GreaterThan_int3
 				align = nobaseline
 				using = fontsize_small
 				block "label" {
-					raw_text = "Best"
+					text = "ST_BTN_BEST"
 				}
 			}
 		}
@@ -346,7 +353,7 @@ types treaty_panel_types {
 					align = nobaseline
 					using = fontsize_small
 					margin_top = 1
-					raw_text = "Net @money![Subtract_CFixedPoint(Multiply_CFixedPoint(Article.GetQuantity, Subtract_CFixedPoint(Article.GetGoods.WithMarketContext(Article.GetTargetCountry.GetMarket.Self).GetMarketPrice, Article.GetGoods.WithMarketContext(Article.GetSourceCountry.GetMarket.Self).GetMarketPrice)), Multiply_CFixedPoint(Divide_CFixedPoint(Article.MakeScope.ScriptValue('st_article_lane_units'), Article.GetTreaty.MakeScope.ScriptValue('st_treaty_lane_units')), Multiply_CFixedPoint(Article.GetShippingLane.GetMerchantMarineDemandRaw, GetGoods('merchant_marine').WithMarketContext(GetPlayer.GetMarket.Self).GetMarketPrice)))|D+=]"
+					text = "ST_ROW_A_LANE"
 				}
 				textbox = {
 					visible = "[And(Article.GetSourceCountry.IsLocalPlayer, Not(GreaterThan_CFixedPoint(Article.MakeScope.ScriptValue('st_article_has_lane'), '(CFixedPoint)0')))]"
@@ -354,7 +361,7 @@ types treaty_panel_types {
 					align = nobaseline
 					using = fontsize_small
 					margin_top = 1
-					raw_text = "Net @money![Multiply_CFixedPoint(Article.GetQuantity, Subtract_CFixedPoint(Article.GetGoods.WithMarketContext(Article.GetTargetCountry.GetMarket.Self).GetMarketPrice, Article.GetGoods.WithMarketContext(Article.GetSourceCountry.GetMarket.Self).GetMarketPrice))|D+=]"
+					text = "ST_ROW_A_LAND"
 				}
 			}
 		}
@@ -420,7 +427,7 @@ types treaty_panel_types {
 				align = nobaseline
 				using = fontsize_small
 				margin_top = 3
-				raw_text = "Net @money![Add_CFixedPoint(Subtract_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_margin'), Multiply_CFixedPoint(Treaty.GetShippingLaneOf(GetPlayer.Self).GetMerchantMarineDemandRaw, GetGoods('merchant_marine').WithMarketContext(GetPlayer.GetMarket.Self).GetMarketPrice)), Treaty.MakeScope.ScriptValue('st_treaty_money'))|D+=]"
+				text = "ST_ROW_T_LANE"
 				tooltipwidget = { smart_trade_treaty_tooltip = {} }
 			}
 			textbox = {
@@ -429,7 +436,7 @@ types treaty_panel_types {
 				align = nobaseline
 				using = fontsize_small
 				margin_top = 3
-				raw_text = "Net @money![Add_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_margin'), Treaty.MakeScope.ScriptValue('st_treaty_money'))|D+=]"
+				text = "ST_ROW_T_LAND"
 				tooltipwidget = { smart_trade_treaty_tooltip = {} }
 			}
 
@@ -440,7 +447,7 @@ types treaty_panel_types {
 				align = nobaseline
 				using = fontsize_small
 				margin_top = 3
-				raw_text = "No shipping"
+				text = "ST_NO_SHIPPING"
 				tooltip = "SMART_TRADE_OVERLAND_TT"
 			}
 		}
@@ -474,7 +481,7 @@ types treaty_draft_panel_types {
 			align = right|nobaseline
 			using = fontsize_small
 			margin_bottom = 4
-			raw_text = "Net @money![Multiply_CFixedPoint(ArticleDraft.GetQuantity, Subtract_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketPrice, Multiply_CFixedPoint(ArticleDraft.GetGoods.GetBasePrice, Subtract_CFixedPoint(Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders, ArticleDraft.GetQuantity)), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders, ArticleDraft.GetQuantity)), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')), Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1'))))), Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketPrice, Multiply_CFixedPoint(ArticleDraft.GetGoods.GetBasePrice, Subtract_CFixedPoint(Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetQuantity), ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetQuantity), ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')), Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')))))))|D+=]"
+			text = "ST_ROW_D_LAND"
 			tooltipwidget = { smart_trade_draft_tooltip = {} }
 		}
 		textbox = {
@@ -483,7 +490,7 @@ types treaty_draft_panel_types {
 			align = right|nobaseline
 			using = fontsize_small
 			margin_bottom = 4
-			raw_text = "Net ~@money![Subtract_CFixedPoint(Multiply_CFixedPoint(ArticleDraft.GetQuantity, Subtract_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketPrice, Multiply_CFixedPoint(ArticleDraft.GetGoods.GetBasePrice, Subtract_CFixedPoint(Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders, ArticleDraft.GetQuantity)), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders, ArticleDraft.GetQuantity)), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')), Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1'))))), Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketPrice, Multiply_CFixedPoint(ArticleDraft.GetGoods.GetBasePrice, Subtract_CFixedPoint(Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetQuantity), ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetQuantity), ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')), Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1'))))))), Multiply_CFixedPoint(Multiply_CFixedPoint(Divide_CFixedPoint(ArticleDraft.GetQuantity, ArticleDraft.GetGoods.GetTradedQuantity), GetGoods('merchant_marine').WithMarketContext(GetPlayer.GetMarket.Self).GetMarketPrice), '(CFixedPoint)1.25'))|D+=]"
+			text = "ST_ROW_D_SEA"
 			tooltipwidget = { smart_trade_draft_tooltip = {} }
 		}
 	}
@@ -1362,7 +1369,7 @@ onclick = "[ArticleDraft.SetQuantity(Select_CFixedPoint(And(And(ArticleDraft.Has
 					autoresize = yes
 					align = nobaseline
 					using = fontsize_small
-					raw_text = "Net @money![Multiply_CFixedPoint(ArticleDraft.GetQuantity, Subtract_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketPrice, Multiply_CFixedPoint(ArticleDraft.GetGoods.GetBasePrice, Subtract_CFixedPoint(Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders, ArticleDraft.GetQuantity)), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders, ArticleDraft.GetQuantity)), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')), Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1'))))), Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketPrice, Multiply_CFixedPoint(ArticleDraft.GetGoods.GetBasePrice, Subtract_CFixedPoint(Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetQuantity), ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetQuantity), ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')), Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')))))))|D+=]"
+					text = "ST_ROW_D_LAND"
 					tooltipwidget = { smart_trade_draft_tooltip = {} }
 				}
 				textbox = {
@@ -1371,7 +1378,7 @@ onclick = "[ArticleDraft.SetQuantity(Select_CFixedPoint(And(And(ArticleDraft.Has
 					autoresize = yes
 					align = nobaseline
 					using = fontsize_small
-					raw_text = "Net ~@money![Subtract_CFixedPoint(Multiply_CFixedPoint(ArticleDraft.GetQuantity, Subtract_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketPrice, Multiply_CFixedPoint(ArticleDraft.GetGoods.GetBasePrice, Subtract_CFixedPoint(Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders, ArticleDraft.GetQuantity)), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders, ArticleDraft.GetQuantity)), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')), Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1'))))), Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketPrice, Multiply_CFixedPoint(ArticleDraft.GetGoods.GetBasePrice, Subtract_CFixedPoint(Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetQuantity), ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(Add_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetQuantity), ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1')), Multiply_CFixedPoint('(CFixedPoint)0.75', Max_CFixedPoint(Min_CFixedPoint(Divide_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), Max_CFixedPoint(Min_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)0.01')), '(CFixedPoint)1'), '(CFixedPoint)-1'))))))), Multiply_CFixedPoint(Multiply_CFixedPoint(Divide_CFixedPoint(ArticleDraft.GetQuantity, ArticleDraft.GetGoods.GetTradedQuantity), GetGoods('merchant_marine').WithMarketContext(GetPlayer.GetMarket.Self).GetMarketPrice), '(CFixedPoint)1.25'))|D+=]"
+					text = "ST_ROW_D_SEA"
 					tooltipwidget = { smart_trade_draft_tooltip = {} }
 				}
 				### Goods the player sends: Best, Max, Accept
@@ -1384,7 +1391,7 @@ onclick = "[ArticleDraft.SetQuantity(Select_CFixedPoint(And(And(ArticleDraft.Has
 					visible = "[And(And(ArticleDraft.HasType('goods_transfer'), ArticleDraft.HasInputValue('goods')), ArticleDraft.GetFirstOrSource.IsLocalPlayer)]"
 					parentanchor = vcenter
 					blockoverride "action" { onclick = "[ArticleDraft.SetQuantity(Max_CFixedPoint('(CFixedPoint)10', Min_CFixedPoint(Max_CFixedPoint('(CFixedPoint)10', Add_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)10')), Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders))))]" }
-					blockoverride "label" { raw_text = "Max" }
+					blockoverride "label" { text = "ST_BTN_MAX" }
 					blockoverride "tip" { tooltip = "SMART_TRADE_MAX_SEND_TT" }
 				}
 				smart_trade_best_button = {
@@ -2036,7 +2043,7 @@ onclick = "[ArticleDraft.SetQuantity(Select_CFixedPoint(And(Not(GreaterThan_CFix
 					visible = "[And(And(ArticleDraft.HasType('goods_transfer'), ArticleDraft.HasInputValue('goods')), ArticleDraft.GetSecondOrTarget.IsLocalPlayer)]"
 					parentanchor = vcenter
 					blockoverride "action" { onclick = "[ArticleDraft.SetQuantity(Max_CFixedPoint('(CFixedPoint)10', Min_CFixedPoint(Max_CFixedPoint('(CFixedPoint)10', Add_CFixedPoint(Multiply_CFixedPoint('(CFixedPoint)0.3', Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketSellOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetFirstOrSource.GetMarket.Self).GetMarketBuyOrders)), '(CFixedPoint)10')), Add_CFixedPoint(Subtract_CFixedPoint(ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketBuyOrders, ArticleDraft.GetGoods.WithMarketContext(ArticleDraft.GetSecondOrTarget.GetMarket.Self).GetMarketSellOrders), '(CFixedPoint)10'))))]" }
-					blockoverride "label" { raw_text = "Max" }
+					blockoverride "label" { text = "ST_BTN_MAX" }
 					blockoverride "tip" { tooltip = "SMART_TRADE_MAX_RECV_TT" }
 				}
 				smart_trade_best_button = {

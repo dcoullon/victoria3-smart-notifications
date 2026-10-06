@@ -1,14 +1,16 @@
-"""Build Smart Trade's GUI and treasury-line loc from readable templates.
+"""Build Smart Trade's GUI and its localization from readable templates.
 
 The GUI has no variables, so every number is one nested expression, often
 300+ characters (a first-week price after the transfer is ~10 levels deep).
 Writing those by hand is how typos survive. Each formula is defined once by
-name (@@NAME@@ tokens) and expanded into the templates.
+name (@@NAME@@ tokens) and expanded into the templates. Player-facing text
+lives in tools/smart_trade_i18n.py, in all 11 languages.
 
 Writes:  smart_trade/gui/00_smart_trade.gui
-         smart_trade/localization/replace/english/smart_trade_treasury_l_english.yml
+         smart_trade/localization/<lang>/smart_trade_l_<lang>.yml
+         smart_trade/localization/replace/<lang>/smart_trade_treasury_l_<lang>.yml
 
-Usage:  python tools/gen_smart_trade_gui.py           (writes both)
+Usage:  python tools/gen_smart_trade_gui.py           (writes all)
         python tools/gen_smart_trade_gui.py --check   (exit 1 if stale)
 """
 import sys
@@ -16,7 +18,6 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 OUT_GUI = REPO / "smart_trade" / "gui" / "00_smart_trade.gui"
-OUT_LOC = REPO / "smart_trade" / "localization" / "replace" / "english" / "smart_trade_treasury_l_english.yml"
 
 
 def mul(a, b): return f"Multiply_CFixedPoint({a}, {b})"
@@ -383,11 +384,6 @@ H_ADJ = ("GetScriptedGui('st_markets_adjacent_sgui').IsValid(GuiScope.SetRoot("
          "TreatyDraft.GetOtherCountry(Country.Self).MakeScope).End)")
 H_SHOW = f"And(And(PdxGuiWidget.HasContext('TreatyDraft'), Not(Country.IsLocalPlayer)), {H_ADJ})"
 
-MM_NOTE = ("Shipping costs 1 merchant marine per [{tq}|0] units, at @money![" + MMP +
-           "|2] each in your market. More ports at home lower that price.")
-A_MM_NOTE = MM_NOTE.format(tq="Article.GetGoods.GetTradedQuantity")
-D_MM_NOTE = MM_NOTE.format(tq=D_TQ)
-
 TOKENS = {k: v for k, v in globals().items() if k.isupper() and isinstance(v, str)
           and k not in ("REPO",)}
 
@@ -424,35 +420,35 @@ types smart_trade_types {
 				direction = vertical
 				minimumsize = { 380 -1 }
 
-				custom_tooltip_textbox = { raw_text = "#header [Article.GetGoods.GetName], [Article.GetQuantity|0] a week to [Article.GetTargetCountry.GetNameNoFormatting]#!" }
+				custom_tooltip_textbox = { text = "ST_A_HEADER" }
 				custom_tooltip_textbox = {
 					visible = "[Not(@@A_MINE@@)]"
-					raw_text = "Paid for by [Article.GetSourceCountry.GetNameNoFormatting]. No cost to you."
+					text = "ST_A_PAID_BY"
 				}
 				flowcontainer = {
 					direction = vertical
 					visible = "[@@A_MINE@@]"
-					custom_tooltip_textbox = { raw_text = "Sale: @money![@@A_SALE@@|D+=] ([Article.GetQuantity|0] x @money![@@A_PP@@|2])" }
-					custom_tooltip_textbox = { raw_text = "Purchase: @money![@@NEG_A_BUY@@|D+=] ([Article.GetQuantity|0] x @money![@@A_PH@@|2])" }
+					custom_tooltip_textbox = { text = "ST_A_SALE" }
+					custom_tooltip_textbox = { text = "ST_A_PURCHASE" }
 					custom_tooltip_textbox = {
 						visible = "[@@A_HAS_LANE@@]"
-						raw_text = "Shipping: @money![@@NEG_A_SHIP@@|D+=] ([Article.GetShippingLane.GetBeginState.GetName] to [Article.GetShippingLane.GetEndState.GetName])"
+						text = "ST_A_SHIP"
 					}
 					custom_tooltip_textbox = {
 						visible = "[Not(@@A_HAS_LANE@@)]"
-						raw_text = "Shipping: none, the markets touch"
+						text = "ST_SHIP_NONE"
 					}
 					custom_tooltip_textbox = {
 						visible = "[@@A_HAS_LANE@@]"
-						raw_text = "#bold Net: @money![@@A_NET_LANE@@|D+=] a week#! (@money![@@PU_LANE@@|2+=] a unit)"
+						text = "ST_A_NET_LANE"
 					}
 					custom_tooltip_textbox = {
 						visible = "[Not(@@A_HAS_LANE@@)]"
-						raw_text = "#bold Net: @money![@@A_NET_LAND@@|D+=] a week#! (@money![@@PU_LAND@@|2+=] a unit)"
+						text = "ST_A_NET_LAND"
 					}
 					custom_tooltip_textbox = {
 						visible = "[@@A_HAS_LANE@@]"
-						raw_text = "@@A_MM_NOTE@@"
+						text = "ST_A_MM_NOTE"
 					}
 				}
 			}
@@ -465,16 +461,16 @@ types smart_trade_types {
 				direction = vertical
 				minimumsize = { 300 -1 }
 
-				custom_tooltip_textbox = { raw_text = "#header Net to your treasury, per week#!" }
+				custom_tooltip_textbox = { text = "ST_T_HEADER" }
 				custom_tooltip_textbox = {
 					visible = "[@@T_HAS_LANE@@]"
-					raw_text = "Goods you send: @money![@@T_GOODS_LANE@@|D+=] (after shipping)"
+					text = "ST_T_GOODS_LANE"
 				}
 				custom_tooltip_textbox = {
 					visible = "[Not(@@T_HAS_LANE@@)]"
-					raw_text = "Goods you send: @money![@@T_MARGIN@@|D+=]"
+					text = "ST_T_GOODS_LAND"
 				}
-				custom_tooltip_textbox = { raw_text = "Money transfers: @money![@@T_MONEY@@|D+=]" }
+				custom_tooltip_textbox = { text = "ST_T_MONEY" }
 			}
 		}
 	}
@@ -485,31 +481,31 @@ types smart_trade_types {
 				direction = vertical
 				minimumsize = { 380 -1 }
 
-				custom_tooltip_textbox = { raw_text = "#header [ArticleDraft.GetGoods.GetName], [ArticleDraft.GetQuantity|0] a week to [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting]#!" }
-				custom_tooltip_textbox = { raw_text = "Sale minus purchase: @money![@@D_MARGIN@@|D+=] (@money![@@D_PP1@@|2] vs @money![@@D_PH1@@|2] a unit, first-week prices)" }
+				custom_tooltip_textbox = { text = "ST_D_HEADER" }
+				custom_tooltip_textbox = { text = "ST_D_MARGIN" }
 				custom_tooltip_textbox = {
 					visible = "[@@D_ADJ@@]"
-					raw_text = "Shipping: none, the markets touch"
+					text = "ST_SHIP_NONE"
 				}
 				custom_tooltip_textbox = {
 					visible = "[Not(@@D_ADJ@@)]"
-					raw_text = "Shipping: ~@money![@@NEG_D_SHIP_MID@@|D+=] (@money![@@NEG_D_SHIP_LO@@|D+=] to @money![@@NEG_D_SHIP_HI@@|D+=] by route length, known once signed)"
+					text = "ST_D_SHIP_SEA"
 				}
 				custom_tooltip_textbox = {
 					visible = "[@@D_ADJ@@]"
-					raw_text = "#bold Net: @money![@@D_MARGIN@@|D+=] a week#!"
+					text = "ST_D_NET_LAND"
 				}
 				custom_tooltip_textbox = {
 					visible = "[Not(@@D_ADJ@@)]"
-					raw_text = "#bold Net: ~@money![@@D_NET_MID@@|D+=] a week#!"
+					text = "ST_D_NET_SEA"
 				}
 				custom_tooltip_textbox = {
 					visible = "[Not(@@D_PAYS@@)]"
-					raw_text = "No quantity makes a profit."
+					text = "ST_D_NO_PROFIT"
 				}
 				custom_tooltip_textbox = {
 					visible = "[Not(@@D_ADJ@@)]"
-					raw_text = "@@D_MM_NOTE@@"
+					text = "ST_D_MM_NOTE"
 				}
 			}
 		}
@@ -520,7 +516,7 @@ types smart_trade_types {
 			flowcontainer = {
 				direction = vertical
 				minimumsize = { 300 -1 }
-				custom_tooltip_textbox = { raw_text = "The most you can earn a week sending [Goods.GetName] to [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting], at the most profitable quantity they accept (estimate). Picking it starts at that quantity." }
+				custom_tooltip_textbox = { text = "ST_C_TIP" }
 			}
 		}
 	}
@@ -539,18 +535,25 @@ types smart_trade_types {
 
 	type smart_trade_best_tip = RegularTooltip {
 		blockoverride "tooltip_content" {
+			# Two lines, the figure alone after a label, so no language has
+			# to wrap its sentence around a widget.
 			flowcontainer = {
-				spacing = 4
-				custom_tooltip_textbox = { raw_text = "Set the quantity to the most profitable volume, about" }
-				smart_trade_best_gain = { datacontext = "[ArticleDraft.GetGoods]" }
-				custom_tooltip_textbox = { raw_text = "a week." }
+				direction = vertical
+				custom_tooltip_textbox = { text = "ST_BEST_TIP" }
+				flowcontainer = {
+					spacing = 4
+					custom_tooltip_textbox = { text = "ST_BEST_TIP_GAIN" }
+					smart_trade_best_gain = { datacontext = "[ArticleDraft.GetGoods]" }
+				}
 			}
 		}
 	}
 
+	# 58 wide (was 46) so translated labels fit: "Optimal", "Оптимум"
+	# (check_st_button_labels_fit).
 	type smart_trade_best_button = button {
 		using = default_button
-		size = { 46 22 }
+		size = { 58 22 }
 		enabled = "[ArticleDraft.CanBeModified]"
 		block "action" {
 			@@D_BEST_ONCLICKS@@
@@ -580,7 +583,7 @@ types smart_trade_types {
 				align = nobaseline
 				using = fontsize_small
 				block "label" {
-					raw_text = "Best"
+					text = "ST_BTN_BEST"
 				}
 			}
 		}
@@ -632,7 +635,7 @@ types treaty_panel_types {
 					align = nobaseline
 					using = fontsize_small
 					margin_top = 1
-					raw_text = "Net @money![@@A_NET_LANE@@|D+=]"
+					text = "ST_ROW_A_LANE"
 				}
 				textbox = {
 					visible = "[And(@@A_MINE@@, Not(@@A_HAS_LANE@@))]"
@@ -640,7 +643,7 @@ types treaty_panel_types {
 					align = nobaseline
 					using = fontsize_small
 					margin_top = 1
-					raw_text = "Net @money![@@A_NET_LAND@@|D+=]"
+					text = "ST_ROW_A_LAND"
 				}
 			}
 		}
@@ -706,7 +709,7 @@ types treaty_panel_types {
 				align = nobaseline
 				using = fontsize_small
 				margin_top = 3
-				raw_text = "Net @money![@@T_NET_LANE@@|D+=]"
+				text = "ST_ROW_T_LANE"
 				tooltipwidget = { smart_trade_treaty_tooltip = {} }
 			}
 			textbox = {
@@ -715,7 +718,7 @@ types treaty_panel_types {
 				align = nobaseline
 				using = fontsize_small
 				margin_top = 3
-				raw_text = "Net @money![@@T_NET_LAND@@|D+=]"
+				text = "ST_ROW_T_LAND"
 				tooltipwidget = { smart_trade_treaty_tooltip = {} }
 			}
 
@@ -726,7 +729,7 @@ types treaty_panel_types {
 				align = nobaseline
 				using = fontsize_small
 				margin_top = 3
-				raw_text = "No shipping"
+				text = "ST_NO_SHIPPING"
 				tooltip = "SMART_TRADE_OVERLAND_TT"
 			}
 		}
@@ -760,7 +763,7 @@ types treaty_draft_panel_types {
 			align = right|nobaseline
 			using = fontsize_small
 			margin_bottom = 4
-			raw_text = "Net @money![@@D_MARGIN@@|D+=]"
+			text = "ST_ROW_D_LAND"
 			tooltipwidget = { smart_trade_draft_tooltip = {} }
 		}
 		textbox = {
@@ -769,7 +772,7 @@ types treaty_draft_panel_types {
 			align = right|nobaseline
 			using = fontsize_small
 			margin_bottom = 4
-			raw_text = "Net ~@money![@@D_NET_MID@@|D+=]"
+			text = "ST_ROW_D_SEA"
 			tooltipwidget = { smart_trade_draft_tooltip = {} }
 		}
 	}
@@ -939,25 +942,50 @@ types pinnable_outliner_items {
 }
 '''
 
-LOC = r'''l_english:
- # GENERATED by tools/gen_smart_trade_gui.py. Edit the generator, not this file.
- # Smart Trade: "Net treaty income" in the top-bar treasury tooltip. That
- # tooltip is assembled by engine code from loc entries. Damien wants the line
- # at the end of the revenue lines (2026-10-05), so it is PREPENDED to the
- # expenses header: "Fixed National Expenses" when the tooltip splits fixed
- # and temporary, "National Expenses" otherwise (presumably never both; run 5
- # checks). Appending to a section header instead puts the line between the
- # header and its own sub-lines (run 3). Vanilla's text follows, verbatim;
- # REPLACED_LOC_BASELINE in tools/check_references.py catches a patch changing it.
- FIXED_EXPENSES_BREAKDOWN:0 "#bold (ST) Net treaty income:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],SMART_TRADE_TREATIES_TT ~@money![@@P_NET@@|D+=]#!#!\n\n#bold Fixed National Expenses:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],TOTAL_EXPENSES_BREAKDOWN,TotalExpensesTooltip #bold #N @money!-[GetPlayer.GetWeeklyFixedExpenses|D-]#!#!#!#!"
- EXPENSES_BREAKDOWN:0 "#bold (ST) Net treaty income:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],SMART_TRADE_TREATIES_TT ~@money![@@P_NET@@|D+=]#!#!\n\n#bold National Expenses:#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],TOTAL_EXPENSES_BREAKDOWN,TotalExpensesTooltip #bold #N @money!-[GetPlayer.GetWeeklyExpenses|D-]#!#!#!#!"
- SMART_TRADE_TREATIES_TT:0 "#header Net treaty income#!\nGoods you send: @money![@@P_TRADE@@|D+=]\nShipping lane costs: @money![@@NEG_P_SHIP@@|D+=] (estimate)\nMoney transfers: @money![@@P_MONEY@@|D+=]\nShipping is paid in merchant marine at your market price; more ports lower it.\nSee the outliner's treaty list for details."
- SMART_TRADE_MAX_SEND_TT:0 "Set the quantity to [@@D_QMAX_SEND@@|0], filling [ArticleDraft.GetSecondOrTarget.GetNameNoFormatting]'s shortage without going over your surplus."
- SMART_TRADE_ACCEPT_SEND_TT:0 "Set the quantity for the highest acceptance, at the best profit or the smallest loss."
- SMART_TRADE_MAX_RECV_TT:0 "Set the quantity to [@@D_QMAX_RECV@@|0], filling your shortage without going over what [ArticleDraft.GetFirstOrSource.GetNameNoFormatting] spares."
- SMART_TRADE_ACCEPT_RECV_TT:0 "Set the quantity to [@@D_QACC_RECV@@|0] for the highest acceptance."
- SMART_TRADE_OVERLAND_TT:0 "Your markets border each other: goods transfers go overland and pay no shipping."
-'''
+# --- Localization: 11 languages from tools/smart_trade_i18n.py ---------------
+# Two files per language:
+#   localization/<lang>/smart_trade_l_<lang>.yml   every key the mod defines
+#   localization/replace/<lang>/smart_trade_treasury_l_<lang>.yml
+#       "Net treaty income" in the top-bar treasury tooltip. That tooltip is
+#       assembled by engine code from loc entries. Damien wants the line at
+#       the end of the revenue lines (2026-10-05), so it is PREPENDED to the
+#       expenses header: "Fixed National Expenses" when the tooltip splits
+#       fixed and temporary, "National Expenses" otherwise. Appending to a
+#       section header instead puts the line between the header and its own
+#       sub-lines (run 3). Vanilla's text follows, read VERBATIM from the
+#       installed game in that language, so --check goes stale when a patch
+#       changes it (REPLACED_LOC_BASELINE also hashes the English).
+import smart_trade_i18n as I18N
+
+REPLACED_KEYS = ("FIXED_EXPENSES_BREAKDOWN", "EXPENSES_BREAKDOWN")
+
+
+def vanilla_loc_value(lang, key):
+    import re
+    for path in sorted((GAME / "localization" / lang).rglob("*.yml")):
+        m = re.search(rf'(?m)^\s*{key}:\d*\s*"(.*)"\s*$', path.read_text(encoding="utf-8-sig"))
+        if m:
+            return m.group(1)
+    raise KeyError(f"vanilla {lang} has no {key}; the patch renamed it, review the treasury line")
+
+
+def loc_files():
+    out = {}
+    head = " # GENERATED by tools/gen_smart_trade_gui.py from tools/smart_trade_i18n.py. Edit those, not this file.\n"
+    for lang in I18N.LANGS:
+        strings = dict((k, v[lang]) for k, v in I18N.S.items())
+        note = strings.pop("ST_MM_NOTE")
+        strings["ST_A_MM_NOTE"] = note.replace("{TQ}", "Article.GetGoods.GetTradedQuantity")
+        strings["ST_D_MM_NOTE"] = note.replace("{TQ}", D_TQ)
+        # A real newline inside a loc value truncates it; the game wants \n.
+        body = "".join(f' {k}:0 "{v}"\n'.replace("\n", "\\n")[:-2] + "\n" for k, v in strings.items())
+        out[REPO / "smart_trade" / "localization" / lang / f"smart_trade_l_{lang}.yml"] = f"l_{lang}:\n{head}{body}"
+        line = (f"#bold {I18N.NET_TREATY_INCOME[lang]}#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],"
+                f"SMART_TRADE_TREATIES_TT ~@money![@@P_NET@@|D+=]#!#!\\n\\n")
+        rep = "".join(f' {k}:0 "{line}{vanilla_loc_value(lang, k)}"\n' for k in REPLACED_KEYS)
+        out[REPO / "smart_trade" / "localization" / "replace" / lang / f"smart_trade_treasury_l_{lang}.yml"] = \
+            f"l_{lang}:\n{head}{rep}"
+    return out
 
 # --- Goods picker: vanilla types copied from the installed game ------------
 # Each is copied verbatim at generation time with named insertions, so a game
@@ -1039,7 +1067,7 @@ ROW_BEST = ROW_ANCHOR + '''
 					autoresize = yes
 					align = nobaseline
 					using = fontsize_small
-					raw_text = "Net @money![@@D_MARGIN@@|D+=]"
+					text = "ST_ROW_D_LAND"
 					tooltipwidget = { smart_trade_draft_tooltip = {} }
 				}
 				textbox = {
@@ -1048,7 +1076,7 @@ ROW_BEST = ROW_ANCHOR + '''
 					autoresize = yes
 					align = nobaseline
 					using = fontsize_small
-					raw_text = "Net ~@money![@@D_NET_MID@@|D+=]"
+					text = "ST_ROW_D_SEA"
 					tooltipwidget = { smart_trade_draft_tooltip = {} }
 				}
 				### Goods the player sends: Best, Max, Accept
@@ -1061,7 +1089,7 @@ ROW_BEST = ROW_ANCHOR + '''
 					visible = "[@@D_MINE_SRC@@]"
 					parentanchor = vcenter
 					blockoverride "action" { onclick = "[ArticleDraft.SetQuantity(@@D_QMAX_SEND@@)]" }
-					blockoverride "label" { raw_text = "Max" }
+					blockoverride "label" { text = "ST_BTN_MAX" }
 					blockoverride "tip" { tooltip = "SMART_TRADE_MAX_SEND_TT" }
 				}
 				smart_trade_best_button = {
@@ -1080,7 +1108,7 @@ ROW_BEST = ROW_ANCHOR + '''
 					visible = "[@@D_MINE_TGT@@]"
 					parentanchor = vcenter
 					blockoverride "action" { onclick = "[ArticleDraft.SetQuantity(@@D_QMAX_RECV@@)]" }
-					blockoverride "label" { raw_text = "Max" }
+					blockoverride "label" { text = "ST_BTN_MAX" }
 					blockoverride "tip" { tooltip = "SMART_TRADE_MAX_RECV_TT" }
 				}
 				smart_trade_best_button = {
@@ -1153,7 +1181,7 @@ def expand(text: str) -> str:
 # inputs arrive as 'none'; with .End the expression fails to parse ("Could
 # not find promote for 'End'"). check_no_gui_value_passing blocks a return.
 
-OUTPUTS = {OUT_GUI: GUI + picker_block(), OUT_LOC: LOC}
+OUTPUTS = {OUT_GUI: GUI + picker_block(), **loc_files()}
 
 if __name__ == "__main__":
     stale = []
