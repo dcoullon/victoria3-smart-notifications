@@ -7,7 +7,7 @@ Build All. Own `metadata.json`, own mod id
 `docs/` and `reference/` and follows the same CLAUDE.md protocol.
 
 **Published:** [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3799284646).
-Current dev version `0.40`, targeting game `1.13.*`.
+Current dev version `0.41`, targeting game `1.13.*`.
 
 **What it does:** less notification noise, an EU4-style watchlist for the
 countries you actually care about, and new alerts — including one that names
