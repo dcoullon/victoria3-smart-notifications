@@ -19,6 +19,16 @@ instrumentation and doc-only changes get a commit but **no** version bump
 unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [Unreleased]
+
+### New
+
+- **Every language the game ships.** French, German, Spanish, Brazilian
+  Portuguese, Polish, Russian, Simplified Chinese, Japanese, Korean and
+  Turkish. Before this, players in those languages saw raw text keys or blank
+  labels, including an empty Watchlist tab. Game terms use the base game's
+  own words in each language. The "(SN)" tag stays as is: it names the mod.
+
 ## [0.41] — 2026-10-06
 
 ### Read this first: reset your Message Settings
@@ -34,11 +44,6 @@ so without a reset you get *both*.
   screen. Without a general the army will not move and its front quietly
   stalls, and the base game never tells you. One icon even if several armies
   are affected.
-- **Every language the game ships.** French, German, Spanish, Brazilian
-  Portuguese, Polish, Russian, Simplified Chinese, Japanese, Korean and
-  Turkish. Before this, players in those languages saw raw text keys or blank
-  labels, including an empty Watchlist tab. Game terms use the base game's
-  own words in each language. The "(SN)" tag stays as is: it names the mod.
 
 ### Quieter now
 
