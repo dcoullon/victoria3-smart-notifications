@@ -1924,6 +1924,35 @@ def check_st_button_labels_fit(root: Path) -> list[str]:
     return errs
 
 
+# The Watchlist section buttons are five 130px buttons in a row that already
+# fills the Message Settings panel, so they cannot be widened. Calibrated
+# 2026-10-06 against a French screenshot: "Grandes puissances" (18 columns)
+# fits edge to edge without eliding. 18 is therefore the ceiling, not a
+# comfortable target.
+SN_SECTION_BUTTON_MAX_COLS = 18
+
+
+def check_sn_section_labels_fit(root: Path) -> list[str]:
+    """Smart Notifications' Watchlist section labels must fit their 130px
+    button in every language. Past the ceiling the textbox shrinks to
+    fontsize_min and then elides, in that language only."""
+    errs = []
+    loc = root / "localization"
+    if not loc.is_dir():
+        return errs
+    for path in sorted(loc.rglob("*.yml")):
+        for n, line in enumerate(_read(path).split(chr(10)), 1):
+            m = re.match(r'\s*(SMART_NOTIFICATIONS_WATCHLIST_SECTION_[A-Z_]+):\d*\s*"(.*)"\s*$', line)
+            if not m:
+                continue
+            cols = sum(2 if unicodedata.east_asian_width(c) in ("W", "F") else 1 for c in m.group(2))
+            if cols > SN_SECTION_BUTTON_MAX_COLS:
+                errs.append(f"{path.relative_to(root).as_posix()}:{n}: {m.group(1)} is {cols} display "
+                            f"columns, over the {SN_SECTION_BUTTON_MAX_COLS} that fit the 130px "
+                            f"Watchlist section button")
+    return errs
+
+
 _VANILLA_EN_KEYS: set = set()
 
 
@@ -2014,6 +2043,7 @@ def run_all(root: Path) -> list[str]:
         errs += check_watchlist_spec_tiers(root)
         errs += check_watchlist_spec_group_isolation(root)
         errs += check_mod_group_labels_are_tagged(root)
+        errs += check_sn_section_labels_fit(root)
         errs += check_census_build_not_stale(root)
         errs += check_dev_only_files_are_consistent(root)
 

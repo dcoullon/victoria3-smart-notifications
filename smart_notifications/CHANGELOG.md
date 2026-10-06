@@ -19,7 +19,9 @@ instrumentation and doc-only changes get a commit but **no** version bump
 unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
-## [Unreleased]
+## [0.42] — 2026-10-06
+
+No settings reset needed. This release changes no notification tiers.
 
 ### New
 
