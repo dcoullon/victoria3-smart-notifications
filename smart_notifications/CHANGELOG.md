@@ -62,10 +62,10 @@ so without a reset you get *both*.
 
 - **"Law Ready to Enact" kept nagging after you enacted the law.** It now stops
   when the law passes, including in saves from before this update.
-- **"Law Ready to Enact" no longer fires for a law you just failed to pass.**
-  After a failed enactment the game locks the law for two years; the alert now
-  waits for that lockout to end. A failure from before this update is not
-  known to the mod, so that one law may still show early.
+- **"Law Ready to Enact" no longer fires for a law you just failed or
+  cancelled.** The game locks that law for two years; the alert now waits for
+  the lockout to end. A lockout from before this update is not known to the
+  mod, so that one law may still show early.
 
 ## [0.40] — 2026-09-14
 
