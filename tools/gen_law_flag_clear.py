@@ -74,18 +74,22 @@ on_law_activated = {
 
 smart_notifications_clear_wanted_law_flag = {
 \teffect = {
+\t\t# Only player countries carry a wanted flag, so an AI law change stops
+\t\t# here instead of walking the whole chain (added 2026-10-06).
+\t\tif = {
+\t\t\tlimit = { THIS.owner = { is_player = yes } }
 '''
 
-BRANCH = '''\t\t{kw} = {{
-\t\t\tlimit = {{ THIS.type = law_type:{law} }}
-\t\t\tTHIS.owner = {{
-\t\t\t\tif = {{
-\t\t\t\t\tlimit = {{ has_variable = smart_notifications_wanted_law_{short} }}
-\t\t\t\t\tremove_variable = smart_notifications_wanted_law_{short}
-\t\t\t\t\tdebug_log = "SNW_LAW_FLAG|cleared|{law}|[TimeKeeper.GetCurrentDate.GetString]"
+BRANCH = '''\t\t\t{kw} = {{
+\t\t\t\tlimit = {{ THIS.type = law_type:{law} }}
+\t\t\t\tTHIS.owner = {{
+\t\t\t\t\tif = {{
+\t\t\t\t\t\tlimit = {{ has_variable = smart_notifications_wanted_law_{short} }}
+\t\t\t\t\t\tremove_variable = smart_notifications_wanted_law_{short}
+\t\t\t\t\t\tdebug_log = "SNW_LAW_FLAG|cleared|{law}|[TimeKeeper.GetCurrentDate.GetString]"
+\t\t\t\t\t}}
 \t\t\t\t}}
 \t\t\t}}
-\t\t}}
 '''
 
 
@@ -112,7 +116,7 @@ def main():
         body.append(BRANCH.format(kw="if" if i == 0 else "else_if",
                                   law=law, short=short))
 
-    out = HEADER + "".join(body) + "\t}\n}\n"
+    out = HEADER + "".join(body) + "\t\t}\n\t}\n}\n"
     OUT.write_bytes(b"\xef\xbb\xbf" + out.encode("utf-8"))
     assert OUT.read_text(encoding="utf-8-sig") == out, "WRITE LOST"
     print(f"wrote {OUT.relative_to(REPO).as_posix()}  ({len(laws)} law types)")

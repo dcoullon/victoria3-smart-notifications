@@ -34,35 +34,16 @@ smart_notifications_law_ready_toast_check = {
 		if = {
 			limit = { is_player = yes }
 
-			# TEMPORARY diagnostic, added 2026-09-09 per the user ("only been
-			# able to get the toast to show once, unclear what makes it show
-			# or not"). Likely explanation, NOT yet confirmed via logs: the
-			# toast is edge-triggered (fires once per law's own false->true
-			# readiness transition, sampled monthly), while the alert is
-			# level-triggered (visible continuously whenever ANY wanted law
-			# is currently ready) -- if only one flagged law has crossed
-			# ready so far and stays ready, the toast correctly fires once
-			# and goes quiet while the alert keeps showing, which matches
-			# what was reported. This logs, once per month, whether that
-			# alert-equivalent condition is currently true, so it can be
-			# correlated against how many toasts actually fired over the
-			# same period without needing another blind guess. DELETE once
-			# confirmed either way.
-			if = {
-				limit = {
-					any_law = {
-						smart_notifications_law_matches_wanted_flag = yes
-						can_be_enacted = yes
-						smart_notifications_law_ready_to_enact = yes
-					}
-				}
-				debug_log = "SNW_LAW_TOAST|pulse|country=[THIS.GetCountry.GetNameNoFormatting]|at_least_one_wanted_law_ready=yes"
-			}
-			else = {
-				debug_log = "SNW_LAW_TOAST|pulse|country=[THIS.GetCountry.GetNameNoFormatting]|at_least_one_wanted_law_ready=no"
-			}
-
+			# REMOVED 2026-10-06: a temporary 2026-09-09 diagnostic any_law
+			# sweep sat here. Its only output was a debug_log, which
+			# package_release strips, so releases ran a full readiness sweep
+			# every month and discarded the result.
+			#
+			# The limit skips laws nobody flagged before the 138-branch
+			# chain below, which otherwise compares every law against every
+			# branch (Workshop comment 2026-09-17 asked about the cost).
 			every_law = {
+				limit = { smart_notifications_law_matches_wanted_flag = yes }
 				if = {
 					limit = {
 						THIS.type = law_type:law_affirmative_action
