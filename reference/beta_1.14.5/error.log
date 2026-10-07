@@ -1,0 +1,25 @@
+[10:01:14][dlc.cpp:753]: Mod Smart Notifications (smart_notifications) version 1.13.* does not match game version 1.14.5.
+[10:01:14][dlc.cpp:753]: Mod Build All: Bulk Construction, One Click (bulk_construction) version 1.13.* does not match game version 1.14.5.
+[10:01:14][dlc.cpp:753]: Mod Smart Treaties: what each goods trade earns you (smart_trade) version 1.13.* does not match game version 1.14.5.
+[10:01:22][virtualfilesystem.cpp:569]: Could not find texture due to 'VFSOpen Error: gfx/interface/icons/alert_icons/repairing.dds not found'
+[10:01:57][gamedatabase.h:781]: Failed to cache an item for Message Type! Key: strait_restricted
+
+[10:01:57][gamedatabase.h:781]: Failed to cache an item for Message Type! Key: strait_eased
+
+[10:02:00][jomini_script_system.cpp:247]: Script system error!
+  Error: post_notification effect [ Invalid database object 'diplo_play_overlord_protects_subject_notification' ]
+  Script location: common/on_actions/00_code_on_actions.txt:4331
+
+[10:02:00][jomini_effect.cpp:141]: PostValidate of effect 'post_notification' returned false at common/on_actions/00_code_on_actions.txt:4331
+[10:02:00][jomini_script_system.cpp:247]: Script system error!
+  Error: post_notification effect [ Invalid database object 'diplo_play_subject_backstab_overlord_notification' ]
+  Script location: common/on_actions/00_code_on_actions.txt:4385
+
+[10:02:00][jomini_effect.cpp:141]: PostValidate of effect 'post_notification' returned false at common/on_actions/00_code_on_actions.txt:4385
+[10:02:00][jomini_script_system.cpp:247]: Script system error!
+  Error: post_notification effect [ Invalid database object 'wargoal_enforced' ]
+  Script location: common/on_actions/00_code_on_actions.txt:6275
+
+[10:02:00][jomini_effect.cpp:141]: PostValidate of effect 'post_notification' returned false at common/on_actions/00_code_on_actions.txt:6275
+[10:02:00][jomini_effect.cpp:1135]: Variable 'smart_notifications_player_country' is set but is never used. Note that use in localization doesn't count due to technical limitations. Use in unused scripted triggers and effects also does not count
+[10:06:56][pdx_gui_factory.h:603]: gui/block_windows.gui:650 - Malformed item desc '', item descriptions can only contain a single child and no properties
