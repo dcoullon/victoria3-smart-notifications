@@ -166,6 +166,8 @@ Acceptance criteria, run 13:
 - A good whose profit peaks below shortage + 10 (coffee at about 47 to 60) is unchanged.
 - Tools: Best stays at 10 (a loss at every quantity), thumbs-up still about 264.
 
+**Tick cost, measured 2026-10-07** (tools/build_tick_probe.py + tools/tick_report.py; stable 1.13.11, Portugal 1918 save, speed 5, Chrome and Claude open throughout): timing mod alone 18.56 s per in-game month (16 months), then 19.57 (14 months, a second session); all three published mods, Treaties collapsed about 18.75 (4 months), expanded about 18.5 (8 months). Two identical mod-free sessions differ by 5.4%, and every mod run falls inside that range. No measurable cost; a cost under about 5% cannot be ruled out with runs this short.
+
 **Known limits, deferred (independent review, 2026-10-05):**
 
 - Multiplayer: treaty totals select "the player's" articles with the script trigger `is_player`, which is true for every human. In a treaty between two humans both sides' goods would be counted. Fix if multiplayer ever matters: pass the local player in as a scope.
