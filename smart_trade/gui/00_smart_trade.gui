@@ -336,7 +336,7 @@ types smart_trade_types {
 	# (check_st_button_labels_fit).
 	type smart_trade_best_button = button {
 		using = default_button
-		size = { 58 22 }
+		size = { 58 20 }
 		enabled = "[ArticleDraft.CanBeModified]"
 		block "action" {
 			onclick = "[ArticleDraft.SetQuantity('(CFixedPoint)10')]"
@@ -1305,7 +1305,7 @@ onclick = "[ArticleDraft.SetQuantity(Select_CFixedPoint(And(And(ArticleDraft.Has
 	# gui/right_click_menu.gui:11958-12232, with Smart Trade insertions.
 	type selected_goods_and_amount = widget {
 		parentanchor = hcenter
-		size = { 400 92 }  # SMART TRADE: was 70, +22 for the button row
+		size = { 400 74 }  # SMART TRADE: was 70; our button row, tightened (see generator)
 
 		container = {
 			parentanchor = vcenter
@@ -1348,7 +1348,7 @@ onclick = "[ArticleDraft.SetQuantity(Select_CFixedPoint(And(And(ArticleDraft.Has
 		flowcontainer = {
 			direction = vertical
 			parentanchor = vcenter|right
-			spacing = 5
+			spacing = 3  # SMART TRADE: was 5
 
 			### QUANTITY SLIDERS DIVIDED INTO 2 SCROLLBARS FOR THE TOOLTIPS' SAKE
 			flowcontainer = {
@@ -1357,7 +1357,7 @@ onclick = "[ArticleDraft.SetQuantity(Select_CFixedPoint(And(And(ArticleDraft.Has
 
 				flowcontainer = {
 					visible = "[NotEqualTo_int32(ArticleDraft.GetMinValidQuantity, ArticleDraft.GetMaxValidQuantity)]"
-					margin_top = 5
+					margin_top = 0  # SMART TRADE: was 5
 					tooltip = "ARTICLE_DRAFT_GOODS_QUANTITY_SLIDER_TOOLTIP_ENABLED"
 
 					scrollbar = {
@@ -1393,7 +1393,7 @@ onclick = "[ArticleDraft.SetQuantity(Select_CFixedPoint(And(And(ArticleDraft.Has
 
 				flowcontainer = {
 					visible = "[EqualTo_int32(ArticleDraft.GetMinValidQuantity, ArticleDraft.GetMaxValidQuantity)]"
-					margin_top = 5
+					margin_top = 0  # SMART TRADE: was 5
 					tooltip = "ARTICLE_DRAFT_GOODS_QUANTITY_SLIDER_TOOLTIP_DISABLED"
 
 					scrollbar = {
@@ -1432,7 +1432,7 @@ onclick = "[ArticleDraft.SetQuantity(Select_CFixedPoint(And(And(ArticleDraft.Has
 			flowcontainer = {
 				visible = "[Not(ArticleDraft.HasInputValue('goods'))]"
 				parentanchor = hcenter
-				margin_top = 5
+				margin_top = 0  # SMART TRADE: was 5
 
 				scrollbar = {
 					enabled = no
@@ -1476,7 +1476,7 @@ onclick = "[ArticleDraft.SetQuantity(Select_CFixedPoint(And(And(ArticleDraft.Has
 						tooltip = "ARTICLE_DRAFT_GOODS_QUANTITY_SLIDER_TOOLTIP_ENABLED"
 						parentanchor = vcenter
 						maxcharacters = 30
-						size = { 150 40 }
+						size = { 150 30 }  # SMART TRADE: was 40
 						alwaystransparent = no
 						focuspolicy = click
 						focus_on_visible = no
@@ -1509,7 +1509,7 @@ onclick = "[ArticleDraft.SetQuantity(Select_CFixedPoint(And(And(ArticleDraft.Has
 						tooltip = "ARTICLE_DRAFT_GOODS_QUANTITY_SLIDER_TOOLTIP_DISABLED"
 						parentanchor = vcenter
 						maxcharacters = 30
-						size = { 150 40 }
+						size = { 150 30 }  # SMART TRADE: was 40
 						alwaystransparent = no
 						focuspolicy = click
 						focus_on_visible = no
@@ -1544,7 +1544,7 @@ onclick = "[ArticleDraft.SetQuantity(Select_CFixedPoint(And(And(ArticleDraft.Has
 					enabled = no
 					parentanchor = vcenter
 					maxcharacters = 30
-					size = { 150 40 }
+					size = { 150 30 }  # SMART TRADE: was 40
 					alwaystransparent = no
 					focuspolicy = click
 					focus_on_visible = no

@@ -623,7 +623,7 @@ types smart_trade_types {
 	# (check_st_button_labels_fit).
 	type smart_trade_best_button = button {
 		using = default_button
-		size = { 58 22 }
+		size = { 58 20 }
 		enabled = "[ArticleDraft.CanBeModified]"
 		block "action" {
 			@@D_BEST_ONCLICKS@@
@@ -1246,15 +1246,26 @@ ROW_BEST = ROW_ANCHOR + '''
 				}
 			}'''
 
-# 4. The row's own height: vanilla's 70 holds the goods and the quantity;
-#    our button row needs 22 more, or it runs into the divider below (run 10
-#    screenshot). The popup is a vertical flowcontainer, so the rest moves down.
+# 4. The row's own height. Vanilla's right column fills its 70 exactly
+#    (slider 5 + 20, gap 5, quantity box 40). The popup grows downward from
+#    a fixed top and vanilla leaves only ~17px under Cancel/Add at 1080p, so
+#    92 (+22 for our buttons) pushed them ~5px off screen (2026-10-16
+#    screenshot). Tightened instead: slider margin 5 -> 0, gaps 5 -> 3,
+#    quantity box 40 -> 30, our buttons 22 -> 20 high.
+ROW_GAP = 3
+ROW_HEIGHT = 0 + 20 + ROW_GAP + 30 + ROW_GAP + (-2 + 20)  # slider, gap, box, gap, our row
 ROW_SIZE_ANCHOR = 'size = { 400 70 }'
-ROW_SIZE = 'size = { 400 92 }  # SMART TRADE: was 70, +22 for the button row'
+ROW_SIZE = f'size = {{ 400 {ROW_HEIGHT} }}  # SMART TRADE: was 70; our button row, tightened (see generator)'
+ROW_TIGHTEN = [
+    ("margin_top = 5", "margin_top = 0  # SMART TRADE: was 5", 3),
+    ("size = { 150 40 }", "size = { 150 30 }  # SMART TRADE: was 40", 3),
+    ("parentanchor = vcenter|right\n\t\t\tspacing = 5",
+     f"parentanchor = vcenter|right\n\t\t\tspacing = {ROW_GAP}  # SMART TRADE: was 5", 1),
+]
 
 PICKER_TYPES = [
     ("article_input_goods_list", [(ITEM_ANCHOR, ITEM_STATE), (CARD_ANCHOR, CARD_CHIP), (PICK_ANCHOR, PICK_BEST)]),
-    ("selected_goods_and_amount", [(ROW_SIZE_ANCHOR, ROW_SIZE), (ROW_ANCHOR, ROW_BEST)]),
+    ("selected_goods_and_amount", [(ROW_SIZE_ANCHOR, ROW_SIZE), (ROW_ANCHOR, ROW_BEST)] + ROW_TIGHTEN),
 ]
 
 
@@ -1269,9 +1280,10 @@ def copy_vanilla_type(lines, name, inserts):
             end = i
             break
     body = "\n".join(lines[start:end + 1])
-    for anchor, replacement in inserts:
-        assert body.count(anchor) == 1, f"vanilla {name} changed shape near {anchor!r}; review the insertion"
-        body = body.replace(anchor, replacement, 1)
+    for anchor, replacement, *count in inserts:
+        n = count[0] if count else 1
+        assert body.count(anchor) == n, f"vanilla {name} changed shape near {anchor!r}; review the insertion"
+        body = body.replace(anchor, replacement)
     return (f"\t# Vanilla {name}, copied verbatim at generation time from\n"
             f"\t# gui/right_click_menu.gui:{start + 1}-{end + 1}, with Smart Trade insertions.\n"
             f"{body}\n")
