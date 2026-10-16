@@ -1917,11 +1917,11 @@ def _gui_type_body(text: str, name: str) -> str:
 
 
 def check_st_cards_skip_border_trigger(root: Path) -> list[str]:
-    """Smart Treaties' goods cards re-run their gain search every frame, so
-    nothing in it may call the scripted border trigger (it did 16 to 20 times
-    per card per frame: 60 -> 6-11 fps, Workshop report 2026-10). The land
-    and sea chains must hold no IsValid and no GUI-variable lookup, and the
-    goods list must store the answer on _show for them to read."""
+    """Smart Treaties' goods cards must not compute their figure every frame
+    (6 fps doing so, 73 reading a stored one: FPS run 2026-10-16). Each card
+    computes it once, from a trigger_on_create state, and the steps after
+    the first must not call the scripted border trigger. The live fallback
+    chains (land, sea) hold no IsValid and no GUI-variable lookup either."""
     path = root / "gui" / "00_smart_trade.gui"
     if not path.is_file():
         return []
@@ -1935,9 +1935,13 @@ def check_st_cards_skip_border_trigger(root: Path) -> list[str]:
                 errs.append(f"{path.name}: type {name} calls {bad.strip('.(')} inside the per-frame "
                             f"gain search; settle it once outside (see check_st_cards_skip_border_trigger)")
     grid = _gui_type_body(text, "article_input_goods_list")
-    if "on_start = \"[GetVariableSystem.Set('st_adj'" not in grid:
-        errs.append(f"{path.name}: article_input_goods_list no longer stores the border answer on _show; "
-                    f"every card would fall back to the live border test each frame")
+    if not re.search(r"name = st_created\s*\n\s*trigger_on_create = yes", grid):
+        errs.append(f"{path.name}: article_input_goods_list has no trigger_on_create state computing the "
+                    f"card figure; every card would fall back to computing it each frame")
+    for line in grid.split("\n"):
+        if ("FindChild('st_leaf')" in line or "ToString_int32" in line) and ".IsValid(" in line:
+            errs.append(f"{path.name}: a card's once-chain step after the first calls IsValid: "
+                        f"{line.strip()[:80]}...")
     return errs
 
 

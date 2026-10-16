@@ -243,25 +243,23 @@ class Market:
             out = "container = {\n" + vis + "\t" + body.replace("\n", "\n\t") + "\n}"
         return out
 
-    def once(self, key, show):
-        """on_start statements that store chain()'s figure as text under
-        key, for a card to show without recomputing it every frame. The
-        decade is picked by SetIf instead of nested visibility, so every
-        decade is computed (once). 'n' = nothing to show. Whole units only:
-        the GUI's one number-to-text route is FixedPointToInt + ToString_int32."""
+    def lazy_pick(self, tag):
+        """Name of the state that computes the decade the optimum is in,
+        picked the way chain() nests its containers: decade d when the
+        marginal gain is still positive at the start of every decade up to
+        d and not at the next one."""
         def enter(lo):
             return f"And({lt(fx(lo), self.cap)}, {gt(self.marginal(fx(lo)), fx(0))})"
-        out = [f"GetVariableSystem.Set({key}, 'n')"]
-        for d in range(CHAIN_DECADES):
-            lo = 10 * 10 ** d
-            c = show
-            for k in range(1, d + 1):
-                c = f"And({c}, {enter(10 * 10 ** k)})"
-            if d < CHAIN_DECADES - 1:
-                c = f"And({c}, Not({enter(10 * lo)}))"
-            out.append(f"GetVariableSystem.SetIf({key}, "
-                       f"ToString_int32(FixedPointToInt({self.best_gain_leaf(lo, 10 * lo)})), {c})")
-        return out
+        name = f"'st_{tag}{CHAIN_DECADES - 1}'"
+        for d in reversed(range(CHAIN_DECADES - 1)):
+            name = f"Select_CString({enter(10 * 10 ** (d + 1))}, {name}, 'st_{tag}{d}')"
+        return name
+
+    def leaf_text(self, d):
+        """Decade d's best gain as text, whole units: the GUI's one
+        number-to-text route is FixedPointToInt + ToString_int32."""
+        lo = 10 * 10 ** d
+        return f"ToString_int32(FixedPointToInt({self.best_gain_leaf(lo, 10 * lo)}))"
 
     def register(self, guard=None, reset=True):
         """onclick statements that leave the draft at the best quantity.
@@ -401,55 +399,43 @@ C_SHOW = f"And({C_MINE}, {C.pays10})"
 CHAIN_CTX = dict(home="GetPlayer.GetMarket.Self", partner="Market.Self")
 C_CHAIN = Market("Goods", **CHAIN_CTX).chain()
 
-# Goods cards: the border test once per opening of the goods picker (its
-# _show state), not inside every gain formula. Before, each profitable card
-# ran the scripted trigger 16 to 20 times per frame (Workshop report
-# 2026-10: 60 -> 6-11 fps on that screen, paused or not). The answer is
-# stored with both countries' ids, so one left over from another treaty
-# never matches; with no match the card falls back to the live test.
-ADJ_KEY = ("Concatenate3(ArticleDraft.GetFirstOrSource.GetIDString, '-', "
-           "ArticleDraft.GetSecondOrTarget.GetIDString)")
-ADJ_STORE = f"GetVariableSystem.Set('st_adj', Concatenate({ADJ_KEY}, Select_CString({D_ADJ}, '_y', '_n')))"
-ADJ_LAND = f"GetVariableSystem.HasValue('st_adj', Concatenate({ADJ_KEY}, '_y'))"
-ADJ_SEA = f"GetVariableSystem.HasValue('st_adj', Concatenate({ADJ_KEY}, '_n'))"
-ADJ_CACHED = f"Or({ADJ_LAND}, {ADJ_SEA})"
-ADJ_MATCH = f"GetVariableSystem.HasValue('st_adj', Concatenate({ADJ_KEY}, Select_CString({D_ADJ}, '_y', '_n')))"
+# Goods cards: each card's figure is computed once, when the card is
+# created, and stored as text; the card only reads it. FPS run 2026-10-16
+# (Portugal to Spain, goods list open, paused): 6 fps computing every frame,
+# 73 reading the stored figure, 77 with no figure at all.
 C_SHOW_LAND = f"And({C_MINE}, {Market('Goods', adj=True).pays10})"
 C_SHOW_SEA = f"And({C_MINE}, {Market('Goods', adj=False).pays10})"
+ONCE_KEY = "Concatenate4('st_g_', ArticleDraft.GetSecondOrTarget.GetIDString, '_', Goods.GetKey)"
+ONCE_SHOWN = f"And(GetVariableSystem.Exists({ONCE_KEY}), Not(GetVariableSystem.HasValue({ONCE_KEY}, 'n')))"
+ONCE_MISSING = f"Not(GetVariableSystem.Exists({ONCE_KEY}))"
+ONCE_TEXT = f"@money!#P +[GetVariableSystem.Get({ONCE_KEY})]#!"
+# The computation is a chain of animation states, each doing only what the
+# step before picked: 1. on creation, does it pay, and land or sea (a good
+# that does not pay stops here); 2. which decade; 3. that decade's figure,
+# with no border test inside. Vanilla's pattern: an item's trigger_on_create
+# state calling FindChild(...).TriggerAnimation(...) (gui/achievements/popup.gui).
+LAZY_STEP1 = (f"PdxGuiWidget.FindChild('st_pick').TriggerAnimation(Select_CString({D_ADJ}, "
+              f"Select_CString({C_SHOW_LAND}, 'st_pl', 'st_none'), "
+              f"Select_CString({C_SHOW_SEA}, 'st_ps', 'st_none')))")
+LAZY_MARKETS = (("l", Market("Goods", adj=True)), ("s", Market("Goods", adj=False)))
+# Fallback, no stored figure (no hook ran): computed live every frame, one
+# border test per card picking the land or sea chain.
 C_CHAIN_LAND = Market("Goods", adj=True, **CHAIN_CTX).chain()
 C_CHAIN_SEA = Market("Goods", adj=False, **CHAIN_CTX).chain()
 
-# DEV, FPS comparison (2026-10-16): "old" is the card as it was (10 points,
-# live border test in every formula), "off" hides the card figures. Remove
-# with the dev row once the run is read.
+# DEV, FPS confirmation run (2026-10-16): "old" is the card as it was (10
+# points, live border test in every formula), "off" hides the card figures;
+# the default is the stored figure. Remove with the dev row once read.
 C_CHAIN_OLD = Market("Goods", points=OLD_CHAIN_POINTS, **CHAIN_CTX).chain()
 ST_MODE_OLD = "GetVariableSystem.HasValue('st_fps_mode', 'old')"
 ST_MODE_OFF = "GetVariableSystem.HasValue('st_fps_mode', 'off')"
-ST_MODE_ONCE = "GetVariableSystem.HasValue('st_fps_mode', 'once')"
-ST_MODE_NEW = f"Not(Or(Or({ST_MODE_OLD}, {ST_MODE_OFF}), {ST_MODE_ONCE}))"
+ST_MODE_ONCE = f"Not(Or({ST_MODE_OLD}, {ST_MODE_OFF}))"
+# DEV markers: how far the chain got (1 created, 2 decade picked, 3 stored).
+HOOK_MARKERS = ("st_h_1", "st_h_2", "st_h_3")
+HOOK_READOUT = "dev: steps " + " ".join(
+    f"{m[-1]} [Select_CString(GetVariableSystem.Exists('{m}'), 'Y', 'n')]" for m in HOOK_MARKERS)
+HOOK_CLEAR_ONCLICKS = "\n".join(f"onclick = \"[GetVariableSystem.Clear('{m}')]\"" for m in HOOK_MARKERS)
 
-# DEV exploration (run of 2026-10-16): the first build's _show hooks never
-# ran ("border MISSING"). Several candidate hooks, each leaving its own
-# marker, so one run says which fire: st_h_cc card trigger_on_create,
-# st_h_gc grid trigger_on_create, st_h_cs card _show, st_h_gs grid _show,
-# st_h_bs vanilla's own grid_button _show.
-HOOK_MARKERS = ("st_h_cc", "st_h_gc", "st_h_cs", "st_h_gs", "st_h_bs")
-# "once" mode: each card's figure computed by a hook and stored as text.
-ONCE_KEY = "Concatenate4('st_g_', ArticleDraft.GetSecondOrTarget.GetIDString, '_', Goods.GetKey)"
-ONCE_CALLS = Market("Goods").once(ONCE_KEY, C_SHOW)
-ONCE_SHOWN = f"And(GetVariableSystem.Exists({ONCE_KEY}), Not(GetVariableSystem.HasValue({ONCE_KEY}, 'n')))"
-ONCE_TEXT = f"@money!#P +[GetVariableSystem.Get({ONCE_KEY})]#!"
-HOOK_READOUT = "dev: hooks " + " ".join(
-    f"{m[-2:]} [Select_CString(GetVariableSystem.Exists('{m}'), 'Y', 'n')]" for m in HOOK_MARKERS)
-HOOK_CLEAR_ONCLICKS = "\n".join(
-    f"onclick = \"[GetVariableSystem.Clear('{m}')]\"" for m in HOOK_MARKERS + ("st_adj",))
-
-
-def hook_lines(marker, per_card):
-    """on_start lines for one candidate hook: its marker, the border answer,
-    and on a card also its stored figure."""
-    calls = [f"GetVariableSystem.Set('{marker}', 'y')", ADJ_STORE] + (ONCE_CALLS if per_card else [])
-    return "\n".join(f'on_start = "[{c}]"' for c in calls)
 # Picking a good lands where Best would (Damien: the default IS Best),
 # including past the cap while acceptance stays positive.
 C_PICK_ONCLICKS = "\n".join(f'onclick = "[{s}]"' for s in C.register(C_MINE) + C.past_cap(C_MINE))
@@ -615,8 +601,8 @@ types smart_trade_types {
 		}
 	}
 
-	# The same for the goods cards once the border answer is known: no
-	# border test inside (the card picks one of these from the stored answer).
+	# The same for a goods card with no stored figure: no border test inside
+	# (the card tests the border once and picks one of these).
 	type smart_trade_best_gain_land = container {
 		container = {
 			datacontext = "[ArticleDraft.GetSecondOrTarget.GetMarket]"
@@ -1134,39 +1120,33 @@ CARD_CHIP = '''blockoverride "entire_icon_button" {
 						### SMART TRADE: best weekly gain for this good (estimate).
 						### The figures inside are hover-transparent, so each
 						### fixed-size widget carries the tooltip. Nested so a
-						### hidden branch's tests never run: the cheap ones
-						### (dev mode, stored border answer) outside, the gain
-						### search inside, one branch per border answer.
+						### hidden branch's tests never run: the stored figure
+						### first, the live search only when there is none.
 						container = {
 							visible = "[Not(@@ST_MODE_OFF@@)]"
 							parentanchor = top|left
 							position = { 5 2 }
 
 							container = {
-								visible = "[@@ST_MODE_NEW@@]"
-								container = {
-									visible = "[@@ADJ_LAND@@]"
-									widget = {
-										visible = "[@@C_SHOW_LAND@@]"
-										size = { 60 16 }
-										tooltipwidget = { smart_trade_card_tooltip = {} }
-										smart_trade_best_gain_land = {}
+								visible = "[@@ST_MODE_ONCE@@]"
+								### The figure stored when the card was created
+								### (whole units; see LAZY_STEP1 in the generator).
+								widget = {
+									visible = "[@@ONCE_SHOWN@@]"
+									size = { 60 16 }
+									tooltipwidget = { smart_trade_card_tooltip = {} }
+									textbox = {
+										autoresize = yes
+										align = nobaseline
+										using = fontsize_small
+										alwaystransparent = yes
+										raw_text = "@@ONCE_TEXT@@"
 									}
 								}
+								### No stored figure (no hook ran): computed live,
+								### one border test per card picking land or sea.
 								container = {
-									visible = "[@@ADJ_SEA@@]"
-									widget = {
-										visible = "[@@C_SHOW_SEA@@]"
-										size = { 60 16 }
-										tooltipwidget = { smart_trade_card_tooltip = {} }
-										smart_trade_best_gain_sea = {}
-									}
-								}
-								### No stored answer for these two countries (no
-								### hook ran): the live test, once per card, picks
-								### the land or sea chain.
-								container = {
-									visible = "[Not(@@ADJ_CACHED@@)]"
+									visible = "[@@ONCE_MISSING@@]"
 									container = {
 										visible = "[@@D_ADJ@@]"
 										widget = {
@@ -1188,24 +1168,6 @@ CARD_CHIP = '''blockoverride "entire_icon_button" {
 								}
 							}
 
-							### DEV, FPS comparison: the figure a hook stored as
-							### text (whole units), read instead of computed.
-							container = {
-								visible = "[@@ST_MODE_ONCE@@]"
-								widget = {
-									visible = "[@@ONCE_SHOWN@@]"
-									size = { 60 16 }
-									tooltipwidget = { smart_trade_card_tooltip = {} }
-									textbox = {
-										autoresize = yes
-										align = nobaseline
-										using = fontsize_small
-										alwaystransparent = yes
-										raw_text = "@@ONCE_TEXT@@"
-									}
-								}
-							}
-
 							### DEV, FPS comparison: the card as it was.
 							container = {
 								visible = "[@@ST_MODE_OLD@@]"
@@ -1218,28 +1180,31 @@ CARD_CHIP = '''blockoverride "entire_icon_button" {
 							}
 						}'''
 
-# 1b. DEV exploration: candidate hooks that run once per opening of the
-#     goods list. Each sets the border answer (and, on a card, its stored
-#     figure) and leaves its own marker for the readout. The _show ones did
-#     not run in the first build; trigger_on_create (127 uses in vanilla)
-#     fires when the widget is created; vanilla's own grid_button _show
-#     flips visibility when a good is picked, so it may fire on open too.
-def hook_state(name, marker, per_card, create):
-    lines = [f"name = {name}"] + (["trigger_on_create = yes"] if create else [])
-    lines += hook_lines(marker, per_card).split("\n")
-    return "state = {\n" + "\n".join("\t" + l for l in lines) + "\n}"
+# 1b. The card's figure, computed once when the card is created (see
+#     LAZY_STEP1). Each step triggers the next one's state on a child
+#     widget, as vanilla does; a state runs only its own on_start lines.
+#     The st_h_* markers are DEV (the confirmation run's readout).
+def dev_mark(m):
+    return f"on_start = \"[GetVariableSystem.Set('{m}', 'y')]\""
 
-GRID_ANCHOR = 'flipdirection = yes'
-GRID_STATE = (GRID_ANCHOR + "\n\n### SMART TRADE DEV: candidate hooks\n"
-              + hook_state("_show", "st_h_gs", False, False) + "\n"
-              + hook_state("st_created", "st_h_gc", False, True))
+
+def lazy_widgets():
+    pick, leaf = ["state = {\n\tname = st_none\n}"], []
+    for tag, m in LAZY_MARKETS:
+        pick.append(f"state = {{\n\tname = st_p{tag}\n\t{dev_mark('st_h_2')}\n"
+                    f"\ton_start = \"[PdxGuiWidget.FindChild('st_leaf').TriggerAnimation({m.lazy_pick(tag)})]\"\n}}")
+        for d in range(CHAIN_DECADES):
+            leaf.append(f"state = {{\n\tname = st_{tag}{d}\n\t{dev_mark('st_h_3')}\n"
+                        f"\ton_start = \"[GetVariableSystem.Set({ONCE_KEY}, {m.leaf_text(d)})]\"\n}}")
+    return ("widget = {\n\tname = \"st_pick\"\n\tsize = { 0 0 }\n" + "\n".join(pick)
+            + "\n\twidget = {\n\t\tname = \"st_leaf\"\n\t\tsize = { 0 0 }\n" + "\n".join(leaf) + "\n\t}\n}")
+
+
 ITEM_ANCHOR = 'item = {\n\t\t\tcontainer = {'
-ITEM_STATE = (ITEM_ANCHOR + "\n### SMART TRADE DEV: candidate hooks\n"
-              + hook_state("_show", "st_h_cs", True, False) + "\n"
-              + hook_state("st_created", "st_h_cc", True, True))
-BUTTON_SHOW_ANCHOR = "on_start = \"[PdxGuiWidget.FindChild('goods_icon').InterruptThenTriggerAnimation('hide','show')]\""
-BUTTON_SHOW = (BUTTON_SHOW_ANCHOR + "\n### SMART TRADE DEV: candidate hook\n"
-               + hook_lines("st_h_bs", True))
+ITEM_STATE = (ITEM_ANCHOR + "\n### SMART TRADE: the card's figure, computed once on creation\n"
+              "state = {\n\tname = st_created\n\ttrigger_on_create = yes\n\t" + dev_mark("st_h_1") + "\n"
+              f"\ton_start = \"[GetVariableSystem.Set({ONCE_KEY}, 'n')]\"\n"
+              "\ton_start = \"[@@LAZY_STEP1@@]\"\n}\n" + lazy_widgets())
 
 PICK_ANCHOR = 'onclick = "[ArticleDraft.SetGood(Goods.Self)]"'
 PICK_BEST = PICK_ANCHOR + '''
@@ -1321,9 +1286,9 @@ ROW_BEST = ROW_ANCHOR + '''
 				}
 			}
 
-			### DEV, FPS comparison (2026-10-16): which card figures run, and
-			### whether the stored border answer matches the live test. The
-			### raw_text "dev:" tags keep package_release from shipping it.
+			### DEV, FPS confirmation run (2026-10-16): which card figure runs,
+			### and how far each card's once-chain got. The raw_text "dev:"
+			### tags keep package_release from shipping it.
 			flowcontainer = {
 				parentanchor = hcenter
 				spacing = 4
@@ -1334,7 +1299,7 @@ ROW_BEST = ROW_ANCHOR + '''
 				}
 				smart_trade_best_button = {
 					blockoverride "action" { onclick = "[GetVariableSystem.Clear('st_fps_mode')]" }
-					blockoverride "label" { raw_text = "dev:new" }
+					blockoverride "label" { raw_text = "dev:once" }
 					blockoverride "tip" {}
 				}
 				smart_trade_best_button = {
@@ -1343,27 +1308,11 @@ ROW_BEST = ROW_ANCHOR + '''
 					blockoverride "tip" {}
 				}
 				smart_trade_best_button = {
-					blockoverride "action" { onclick = "[GetVariableSystem.Set('st_fps_mode', 'once')]" }
-					blockoverride "label" { raw_text = "dev:once" }
-					blockoverride "tip" {}
-				}
-			}
-			flowcontainer = {
-				parentanchor = hcenter
-				spacing = 4
-				smart_trade_best_button = {
 					blockoverride "action" {
 						@@HOOK_CLEAR_ONCLICKS@@
 					}
 					blockoverride "label" { raw_text = "dev:clr" }
 					blockoverride "tip" {}
-				}
-				textbox = {
-					parentanchor = vcenter
-					autoresize = yes
-					align = nobaseline
-					using = fontsize_small
-					raw_text = "@@HOOK_READOUT@@"
 				}
 			}
 			textbox = {
@@ -1371,19 +1320,17 @@ ROW_BEST = ROW_ANCHOR + '''
 				autoresize = yes
 				align = nobaseline
 				using = fontsize_small
-				raw_text = "dev: [Select_CString(@@ST_MODE_OLD@@, 'old', Select_CString(@@ST_MODE_OFF@@, 'off', Select_CString(@@ST_MODE_ONCE@@, 'once', 'new')))] | [Select_CString(@@ADJ_CACHED@@, Select_CString(@@ADJ_MATCH@@, 'border OK', 'border STALE'), 'border MISSING')] | [Select_CString(@@D_ADJ@@, 'land', 'sea')]"
+				raw_text = "dev: [Select_CString(@@ST_MODE_OLD@@, 'old', Select_CString(@@ST_MODE_OFF@@, 'off', 'once'))] | @@HOOK_READOUT@@ | [Select_CString(@@D_ADJ@@, 'land', 'sea')]"
 			}'''
 
 # 4. The row's own height: vanilla's 70 holds the goods and the quantity;
 #    our button row needs 22 more, or it runs into the divider below (run 10
 #    screenshot). The popup is a vertical flowcontainer, so the rest moves down.
 ROW_SIZE_ANCHOR = 'size = { 400 70 }'
-ROW_SIZE = 'size = { 400 170 }  # SMART TRADE: was 70, +22 for the button row, +78 DEV FPS rows (back to 92 with them)'
+ROW_SIZE = 'size = { 400 140 }  # SMART TRADE: was 70, +22 for the button row, +48 DEV FPS rows (back to 92 with them)'
 
 PICKER_TYPES = [
-    ("article_input_goods_list", [(GRID_ANCHOR, GRID_STATE), (ITEM_ANCHOR, ITEM_STATE),
-                                  (BUTTON_SHOW_ANCHOR, BUTTON_SHOW),
-                                  (CARD_ANCHOR, CARD_CHIP), (PICK_ANCHOR, PICK_BEST)]),
+    ("article_input_goods_list", [(ITEM_ANCHOR, ITEM_STATE), (CARD_ANCHOR, CARD_CHIP), (PICK_ANCHOR, PICK_BEST)]),
     ("selected_goods_and_amount", [(ROW_SIZE_ANCHOR, ROW_SIZE), (ROW_ANCHOR, ROW_BEST)]),
 ]
 
