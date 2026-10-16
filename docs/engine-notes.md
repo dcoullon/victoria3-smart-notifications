@@ -49,6 +49,7 @@ in new code; `CLAUDE.md` only states the rule, not the reasoning.
 - [The GUI layer cannot count a filtered datamodel](#the-gui-layer-cannot-count-a-filtered-datamodel)
 - [A missing texture draws nothing and logs nothing](#a-missing-texture-draws-nothing-and-logs-nothing)
 - [visible does not gate widget creation, so it cannot guard an action](#visible-does-not-gate-widget-creation-so-it-cannot-guard-an-action)
+- [GUI expressions run every frame: compute once on creation, store text](#gui-expressions-run-every-frame-compute-once-on-creation-store-text)
 
 <!-- /TOC -->
 
@@ -1759,3 +1760,48 @@ from the button with `PdxGuiTriggerAllAnimations('<name>')` (vanilla:
 `gui/character_panel.gui:582`). That runs on the existing widgets on demand
 rather than on every rebuild. Whether `visible` gates *that* is a separate
 question and is not yet answered.
+
+## GUI expressions run every frame: compute once on creation, store text
+
+Measured 2026-10-16 on Smart Treaties' goods picker (Portugal to Spain,
+goods list open, game paused, 1080p), after a Workshop report of 60 to 6-11
+fps on that screen only.
+
+**Every `[...]` binding of a visible widget is evaluated again every frame,
+paused or not.** Nothing is cached. Smart Treaties put its best-gain search
+(about 1,800 to 2,700 data-function steps, plus 16 to 20 scripted-GUI
+`IsValid` calls) on every goods card: 6 fps. The same figure read back from
+a GUI variable: 74 fps. No figure at all: 78 fps. Rough costs fitted from
+those runs: 1 to 6 µs per step, and one `IsValid` costs about 45 steps.
+
+**What works: compute once in a `trigger_on_create` state, store it as
+text, and display the text.**
+
+- The hook: `state = { name = x  trigger_on_create = yes  on_start = ... }`
+  on the datamodel item fired; per § `visible` does not gate widget
+  creation, it fires again on every rebuild of the list (here that only
+  refreshes the figures).
+- `_show` states with `on_start` did **not** fire on widgets that are
+  visible from creation: the grid, the item container, and an extra
+  `on_start` in vanilla's own grid_button `_show`. All three markers stayed
+  off in the same run where both `trigger_on_create` markers came on.
+- Storage: `GetVariableSystem.Set(key, value)` and `.Get(key)`, both
+  strings. The only number-to-text route in the function dump is
+  `FixedPointToInt` + `ToString_int32`, so the stored figure is whole units
+  (no K formatting without recomputing per digit group).
+- Key the variable on everything it depends on (here the partner's
+  `GetIDString` and `Goods.GetKey`), and set a sentinel first, so a value
+  from another treaty can never show.
+
+**Branches must be separate states.** All of a function's arguments are
+evaluated (`Select_CString`, `SetIf`): a single on_start that picks one of
+five decades still computed all five, and opening the list took about 2 s.
+Splitting it into states that trigger each other by a computed name,
+`PdxGuiWidget.FindChild('child').TriggerAnimation(Select_CString(...))`
+(vanilla: `gui/achievements/popup.gui`, an item's `trigger_on_create` state
+triggering a child; computed names: `PdxGuiTriggerAllAnimations(Select_CString(...))`
+in the character panel), runs only the picked branch. Opening became
+noticeably faster; it was not timed.
+
+`check_st_cards_skip_border_trigger` asserts the creation hook exists and
+that no step after the first calls the border trigger.

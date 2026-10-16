@@ -168,6 +168,8 @@ Acceptance criteria, run 13:
 
 **Tick cost, measured 2026-10-07** (tools/build_tick_probe.py + tools/tick_report.py; stable 1.13.11, Portugal 1918 save, speed 5, Chrome and Claude open throughout): timing mod alone 18.56 s per in-game month (16 months), then 19.57 (14 months, a second session); all three published mods, Treaties collapsed about 18.75 (4 months), expanded about 18.5 (8 months). Two identical mod-free sessions differ by 5.4%, and every mod run falls inside that range. No measurable cost; a cost under about 5% cannot be ruled out with runs this short.
 
+**Frame rate, measured 2026-10-16** (Workshop report: 60 to 6-11 fps with the goods list open, sending only). The tick probe above measures simulation speed, so it could not see this. Portugal to Spain, list open, paused: card figure computed every frame 6 fps, with 8 points and the border test hoisted 10, stored once on card creation 74, no figure 78. Fixed in 0.11: computed once per card in a lazy `trigger_on_create` chain, shown as whole units. Mechanism and engine facts: engine-notes.md § GUI expressions run every frame.
+
 **Known limits, deferred (independent review, 2026-10-05):**
 
 - Multiplayer: treaty totals select "the player's" articles with the script trigger `is_player`, which is true for every human. In a treaty between two humans both sides' goods would be counted. Fix if multiplayer ever matters: pass the local player in as a scope.

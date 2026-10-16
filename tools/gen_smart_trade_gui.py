@@ -104,7 +104,6 @@ CHAIN_DECADES = 5          # 10 to 1,000,000 units
 # (Damien: 2% is well inside how much a deal's gain moves week to week), to
 # cut the per-frame cost of the goods cards (Workshop report: 60 -> 6-11 fps).
 CHAIN_POINTS = 8
-OLD_CHAIN_POINTS = 10      # dev-only "old" mode of the FPS comparison
 # Acceptance search (Market.accept_search): one walk per acceptance value
 # 1..KMAX. The quantity score tops out near 10 x 1.375 (pricier) x 1.25
 # (AI strategy) = 17.2, so 18 covers it; above that the button keeps
@@ -423,19 +422,6 @@ LAZY_MARKETS = (("l", Market("Goods", adj=True)), ("s", Market("Goods", adj=Fals
 C_CHAIN_LAND = Market("Goods", adj=True, **CHAIN_CTX).chain()
 C_CHAIN_SEA = Market("Goods", adj=False, **CHAIN_CTX).chain()
 
-# DEV, FPS confirmation run (2026-10-16): "old" is the card as it was (10
-# points, live border test in every formula), "off" hides the card figures;
-# the default is the stored figure. Remove with the dev row once read.
-C_CHAIN_OLD = Market("Goods", points=OLD_CHAIN_POINTS, **CHAIN_CTX).chain()
-ST_MODE_OLD = "GetVariableSystem.HasValue('st_fps_mode', 'old')"
-ST_MODE_OFF = "GetVariableSystem.HasValue('st_fps_mode', 'off')"
-ST_MODE_ONCE = f"Not(Or({ST_MODE_OLD}, {ST_MODE_OFF}))"
-# DEV markers: how far the chain got (1 created, 2 decade picked, 3 stored).
-HOOK_MARKERS = ("st_h_1", "st_h_2", "st_h_3")
-HOOK_READOUT = "dev: steps " + " ".join(
-    f"{m[-1]} [Select_CString(GetVariableSystem.Exists('{m}'), 'Y', 'n')]" for m in HOOK_MARKERS)
-HOOK_CLEAR_ONCLICKS = "\n".join(f"onclick = \"[GetVariableSystem.Clear('{m}')]\"" for m in HOOK_MARKERS)
-
 # Picking a good lands where Best would (Damien: the default IS Best),
 # including past the cap while acceptance stays positive.
 C_PICK_ONCLICKS = "\n".join(f'onclick = "[{s}]"' for s in C.register(C_MINE) + C.past_cap(C_MINE))
@@ -614,14 +600,6 @@ types smart_trade_types {
 		container = {
 			datacontext = "[ArticleDraft.GetSecondOrTarget.GetMarket]"
 			@@C_CHAIN_SEA@@
-		}
-	}
-
-	# DEV, FPS comparison: the card figure as it was before 2026-10-16.
-	type smart_trade_best_gain_old = container {
-		container = {
-			datacontext = "[ArticleDraft.GetSecondOrTarget.GetMarket]"
-			@@C_CHAIN_OLD@@
 		}
 	}
 
@@ -1123,12 +1101,10 @@ CARD_CHIP = '''blockoverride "entire_icon_button" {
 						### hidden branch's tests never run: the stored figure
 						### first, the live search only when there is none.
 						container = {
-							visible = "[Not(@@ST_MODE_OFF@@)]"
 							parentanchor = top|left
 							position = { 5 2 }
 
 							container = {
-								visible = "[@@ST_MODE_ONCE@@]"
 								### The figure stored when the card was created
 								### (whole units; see LAZY_STEP1 in the generator).
 								widget = {
@@ -1167,34 +1143,18 @@ CARD_CHIP = '''blockoverride "entire_icon_button" {
 									}
 								}
 							}
-
-							### DEV, FPS comparison: the card as it was.
-							container = {
-								visible = "[@@ST_MODE_OLD@@]"
-								widget = {
-									visible = "[@@C_SHOW@@]"
-									size = { 60 16 }
-									tooltipwidget = { smart_trade_card_tooltip = {} }
-									smart_trade_best_gain_old = {}
-								}
-							}
 						}'''
 
 # 1b. The card's figure, computed once when the card is created (see
 #     LAZY_STEP1). Each step triggers the next one's state on a child
 #     widget, as vanilla does; a state runs only its own on_start lines.
-#     The st_h_* markers are DEV (the confirmation run's readout).
-def dev_mark(m):
-    return f"on_start = \"[GetVariableSystem.Set('{m}', 'y')]\""
-
-
 def lazy_widgets():
     pick, leaf = ["state = {\n\tname = st_none\n}"], []
     for tag, m in LAZY_MARKETS:
-        pick.append(f"state = {{\n\tname = st_p{tag}\n\t{dev_mark('st_h_2')}\n"
+        pick.append(f"state = {{\n\tname = st_p{tag}\n"
                     f"\ton_start = \"[PdxGuiWidget.FindChild('st_leaf').TriggerAnimation({m.lazy_pick(tag)})]\"\n}}")
         for d in range(CHAIN_DECADES):
-            leaf.append(f"state = {{\n\tname = st_{tag}{d}\n\t{dev_mark('st_h_3')}\n"
+            leaf.append(f"state = {{\n\tname = st_{tag}{d}\n"
                         f"\ton_start = \"[GetVariableSystem.Set({ONCE_KEY}, {m.leaf_text(d)})]\"\n}}")
     return ("widget = {\n\tname = \"st_pick\"\n\tsize = { 0 0 }\n" + "\n".join(pick)
             + "\n\twidget = {\n\t\tname = \"st_leaf\"\n\t\tsize = { 0 0 }\n" + "\n".join(leaf) + "\n\t}\n}")
@@ -1202,7 +1162,7 @@ def lazy_widgets():
 
 ITEM_ANCHOR = 'item = {\n\t\t\tcontainer = {'
 ITEM_STATE = (ITEM_ANCHOR + "\n### SMART TRADE: the card's figure, computed once on creation\n"
-              "state = {\n\tname = st_created\n\ttrigger_on_create = yes\n\t" + dev_mark("st_h_1") + "\n"
+              "state = {\n\tname = st_created\n\ttrigger_on_create = yes\n"
               f"\ton_start = \"[GetVariableSystem.Set({ONCE_KEY}, 'n')]\"\n"
               "\ton_start = \"[@@LAZY_STEP1@@]\"\n}\n" + lazy_widgets())
 
@@ -1284,50 +1244,13 @@ ROW_BEST = ROW_ANCHOR + '''
 					blockoverride "thumb" { visible = yes }
 					blockoverride "tip" { tooltip = "SMART_TRADE_ACCEPT_RECV_TT" }
 				}
-			}
-
-			### DEV, FPS confirmation run (2026-10-16): which card figure runs,
-			### and how far each card's once-chain got. The raw_text "dev:"
-			### tags keep package_release from shipping it.
-			flowcontainer = {
-				parentanchor = hcenter
-				spacing = 4
-				smart_trade_best_button = {
-					blockoverride "action" { onclick = "[GetVariableSystem.Set('st_fps_mode', 'old')]" }
-					blockoverride "label" { raw_text = "dev:old" }
-					blockoverride "tip" {}
-				}
-				smart_trade_best_button = {
-					blockoverride "action" { onclick = "[GetVariableSystem.Clear('st_fps_mode')]" }
-					blockoverride "label" { raw_text = "dev:once" }
-					blockoverride "tip" {}
-				}
-				smart_trade_best_button = {
-					blockoverride "action" { onclick = "[GetVariableSystem.Set('st_fps_mode', 'off')]" }
-					blockoverride "label" { raw_text = "dev:off" }
-					blockoverride "tip" {}
-				}
-				smart_trade_best_button = {
-					blockoverride "action" {
-						@@HOOK_CLEAR_ONCLICKS@@
-					}
-					blockoverride "label" { raw_text = "dev:clr" }
-					blockoverride "tip" {}
-				}
-			}
-			textbox = {
-				parentanchor = hcenter
-				autoresize = yes
-				align = nobaseline
-				using = fontsize_small
-				raw_text = "dev: [Select_CString(@@ST_MODE_OLD@@, 'old', Select_CString(@@ST_MODE_OFF@@, 'off', 'once'))] | @@HOOK_READOUT@@ | [Select_CString(@@D_ADJ@@, 'land', 'sea')]"
 			}'''
 
 # 4. The row's own height: vanilla's 70 holds the goods and the quantity;
 #    our button row needs 22 more, or it runs into the divider below (run 10
 #    screenshot). The popup is a vertical flowcontainer, so the rest moves down.
 ROW_SIZE_ANCHOR = 'size = { 400 70 }'
-ROW_SIZE = 'size = { 400 140 }  # SMART TRADE: was 70, +22 for the button row, +48 DEV FPS rows (back to 92 with them)'
+ROW_SIZE = 'size = { 400 92 }  # SMART TRADE: was 70, +22 for the button row'
 
 PICKER_TYPES = [
     ("article_input_goods_list", [(ITEM_ANCHOR, ITEM_STATE), (CARD_ANCHOR, CARD_CHIP), (PICK_ANCHOR, PICK_BEST)]),
