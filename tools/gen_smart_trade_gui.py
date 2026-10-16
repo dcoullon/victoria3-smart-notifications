@@ -243,6 +243,26 @@ class Market:
             out = "container = {\n" + vis + "\t" + body.replace("\n", "\n\t") + "\n}"
         return out
 
+    def once(self, key, show):
+        """on_start statements that store chain()'s figure as text under
+        key, for a card to show without recomputing it every frame. The
+        decade is picked by SetIf instead of nested visibility, so every
+        decade is computed (once). 'n' = nothing to show. Whole units only:
+        the GUI's one number-to-text route is FixedPointToInt + ToString_int32."""
+        def enter(lo):
+            return f"And({lt(fx(lo), self.cap)}, {gt(self.marginal(fx(lo)), fx(0))})"
+        out = [f"GetVariableSystem.Set({key}, 'n')"]
+        for d in range(CHAIN_DECADES):
+            lo = 10 * 10 ** d
+            c = show
+            for k in range(1, d + 1):
+                c = f"And({c}, {enter(10 * 10 ** k)})"
+            if d < CHAIN_DECADES - 1:
+                c = f"And({c}, Not({enter(10 * lo)}))"
+            out.append(f"GetVariableSystem.SetIf({key}, "
+                       f"ToString_int32(FixedPointToInt({self.best_gain_leaf(lo, 10 * lo)})), {c})")
+        return out
+
     def register(self, guard=None, reset=True):
         """onclick statements that leave the draft at the best quantity.
         reset=False climbs from wherever the quantity already is (the
@@ -405,6 +425,31 @@ C_CHAIN_SEA = Market("Goods", adj=False, **CHAIN_CTX).chain()
 C_CHAIN_OLD = Market("Goods", points=OLD_CHAIN_POINTS, **CHAIN_CTX).chain()
 ST_MODE_OLD = "GetVariableSystem.HasValue('st_fps_mode', 'old')"
 ST_MODE_OFF = "GetVariableSystem.HasValue('st_fps_mode', 'off')"
+ST_MODE_ONCE = "GetVariableSystem.HasValue('st_fps_mode', 'once')"
+ST_MODE_NEW = f"Not(Or(Or({ST_MODE_OLD}, {ST_MODE_OFF}), {ST_MODE_ONCE}))"
+
+# DEV exploration (run of 2026-10-16): the first build's _show hooks never
+# ran ("border MISSING"). Several candidate hooks, each leaving its own
+# marker, so one run says which fire: st_h_cc card trigger_on_create,
+# st_h_gc grid trigger_on_create, st_h_cs card _show, st_h_gs grid _show,
+# st_h_bs vanilla's own grid_button _show.
+HOOK_MARKERS = ("st_h_cc", "st_h_gc", "st_h_cs", "st_h_gs", "st_h_bs")
+# "once" mode: each card's figure computed by a hook and stored as text.
+ONCE_KEY = "Concatenate4('st_g_', ArticleDraft.GetSecondOrTarget.GetIDString, '_', Goods.GetKey)"
+ONCE_CALLS = Market("Goods").once(ONCE_KEY, C_SHOW)
+ONCE_SHOWN = f"And(GetVariableSystem.Exists({ONCE_KEY}), Not(GetVariableSystem.HasValue({ONCE_KEY}, 'n')))"
+ONCE_TEXT = f"@money!#P +[GetVariableSystem.Get({ONCE_KEY})]#!"
+HOOK_READOUT = "dev: hooks " + " ".join(
+    f"{m[-2:]} [Select_CString(GetVariableSystem.Exists('{m}'), 'Y', 'n')]" for m in HOOK_MARKERS)
+HOOK_CLEAR_ONCLICKS = "\n".join(
+    f"onclick = \"[GetVariableSystem.Clear('{m}')]\"" for m in HOOK_MARKERS + ("st_adj",))
+
+
+def hook_lines(marker, per_card):
+    """on_start lines for one candidate hook: its marker, the border answer,
+    and on a card also its stored figure."""
+    calls = [f"GetVariableSystem.Set('{marker}', 'y')", ADJ_STORE] + (ONCE_CALLS if per_card else [])
+    return "\n".join(f'on_start = "[{c}]"' for c in calls)
 # Picking a good lands where Best would (Damien: the default IS Best),
 # including past the cap while acceptance stays positive.
 C_PICK_ONCLICKS = "\n".join(f'onclick = "[{s}]"' for s in C.register(C_MINE) + C.past_cap(C_MINE))
@@ -1098,7 +1143,7 @@ CARD_CHIP = '''blockoverride "entire_icon_button" {
 							position = { 5 2 }
 
 							container = {
-								visible = "[Not(@@ST_MODE_OLD@@)]"
+								visible = "[@@ST_MODE_NEW@@]"
 								container = {
 									visible = "[@@ADJ_LAND@@]"
 									widget = {
@@ -1117,15 +1162,46 @@ CARD_CHIP = '''blockoverride "entire_icon_button" {
 										smart_trade_best_gain_sea = {}
 									}
 								}
-								### No stored answer for these two countries
-								### (the picker's _show did not run): live test.
+								### No stored answer for these two countries (no
+								### hook ran): the live test, once per card, picks
+								### the land or sea chain.
 								container = {
 									visible = "[Not(@@ADJ_CACHED@@)]"
-									widget = {
-										visible = "[@@C_SHOW@@]"
-										size = { 60 16 }
-										tooltipwidget = { smart_trade_card_tooltip = {} }
-										smart_trade_best_gain = {}
+									container = {
+										visible = "[@@D_ADJ@@]"
+										widget = {
+											visible = "[@@C_SHOW_LAND@@]"
+											size = { 60 16 }
+											tooltipwidget = { smart_trade_card_tooltip = {} }
+											smart_trade_best_gain_land = {}
+										}
+									}
+									container = {
+										visible = "[Not(@@D_ADJ@@)]"
+										widget = {
+											visible = "[@@C_SHOW_SEA@@]"
+											size = { 60 16 }
+											tooltipwidget = { smart_trade_card_tooltip = {} }
+											smart_trade_best_gain_sea = {}
+										}
+									}
+								}
+							}
+
+							### DEV, FPS comparison: the figure a hook stored as
+							### text (whole units), read instead of computed.
+							container = {
+								visible = "[@@ST_MODE_ONCE@@]"
+								widget = {
+									visible = "[@@ONCE_SHOWN@@]"
+									size = { 60 16 }
+									tooltipwidget = { smart_trade_card_tooltip = {} }
+									textbox = {
+										autoresize = yes
+										align = nobaseline
+										using = fontsize_small
+										alwaystransparent = yes
+										raw_text = "@@ONCE_TEXT@@"
 									}
 								}
 							}
@@ -1142,23 +1218,29 @@ CARD_CHIP = '''blockoverride "entire_icon_button" {
 							}
 						}'''
 
-# 1b. Store the border answer when the goods list opens, on the list and on
-#     each card (whichever _show the engine fires; each runs the test once
-#     per opening, not per frame). Vanilla sets GUI variables the same way
-#     (gui/companies_panel.gui, state _show on_start).
-ADJ_STATE = '''state = {
-					name = _show
-					on_start = "[@@ADJ_STORE@@]"
-				}'''
-GRID_ANCHOR = 'flipdirection = yes'
-GRID_STATE = GRID_ANCHOR + '\n\n\t\t### SMART TRADE: border answer for the cards\n\t\t' + ADJ_STATE
-ITEM_ANCHOR = 'item = {\n\t\t\tcontainer = {'
-ITEM_STATE = ITEM_ANCHOR + '\n\t\t\t\t### SMART TRADE: border answer for the cards\n\t\t\t\t' + ADJ_STATE
+# 1b. DEV exploration: candidate hooks that run once per opening of the
+#     goods list. Each sets the border answer (and, on a card, its stored
+#     figure) and leaves its own marker for the readout. The _show ones did
+#     not run in the first build; trigger_on_create (127 uses in vanilla)
+#     fires when the widget is created; vanilla's own grid_button _show
+#     flips visibility when a good is picked, so it may fire on open too.
+def hook_state(name, marker, per_card, create):
+    lines = [f"name = {name}"] + (["trigger_on_create = yes"] if create else [])
+    lines += hook_lines(marker, per_card).split("\n")
+    return "state = {\n" + "\n".join("\t" + l for l in lines) + "\n}"
 
-# 2. The card's own click: vanilla picks the good; we then climb the
-#    quantity to the best one (Market.register), so the default IS the best
-#    quantity (Damien's option 1), for every good the player sends. For goods
-#    the partner sends every step re-sets the quantity it already has.
+GRID_ANCHOR = 'flipdirection = yes'
+GRID_STATE = (GRID_ANCHOR + "\n\n### SMART TRADE DEV: candidate hooks\n"
+              + hook_state("_show", "st_h_gs", False, False) + "\n"
+              + hook_state("st_created", "st_h_gc", False, True))
+ITEM_ANCHOR = 'item = {\n\t\t\tcontainer = {'
+ITEM_STATE = (ITEM_ANCHOR + "\n### SMART TRADE DEV: candidate hooks\n"
+              + hook_state("_show", "st_h_cs", True, False) + "\n"
+              + hook_state("st_created", "st_h_cc", True, True))
+BUTTON_SHOW_ANCHOR = "on_start = \"[PdxGuiWidget.FindChild('goods_icon').InterruptThenTriggerAnimation('hide','show')]\""
+BUTTON_SHOW = (BUTTON_SHOW_ANCHOR + "\n### SMART TRADE DEV: candidate hook\n"
+               + hook_lines("st_h_bs", True))
+
 PICK_ANCHOR = 'onclick = "[ArticleDraft.SetGood(Goods.Self)]"'
 PICK_BEST = PICK_ANCHOR + '''
 						### SMART TRADE: start from the best quantity
@@ -1260,23 +1342,47 @@ ROW_BEST = ROW_ANCHOR + '''
 					blockoverride "label" { raw_text = "dev:off" }
 					blockoverride "tip" {}
 				}
+				smart_trade_best_button = {
+					blockoverride "action" { onclick = "[GetVariableSystem.Set('st_fps_mode', 'once')]" }
+					blockoverride "label" { raw_text = "dev:once" }
+					blockoverride "tip" {}
+				}
+			}
+			flowcontainer = {
+				parentanchor = hcenter
+				spacing = 4
+				smart_trade_best_button = {
+					blockoverride "action" {
+						@@HOOK_CLEAR_ONCLICKS@@
+					}
+					blockoverride "label" { raw_text = "dev:clr" }
+					blockoverride "tip" {}
+				}
+				textbox = {
+					parentanchor = vcenter
+					autoresize = yes
+					align = nobaseline
+					using = fontsize_small
+					raw_text = "@@HOOK_READOUT@@"
+				}
 			}
 			textbox = {
 				parentanchor = hcenter
 				autoresize = yes
 				align = nobaseline
 				using = fontsize_small
-				raw_text = "dev: [Select_CString(@@ST_MODE_OLD@@, 'old', Select_CString(@@ST_MODE_OFF@@, 'off', 'new'))] | [Select_CString(@@ADJ_CACHED@@, Select_CString(@@ADJ_MATCH@@, 'border OK', 'border STALE'), 'border MISSING')] | [Select_CString(@@D_ADJ@@, 'land', 'sea')]"
+				raw_text = "dev: [Select_CString(@@ST_MODE_OLD@@, 'old', Select_CString(@@ST_MODE_OFF@@, 'off', Select_CString(@@ST_MODE_ONCE@@, 'once', 'new')))] | [Select_CString(@@ADJ_CACHED@@, Select_CString(@@ADJ_MATCH@@, 'border OK', 'border STALE'), 'border MISSING')] | [Select_CString(@@D_ADJ@@, 'land', 'sea')]"
 			}'''
 
 # 4. The row's own height: vanilla's 70 holds the goods and the quantity;
 #    our button row needs 22 more, or it runs into the divider below (run 10
 #    screenshot). The popup is a vertical flowcontainer, so the rest moves down.
 ROW_SIZE_ANCHOR = 'size = { 400 70 }'
-ROW_SIZE = 'size = { 400 136 }  # SMART TRADE: was 70, +22 for the button row, +44 DEV FPS rows (back to 92 with them)'
+ROW_SIZE = 'size = { 400 170 }  # SMART TRADE: was 70, +22 for the button row, +78 DEV FPS rows (back to 92 with them)'
 
 PICKER_TYPES = [
     ("article_input_goods_list", [(GRID_ANCHOR, GRID_STATE), (ITEM_ANCHOR, ITEM_STATE),
+                                  (BUTTON_SHOW_ANCHOR, BUTTON_SHOW),
                                   (CARD_ANCHOR, CARD_CHIP), (PICK_ANCHOR, PICK_BEST)]),
     ("selected_goods_and_amount", [(ROW_SIZE_ANCHOR, ROW_SIZE), (ROW_ANCHOR, ROW_BEST)]),
 ]
