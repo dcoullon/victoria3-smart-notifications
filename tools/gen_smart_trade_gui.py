@@ -100,7 +100,11 @@ ROUTE_EST = 1.25
 
 # Best-quantity search shapes (see Market.chain / Market.register).
 CHAIN_DECADES = 5          # 10 to 1,000,000 units
-CHAIN_POINTS = 10          # points per decade: 10 -> worst 1.31% low, 8 -> 2.04%
+# Points per decade: 10 -> worst 1.31% low, 8 -> 2.04%. 8 since 2026-10-16
+# (Damien: 2% is well inside how much a deal's gain moves week to week), to
+# cut the per-frame cost of the goods cards (Workshop report: 60 -> 6-11 fps).
+CHAIN_POINTS = 8
+OLD_CHAIN_POINTS = 10      # dev-only "old" mode of the FPS comparison
 # Acceptance search (Market.accept_search): one walk per acceptance value
 # 1..KMAX. The quantity score tops out near 10 x 1.375 (pricier) x 1.25
 # (AI strategy) = 17.2, so 18 covers it; above that the button keeps
@@ -118,7 +122,12 @@ class Market:
     """Every per-good draft formula, for one goods expression."""
 
     def __init__(self, g, home="ArticleDraft.GetFirstOrSource.GetMarket.Self",
-                 partner="ArticleDraft.GetSecondOrTarget.GetMarket.Self"):
+                 partner="ArticleDraft.GetSecondOrTarget.GetMarket.Self",
+                 adj=D_ADJ, points=CHAIN_POINTS):
+        """adj: the "markets border" test, or True/False when the caller has
+        already settled it (the goods cards: one branch per answer, so no
+        formula inside repeats the check)."""
+        self.points = points
         gh = f"{g}.WithMarketContext({home})"
         gp = f"{g}.WithMarketContext({partner})"
         self.bh, self.sh = f"{gh}.GetMarketBuyOrders", f"{gh}.GetMarketSellOrders"
@@ -126,7 +135,8 @@ class Market:
         self.ph, self.pp = f"{gh}.GetMarketPrice", f"{gp}.GetMarketPrice"
         self.base, self.tq = f"{g}.GetBasePrice", f"{g}.GetTradedQuantity"
         # Shipping per unit on a short route (x1.00); zero overland.
-        self.ship_unit = sel(D_ADJ, fx(0), mul(div(MMP, self.tq), fx(ROUTE_EST)))
+        sea = mul(div(MMP, self.tq), fx(ROUTE_EST))
+        self.ship_unit = fx(0) if adj is True else sea if adj is False else sel(adj, fx(0), sea)
         # First-unit margin after shipping: the deal pays only if this is > 0.
         self.edge = sub(sub(self.pp, self.ph), self.ship_unit)
         # "h" is always the SENDER's market, "p" the receiver's (the article's
@@ -162,8 +172,9 @@ class Market:
     # script value: docs/engine-notes.md). Two methods, both checked in
     # Python against brute force on 5,000 random market shapes (2026-10-05):
     #   chain()     the best GAIN, for display: find the decade the optimum is
-    #               in from the sign of the marginal gain, then the max over 11
-    #               points in it plus the kinks and the cap. Worst 1.31% low.
+    #               in from the sign of the marginal gain, then the max over
+    #               CHAIN_POINTS + 1 points in it plus the kinks and the cap.
+    #               Worst 2.04% low at 8 points (1.31% at 10).
     #   register()  the best QUANTITY, for buttons: the draft's own quantity
     #               is the only variable the GUI has, so a click climbs it in
     #               ratio steps (x4096 down to x1.02) while the marginal gain
@@ -197,11 +208,11 @@ class Market:
         return sub(sub(self.spread(q), self.ship_unit), mul(q, add(slope_h, slope_p)))
 
     def best_gain_leaf(self, lo, hi):
-        """Max gain over one decade [lo, hi]: 11 points, the kinks and the
+        """Max gain over one decade [lo, hi]: points + 1 points, the kinks and the
         cap clamped into it. Points past the cap do not count."""
         cands = []
-        for i in range(CHAIN_POINTS + 1):
-            p = fx(round(lo * 10 ** (i / CHAIN_POINTS), 3))
+        for i in range(self.points + 1):
+            p = fx(round(lo * 10 ** (i / self.points), 3))
             g = self.gain(p)
             cands.append(g if i == 0 else sel(gt(p, self.cap), fx(-10000000), g))
         # The kinks and the cap are tried wherever they fall: any quantity
@@ -367,7 +378,33 @@ C_MINE = "And(ArticleDraft.HasType('goods_transfer'), ArticleDraft.GetFirstOrSou
 C_SHOW = f"And({C_MINE}, {C.pays10})"
 # The chain is only ever shown for a good the PLAYER sends, inside a type
 # whose datacontext is the partner's market: shorter names, ~12% smaller.
-C_CHAIN = Market("Goods", home="GetPlayer.GetMarket.Self", partner="Market.Self").chain()
+CHAIN_CTX = dict(home="GetPlayer.GetMarket.Self", partner="Market.Self")
+C_CHAIN = Market("Goods", **CHAIN_CTX).chain()
+
+# Goods cards: the border test once per opening of the goods picker (its
+# _show state), not inside every gain formula. Before, each profitable card
+# ran the scripted trigger 16 to 20 times per frame (Workshop report
+# 2026-10: 60 -> 6-11 fps on that screen, paused or not). The answer is
+# stored with both countries' ids, so one left over from another treaty
+# never matches; with no match the card falls back to the live test.
+ADJ_KEY = ("Concatenate3(ArticleDraft.GetFirstOrSource.GetIDString, '-', "
+           "ArticleDraft.GetSecondOrTarget.GetIDString)")
+ADJ_STORE = f"GetVariableSystem.Set('st_adj', Concatenate({ADJ_KEY}, Select_CString({D_ADJ}, '_y', '_n')))"
+ADJ_LAND = f"GetVariableSystem.HasValue('st_adj', Concatenate({ADJ_KEY}, '_y'))"
+ADJ_SEA = f"GetVariableSystem.HasValue('st_adj', Concatenate({ADJ_KEY}, '_n'))"
+ADJ_CACHED = f"Or({ADJ_LAND}, {ADJ_SEA})"
+ADJ_MATCH = f"GetVariableSystem.HasValue('st_adj', Concatenate({ADJ_KEY}, Select_CString({D_ADJ}, '_y', '_n')))"
+C_SHOW_LAND = f"And({C_MINE}, {Market('Goods', adj=True).pays10})"
+C_SHOW_SEA = f"And({C_MINE}, {Market('Goods', adj=False).pays10})"
+C_CHAIN_LAND = Market("Goods", adj=True, **CHAIN_CTX).chain()
+C_CHAIN_SEA = Market("Goods", adj=False, **CHAIN_CTX).chain()
+
+# DEV, FPS comparison (2026-10-16): "old" is the card as it was (10 points,
+# live border test in every formula), "off" hides the card figures. Remove
+# with the dev row once the run is read.
+C_CHAIN_OLD = Market("Goods", points=OLD_CHAIN_POINTS, **CHAIN_CTX).chain()
+ST_MODE_OLD = "GetVariableSystem.HasValue('st_fps_mode', 'old')"
+ST_MODE_OFF = "GetVariableSystem.HasValue('st_fps_mode', 'off')"
 # Picking a good lands where Best would (Damien: the default IS Best),
 # including past the cap while acceptance stays positive.
 C_PICK_ONCLICKS = "\n".join(f'onclick = "[{s}]"' for s in C.register(C_MINE) + C.past_cap(C_MINE))
@@ -530,6 +567,30 @@ types smart_trade_types {
 		container = {
 			datacontext = "[ArticleDraft.GetSecondOrTarget.GetMarket]"
 			@@C_CHAIN@@
+		}
+	}
+
+	# The same for the goods cards once the border answer is known: no
+	# border test inside (the card picks one of these from the stored answer).
+	type smart_trade_best_gain_land = container {
+		container = {
+			datacontext = "[ArticleDraft.GetSecondOrTarget.GetMarket]"
+			@@C_CHAIN_LAND@@
+		}
+	}
+
+	type smart_trade_best_gain_sea = container {
+		container = {
+			datacontext = "[ArticleDraft.GetSecondOrTarget.GetMarket]"
+			@@C_CHAIN_SEA@@
+		}
+	}
+
+	# DEV, FPS comparison: the card figure as it was before 2026-10-16.
+	type smart_trade_best_gain_old = container {
+		container = {
+			datacontext = "[ArticleDraft.GetSecondOrTarget.GetMarket]"
+			@@C_CHAIN_OLD@@
 		}
 	}
 
@@ -1026,16 +1087,73 @@ CARD_CHIP = '''blockoverride "entire_icon_button" {
 
 					''' + CARD_ANCHOR + '''
 						### SMART TRADE: best weekly gain for this good (estimate).
-						### The figures inside are hover-transparent, so this
-						### fixed-size widget carries the tooltip.
-						widget = {
-							visible = "[@@C_SHOW@@]"
+						### The figures inside are hover-transparent, so each
+						### fixed-size widget carries the tooltip. Nested so a
+						### hidden branch's tests never run: the cheap ones
+						### (dev mode, stored border answer) outside, the gain
+						### search inside, one branch per border answer.
+						container = {
+							visible = "[Not(@@ST_MODE_OFF@@)]"
 							parentanchor = top|left
 							position = { 5 2 }
-							size = { 60 16 }
-							tooltipwidget = { smart_trade_card_tooltip = {} }
-							smart_trade_best_gain = {}
+
+							container = {
+								visible = "[Not(@@ST_MODE_OLD@@)]"
+								container = {
+									visible = "[@@ADJ_LAND@@]"
+									widget = {
+										visible = "[@@C_SHOW_LAND@@]"
+										size = { 60 16 }
+										tooltipwidget = { smart_trade_card_tooltip = {} }
+										smart_trade_best_gain_land = {}
+									}
+								}
+								container = {
+									visible = "[@@ADJ_SEA@@]"
+									widget = {
+										visible = "[@@C_SHOW_SEA@@]"
+										size = { 60 16 }
+										tooltipwidget = { smart_trade_card_tooltip = {} }
+										smart_trade_best_gain_sea = {}
+									}
+								}
+								### No stored answer for these two countries
+								### (the picker's _show did not run): live test.
+								container = {
+									visible = "[Not(@@ADJ_CACHED@@)]"
+									widget = {
+										visible = "[@@C_SHOW@@]"
+										size = { 60 16 }
+										tooltipwidget = { smart_trade_card_tooltip = {} }
+										smart_trade_best_gain = {}
+									}
+								}
+							}
+
+							### DEV, FPS comparison: the card as it was.
+							container = {
+								visible = "[@@ST_MODE_OLD@@]"
+								widget = {
+									visible = "[@@C_SHOW@@]"
+									size = { 60 16 }
+									tooltipwidget = { smart_trade_card_tooltip = {} }
+									smart_trade_best_gain_old = {}
+								}
+							}
 						}'''
+
+# 1b. Store the border answer when the goods list opens, on the list and on
+#     each card (whichever _show the engine fires; each runs the test once
+#     per opening, not per frame). Vanilla sets GUI variables the same way
+#     (gui/companies_panel.gui, state _show on_start).
+ADJ_STATE = '''state = {
+					name = _show
+					on_start = "[@@ADJ_STORE@@]"
+				}'''
+GRID_ANCHOR = 'flipdirection = yes'
+GRID_STATE = GRID_ANCHOR + '\n\n\t\t### SMART TRADE: border answer for the cards\n\t\t' + ADJ_STATE
+ITEM_ANCHOR = 'item = {\n\t\t\tcontainer = {'
+ITEM_STATE = ITEM_ANCHOR + '\n\t\t\t\t### SMART TRADE: border answer for the cards\n\t\t\t\t' + ADJ_STATE
 
 # 2. The card's own click: vanilla picks the good; we then climb the
 #    quantity to the best one (Market.register), so the default IS the best
@@ -1119,16 +1237,47 @@ ROW_BEST = ROW_ANCHOR + '''
 					blockoverride "thumb" { visible = yes }
 					blockoverride "tip" { tooltip = "SMART_TRADE_ACCEPT_RECV_TT" }
 				}
+			}
+
+			### DEV, FPS comparison (2026-10-16): which card figures run, and
+			### whether the stored border answer matches the live test. The
+			### raw_text "dev:" tags keep package_release from shipping it.
+			flowcontainer = {
+				parentanchor = hcenter
+				spacing = 4
+				smart_trade_best_button = {
+					blockoverride "action" { onclick = "[GetVariableSystem.Set('st_fps_mode', 'old')]" }
+					blockoverride "label" { raw_text = "dev:old" }
+					blockoverride "tip" {}
+				}
+				smart_trade_best_button = {
+					blockoverride "action" { onclick = "[GetVariableSystem.Clear('st_fps_mode')]" }
+					blockoverride "label" { raw_text = "dev:new" }
+					blockoverride "tip" {}
+				}
+				smart_trade_best_button = {
+					blockoverride "action" { onclick = "[GetVariableSystem.Set('st_fps_mode', 'off')]" }
+					blockoverride "label" { raw_text = "dev:off" }
+					blockoverride "tip" {}
+				}
+			}
+			textbox = {
+				parentanchor = hcenter
+				autoresize = yes
+				align = nobaseline
+				using = fontsize_small
+				raw_text = "dev: [Select_CString(@@ST_MODE_OLD@@, 'old', Select_CString(@@ST_MODE_OFF@@, 'off', 'new'))] | [Select_CString(@@ADJ_CACHED@@, Select_CString(@@ADJ_MATCH@@, 'border OK', 'border STALE'), 'border MISSING')] | [Select_CString(@@D_ADJ@@, 'land', 'sea')]"
 			}'''
 
 # 4. The row's own height: vanilla's 70 holds the goods and the quantity;
 #    our button row needs 22 more, or it runs into the divider below (run 10
 #    screenshot). The popup is a vertical flowcontainer, so the rest moves down.
 ROW_SIZE_ANCHOR = 'size = { 400 70 }'
-ROW_SIZE = 'size = { 400 92 }  # SMART TRADE: was 70, +22 for the button row'
+ROW_SIZE = 'size = { 400 136 }  # SMART TRADE: was 70, +22 for the button row, +44 DEV FPS rows (back to 92 with them)'
 
 PICKER_TYPES = [
-    ("article_input_goods_list", [(CARD_ANCHOR, CARD_CHIP), (PICK_ANCHOR, PICK_BEST)]),
+    ("article_input_goods_list", [(GRID_ANCHOR, GRID_STATE), (ITEM_ANCHOR, ITEM_STATE),
+                                  (CARD_ANCHOR, CARD_CHIP), (PICK_ANCHOR, PICK_BEST)]),
     ("selected_goods_and_amount", [(ROW_SIZE_ANCHOR, ROW_SIZE), (ROW_ANCHOR, ROW_BEST)]),
 ]
 

@@ -1903,6 +1903,44 @@ def check_bc_button_labels_fit(root: Path) -> list[str]:
 ST_BUTTON_MAX_COLS = 8   # the 58px Best/Max button at fontsize_small
 
 
+def _gui_type_body(text: str, name: str) -> str:
+    """The text of `type <name> = ... { ... }`, by brace depth; '' if absent."""
+    m = re.search(rf"^\s*type {re.escape(name)} = ", text, re.M)
+    if not m:
+        return ""
+    depth, start = 0, text.index("{", m.end())
+    for i in range(start, len(text)):
+        depth += {"{": 1, "}": -1}.get(text[i], 0)
+        if depth == 0:
+            return text[m.start():i + 1]
+    return text[m.start():]
+
+
+def check_st_cards_skip_border_trigger(root: Path) -> list[str]:
+    """Smart Treaties' goods cards re-run their gain search every frame, so
+    nothing in it may call the scripted border trigger (it did 16 to 20 times
+    per card per frame: 60 -> 6-11 fps, Workshop report 2026-10). The land
+    and sea chains must hold no IsValid and no GUI-variable lookup, and the
+    goods list must store the answer on _show for them to read."""
+    path = root / "gui" / "00_smart_trade.gui"
+    if not path.is_file():
+        return []
+    text, errs = _read(path), []
+    for name in ("smart_trade_best_gain_land", "smart_trade_best_gain_sea"):
+        body = _gui_type_body(text, name)
+        if not body:
+            errs.append(f"{path.name}: type {name} is missing (the goods cards' per-frame chain)")
+        for bad in (".IsValid(", "GetVariableSystem"):
+            if bad in body:
+                errs.append(f"{path.name}: type {name} calls {bad.strip('.(')} inside the per-frame "
+                            f"gain search; settle it once outside (see check_st_cards_skip_border_trigger)")
+    grid = _gui_type_body(text, "article_input_goods_list")
+    if "on_start = \"[GetVariableSystem.Set('st_adj'" not in grid:
+        errs.append(f"{path.name}: article_input_goods_list no longer stores the border answer on _show; "
+                    f"every card would fall back to the live border test each frame")
+    return errs
+
+
 def check_st_button_labels_fit(root: Path) -> list[str]:
     """Smart Treaties' Best/Max labels must fit their 58px button in every
     language (same failure as check_bc_button_labels_fit: an overrun clips in
@@ -2063,6 +2101,7 @@ def run_all(root: Path) -> list[str]:
         errs += check_no_cheat_verbs(root)
         errs += check_st_generated_files_current(root)
         errs += check_st_entry_width_matches_vanilla(root)
+        errs += check_st_cards_skip_border_trigger(root)
 
     return errs
 
