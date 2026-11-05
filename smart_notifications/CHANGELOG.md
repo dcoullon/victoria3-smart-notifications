@@ -19,6 +19,26 @@ instrumentation and doc-only changes get a commit but **no** version bump
 unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.43] - 2026-11-05
+
+Updated for game version 1.15. No settings reset needed: this release changes
+no notification tiers.
+
+### Fixed
+
+- **Vanilla notifications the mod was blocking now appear.** 14 notification
+  types added or renamed by the game since 1.13 were missing while the mod was
+  on, so they never fired. They include electoral confidence changes, wargoals
+  enforced, overlord protection and betrayal in diplomatic plays, and partial
+  treaty withdrawals.
+- The law screen shows the game's new "All effects" and "Comparative effects"
+  buttons.
+
+### New
+
+- The law-ready notification works on the 10 laws added in 1.15, in every
+  language.
+
 ## [0.42] — 2026-10-06
 
 No settings reset needed. This release changes no notification tiers.
