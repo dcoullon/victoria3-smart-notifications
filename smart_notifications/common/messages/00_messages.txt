@@ -6,9 +6,27 @@
 #	notification_type = feed/toast/popup									#how the notification will be presented
 #	popup_name = acquired_technology_popup 									#gui specification for popups, must be in gui/popups.gui
 #	color = bad/neutral/good	 											#colors the notification
+#	feed_grouping = no														#notifications sharing this group and arriving together merge into one feed entry, headlined with the group name. Defaults to yes; set no to keep them separate.
 #
 #	on_created_soundeffect = "event:/SFX/UI/Notifications/notification" 	#notification on creationg sound
 #}
+
+# Localization is found by naming convention, there are no fields for it:
+#	notification_<key>_name													#headline
+#	notification_<key>_desc													#body text
+#																			#The group tag above is ALSO a loc key, and is what a merged entry is headlined with,
+#																			#so a type with no group never merges.
+
+# Default styling for the send_interface_message effect.
+interface_message = {
+	group = "special_interface_message_notification_group"
+
+	texture = "gfx/interface/icons/notification_icons/interest.dds"
+
+	notification_type = toast
+	feed_grouping = no
+	color = neutral
+}
 
 
 #       ######  ####### ######  #     # ######
@@ -397,6 +415,16 @@ diplo_play_join_side_notification = {
 	color = neutral
 }
 
+diplo_play_overlord_protects_subject_notification = {
+	type = diplomatic_play
+	group = "diplo_play_overlord_protects_subject_notification_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = toast
+	color = neutral
+}
+
 diplo_play_abandon_side_notification = {
 	type = diplomatic_play
 	group = "diplo_play_abandon_side_notification_group"
@@ -494,6 +522,26 @@ election_results = {
 	on_created_soundeffect = "event:/SFX/UI/Alerts/Toasts/election_results"
 }
 
+electoral_confidence_rose_notification = {
+	type = country
+	group = "electoral_confidence_changed_notification_group"
+
+	texture = "gfx/interface/icons/notification_icons/elections.dds"
+
+	notification_type = toast
+	color = good
+}
+
+electoral_confidence_fell_notification = {
+	type = country
+	group = "electoral_confidence_changed_notification_group"
+
+	texture = "gfx/interface/icons/notification_icons/elections.dds"
+
+	notification_type = toast
+	color = bad
+}
+
 enactment_failed = {
 	type = country
 	group = "enactment_failed_group"
@@ -536,6 +584,16 @@ character_spawned_in_pool = {
 	color = neutral
 }
 
+character_returned_from_exile = {
+	type = character
+	group = "character_returned_from_exile_notification_group"
+
+	texture = "gfx/interface/icons/notification_icons/character.dds"
+
+	notification_type = toast
+	color = neutral
+}
+
 native_uprising_notification = {
 	type = country
 	group = "native_uprising_notification_group"
@@ -561,16 +619,26 @@ native_uprising_notification = {
 	on_created_soundeffect = "event:/SFX/UI/Alerts/Toasts/native_uprising"
 }
 
-journal_entry_completed = {
+journal_entry_concluded = {
 	type = journal_entry
-	group = "journal_entry_completed_notification_group"
+	group = "journal_entry_concluded_notification_group"
+
+	texture = "gfx/interface/icons/notification_icons/journal.dds"
+
+	notification_type = toast
+	color = neutral
+}
+
+scripted_button_autocompleted = {
+	type = journal_entry
+	group = "scripted_button_autocompleted_notification_group"
 
 	texture = "gfx/interface/icons/notification_icons/journal.dds"
 
 	notification_type = toast
 	color = good
 
-	on_created_soundeffect = "event:/SFX/UI/Alerts/Toasts/journal_entry_completed"
+	on_created_soundeffect = "event:/SFX/UI/Alerts/Toasts/journal_entry_completed_tsar"
 }
 
 cobelligerent_in_default_notification = {
@@ -618,6 +686,26 @@ country_nationalized_building_no_compensation = {
 	color = neutral
 }
 
+strait_restricted = {
+	type = country
+	group = "strait_grievance_group"
+
+	texture = "gfx/interface/icons/notification_icons/trade_route.dds"
+
+	notification_type = toast
+	color = bad
+}
+
+strait_eased = {
+	type = country
+	group = "strait_grievance_group"
+
+	texture = "gfx/interface/icons/notification_icons/trade_route.dds"
+
+	notification_type = toast
+	color = good
+}
+
 fleet_defeated = {
     type = military_formation
     group = "fleet_notification_group"
@@ -640,12 +728,22 @@ fleet_destroyed = {
 
 fleet_repaired = {
     type = military_formation
-    group = "fleet_notification_group"
+    group = "fleet_repaired_notification_group"
 
     texture = "gfx/interface/icons/notification_icons/order.dds"
 
 	notification_type = toast
 	color = good
+}
+
+fleet_for_constructed_ship_changed = {
+	type = military_formation
+	group = "fleet_for_constructed_ship_changed_notification_group"
+
+	texture = "gfx/interface/icons/notification_icons/order.dds"
+
+	notification_type = toast
+	color = bad
 }
 
 enemy_in_default_notification = {
@@ -683,7 +781,7 @@ power_bloc_formed = {
 
 power_bloc_disbanded_leader_left = {
 	type = power_bloc
-	group = "power_bloc_formation"
+	group = "power_bloc_disbanded_notification_group"
 
 	texture = "gfx/interface/icons/notification_icons/power_bloc.dds"
 
@@ -692,7 +790,7 @@ power_bloc_disbanded_leader_left = {
 
 power_bloc_disbanded_leader_not_eligible = {
 	type = power_bloc
-	group = "power_bloc_formation"
+	group = "power_bloc_disbanded_notification_group"
 
 	texture = "gfx/interface/icons/notification_icons/power_bloc.dds"
 
@@ -729,7 +827,7 @@ power_bloc_member_left = {
 
 power_bloc_member_kicked = {
 	type = power_bloc
-	group = "power_bloc_membership"
+	group = "power_bloc_expelled_notification_group"
 
 	texture = "gfx/interface/icons/notification_icons/power_bloc.dds"
 
@@ -739,7 +837,7 @@ power_bloc_member_kicked = {
 
 power_bloc_principle_mandate_available = {
 	type = power_bloc
-	group = "power_bloc_principles_notification_group"
+	group = "power_bloc_mandate_notification_group"
 
 	texture = "gfx/interface/icons/notification_icons/power_bloc.dds"
 
@@ -1115,6 +1213,7 @@ heir_born_notification = {
 	texture = "gfx/interface/icons/notification_icons/character.dds"
 
 	notification_type = feed
+	feed_grouping = no
 	color = neutral
 }
 
@@ -1860,6 +1959,16 @@ wargoal_removed = {
 	color = neutral
 }
 
+wargoal_enforced = {
+	type = diplomatic_play
+	group = "wargoal_enforced_notification_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = feed
+	color = neutral
+}
+
 invasion_started = {
 	type = country
 	group = "invasion_notification_group"
@@ -2148,7 +2257,7 @@ shipping_lane_formation_destination_invalidated = {
 
 formation_exiled = {
 	type = military_formation
-	group = "formation_travel_notification_group"
+	group = "formation_exiled_notification_group"
 
 	texture = "gfx/interface/icons/notification_icons/military.dds"
 
@@ -2158,7 +2267,7 @@ formation_exiled = {
 
 formation_returned = {
 	type = military_formation
-	group = "formation_travel_notification_group"
+	group = "formation_returned_from_exile_notification_group"
 
 	texture = "gfx/interface/icons/notification_icons/military.dds"
 
@@ -2251,6 +2360,16 @@ diplo_play_declare_neutrality_notification = {
 	color = neutral
 }
 
+diplo_play_subject_backstab_overlord_notification = {
+	type = diplomatic_play
+	group = "diplo_play_subject_backstab_overlord_notification_group"
+
+	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
+
+	notification_type = toast
+	color = bad
+}
+
 price_report = {
 	type = country
 	group = "price_report_notification_group"
@@ -2315,6 +2434,30 @@ country_withdrawn_from_treaty = {
 }
 
 country_broke_treaty = {
+	type = treaty
+	group = "country_withdrawn_from_treaty_notification_group"
+
+	texture = "gfx/interface/icons/notification_icons/influence_bad.dds"
+
+	notification_type = toast
+	color = bad
+
+	on_created_soundeffect = "event:/SFX/UI/Alerts/Toasts/diplomatic_treaties_revoke_negative"
+}
+
+country_partially_withdrawn_from_treaty = {
+	type = treaty
+	group = "country_withdrawn_from_treaty_notification_group"
+
+	texture = "gfx/interface/icons/notification_icons/influence_bad.dds"
+
+	notification_type = toast
+	color = bad
+
+	on_created_soundeffect = "event:/SFX/UI/Alerts/Toasts/diplomatic_treaties_revoke_negative"
+}
+
+country_partially_broke_treaty = {
 	type = treaty
 	group = "country_withdrawn_from_treaty_notification_group"
 

@@ -770,6 +770,76 @@ smart_notifications_law_cooldown_record = {
 					}
 				}
 				else_if = {
+					limit = { THIS.type = law_type:law_caesaropapism }
+					THIS.owner = {
+						set_variable = { name = smart_notifications_cooldown_law_caesaropapism value = yes days = 730 }
+						debug_log = "SNW_LAW_COOLDOWN|recorded|law_caesaropapism|[TimeKeeper.GetCurrentDate.GetString]"
+					}
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_communal_administration }
+					THIS.owner = {
+						set_variable = { name = smart_notifications_cooldown_law_communal_administration value = yes days = 730 }
+						debug_log = "SNW_LAW_COOLDOWN|recorded|law_communal_administration|[TimeKeeper.GetCurrentDate.GetString]"
+					}
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_extraordinary_commission }
+					THIS.owner = {
+						set_variable = { name = smart_notifications_cooldown_law_extraordinary_commission value = yes days = 730 }
+						debug_log = "SNW_LAW_COOLDOWN|recorded|law_extraordinary_commission|[TimeKeeper.GetCurrentDate.GetString]"
+					}
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_internal_colonization }
+					THIS.owner = {
+						set_variable = { name = smart_notifications_cooldown_law_internal_colonization value = yes days = 730 }
+						debug_log = "SNW_LAW_COOLDOWN|recorded|law_internal_colonization|[TimeKeeper.GetCurrentDate.GetString]"
+					}
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_labour_suffrage }
+					THIS.owner = {
+						set_variable = { name = smart_notifications_cooldown_law_labour_suffrage value = yes days = 730 }
+						debug_log = "SNW_LAW_COOLDOWN|recorded|law_labour_suffrage|[TimeKeeper.GetCurrentDate.GetString]"
+					}
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_military_bureaucrats }
+					THIS.owner = {
+						set_variable = { name = smart_notifications_cooldown_law_military_bureaucrats value = yes days = 730 }
+						debug_log = "SNW_LAW_COOLDOWN|recorded|law_military_bureaucrats|[TimeKeeper.GetCurrentDate.GetString]"
+					}
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_official_nationality }
+					THIS.owner = {
+						set_variable = { name = smart_notifications_cooldown_law_official_nationality value = yes days = 730 }
+						debug_log = "SNW_LAW_COOLDOWN|recorded|law_official_nationality|[TimeKeeper.GetCurrentDate.GetString]"
+					}
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_okhrana }
+					THIS.owner = {
+						set_variable = { name = smart_notifications_cooldown_law_okhrana value = yes days = 730 }
+						debug_log = "SNW_LAW_COOLDOWN|recorded|law_okhrana|[TimeKeeper.GetCurrentDate.GetString]"
+					}
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_revolutionary_guard }
+					THIS.owner = {
+						set_variable = { name = smart_notifications_cooldown_law_revolutionary_guard value = yes days = 730 }
+						debug_log = "SNW_LAW_COOLDOWN|recorded|law_revolutionary_guard|[TimeKeeper.GetCurrentDate.GetString]"
+					}
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_third_section }
+					THIS.owner = {
+						set_variable = { name = smart_notifications_cooldown_law_third_section value = yes days = 730 }
+						debug_log = "SNW_LAW_COOLDOWN|recorded|law_third_section|[TimeKeeper.GetCurrentDate.GetString]"
+					}
+				}
+				else_if = {
 					limit = { THIS.type = law_type:law_public_health_insurance }
 					THIS.owner = {
 						set_variable = { name = smart_notifications_cooldown_law_public_health_insurance value = yes days = 730 }

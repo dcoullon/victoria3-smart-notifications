@@ -27,7 +27,7 @@ automatically against whatever Victoria 3 install it finds locally.
 
 ## Folder naming
 
-One subfolder per supported game version (e.g. `1.13.x`). Bump/add a new one
+One subfolder per supported game version (e.g. `1.15.x`). Bump/add a new one
 whenever the mod starts tracking a new major patch, and keep old ones only if
 still relevant — otherwise delete them.
 
@@ -35,11 +35,11 @@ still relevant — otherwise delete them.
 
 ```bash
 cp "/c/Program Files (x86)/Steam/steamapps/common/Victoria 3/game/common/messages/00_messages.txt" \
-   "reference/vanilla/1.13.x/common/messages/00_messages.txt"
+   "reference/vanilla/1.15.x/common/messages/00_messages.txt"
 cp "/c/Program Files (x86)/Steam/steamapps/common/Victoria 3/game/gui/message_settings.gui" \
-   "reference/vanilla/1.13.x/gui/message_settings.gui"
+   "reference/vanilla/1.15.x/gui/message_settings.gui"
 cp "/c/Program Files (x86)/Steam/steamapps/common/Victoria 3/game/gui/politics_panel_change_law.gui" \
-   "reference/vanilla/1.13.x/gui/politics_panel_change_law.gui"
+   "reference/vanilla/1.15.x/gui/politics_panel_change_law.gui"
 ```
 
 Adjust the install path if Steam is installed elsewhere. Do this only right
@@ -49,13 +49,29 @@ these — it will now flag whether any of our full-file overrides have fallen
 out of sync with the new vanilla content, so the same command that already
 catches everything else also catches this.
 
+## Patch day: re-fork the overrides with a 3-way merge
+
+Before refreshing the snapshot, the old snapshot is the merge base, so run
+this first for each override (strip the BOM and use LF on all three inputs,
+then restore the file's BOM and line endings afterwards):
+
+```bash
+git merge-file -p ours.txt old_snapshot.txt new_vanilla.txt > merged.txt
+```
+
+1.15 merged all three overrides with no conflicts this way. Then refresh the
+snapshot, run `python tools/add_sn_laws.py` if the validator reports new laws,
+and rerun `tools/gen_smart_trade_values.py` and `tools/gen_smart_trade_gui.py`.
+Copy the game's `common events gui localization` to
+`C:/Users/damie/v3_snapshots/<version>/game` to diff the next patch against.
+
 ## How to compare our mod file against vanilla
 
 Never `Read`/`cat` the whole file to compare by eye. Use `diff`, which only
 surfaces the changed lines:
 
 ```bash
-diff -u "reference/vanilla/1.13.x/common/messages/00_messages.txt" \
+diff -u "reference/vanilla/1.15.x/common/messages/00_messages.txt" \
         "common/messages/00_messages.txt"
 ```
 

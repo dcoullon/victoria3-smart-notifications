@@ -444,16 +444,40 @@ def check_law_types_exist_in_vanilla(root: Path) -> list[str]:
     return errs
 
 
+def check_every_vanilla_law_is_dispatched(root: Path) -> list[str]:
+    """The reverse of check_law_types_exist_in_vanilla: a law a game patch
+    adds has no entry in the per-law dispatch files, and nothing errors. The
+    Politics panel still shows its "notify me" checkbox, and clicking it does
+    nothing. Found 2026-11-05: 1.15 added 10 laws."""
+    dispatch = root / LAW_TYPE_DISPATCH_FILES[0]
+    laws_dir = VANILLA_ROOT / "common" / "laws"
+    if not dispatch.is_file():
+        return []
+    if not laws_dir.is_dir():
+        _skip("check_every_vanilla_law_is_dispatched",
+              f"vanilla install not found at {VANILLA_ROOT}")
+        return []
+    real_laws = set()
+    for path in laws_dir.glob("*.txt"):
+        real_laws.update(re.findall(r"(?m)^(law_\w+)\s*=\s*\{",
+                                    path.read_text(encoding="utf-8-sig")))
+    missing = real_laws - set(re.findall(r"law_type:(law_[a-z_0-9]+)", _read(dispatch)))
+    if missing:
+        return [f"{len(missing)} vanilla law(s) missing from the per-law dispatch files: "
+                f"{sorted(missing)}. Run tools/add_sn_laws.py."]
+    return []
+
+
 # Every file this mod FULLY overrides (a same-named vanilla file exists
 # and we ship a complete replacement, not an additive new file) needs an
 # entry here, mapping it to its baseline snapshot under
-# reference/vanilla/1.13.x/. Confirmed real gap found 2026-09-09: this
+# reference/vanilla/1.15.x/. Confirmed real gap found 2026-09-09: this
 # mod overrides two .gui files that had never been snapshotted at all --
 # see reference/vanilla/README.md for the full writeup.
 FULL_OVERRIDE_FILES = [
-    ("common/messages/00_messages.txt", "reference/vanilla/1.13.x/common/messages/00_messages.txt"),
-    ("gui/message_settings.gui", "reference/vanilla/1.13.x/gui/message_settings.gui"),
-    ("gui/politics_panel_change_law.gui", "reference/vanilla/1.13.x/gui/politics_panel_change_law.gui"),
+    ("common/messages/00_messages.txt", "reference/vanilla/1.15.x/common/messages/00_messages.txt"),
+    ("gui/message_settings.gui", "reference/vanilla/1.15.x/gui/message_settings.gui"),
+    ("gui/politics_panel_change_law.gui", "reference/vanilla/1.15.x/gui/politics_panel_change_law.gui"),
 ]
 
 # Per-mod, because every mod in this repo that touches a vanilla panel has to
@@ -894,9 +918,9 @@ def check_loc_lines_are_well_formed(root: Path) -> list[str]:
 # TO UPDATE after reviewing a patch's changes: re-run the hash for the key
 # (sha256 of the raw string between the quotes, first 16 hex chars) and paste
 # it here, having merged the vanilla change into our override.
-REPLACED_LOC_BASELINE_GAME_VERSION = "1.13.11"
+REPLACED_LOC_BASELINE_GAME_VERSION = "1.15.0"
 REPLACED_LOC_BASELINE = {
-    "POP_EFFECT_FILTER": "605327a4a3c58031",
+    "POP_EFFECT_FILTER": "14e49a26535b9773",
     "POP_EFFECT_FILTER_INTEREST_GROUP": "174908cfa3301662",
     "POP_EFFECT_FILTER_CULTURE": "20c3a7dbef52a7a9",
     "POP_EFFECT_FILTER_RELIGION": "5201ef34656d95cc",
@@ -2060,6 +2084,7 @@ def run_all(root: Path) -> list[str]:
     errs += check_alert_group_registration(root, defined_loc)
     errs += check_post_notification_targets(root, defined_loc)
     errs += check_law_types_exist_in_vanilla(root)
+    errs += check_every_vanilla_law_is_dispatched(root)
     errs += check_json_files_have_no_bom(root)
     errs += check_mixed_group_notification_types(root)
     errs += check_notification_loc_completeness(root, defined_loc)

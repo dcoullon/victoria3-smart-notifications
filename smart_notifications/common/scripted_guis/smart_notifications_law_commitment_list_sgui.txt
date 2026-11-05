@@ -489,6 +489,46 @@ smart_notifications_law_commitment_list_sgui = {
 					custom_tooltip = "smart_notifications_law_entry_law_protectionism"
 				}
 				else_if = {
+					limit = { THIS.type = law_type:law_caesaropapism }
+					custom_tooltip = "smart_notifications_law_entry_law_caesaropapism"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_communal_administration }
+					custom_tooltip = "smart_notifications_law_entry_law_communal_administration"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_extraordinary_commission }
+					custom_tooltip = "smart_notifications_law_entry_law_extraordinary_commission"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_internal_colonization }
+					custom_tooltip = "smart_notifications_law_entry_law_internal_colonization"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_labour_suffrage }
+					custom_tooltip = "smart_notifications_law_entry_law_labour_suffrage"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_military_bureaucrats }
+					custom_tooltip = "smart_notifications_law_entry_law_military_bureaucrats"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_official_nationality }
+					custom_tooltip = "smart_notifications_law_entry_law_official_nationality"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_okhrana }
+					custom_tooltip = "smart_notifications_law_entry_law_okhrana"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_revolutionary_guard }
+					custom_tooltip = "smart_notifications_law_entry_law_revolutionary_guard"
+				}
+				else_if = {
+					limit = { THIS.type = law_type:law_third_section }
+					custom_tooltip = "smart_notifications_law_entry_law_third_section"
+				}
+				else_if = {
 					limit = { THIS.type = law_type:law_public_health_insurance }
 					custom_tooltip = "smart_notifications_law_entry_law_public_health_insurance"
 				}

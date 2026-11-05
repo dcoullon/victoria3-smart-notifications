@@ -112,6 +112,16 @@ smart_notifications_law_on_cooldown = {
 		AND = { THIS.type = law_type:law_proportional_taxation  THIS.owner = { has_variable = smart_notifications_cooldown_law_proportional_taxation } }
 		AND = { THIS.type = law_type:law_protected_speech  THIS.owner = { has_variable = smart_notifications_cooldown_law_protected_speech } }
 		AND = { THIS.type = law_type:law_protectionism  THIS.owner = { has_variable = smart_notifications_cooldown_law_protectionism } }
+		AND = { THIS.type = law_type:law_caesaropapism  THIS.owner = { has_variable = smart_notifications_cooldown_law_caesaropapism } }
+		AND = { THIS.type = law_type:law_communal_administration  THIS.owner = { has_variable = smart_notifications_cooldown_law_communal_administration } }
+		AND = { THIS.type = law_type:law_extraordinary_commission  THIS.owner = { has_variable = smart_notifications_cooldown_law_extraordinary_commission } }
+		AND = { THIS.type = law_type:law_internal_colonization  THIS.owner = { has_variable = smart_notifications_cooldown_law_internal_colonization } }
+		AND = { THIS.type = law_type:law_labour_suffrage  THIS.owner = { has_variable = smart_notifications_cooldown_law_labour_suffrage } }
+		AND = { THIS.type = law_type:law_military_bureaucrats  THIS.owner = { has_variable = smart_notifications_cooldown_law_military_bureaucrats } }
+		AND = { THIS.type = law_type:law_official_nationality  THIS.owner = { has_variable = smart_notifications_cooldown_law_official_nationality } }
+		AND = { THIS.type = law_type:law_okhrana  THIS.owner = { has_variable = smart_notifications_cooldown_law_okhrana } }
+		AND = { THIS.type = law_type:law_revolutionary_guard  THIS.owner = { has_variable = smart_notifications_cooldown_law_revolutionary_guard } }
+		AND = { THIS.type = law_type:law_third_section  THIS.owner = { has_variable = smart_notifications_cooldown_law_third_section } }
 		AND = { THIS.type = law_type:law_public_health_insurance  THIS.owner = { has_variable = smart_notifications_cooldown_law_public_health_insurance } }
 		AND = { THIS.type = law_type:law_public_schools  THIS.owner = { has_variable = smart_notifications_cooldown_law_public_schools } }
 		AND = { THIS.type = law_type:law_racial_segregation  THIS.owner = { has_variable = smart_notifications_cooldown_law_racial_segregation } }

@@ -1067,6 +1067,106 @@ smart_notifications_clear_wanted_law_flag = {
 				}
 			}
 			else_if = {
+				limit = { THIS.type = law_type:law_caesaropapism }
+				THIS.owner = {
+					if = {
+						limit = { has_variable = smart_notifications_wanted_law_caesaropapism }
+						remove_variable = smart_notifications_wanted_law_caesaropapism
+						debug_log = "SNW_LAW_FLAG|cleared|law_caesaropapism|[TimeKeeper.GetCurrentDate.GetString]"
+					}
+				}
+			}
+			else_if = {
+				limit = { THIS.type = law_type:law_communal_administration }
+				THIS.owner = {
+					if = {
+						limit = { has_variable = smart_notifications_wanted_law_communal_administration }
+						remove_variable = smart_notifications_wanted_law_communal_administration
+						debug_log = "SNW_LAW_FLAG|cleared|law_communal_administration|[TimeKeeper.GetCurrentDate.GetString]"
+					}
+				}
+			}
+			else_if = {
+				limit = { THIS.type = law_type:law_extraordinary_commission }
+				THIS.owner = {
+					if = {
+						limit = { has_variable = smart_notifications_wanted_law_extraordinary_commission }
+						remove_variable = smart_notifications_wanted_law_extraordinary_commission
+						debug_log = "SNW_LAW_FLAG|cleared|law_extraordinary_commission|[TimeKeeper.GetCurrentDate.GetString]"
+					}
+				}
+			}
+			else_if = {
+				limit = { THIS.type = law_type:law_internal_colonization }
+				THIS.owner = {
+					if = {
+						limit = { has_variable = smart_notifications_wanted_law_internal_colonization }
+						remove_variable = smart_notifications_wanted_law_internal_colonization
+						debug_log = "SNW_LAW_FLAG|cleared|law_internal_colonization|[TimeKeeper.GetCurrentDate.GetString]"
+					}
+				}
+			}
+			else_if = {
+				limit = { THIS.type = law_type:law_labour_suffrage }
+				THIS.owner = {
+					if = {
+						limit = { has_variable = smart_notifications_wanted_law_labour_suffrage }
+						remove_variable = smart_notifications_wanted_law_labour_suffrage
+						debug_log = "SNW_LAW_FLAG|cleared|law_labour_suffrage|[TimeKeeper.GetCurrentDate.GetString]"
+					}
+				}
+			}
+			else_if = {
+				limit = { THIS.type = law_type:law_military_bureaucrats }
+				THIS.owner = {
+					if = {
+						limit = { has_variable = smart_notifications_wanted_law_military_bureaucrats }
+						remove_variable = smart_notifications_wanted_law_military_bureaucrats
+						debug_log = "SNW_LAW_FLAG|cleared|law_military_bureaucrats|[TimeKeeper.GetCurrentDate.GetString]"
+					}
+				}
+			}
+			else_if = {
+				limit = { THIS.type = law_type:law_official_nationality }
+				THIS.owner = {
+					if = {
+						limit = { has_variable = smart_notifications_wanted_law_official_nationality }
+						remove_variable = smart_notifications_wanted_law_official_nationality
+						debug_log = "SNW_LAW_FLAG|cleared|law_official_nationality|[TimeKeeper.GetCurrentDate.GetString]"
+					}
+				}
+			}
+			else_if = {
+				limit = { THIS.type = law_type:law_okhrana }
+				THIS.owner = {
+					if = {
+						limit = { has_variable = smart_notifications_wanted_law_okhrana }
+						remove_variable = smart_notifications_wanted_law_okhrana
+						debug_log = "SNW_LAW_FLAG|cleared|law_okhrana|[TimeKeeper.GetCurrentDate.GetString]"
+					}
+				}
+			}
+			else_if = {
+				limit = { THIS.type = law_type:law_revolutionary_guard }
+				THIS.owner = {
+					if = {
+						limit = { has_variable = smart_notifications_wanted_law_revolutionary_guard }
+						remove_variable = smart_notifications_wanted_law_revolutionary_guard
+						debug_log = "SNW_LAW_FLAG|cleared|law_revolutionary_guard|[TimeKeeper.GetCurrentDate.GetString]"
+					}
+				}
+			}
+			else_if = {
+				limit = { THIS.type = law_type:law_third_section }
+				THIS.owner = {
+					if = {
+						limit = { has_variable = smart_notifications_wanted_law_third_section }
+						remove_variable = smart_notifications_wanted_law_third_section
+						debug_log = "SNW_LAW_FLAG|cleared|law_third_section|[TimeKeeper.GetCurrentDate.GetString]"
+					}
+				}
+			}
+			else_if = {
 				limit = { THIS.type = law_type:law_public_health_insurance }
 				THIS.owner = {
 					if = {

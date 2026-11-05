@@ -1,4 +1,4 @@
-﻿message_settings_window = {}
+message_settings_window = {}
 
 types message_settings {
 	type message_settings_window = default_popup {
