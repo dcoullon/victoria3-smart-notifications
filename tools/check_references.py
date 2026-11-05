@@ -471,13 +471,16 @@ def check_every_vanilla_law_is_dispatched(root: Path) -> list[str]:
 # Every file this mod FULLY overrides (a same-named vanilla file exists
 # and we ship a complete replacement, not an additive new file) needs an
 # entry here, mapping it to its baseline snapshot under
-# reference/vanilla/1.15.x/. Confirmed real gap found 2026-09-09: this
+# reference/vanilla/<version>.x/ (found, not named, so tools/patch_day.py can
+# rename the folder). Confirmed real gap found 2026-09-09: this
 # mod overrides two .gui files that had never been snapshotted at all --
 # see reference/vanilla/README.md for the full writeup.
+BASELINE_DIR = next(iter(sorted((REPO_ROOT / "reference" / "vanilla").glob("*.x"))), None)
+_BASELINE_REL = f"reference/vanilla/{BASELINE_DIR.name}" if BASELINE_DIR else "reference/vanilla/missing"
 FULL_OVERRIDE_FILES = [
-    ("common/messages/00_messages.txt", "reference/vanilla/1.15.x/common/messages/00_messages.txt"),
-    ("gui/message_settings.gui", "reference/vanilla/1.15.x/gui/message_settings.gui"),
-    ("gui/politics_panel_change_law.gui", "reference/vanilla/1.15.x/gui/politics_panel_change_law.gui"),
+    ("common/messages/00_messages.txt", f"{_BASELINE_REL}/common/messages/00_messages.txt"),
+    ("gui/message_settings.gui", f"{_BASELINE_REL}/gui/message_settings.gui"),
+    ("gui/politics_panel_change_law.gui", f"{_BASELINE_REL}/gui/politics_panel_change_law.gui"),
 ]
 
 # Per-mod, because every mod in this repo that touches a vanilla panel has to

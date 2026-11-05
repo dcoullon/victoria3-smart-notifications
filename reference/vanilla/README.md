@@ -49,21 +49,22 @@ these — it will now flag whether any of our full-file overrides have fallen
 out of sync with the new vanilla content, so the same command that already
 catches everything else also catches this.
 
-## Patch day: re-fork the overrides with a 3-way merge
+## Patch day: use tools/patch_day.py, not the manual copy above
 
-Before refreshing the snapshot, the old snapshot is the merge base, so run
-this first for each override (strip the BOM and use LF on all three inputs,
-then restore the file's BOM and line endings afterwards):
+The old snapshot is the base of the 3-way merge that re-forks our overrides,
+so copying new files over it first destroys the merge. Run this instead, which
+merges, snapshots, refreshes this folder, adds new laws, reruns the generators
+and sets the game version everywhere:
 
 ```bash
-git merge-file -p ours.txt old_snapshot.txt new_vanilla.txt > merged.txt
+python tools/patch_day.py          # report only
+python tools/patch_day.py --apply  # add --target 1.16 on an open beta
 ```
 
-1.15 merged all three overrides with no conflicts this way. Then refresh the
-snapshot, run `python tools/add_sn_laws.py` if the validator reports new laws,
-and rerun `tools/gen_smart_trade_values.py` and `tools/gen_smart_trade_gui.py`.
-Copy the game's `common events gui localization` to
-`C:/Users/damie/v3_snapshots/<version>/game` to diff the next patch against.
+Any conflict stops it with nothing written. It commits nothing and bumps no
+mod version. Replayed on the pre-1.15 repo (2026-11-05) it reproduced the hand
+result. It cannot port a shadowed GUI type or re-derive a replaced loc key: it
+lists the first and the validator names the second.
 
 ## How to compare our mod file against vanilla
 
