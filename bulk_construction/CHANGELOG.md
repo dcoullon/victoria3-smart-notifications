@@ -12,6 +12,12 @@ increment by `0.01` when something genuinely new ships **and is confirmed
 working**; bug fixes, fix-attempts on an unfinished feature, instrumentation
 and doc-only changes get a commit but no bump.
 
+## [0.05] - 2026-11-05
+
+### Changed
+
+- Updated for game version 1.15. Nothing else changes.
+
 ## [0.04] - 2026-09-18
 
 ### Notes for players
