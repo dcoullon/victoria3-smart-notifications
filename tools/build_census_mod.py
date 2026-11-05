@@ -714,7 +714,7 @@ def write_metadata(out_dir):
         "name": MOD_NAME,
         "id": MOD_ID,
         "version": "0.01",
-        "supported_game_version": "1.13.*",
+        "supported_game_version": "1.15.*",
         "short_description": "Throwaway measurement build. Never upload.",
         "tags": ["Utilities"],
         "relationships": [],

@@ -53,7 +53,7 @@ def build():
         "name": "Tick Probe (test only)",
         "id": MOD_ID,
         "version": "0.01",
-        "supported_game_version": "1.13.*",
+        "supported_game_version": "1.15.*",
         "short_description": "Logs one line per in-game month so tools/tick_report.py can time the simulation.",
         "tags": ["Utilities"],
         "relationships": [],
