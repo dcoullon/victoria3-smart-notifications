@@ -144,8 +144,9 @@ and the order values are readable. Same limits: rare, once per good.
   the Workshop's "Items in the past week" carousel. Check on the next launch.
 - **Ratings:** Damien is open to one line in the description asking for a
   rating. Whether ratings feed the ranking is unverified.
-- **Rank tracking:** the local scheduled task `vic3-workshop-rank` runs
-  `tools/workshop_rank.py` and writes columns K and L of each mod's tab. It is
-  local because cloud routines cannot reach Steam from a new environment, and
-  it runs only while the Claude app is open. The `/filedetails/stats/` page is
-  not public, so it is not used.
+- **Rank tracking:** dropped (Damien, 2026-11-05). The Most Popular list is on
+  steamcommunity.com, which cloud routines cannot reach, and he wants this
+  flow in the cloud. `api.steampowered.com` does work there, so a Steam Web API
+  key might get a ranking through `IPublishedFileService/QueryFiles`, but
+  nobody has checked that it matches the Workshop home page. The
+  `/filedetails/stats/` page is not public either.
