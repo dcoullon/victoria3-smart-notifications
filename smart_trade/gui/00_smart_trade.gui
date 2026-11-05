@@ -637,9 +637,11 @@ types pinnable_outliner_items {
 		}
 	}
 
-	# Vanilla body (gui/outliner_pinnable_types.gui:366-439); added: the
-	# treaty's net to the player at the right, left of the time remaining.
-	# Names get a narrower max width only on rows that show a net.
+	# Vanilla body (gui/outliner_pinnable_types.gui:366); added: the treaty's
+	# net to the player at the right, left of the time remaining. Names get a
+	# narrower max width only on rows that show a net. 1.15's "binding period
+	# on hold" badge is wider (45, ending at -65), so on those rows the net
+	# sits at -70 instead of -52.
 	type outliner_compact_treaty_item = flowcontainer {
 		direction = vertical
 
@@ -680,7 +682,7 @@ types pinnable_outliner_items {
 				}
 
 				textbox = {
-					visible = "[And(NotZero(Treaty.GetBindingDaysLeft), Not(Or(GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_margin')), '(CFixedPoint)0'), GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_money')), '(CFixedPoint)0'))))]"
+					visible = "[And(And(NotZero(Treaty.GetBindingDaysLeft), Not(Treaty.IsBindingPeriodPending)), Not(Or(GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_margin')), '(CFixedPoint)0'), GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_money')), '(CFixedPoint)0'))))]"
 					parentanchor = vcenter
 					autoresize = yes
 					align = nobaseline
@@ -690,12 +692,32 @@ types pinnable_outliner_items {
 					text = "[Treaty.GetNameNoFormatting]"
 				}
 				textbox = {
-					visible = "[And(NotZero(Treaty.GetBindingDaysLeft), Or(GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_margin')), '(CFixedPoint)0'), GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_money')), '(CFixedPoint)0')))]"
+					visible = "[And(And(NotZero(Treaty.GetBindingDaysLeft), Treaty.IsBindingPeriodPending), Not(Or(GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_margin')), '(CFixedPoint)0'), GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_money')), '(CFixedPoint)0'))))]"
+					parentanchor = vcenter
+					autoresize = yes
+					align = nobaseline
+					using = elide_fontsize_min
+					max_width = 210
+					margin_left = 2
+					text = "[Treaty.GetNameNoFormatting]"
+				}
+				textbox = {
+					visible = "[And(And(NotZero(Treaty.GetBindingDaysLeft), Not(Treaty.IsBindingPeriodPending)), Or(GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_margin')), '(CFixedPoint)0'), GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_money')), '(CFixedPoint)0')))]"
 					parentanchor = vcenter
 					autoresize = yes
 					align = nobaseline
 					using = elide_fontsize_min
 					max_width = 165
+					margin_left = 2
+					text = "[Treaty.GetNameNoFormatting]"
+				}
+				textbox = {
+					visible = "[And(And(NotZero(Treaty.GetBindingDaysLeft), Treaty.IsBindingPeriodPending), Or(GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_margin')), '(CFixedPoint)0'), GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_money')), '(CFixedPoint)0')))]"
+					parentanchor = vcenter
+					autoresize = yes
+					align = nobaseline
+					using = elide_fontsize_min
+					max_width = 150
 					margin_left = 2
 					text = "[Treaty.GetNameNoFormatting]"
 				}
@@ -725,7 +747,7 @@ types pinnable_outliner_items {
 			### the time remaining. Never further right: the pin star appears
 			### there on hover (run 4, Damien's screenshot).
 			textbox = {
-				visible = "[And(NotZero(Treaty.GetBindingDaysLeft), And(Or(GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_margin')), '(CFixedPoint)0'), GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_money')), '(CFixedPoint)0')), GreaterThan_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_has_lane'), '(CFixedPoint)0')))]"
+				visible = "[And(And(NotZero(Treaty.GetBindingDaysLeft), Not(Treaty.IsBindingPeriodPending)), And(Or(GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_margin')), '(CFixedPoint)0'), GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_money')), '(CFixedPoint)0')), GreaterThan_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_has_lane'), '(CFixedPoint)0')))]"
 				position = { -52 0 }
 				parentanchor = right|vcenter
 				autoresize = yes
@@ -735,8 +757,28 @@ types pinnable_outliner_items {
 				tooltipwidget = { smart_trade_treaty_tooltip = {} }
 			}
 			textbox = {
-				visible = "[And(NotZero(Treaty.GetBindingDaysLeft), And(Or(GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_margin')), '(CFixedPoint)0'), GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_money')), '(CFixedPoint)0')), Not(GreaterThan_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_has_lane'), '(CFixedPoint)0'))))]"
+				visible = "[And(And(NotZero(Treaty.GetBindingDaysLeft), Not(Treaty.IsBindingPeriodPending)), And(Or(GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_margin')), '(CFixedPoint)0'), GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_money')), '(CFixedPoint)0')), Not(GreaterThan_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_has_lane'), '(CFixedPoint)0'))))]"
 				position = { -52 0 }
+				parentanchor = right|vcenter
+				autoresize = yes
+				align = nobaseline
+				using = fontsize_small
+				raw_text = "@money![Add_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_margin'), Treaty.MakeScope.ScriptValue('st_treaty_money'))|D+=]"
+				tooltipwidget = { smart_trade_treaty_tooltip = {} }
+			}
+			textbox = {
+				visible = "[And(And(NotZero(Treaty.GetBindingDaysLeft), Treaty.IsBindingPeriodPending), And(Or(GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_margin')), '(CFixedPoint)0'), GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_money')), '(CFixedPoint)0')), GreaterThan_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_has_lane'), '(CFixedPoint)0')))]"
+				position = { -70 0 }
+				parentanchor = right|vcenter
+				autoresize = yes
+				align = nobaseline
+				using = fontsize_small
+				raw_text = "@money![Add_CFixedPoint(Subtract_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_margin'), Multiply_CFixedPoint(Treaty.GetShippingLaneOf(GetPlayer.Self).GetMerchantMarineDemandRaw, GetGoods('merchant_marine').WithMarketContext(GetPlayer.GetMarket.Self).GetMarketPrice)), Treaty.MakeScope.ScriptValue('st_treaty_money'))|D+=]"
+				tooltipwidget = { smart_trade_treaty_tooltip = {} }
+			}
+			textbox = {
+				visible = "[And(And(NotZero(Treaty.GetBindingDaysLeft), Treaty.IsBindingPeriodPending), And(Or(GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_margin')), '(CFixedPoint)0'), GreaterThan_CFixedPoint(Abs_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_money')), '(CFixedPoint)0')), Not(GreaterThan_CFixedPoint(Treaty.MakeScope.ScriptValue('st_treaty_has_lane'), '(CFixedPoint)0'))))]"
+				position = { -70 0 }
 				parentanchor = right|vcenter
 				autoresize = yes
 				align = nobaseline
@@ -766,7 +808,7 @@ types pinnable_outliner_items {
 			}
 
 			textbox = {
-				visible = "[NotZero(Treaty.GetBindingDaysLeft)]"
+				visible = "[And(NotZero(Treaty.GetBindingDaysLeft), Not(Treaty.IsBindingPeriodPending))]"
 				position = { -20 0 }
 				align = nobaseline
 				parentanchor = right|vcenter
@@ -775,13 +817,26 @@ types pinnable_outliner_items {
 				max_width = 25
 				text = "[LabelingHelper.GetRemainingDuration(Treaty.GetBindingPeriodEndGameDate.Self, '_SHORT')]"
 			}
+
+			### BINDING PERIOD PENDING
+			textbox = {
+				visible = "[And(NotZero(Treaty.GetBindingDaysLeft), Treaty.IsBindingPeriodPending)]"
+				position = { -20 0 }
+				align = nobaseline
+				parentanchor = right|vcenter
+				autoresize = yes
+				using = elide_fontsize_min
+				max_width = 45
+				tooltip = "TREATY_BINDING_PERIOD_PENDING_TOOLTIP"
+				text = "TREATY_BINDING_PERIOD_PENDING_OUTLINER"
+			}
 		}
 	}
 }
 
 types article_input_types {
 	# Vanilla article_input_goods_list, copied verbatim at generation time from
-	# gui/right_click_menu.gui:10047-10369, with Smart Trade insertions.
+	# gui/right_click_menu.gui:10298-10620, with Smart Trade insertions.
 	type article_input_goods_list = dynamicgridbox {
 		datamodel_wrap = 4
 		flipdirection = yes
@@ -1302,7 +1357,7 @@ onclick = "[ArticleDraft.SetQuantity(Select_CFixedPoint(And(And(ArticleDraft.Has
 	}
 
 	# Vanilla selected_goods_and_amount, copied verbatim at generation time from
-	# gui/right_click_menu.gui:11958-12232, with Smart Trade insertions.
+	# gui/right_click_menu.gui:12238-12512, with Smart Trade insertions.
 	type selected_goods_and_amount = widget {
 		parentanchor = hcenter
 		size = { 400 74 }  # SMART TRADE: was 70; our button row, tightened (see generator)

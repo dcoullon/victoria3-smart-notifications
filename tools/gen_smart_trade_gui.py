@@ -62,6 +62,7 @@ T_ANY = f"Or({nz(T_MARGIN)}, {nz(T_MONEY)})"
 T_SHOW_LANE = f"And({T_ANY}, {T_HAS_LANE})"
 T_SHOW_LAND = f"And({T_ANY}, Not({T_HAS_LANE}))"
 T_DAYS = "NotZero(Treaty.GetBindingDaysLeft)"
+T_PENDING = "Treaty.IsBindingPeriodPending"
 
 # --- Player totals (treasury line; context: any, uses GetPlayer) -----------
 P_DIFF = sub("GetPlayer.PredictTreatyIncome", "GetPlayer.PredictTreatyExpenses")
@@ -869,9 +870,11 @@ types pinnable_outliner_items {
 		}
 	}
 
-	# Vanilla body (gui/outliner_pinnable_types.gui:366-439); added: the
-	# treaty's net to the player at the right, left of the time remaining.
-	# Names get a narrower max width only on rows that show a net.
+	# Vanilla body (gui/outliner_pinnable_types.gui:366); added: the treaty's
+	# net to the player at the right, left of the time remaining. Names get a
+	# narrower max width only on rows that show a net. 1.15's "binding period
+	# on hold" badge is wider (45, ending at -65), so on those rows the net
+	# sits at -70 instead of -52.
 	type outliner_compact_treaty_item = flowcontainer {
 		direction = vertical
 
@@ -912,7 +915,7 @@ types pinnable_outliner_items {
 				}
 
 				textbox = {
-					visible = "[And(@@T_DAYS@@, Not(@@T_ANY@@))]"
+					visible = "[And(And(@@T_DAYS@@, Not(@@T_PENDING@@)), Not(@@T_ANY@@))]"
 					parentanchor = vcenter
 					autoresize = yes
 					align = nobaseline
@@ -922,12 +925,32 @@ types pinnable_outliner_items {
 					text = "[Treaty.GetNameNoFormatting]"
 				}
 				textbox = {
-					visible = "[And(@@T_DAYS@@, @@T_ANY@@)]"
+					visible = "[And(And(@@T_DAYS@@, @@T_PENDING@@), Not(@@T_ANY@@))]"
+					parentanchor = vcenter
+					autoresize = yes
+					align = nobaseline
+					using = elide_fontsize_min
+					max_width = 210
+					margin_left = 2
+					text = "[Treaty.GetNameNoFormatting]"
+				}
+				textbox = {
+					visible = "[And(And(@@T_DAYS@@, Not(@@T_PENDING@@)), @@T_ANY@@)]"
 					parentanchor = vcenter
 					autoresize = yes
 					align = nobaseline
 					using = elide_fontsize_min
 					max_width = 165
+					margin_left = 2
+					text = "[Treaty.GetNameNoFormatting]"
+				}
+				textbox = {
+					visible = "[And(And(@@T_DAYS@@, @@T_PENDING@@), @@T_ANY@@)]"
+					parentanchor = vcenter
+					autoresize = yes
+					align = nobaseline
+					using = elide_fontsize_min
+					max_width = 150
 					margin_left = 2
 					text = "[Treaty.GetNameNoFormatting]"
 				}
@@ -957,7 +980,7 @@ types pinnable_outliner_items {
 			### the time remaining. Never further right: the pin star appears
 			### there on hover (run 4, Damien's screenshot).
 			textbox = {
-				visible = "[And(@@T_DAYS@@, @@T_SHOW_LANE@@)]"
+				visible = "[And(And(@@T_DAYS@@, Not(@@T_PENDING@@)), @@T_SHOW_LANE@@)]"
 				position = { -52 0 }
 				parentanchor = right|vcenter
 				autoresize = yes
@@ -967,8 +990,28 @@ types pinnable_outliner_items {
 				tooltipwidget = { smart_trade_treaty_tooltip = {} }
 			}
 			textbox = {
-				visible = "[And(@@T_DAYS@@, @@T_SHOW_LAND@@)]"
+				visible = "[And(And(@@T_DAYS@@, Not(@@T_PENDING@@)), @@T_SHOW_LAND@@)]"
 				position = { -52 0 }
+				parentanchor = right|vcenter
+				autoresize = yes
+				align = nobaseline
+				using = fontsize_small
+				raw_text = "@money![@@T_NET_LAND@@|D+=]"
+				tooltipwidget = { smart_trade_treaty_tooltip = {} }
+			}
+			textbox = {
+				visible = "[And(And(@@T_DAYS@@, @@T_PENDING@@), @@T_SHOW_LANE@@)]"
+				position = { -70 0 }
+				parentanchor = right|vcenter
+				autoresize = yes
+				align = nobaseline
+				using = fontsize_small
+				raw_text = "@money![@@T_NET_LANE@@|D+=]"
+				tooltipwidget = { smart_trade_treaty_tooltip = {} }
+			}
+			textbox = {
+				visible = "[And(And(@@T_DAYS@@, @@T_PENDING@@), @@T_SHOW_LAND@@)]"
+				position = { -70 0 }
 				parentanchor = right|vcenter
 				autoresize = yes
 				align = nobaseline
@@ -998,7 +1041,7 @@ types pinnable_outliner_items {
 			}
 
 			textbox = {
-				visible = "[@@T_DAYS@@]"
+				visible = "[And(@@T_DAYS@@, Not(@@T_PENDING@@))]"
 				position = { -20 0 }
 				align = nobaseline
 				parentanchor = right|vcenter
@@ -1006,6 +1049,19 @@ types pinnable_outliner_items {
 				using = elide_fontsize_min
 				max_width = 25
 				text = "[LabelingHelper.GetRemainingDuration(Treaty.GetBindingPeriodEndGameDate.Self, '_SHORT')]"
+			}
+
+			### BINDING PERIOD PENDING
+			textbox = {
+				visible = "[And(@@T_DAYS@@, @@T_PENDING@@)]"
+				position = { -20 0 }
+				align = nobaseline
+				parentanchor = right|vcenter
+				autoresize = yes
+				using = elide_fontsize_min
+				max_width = 45
+				tooltip = "TREATY_BINDING_PERIOD_PENDING_TOOLTIP"
+				text = "TREATY_BINDING_PERIOD_PENDING_OUTLINER"
 			}
 		}
 	}

@@ -14,6 +14,7 @@ st_article_traded_quantity = {
 	if = { limit = { input_goods = g:clothes } value = 8 }
 	if = { limit = { input_goods = g:coal } value = 7 }
 	if = { limit = { input_goods = g:coffee } value = 5 }
+	if = { limit = { input_goods = g:copper } value = 5 }
 	if = { limit = { input_goods = g:dye } value = 5 }
 	if = { limit = { input_goods = g:engines } value = 4 }
 	if = { limit = { input_goods = g:explosives } value = 4 }
