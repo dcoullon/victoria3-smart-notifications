@@ -5,6 +5,16 @@ written so they can be pasted into Steam Workshop update notes. Versions follow
 `.metadata/metadata.json`'s `version`, same convention as Bulk Construction:
 `+0.01` only when something genuinely new ships and is confirmed working.
 
+## [0.12] - game version 1.15
+
+### Added
+- Copper, the new good in 1.15. Shipping on copper now uses the game's rate of
+  1 merchant marine per 5 units.
+
+### Fixed
+- Treaty rows in the outliner show 1.15's "binding period on hold" marker, and
+  the net moves left so the two do not overlap.
+
 ## [0.11] - goods list frame rate
 
 ### Fixed
