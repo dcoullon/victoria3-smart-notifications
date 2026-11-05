@@ -144,7 +144,8 @@ and the order values are readable. Same limits: rare, once per good.
   the Workshop's "Items in the past week" carousel. Check on the next launch.
 - **Ratings:** Damien is open to one line in the description asking for a
   rating. Whether ratings feed the ranking is unverified.
-- **Rank tracking:** live since 2026-11-05. The routine "Daily Steam Workshop
-  rank and lifetime subs" writes columns K and L of each mod's tab, separate
-  from the stats routine because that one cannot be edited safely through the
-  API. The `/filedetails/stats/` page is not public, so it is not used.
+- **Rank tracking:** the local scheduled task `vic3-workshop-rank` runs
+  `tools/workshop_rank.py` and writes columns K and L of each mod's tab. It is
+  local because cloud routines cannot reach Steam from a new environment, and
+  it runs only while the Claude app is open. The `/filedetails/stats/` page is
+  not public, so it is not used.
