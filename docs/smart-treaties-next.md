@@ -22,8 +22,9 @@ orders flat and buy orders falling, against a model that assumed the opposite.
 
 A dev-only mod logs every goods transfer in the world, AI deals included:
 - when a treaty enters into force (`on_treaty_entered_into_force`, root is the
-  treaty): both markets' price, buy orders and sell orders, plus good,
-  quantity and whether it has a lane
+  treaty): both markets' price, buy orders, sell orders, imports and exports
+  (`market_goods_imports`, `market_goods_exports`), plus good, quantity and
+  whether it has a lane
 - on `on_monthly_pulse`, the same fields for each live goods transfer
 
 Run as an observer for about 20 game years, using `tools/log_archiver.py`,
@@ -33,8 +34,10 @@ draft's price rule on each deal's signing data and compares it to the price at
 1, 3, 6, 12 and 24 months.
 
 Questions it answers: how long until the market reacts, whether the rule's size
-is right, and how far ×1.25 is off with 1.15's hubs (it ran 1.31× high on the
-one French lane). Unknown until run: how many goods transfers the AI signs.
+is right, how far ×1.25 is off with 1.15's hubs (it ran 1.31× high on the one
+French lane), and whether a transfer adds to trade or just replaces what trade
+centers were already moving (cf section 3). Unknown until run: how many goods
+transfers the AI signs.
 
 Accepted when: the report covers at least 30 deals, each with a signing row and
 at least 6 monthly rows. Fewer than 30 means the AI rarely signs them, and the
@@ -46,17 +49,18 @@ the docs do not say for treaties. If not, the alert uses
 
 ## 2. "Treaty turned negative" alert
 
-A monthly check on `on_monthly_pulse_country`, player only. No weekly pulse
-exists, so "N weeks" means consecutive monthly checks.
+A monthly check on `on_monthly_pulse_country`, player only. Mods get decade,
+five-year, half-yearly, yearly and monthly pulses, no weekly one, so "N weeks"
+means consecutive monthly checks. Monthly suits this anyway.
 
 - Judged on goods only, using the treasury line's shipping estimate. Money
   articles are ignored, or Zhytomyr (-£5.9K, a £6K gift) would always fire.
 - Only goods the player sends, because only those touch the treasury.
-- Significantly negative: losing at least £20 a week AND at least 5% of the
-  purchase value. Both are assumptions. Linz at £23.9 and 8.2% fires; a 10%
-  bar would have missed it.
+- Significantly negative: losing at least £100 a week (Damien, 2026-11-05).
+  Linz at £23.9 stays silent, by design.
 - Fires on the 3rd consecutive negative check, 9 to 13 weeks. Any good check
-  resets the count, so Linz's one-week dip cannot fire it.
+  resets the count, so a one-week dip cannot fire it.
+- Fires even while the treaty is bound: renegotiating can reduce the quantity.
 - Once per treaty, never again.
 - A toast, muteable through its own "(ST) ..." group in Message Settings.
   Body: the treaty, net per week, binding time left (`remaining_binding_period`).
@@ -67,9 +71,6 @@ checks posts one toast. Nothing appears for: a treaty that recovers before the
 3rd check, a second time on the same treaty, AI-only treaties, a treaty where
 only the money article loses, goods the player receives. Verified by tagged
 `debug_log` lines through scan_logs, then one look at the toast.
-
-Open: when a treaty is still bound, fire now or when it can be left? Now is
-simpler. Later is more actionable.
 
 `check_no_cheat_verbs` must still pass: this adds notifications and bookkeeping
 variables, and nothing that changes the game.
@@ -97,6 +98,18 @@ Risks to check first: a market holds several countries, so the row must name
 one treaty partner, and AI acceptance needs a draft, so the panel can show
 profit only. 1.15's new treaty lens may overlap: look at it before building.
 
+**Trade centers against treaties (Damien's question, open).** He prefers £100
+to the government over £100 to trade centers. What the game says: trade revenue
+goes to the trade center, set by the price difference and volume, and tariffs
+reduce it. So a trade center pays the treasury through tariffs and tax on what
+it earns; a goods transfer pays the treasury the whole margin. A transfer also
+costs treasury cash up front, needs no trade capacity, and binds for years,
+while a trade center adapts by itself. Austria's sell orders staying at 10
+after Linz hints that a transfer may displace trade-center imports: then part
+of a treaty's profit is moved from your own trade centers to the treasury, and
+is not new money. Measurement answers that. The panel keeps vanilla's import
+and export columns beside our figure, so existing trade stays visible.
+
 Accepted when: opening copper's world market panel lists each market with a
 figure and overland markets marked, the top row matches a real draft with that
 partner within 5%, and the frame rate stays within 5% of the panel without it.
@@ -109,11 +122,13 @@ Fires only if the first-week model proves reliable, starting with overland
 partners, where shipping is not a guess. Script can do it: `every_market_goods`
 and the order values are readable. Same limits: rare, once per good.
 
-## Other ideas, not locked
+## Rejected (Damien, 2026-11-05)
 
-- Prediction on signed treaties: "predicted at signing -£35, now +£275". Script
-  would need its own estimate, because the GUI cannot pass a value to script.
-- A treaty ledger: every treaty's net in one sortable place.
+- Prediction on signed treaties: keeps the issue top of mind for little value.
+- A treaty ledger: the outliner already shows each net.
+- `[1.15]` in the title.
+- Changing the draft hover's wording.
+- A wider `1.*` version string.
 
 ## Not builds
 
@@ -127,4 +142,9 @@ and the order values are readable. Same limits: rare, once per good.
 - **Reddit:** shelved. Revisit when measurement has a finding worth posting.
 - **Launch hypothesis (Damien):** first-week downloads depend on placement in
   the Workshop's "Items in the past week" carousel. Check on the next launch.
-- **Undecided:** `[1.15]` in the title, asking for ratings, rank in the sheet.
+- **Ratings:** Damien is open to one line in the description asking for a
+  rating. Whether ratings feed the ranking is unverified.
+- **Rank tracking:** live since 2026-11-05. The routine "Daily Steam Workshop
+  rank and lifetime subs" writes columns K and L of each mod's tab, separate
+  from the stats routine because that one cannot be edited safely through the
+  API. The `/filedetails/stats/` page is not public, so it is not used.
