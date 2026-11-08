@@ -21,6 +21,8 @@ import re
 import sys
 from pathlib import Path
 
+from vic3_paths import VIC3_USER_DIR
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 # Smart Notifications moved out of the repo root into its own folder
 # 2026-09-16, so each mod in this repo sits in one. Mod CONTENT resolves from
@@ -28,7 +30,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 SN_ROOT = REPO_ROOT / "smart_notifications"
 VANILLA_MESSAGES = next(iter(sorted((REPO_ROOT / "reference" / "vanilla").glob("*.x")))) / "common" / "messages"
 MOD_MESSAGES = SN_ROOT / "common" / "messages"
-USER_SETTINGS = Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3" / "messagetypes_custom.txt"
+USER_SETTINGS = VIC3_USER_DIR / "messagetypes_custom.txt"
 
 ENTRY_RE = re.compile(r"^(\w+)\s*=\s*\{\n(.*?)\n\}", re.MULTILINE | re.DOTALL)
 GROUP_RE = re.compile(r'group\s*=\s*"([^"]+)"')

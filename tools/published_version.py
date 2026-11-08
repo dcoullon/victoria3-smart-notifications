@@ -19,12 +19,14 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+from vic3_paths import VIC3_USER_DIR
+
 REPO = Path(__file__).resolve().parent.parent
 # Smart Notifications moved out of the repo root into its own folder
 # 2026-09-16, so each mod in this repo sits in one. Mod CONTENT resolves from
 # here; docs/, reference/ and tools/ stay at the repo root.
 SN_ROOT = REPO / "smart_notifications"
-PACKAGED = (Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3"
+PACKAGED = (VIC3_USER_DIR
             / "mod" / "smart_notifications_release")
 # Workshop file ID 3799284646, Victoria 3 App ID 529340.
 PUBLISHED = Path(r"C:\Program Files (x86)\Steam\steamapps\workshop\content\529340\3799284646")

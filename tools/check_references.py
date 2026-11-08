@@ -22,6 +22,8 @@ import re
 import sys
 from pathlib import Path
 
+from vic3_paths import VIC3_USER_DIR
+
 TEXT_SUFFIXES = {".txt", ".gui"}
 VANILLA_ROOT = Path(r"C:\Program Files (x86)\Steam\steamapps\common\Victoria 3\game")
 
@@ -1161,7 +1163,7 @@ def check_vanilla_reference_snapshot_is_complete(root: Path) -> list[str]:
     return errs
 
 
-CENSUS_BUILD = (Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3"
+CENSUS_BUILD = (VIC3_USER_DIR
                 / "mod" / "smart_notifications_census")
 
 

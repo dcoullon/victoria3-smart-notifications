@@ -53,10 +53,12 @@ import sys
 from datetime import date
 from pathlib import Path
 
+from vic3_paths import VIC3_USER_DIR
+
 import check_references
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-MOD_DIR = Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3" / "mod"
+MOD_DIR = VIC3_USER_DIR / "mod"
 
 
 def resolve_mod_root(arg: str | None) -> Path:

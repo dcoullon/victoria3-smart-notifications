@@ -23,7 +23,9 @@ import shutil
 import sys
 from pathlib import Path
 
-OUT = Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3" / "mod" / "tick_probe"
+from vic3_paths import VIC3_USER_DIR
+
+OUT = VIC3_USER_DIR / "mod" / "tick_probe"
 MOD_ID = "tick_probe"
 TAG = "TICK_PROBE"
 

@@ -45,13 +45,15 @@ import json
 import re
 from pathlib import Path
 
+from vic3_paths import VIC3_USER_DIR
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 # Smart Notifications moved out of the repo root into its own folder
 # 2026-09-16, so each mod in this repo sits in one. Mod CONTENT resolves from
 # here; docs/, reference/ and tools/ stay at the repo root.
 SN_ROOT = REPO_ROOT / "smart_notifications"
 GAME_ROOT = Path(r"C:\Program Files (x86)\Steam\steamapps\common\Victoria 3\game")
-DEFAULT_MANIFEST = (Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3"
+DEFAULT_MANIFEST = (VIC3_USER_DIR
                     / "mod" / "smart_notifications_census" / "census_manifest.json")
 
 CENSUS_RE = re.compile(r"SNW_CENSUS\|([PWQ])\|(\d+)\|(\w+)\|(.*?)\s*$")

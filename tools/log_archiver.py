@@ -35,9 +35,11 @@ import sys
 import time
 from pathlib import Path
 
-DEFAULT_SRC = (Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3"
+from vic3_paths import VIC3_USER_DIR
+
+DEFAULT_SRC = (VIC3_USER_DIR
                / "logs" / "debug.log")
-DEFAULT_OUT = (Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3"
+DEFAULT_OUT = (VIC3_USER_DIR
                / "logs" / "census_archive")
 
 

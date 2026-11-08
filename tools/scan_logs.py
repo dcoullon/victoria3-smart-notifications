@@ -44,7 +44,9 @@ import re
 import sys
 from pathlib import Path
 
-DEFAULT_LOGS_DIR = Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3" / "logs"
+from vic3_paths import VIC3_USER_DIR
+
+DEFAULT_LOGS_DIR = VIC3_USER_DIR / "logs"
 
 ENGINE_ERROR_PATTERNS = [
     r"Could not find data system function",

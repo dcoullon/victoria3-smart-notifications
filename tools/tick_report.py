@@ -19,7 +19,9 @@ import re
 import statistics
 from pathlib import Path
 
-LOGS = Path.home() / "Documents" / "Paradox Interactive" / "Victoria 3" / "logs"
+from vic3_paths import VIC3_USER_DIR
+
+LOGS = VIC3_USER_DIR / "logs"
 TAG = "TICK_PROBE|month"
 STAMP = re.compile(r"^\[(\d\d):(\d\d):(\d\d)\]")
 MOD_LINE = re.compile(r"Mod (.+?) \(([a-z0-9_]+)\) version")
