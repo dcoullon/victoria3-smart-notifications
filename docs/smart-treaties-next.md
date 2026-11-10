@@ -62,10 +62,16 @@ year: `market_goods_imports`/`_exports` as values (vanilla never uses them
 that way; a load error names the file), and the date and number formats
 (the report parses the common ones).
 
+Damien, 2026-11-10: in game a treaty stays listed after its binding period
+and disappears only when a signatory cancels it. `inscope=` checks that the
+script iterator agrees with the UI.
+
 Run recipe:
-1. `python tools/log_archiver.py` in a terminal, left running.
-2. Launcher: a playset with only "ZZ Smart Treaties observer", `-debug_mode`.
-3. New game 1836, any country, console `observe`, speed 5.
+1. Claude starts `python tools/log_archiver.py --out <logs>/treaty_obs_archive`
+   from the repo root in a Terminal panel tab; the app must stay open.
+2. Launcher: a playset with only "ZZ Smart Treaties observer". No
+   `-debug_mode`: `debug_log` writes without it.
+3. New game 1836, started directly in observe mode, speed 5.
 4. After one game year: Claude reads the log (`treaty_obs_report.py` on the
    archive) and confirms every field resolves. A broken field costs a restart
    now instead of a 20-year run.
