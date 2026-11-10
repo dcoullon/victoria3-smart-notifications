@@ -39,6 +39,20 @@ st_obs_bind_left = {
 	treaty ?= { add = remaining_binding_period }
 }
 
+# 1 if the two markets touch. Same test as smart_trade's
+# st_markets_adjacent_sgui; the predictor charges zero shipping then. Checks
+# that a lane (lane=1) only ever exists when this is 0.
+st_obs_adj = {
+	value = 0
+	if = {
+		limit = {
+			target_country = { save_temporary_scope_as = st_obs_r }
+			source_country = { market = { is_adjacent_to_market = scope:st_obs_r.market } }
+		}
+		value = 1
+	}
+}
+
 st_obs_hist = {
 	value = 0
 	if = { limit = { treaty = { is_historical_treaty = yes } } value = 1 }

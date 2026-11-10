@@ -9,7 +9,7 @@ on_game_started = {
 }
 st_obs_game_started = {
 	effect = {
-		debug_log = "ST_OBS|START|[TimeKeeper.GetCurrentDate.GetString]|observer v0.02"
+		debug_log = "ST_OBS|START|[TimeKeeper.GetCurrentDate.GetString]|observer v0.03"
 	}
 }
 
@@ -49,8 +49,11 @@ st_obs_treaty_dissolved = {
 	}
 }
 
-# every_treaty covers drafts too; an observer game has no player drafting, and
-# the report keys deals on their SIGN line or on the game-start treaties.
+# every_treaty covers drafts too; the report keys deals on their SIGN line or
+# on the game-start treaties. v0.03 (player campaign, 2026-11-10): monthly
+# lines only for articles the player sends or receives, so a long campaign
+# stays small; SIGN and END lines above still cover every country. In an
+# observer game (no player) this logs no monthly lines at all: use v0.02.
 on_monthly_pulse = {
 	on_actions = { st_obs_monthly }
 }
@@ -58,7 +61,13 @@ st_obs_monthly = {
 	effect = {
 		every_treaty = {
 			every_scope_article = {
-				limit = { has_type = goods_transfer }
+				limit = {
+					has_type = goods_transfer
+					OR = {
+						source_country = { is_player = yes }
+						target_country = { is_player = yes }
+					}
+				}
 				st_obs_log_article = { KIND = MON }
 			}
 		}

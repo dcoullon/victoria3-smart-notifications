@@ -255,6 +255,8 @@ def route_factors(rows, traded):
     for r in rows:
         if r["kind"] != "MON" or not r.get("lane") or r.get("lanemm") is None:
             continue
+        if r.get("adj") == 1:  # touching markets: the predictor charges 0, not x1.25
+            continue
         tq = traded.get(r["good"])
         if not tq or not r.get("q"):
             continue
@@ -289,6 +291,10 @@ def report(lines, bases, csv_path=None, traded=None):
     missing = sorted({r["good"] for r in rows} - set(bases))
     if missing:
         print(f"  goods keys with no base price in 00_goods.txt: {missing}")
+    if any("adj" in r for r in rows):
+        both = sum(1 for r in rows if r.get("lane") and r.get("adj") == 1)
+        print(f"  rows with a shipping lane between touching markets: {both}"
+              + ("" if not both else "  <- contradicts the predictor's zero-shipping rule for neighbours"))
     if traded:
         rf = route_factors(rows, traded)
         if rf:

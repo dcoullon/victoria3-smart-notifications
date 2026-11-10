@@ -5,14 +5,17 @@ people enjoying the mod. Findings behind this: smart-trade-investigation.md.
 
 ## Order
 
-The alert and the finder are the features. Measurement comes first because the
-opportunity alert and the predictor's tuning both depend on it, and it needs
-one unattended run. The alert does not depend on it and can ship first.
+Revised 2026-11-10 after the measurement run (Damien):
 
-1. Measurement build (dev only)
-2. "Treaty turned negative" alert
-3. Best partner panel
-4. Opportunity alert, only if measurement supports it
+1. Measurement build (dev only): done for AI deals; v0.03 logs Damien's Spain
+   1836 campaign for player-sized deals.
+2. ~~"Treaty turned negative" alert~~: dropped, the outliner already shows
+   each treaty's net.
+3. Trade recommender: the top 5 goods transfers to make, in the Trade tab.
+4. Opportunity alert: a rare toast from the recommender's own result.
+
+The predictor stays as it is for now. Any change to it later must keep the
+goods cards' frame rate.
 
 ## 1. Measurement build
 
@@ -127,7 +130,18 @@ Run recipe:
 5. Leave it running, quit when the report reaches 30 deals or the game
    ends, Ctrl+C the archiver, run the report.
 
-## 2. "Treaty turned negative" alert
+**Spain 1836 campaign (v0.03, from 2026-11-10).** Damien plays normally with
+Smart Treaties and the observer both loaded. Monthly lines cover only his own
+transfers; signings and endings cover everyone; `adj=` flags touching markets,
+and the report counts any lane between touching markets as a contradiction of
+the predictor's zero-shipping rule. The archiver runs as a hidden background
+process into `logs/treaty_obs_spain`, so it survives the Claude app and
+session restarts, but not a reboot. Useful once he has signed about 5 deals of
+50 units or more, at least 2 by sea and 2 overland, each with 6 months of data.
+
+## 2. "Treaty turned negative" alert (dropped, Damien 2026-11-10)
+
+The outliner already shows each treaty's net. Kept for reference:
 
 A monthly check on `on_monthly_pulse_country`, player only. Mods get decade,
 five-year, half-yearly, yearly and monthly pulses, no weekly one, so "N weeks"
@@ -155,28 +169,50 @@ only the money article loses, goods the player receives. Verified by tagged
 `check_no_cheat_verbs` must still pass: this adds notifications and bookkeeping
 variables, and nothing that changes the game.
 
-## 3. Best partner panel
+## 3. Trade recommender (decided 2026-11-10, replaces the best partner panel)
 
-Home: vanilla's per-good world market panel
-(`gui/goods_world_market_panel.gui`), which already lists markets for a good
-through `GoodsWorldMarketPanel.GetMarkets`, with import and export columns. Add
-a column for what a transfer to that market earns and sort on it.
+Up to 5 rows at the top of the market panel's Trade tab (1.15): "Send 40 Wine
+to Austria: about £180 a week". Deal view, not country view: the goods picker
+already answers "what should I send to this country".
 
-The maths exists: `Market` in `tools/gen_smart_trade_gui.py` takes any goods,
-home and partner expression, so a row can reuse the draft formula.
+- **Goods:** only goods the player's market can spare: sell orders above buy
+  orders by at least 10 (vanilla's minimum transfer). A good shows only if its
+  best deal is meaningful (below).
+- **Quantity:** the draft's own best-profit quantity, capped by what the AI
+  accepts (its shortage + 10) and by the player's surplus. That computation
+  lives in GUI formulas today, and the GUI cannot hand numbers to script
+  (engine-notes.md § The GUI cannot pass a number to a script value), so it is
+  ported to script values. A Python check compares the port with the GUI
+  method on random market shapes before it ships; target within 2%.
+- **Meaningful:** weekly profit at least X% of the player's weekly income
+  (`income`, script-readable). X comes from the Spain run; the list starts at
+  1%, the alert at 5%. Both are assumptions until then.
+- **Acceptance:** vanilla's `static_treaty_acceptance` (root = partner,
+  `scope:other_country` = player; its treaty-options lookups are guarded with
+  `exists`/`?=`) plus the goods article's own score at that quantity
+  (`13_goods_transfer.txt`, `inherent_accept_score`), total at least 0.
+  Relations alone are the wrong filter: the Netherlands at Poor relations and
+  Cautious attitude scored −7 base, and 109 furniture added +7 (Damien's
+  screenshots, 2026-11-10). Computed only for the most profitable candidates,
+  in order, until 5 pass, because it is the expensive part.
+- **Partner:** one country per good. Within a market, the member with the
+  highest acceptance (usually the owner); prices are per market.
+- **Nice to have:** the same good again if the surplus left after the first
+  deal still supports a meaningful one, assuming deals are made in order.
+- **When:** once a month for the player (`on_monthly_pulse_country`), stored in
+  variables on the player's country, plus a refresh button. The GUI reads
+  stored values only, so nothing runs per frame (engine-notes.md § GUI
+  expressions run every frame).
+- **Cost:** pre-filter each (good, market) pair on its first-unit margin
+  (partner price above ours plus shipping) before the full search, and
+  measure the monthly tick with the tick probe before shipping.
 
-- One figure per market, computed once when the row is created. A live formula
-  on every row is the 60 to 6 fps bug again (engine-notes.md § GUI expressions
-  run every frame).
-- Marks overland partners, since those pay no shipping.
-- Both directions: where to send a surplus good, and who could fill a shortage.
-- Finding which goods to look at is the second half: a marker on the market
-  panel's goods rows for surplus and shortage goods with a paying partner.
-  Fifty-odd goods across every market may be too heavy, so size that first.
-
-Risks to check first: a market holds several countries, so the row must name
-one treaty partner, and AI acceptance needs a draft, so the panel can show
-profit only. 1.15's new treaty lens may overlap: look at it before building.
+Accepted when: in the Spain campaign the tab shows at most 5 rows; for each,
+the draft with that partner and quantity shows the same weekly profit within
+2% and a thumbs-up; no row for a good with under 10 surplus, a loss, or a
+profit under the threshold; the monthly tick stays within noise of the mod
+without it. Checked by a tagged `debug_log` per row (script's figures) against
+one look at the draft for the top row.
 
 **Trade centers against treaties (Damien's question, open).** He prefers £100
 to the government over £100 to trade centers. What the game says: trade revenue
@@ -187,20 +223,24 @@ costs treasury cash up front, needs no trade capacity, and binds for years,
 while a trade center adapts by itself. Austria's sell orders staying at 10
 after Linz hints that a transfer may displace trade-center imports: then part
 of a treaty's profit is moved from your own trade centers to the treasury, and
-is not new money. Measurement answers that. The panel keeps vanilla's import
-and export columns beside our figure, so existing trade stays visible.
-
-Accepted when: opening copper's world market panel lists each market with a
-figure and overland markets marked, the top row matches a real draft with that
-partner within 5%, and the frame rate stays within 5% of the panel without it.
+is not new money. Measurement answers that. The Trade tab keeps vanilla's
+import and export rows below the suggestions, so existing trade stays visible.
 
 ## 4. Opportunity alert
 
-Parked behind measurement. Austria read +£348 at today's prices and lost money
-six months later, so a false "big opportunity" costs a player a 5-year binding.
-Fires only if the first-week model proves reliable, starting with overland
-partners, where shipping is not a guess. Script can do it: `every_market_goods`
-and the order values are readable. Same limits: rare, once per good.
+From the recommender's monthly result, no extra search. A toast in its own
+"(ST) ..." Message Settings group, all 11 languages:
+- at most once a year (Damien: once a month is spam; 6 to 12 months);
+- only when the top suggestion clears the alert threshold (start 5% of weekly
+  income);
+- never twice for the same good and partner.
+
+The AI run supports it with a caveat: predicted profits held in 69 of 71
+checks, but on 10-unit deals. The Spain run checks player-sized deals.
+
+Accepted when: over 10 game years of the Spain campaign it fires at most 10
+times, never twice for one good and partner, and every alert matches a row
+the recommender showed that month.
 
 ## Rejected (Damien, 2026-11-05)
 
