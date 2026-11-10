@@ -381,6 +381,92 @@ S["SMART_TRADE_TREATIES_TT"] = {
     "korean": "#header 조약 순수입#!\n보내는 상품: @money![@@P_TRADE@@|D+=]\n항로 비용: @money![@@NEG_P_SHIP@@|D+=] (추정)\n자금 양도: @money![@@P_MONEY@@|D+=]\n운송비는 자국 시장 가격의 상선으로 지불합니다. 항구가 많을수록 싸집니다.\n자세한 내용은 아웃라이너의 조약 목록을 보세요.",
     "turkish": "#header Net antlaşma geliri#!\nGönderdiğiniz mallar: @money![@@P_TRADE@@|D+=]\nNakliye rotası maliyeti: @money![@@NEG_P_SHIP@@|D+=] (tahmin)\nPara Transferleri: @money![@@P_MONEY@@|D+=]\nNakliye, pazar fiyatınızdan Denizci Tüccar ile ödenir; daha çok liman fiyatı düşürür.\nAyrıntılar Yan Bilgi'deki antlaşma listesinde.",
 }
+# --- Trade recommender (tools/gen_st_recommender.py; market panel, Trade tab) ---
+# "1%" below is gen_st_recommender.LIST_SHARE: change both together.
+# "Goods Transfer" is vanilla's own article name (goods_transfer) per language.
+# Each row keeps the calls in the order Q, G, C, GAIN in every language.
+S["ST_REC_HEADER"] = {
+    "english": "(ST) Suggested goods transfers",
+    "french": "(ST) Transferts de marchandises suggérés",
+    "german": "(ST) Vorgeschlagene Warenübereignungen",
+    "spanish": "(ST) Transferencias de bienes sugeridas",
+    "braz_por": "(ST) Transferências de Mercadorias sugeridas",
+    "polish": "(ST) Sugerowane transfery towarów",
+    "russian": "(ST) Предлагаемые передачи товаров",
+    "simp_chinese": "(ST) 建议的商品输送",
+    "japanese": "(ST) おすすめの商品の譲渡",
+    "korean": "(ST) 추천 상품 양도",
+    "turkish": "(ST) Önerilen mal transferleri",
+}
+S["ST_REC_HEADER_TT"] = {
+    "english": "The 5 most profitable goods transfers you could propose now, recomputed every month: weekly profit estimated from first-week prices, at the best quantity the partner fully accepts.\nOnly goods your market has 10 or more spare of, partners you are not at war with, and profits of at least 1% of your weekly income.\nTheir opinion of you is not checked: look at the treaty's acceptance before proposing.",
+    "french": "Les 5 transferts de marchandises les plus rentables que vous pourriez proposer, recalculés chaque mois : profit hebdomadaire estimé aux prix de la première semaine, à la meilleure quantité que le partenaire accepte pleinement.\nSeuls les biens dont votre marché a au moins 10 en surplus, les partenaires avec qui vous n'êtes pas en guerre, et les profits d'au moins 1 % de votre revenu hebdomadaire.\nL'opinion du partenaire n'est pas vérifiée : regardez l'acceptation du traité avant de proposer.",
+    "german": "Die 5 profitabelsten Warenübereignungen, die Sie jetzt vorschlagen könnten, jeden Monat neu berechnet: wöchentlicher Gewinn, geschätzt zu den Preisen der ersten Woche, bei der besten Menge, die der Partner voll akzeptiert.\nNur Waren, von denen Ihr Markt mindestens 10 übrig hat, Partner, mit denen Sie nicht im Krieg sind, und Gewinne von mindestens 1 % Ihres Wocheneinkommens.\nDie Meinung des Partners wird nicht geprüft: Sehen Sie sich vor dem Vorschlag die Akzeptanz des Vertrags an.",
+    "spanish": "Las 5 transferencias de bienes más rentables que podrías proponer ahora, recalculadas cada mes: beneficio semanal estimado con los precios de la primera semana, a la mejor cantidad que el socio acepta por completo.\nSolo bienes de los que tu mercado tiene al menos 10 de sobra, socios con los que no estás en guerra y beneficios de al menos el 1 % de tus ingresos semanales.\nNo se comprueba la opinión del socio: mira la aceptación del tratado antes de proponerlo.",
+    "braz_por": "As 5 transferências de mercadorias mais lucrativas que você poderia propor agora, recalculadas todo mês: lucro semanal estimado pelos preços da primeira semana, na melhor quantidade que o parceiro aceita totalmente.\nSó mercadorias das quais seu mercado tem pelo menos 10 de sobra, parceiros com quem você não está em guerra e lucros de pelo menos 1% da sua renda semanal.\nA opinião do parceiro não é verificada: veja a aceitação do tratado antes de propor.",
+    "polish": "5 najbardziej opłacalnych transferów towarów, które możesz teraz zaproponować, przeliczanych co miesiąc: tygodniowy zysk szacowany po cenach z pierwszego tygodnia, przy najlepszej ilości, którą partner w pełni akceptuje.\nTylko towary, których twój rynek ma co najmniej 10 nadwyżki, partnerzy, z którymi nie prowadzisz wojny, i zyski co najmniej 1% twojego tygodniowego dochodu.\nOpinia partnera nie jest sprawdzana: przed propozycją sprawdź akceptację traktatu.",
+    "russian": "5 самых выгодных передач товаров, которые можно предложить сейчас, пересчитываются каждый месяц: недельная прибыль по ценам первой недели при лучшем объёме, который партнёр полностью принимает.\nТолько товары, которых на вашем рынке в избытке не меньше 10, партнёры, с которыми вы не воюете, и прибыль не меньше 1% вашего недельного дохода.\nМнение партнёра не проверяется: перед предложением посмотрите одобрение договора.",
+    "simp_chinese": "你现在可以提议的5项最赚钱的商品输送，每月重新计算：按首周价格估算的每周利润，数量为对方完全接受的最优数量。\n只包括你的市场有至少10单位盈余的商品、未与你交战的伙伴，以及至少达到你每周收入1%的利润。\n不检查对方对你的态度：提议前请查看条约的接受度。",
+    "japanese": "今提案できる最も利益の大きい商品の譲渡5件。毎月再計算：第1週の価格で推定した週利益、相手が完全に受け入れる最適な量。\n自国市場に10以上の余剰がある商品、戦争中でない相手、週収入の1%以上の利益のみ。\n相手の態度は確認しません：提案前に条約の受諾度を確認してください。",
+    "korean": "지금 제안할 수 있는 가장 수익성 높은 상품 양도 5건, 매달 재계산: 첫 주 가격으로 추정한 주간 이익, 상대가 완전히 수락하는 최적 수량 기준.\n시장에 10 이상 잉여가 있는 상품, 전쟁 중이 아닌 상대, 주간 수입의 1% 이상인 이익만 표시합니다.\n상대의 태도는 확인하지 않습니다: 제안 전에 조약의 수락도를 확인하세요.",
+    "turkish": "Şu anda önerebileceğiniz en kârlı 5 mal transferi, her ay yeniden hesaplanır: ilk hafta fiyatlarıyla tahmin edilen haftalık kâr, ortağın tamamen kabul ettiği en iyi miktarda.\nYalnızca pazarınızda en az 10 fazlası olan mallar, savaşta olmadığınız ortaklar ve haftalık gelirinizin en az %1'i kadar kâr.\nOrtağın sizin hakkınızdaki görüşü kontrol edilmez: önermeden önce antlaşmanın kabulüne bakın.",
+}
+S["ST_REC_REFRESH_TT"] = {
+    "english": "Recompute the suggestions now.", "french": "Recalculer les suggestions maintenant.",
+    "german": "Vorschläge jetzt neu berechnen.", "spanish": "Recalcular las sugerencias ahora.",
+    "braz_por": "Recalcular as sugestões agora.", "polish": "Przelicz sugestie teraz.",
+    "russian": "Пересчитать предложения сейчас.", "simp_chinese": "立即重新计算建议。",
+    "japanese": "今すぐ提案を再計算します。", "korean": "지금 추천을 다시 계산합니다.",
+    "turkish": "Önerileri şimdi yeniden hesapla.",
+}
+S["ST_REC_NONE"] = {
+    "english": "No goods transfer would earn at least 1% of your weekly income right now.",
+    "french": "Aucun transfert de marchandises ne rapporterait au moins 1 % de votre revenu hebdomadaire pour l'instant.",
+    "german": "Derzeit würde keine Warenübereignung mindestens 1 % Ihres Wocheneinkommens einbringen.",
+    "spanish": "Ahora mismo ninguna transferencia de bienes daría al menos el 1 % de tus ingresos semanales.",
+    "braz_por": "No momento nenhuma transferência de mercadorias renderia pelo menos 1% da sua renda semanal.",
+    "polish": "Obecnie żaden transfer towarów nie przyniósłby co najmniej 1% twojego tygodniowego dochodu.",
+    "russian": "Сейчас ни одна передача товаров не принесла бы хотя бы 1% вашего недельного дохода.",
+    "simp_chinese": "目前没有任何商品输送能达到你每周收入的1%。",
+    "japanese": "現在、週収入の1%以上を稼げる商品の譲渡はありません。",
+    "korean": "현재 주간 수입의 1% 이상을 벌 수 있는 상품 양도가 없습니다.",
+    "turkish": "Şu anda hiçbir mal transferi haftalık gelirinizin en az %1'ini kazandırmaz.",
+}
+S["ST_REC_ROW_TT"] = {
+    "english": "Estimate from first-week prices. Open a treaty with this country and add a Goods Transfer of this good to see the exact figure and their acceptance.",
+    "french": "Estimation aux prix de la première semaine. Ouvrez un traité avec ce pays et ajoutez un Transfert de marchandises de ce bien pour voir le chiffre exact et son acceptation.",
+    "german": "Schätzung zu den Preisen der ersten Woche. Öffnen Sie einen Vertrag mit diesem Land und fügen Sie eine Warenübereignung dieser Ware hinzu, um die genaue Zahl und die Akzeptanz zu sehen.",
+    "spanish": "Estimación con los precios de la primera semana. Abre un tratado con este país y añade una Transferencia de bienes de este bien para ver la cifra exacta y su aceptación.",
+    "braz_por": "Estimativa pelos preços da primeira semana. Abra um tratado com este país e adicione uma Transferência de Mercadorias deste bem para ver o valor exato e a aceitação.",
+    "polish": "Szacunek po cenach z pierwszego tygodnia. Otwórz traktat z tym krajem i dodaj Transfer towarów tego towaru, aby zobaczyć dokładną kwotę i akceptację.",
+    "russian": "Оценка по ценам первой недели. Откройте договор с этой страной и добавьте передачу товаров этого товара, чтобы увидеть точную сумму и одобрение.",
+    "simp_chinese": "按首周价格估算。与该国开启条约并添加此商品的商品输送，即可看到确切数字和对方的接受度。",
+    "japanese": "第1週の価格による推定。この国との条約を開き、この商品の商品の譲渡を追加すると正確な数字と受諾度が分かります。",
+    "korean": "첫 주 가격 기준 추정치입니다. 이 국가와 조약을 열고 이 상품의 상품 양도를 추가하면 정확한 수치와 수락도를 볼 수 있습니다.",
+    "turkish": "İlk hafta fiyatlarıyla tahmin. Bu ülkeyle bir antlaşma açın ve bu malın Mal Transferi'ni ekleyerek kesin rakamı ve kabulü görün.",
+}
+_REC_ROW = {
+    "english": "Send {Q} {G} to {C}: about @money!{GAIN} a week",
+    "french": "Envoyer {Q} {G} vers {C} : environ @money!{GAIN} par semaine",
+    "german": "{Q} {G} an {C} senden: etwa @money!{GAIN} pro Woche",
+    "spanish": "Enviar {Q} {G} a {C}: aprox. @money!{GAIN} por semana",
+    "braz_por": "Enviar {Q} {G} para {C}: cerca de @money!{GAIN} por semana",
+    "polish": "Wyślij {Q} {G}, odbiorca: {C}: ok. @money!{GAIN} na tydzień",
+    "russian": "Отправить {Q} {G}, получатель: {C}: около @money!{GAIN} в неделю",
+    "simp_chinese": "输送{Q}单位{G}至{C}：每周约@money!{GAIN}",
+    "japanese": "{Q}の{G}を{C}へ送る：週約@money!{GAIN}",
+    "korean": "{Q} {G} 보내기, 수령국: {C}: 주당 약 @money!{GAIN}",
+    "turkish": "{Q} {G} gönder, alıcı: {C}: haftada yaklaşık @money!{GAIN}",
+}
+for _n in range(1, 6):
+    _p = "GetPlayer.MakeScope.Var('st_rec_{}%d')" % _n
+    S[f"ST_REC_ROW_{_n}"] = {
+        _l: _t.format(Q="[" + _p.format("q") + ".GetValue|0]",
+                      G="[" + _p.format("k") + ".GetGoods.GetName]",
+                      C="[" + _p.format("c") + ".GetCountry.GetNameNoFormatting]",
+                      GAIN="[" + _p.format("g") + ".GetValue|0]")
+        for _l, _t in _REC_ROW.items()}
+
 # The treasury line's own label, prepended to vanilla's expenses headers.
 NET_TREATY_INCOME = {
     "english": "(ST) Net treaty income:", "french": "(ST) Revenu net des traités :",

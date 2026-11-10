@@ -207,6 +207,25 @@ already answers "what should I send to this country".
   (partner price above ours plus shipping) before the full search, and
   measure the monthly tick with the tick probe before shipping.
 
+**Built 2026-11-10, not yet run in game.** `tools/gen_st_recommender.py`
+writes the script (values, trigger, scan effect with one block per good, the
+monthly hook, the refresh button's scripted GUI) and forks vanilla's
+`market_panel` type into `gui/00_smart_trade_market.gui` with the block under
+the trade capacity line. Changes from the spec above, all Damien's
+(2026-11-10): acceptance is not computed (partners only need to be at peace
+with the player); everything vanilla's goods_transfer article requires is
+checked (reachable market, ports or touching markets, supply network, customs
+union, import and export caps, no duplicate good between the two). The port
+of the Best search matches brute force: 0 of 1,426 profitable random market
+shapes more than 2% short, worst 0.99% (`--selftest`). It stops at the AI's
+shortage + 10, where the Best button can climb further by reading the draft's
+live acceptance, which script cannot see. Each scan writes
+`ST_REC|SCAN|...` (pairs checked, pairs searched, threshold) and one
+`ST_REC|ROW|...` per suggestion, for checking against the draft. Not built
+yet: the opportunity alert, the same good twice. Before release: the Workshop
+description's "stores nothing in your save" stops being true (the player's
+country keeps the 5 suggestions in variables).
+
 Accepted when: in the Spain campaign the tab shows at most 5 rows; for each,
 the draft with that partner and quantity shows the same weekly profit within
 2% and a thumbs-up; no row for a good with under 10 surplus, a loss, or a
