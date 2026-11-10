@@ -9,7 +9,7 @@ on_game_started = {
 }
 st_obs_game_started = {
 	effect = {
-		debug_log = "ST_OBS|START|[TimeKeeper.GetCurrentDate.GetString]|observer v0.01"
+		debug_log = "ST_OBS|START|[TimeKeeper.GetCurrentDate.GetString]|observer v0.02"
 	}
 }
 
@@ -60,20 +60,6 @@ st_obs_monthly = {
 			every_scope_article = {
 				limit = { has_type = goods_transfer }
 				st_obs_log_article = { KIND = MON }
-			}
-		}
-		if = {
-			limit = {
-				NOT = { has_global_variable = st_obs_probed }
-				any_treaty = { any_scope_article = { has_type = goods_transfer } }
-			}
-			set_global_variable = st_obs_probed
-			random_treaty = {
-				limit = { any_scope_article = { has_type = goods_transfer } }
-				random_scope_article = {
-					limit = { has_type = goods_transfer }
-					st_obs_probe = yes
-				}
 			}
 		}
 	}

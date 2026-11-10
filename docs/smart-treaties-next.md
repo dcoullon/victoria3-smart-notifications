@@ -66,6 +66,26 @@ Damien, 2026-11-10: in game a treaty stays listed after its binding period
 and disappears only when a signatory cancels it. `inscope=` checks that the
 script iterator agrees with the UI.
 
+**First run, 2026-11-10 (v0.01, stopped after 21 game months):**
+- A treaty cannot hold a variable ("This scope doesn't support variables.
+  Scope: Treaty"). The alert keeps its state in a variable list on the
+  player's country.
+- Numbers print plain (123456.78). Prices, orders, imports and exports all
+  resolved, so the market reads are sound.
+- Sender, receiver and goods printed empty, with no error: names read
+  through `save_scope_as` + `SCOPE.sC(...)` inside the effect came back
+  blank. v0.02 reads them straight off the article
+  (`THIS.GetTreatyArticle.GetSourceCountry...`), the chain that resolved in
+  the probe, and logs the goods key and treaty start date.
+- The lane's merchant marine demand resolved, so v0.02 logs it for every
+  lane article and the report computes the real route factor against ×1.25.
+- Pace: 0.94 minutes per game year at the start (computed from log
+  timestamps). AI signing rate: 2 goods transfers in 21 months, about 1.1 a
+  year, but with 2 events the 95% interval is 0.14 to 4.13 a year, so
+  30 deals could take 7 to 217 game years. Run to the end of the game unless
+  the report reaches 30 first; the plan's fallback (a player run with several
+  deals) stands if the AI turns out to rarely sign them.
+
 Run recipe:
 1. Claude starts `python tools/log_archiver.py --out <logs>/treaty_obs_archive`
    from the repo root in a Terminal panel tab; the app must stay open.
@@ -75,7 +95,8 @@ Run recipe:
 4. After one game year: Claude reads the log (`treaty_obs_report.py` on the
    archive) and confirms every field resolves. A broken field costs a restart
    now instead of a 20-year run.
-5. Leave it to about 1856, quit, Ctrl+C the archiver, run the report.
+5. Leave it running, quit when the report reaches 30 deals or the game
+   ends, Ctrl+C the archiver, run the report.
 
 ## 2. "Treaty turned negative" alert
 

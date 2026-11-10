@@ -93,7 +93,9 @@ def parse_row(body):
         if "=" not in p:
             continue
         k, v = p.split("=", 1)
-        if k in ("s", "t"):
+        if k == "start":
+            row[k] = v.strip()
+        elif k in ("s", "t"):
             vals = [num(x) for x in v.split(";")]
             for name, val in zip(MARKET_FIELDS, vals):
                 row[f"{k}_{name}"] = val
@@ -122,20 +124,20 @@ def log_files(logs_dir):
 
 # ---------- game data ----------
 
-def base_prices(game_root):
-    """Display name -> base price, from 00_goods.txt and English loc."""
-    goods = {}
+def goods_table(game_root, field):
+    """Goods key -> a numeric field of 00_goods.txt ("cost" is the base
+    price, "traded_quantity" the units one merchant marine carries)."""
+    out = {}
     text = (game_root / "common/goods/00_goods.txt").read_text(encoding="utf-8-sig")
     for m in re.finditer(r"^(\w+)\s*=\s*\{(.*?)^\}", text, re.M | re.S):
-        c = re.search(r"\bcost\s*=\s*([\d.]+)", m[2])
+        c = re.search(rf"\b{field}\s*=\s*([\d.]+)", m[2])
         if c:
-            goods[m[1]] = float(c[1])
-    names = {}
-    loc = (game_root / "localization/english/goods_l_english.yml").read_text(encoding="utf-8-sig")
-    for m in re.finditer(r'^\s*(\w+):\d*\s+"([^"]*)"', loc, re.M):
-        if m[1] in goods:
-            names[m[2]] = goods[m[1]]
-    return names
+            out[m[1]] = float(c[1])
+    return out
+
+
+def base_prices(game_root):
+    return goods_table(game_root, "cost")
 
 
 def rule(base, buy, sell):
@@ -152,17 +154,25 @@ def months_between(a, b):
 
 
 def build_deals(rows):
-    """Chain rows per (sender, receiver, good). A SIGN starts a deal; MON rows
-    join the open deal; END or a gap over 45 days closes it. MON rows with no
-    open deal start an unsigned one (a treaty older than the run)."""
+    """Chain rows per (sender, receiver, good, treaty start date). A SIGN
+    starts a deal; MON rows join the open deal; END or a gap over 45 days
+    closes it. MON rows with no open deal start an unsigned one (a treaty
+    older than the run). Historical treaties also fire SIGN on 1 January 1836,
+    before any market has orders, so those count as unsigned."""
     deals, open_ = [], {}
     for r in sorted((r for r in rows if r["date"]), key=lambda r: r["date"]):
-        key = (r["src"], r["tgt"], r["good"])
+        key = (r["src"], r["tgt"], r["good"], r.get("start", ""))
         d = open_.get(key)
         if d and (r["date"] - d["rows"][-1]["date"]).days > 45:
             open_.pop(key)
             d = None
-        if r["kind"] == "SIGN":
+        if r["kind"] == "SIGN" and r.get("hist"):
+            if d is None:
+                d = {"key": key, "sign": None, "rows": []}
+                deals.append(d)
+                open_[key] = d
+            d["rows"].append(r)
+        elif r["kind"] == "SIGN":
             d = {"key": key, "sign": r, "rows": [r]}
             deals.append(d)
             open_[key] = d
@@ -231,6 +241,25 @@ def rule_selfcheck(rows, bases):
     return errs
 
 
+def route_factors(rows, traded):
+    """Real lane cost against the draft's x1.00 estimate, per treaty lane and
+    month. Draft: q / traded_quantity merchant marine per article, x1.25 for
+    sea routes. Real: the lane's merchant marine demand, shared by every lane
+    article the same sender has in that treaty (as smart_trade's ST_A_SHIP
+    splits it), so the factor is lanemm / sum(q / traded_quantity)."""
+    groups = {}
+    for r in rows:
+        if r["kind"] != "MON" or not r.get("lane") or r.get("lanemm") is None:
+            continue
+        tq = traded.get(r["good"])
+        if not tq or not r.get("q"):
+            continue
+        g = groups.setdefault((r["date"], r["src"], r["tgt"], r.get("start", "")), [0.0, set()])
+        g[0] += r["q"] / tq
+        g[1].add(r["lanemm"])
+    return [next(iter(lm)) / units for units, lm in groups.values() if units > 0 and len(lm) == 1]
+
+
 def q(values, p):
     v = sorted(values)
     return v[min(len(v) - 1, int(p * len(v)))] if v else None
@@ -240,7 +269,7 @@ def fmt(x, nd=2):
     return "n/a" if x is None else f"{x:.{nd}f}"
 
 
-def report(lines, bases, csv_path=None):
+def report(lines, bases, csv_path=None, traded=None):
     probes = [l for l in lines if l.startswith(("PROBE", "START"))]
     rows = [r for r in (parse_row(l) for l in lines) if r]
     undated = sum(1 for r in rows if r["date"] is None)
@@ -250,9 +279,18 @@ def report(lines, bases, csv_path=None):
         print("  ", lines[0][:200])
     for p in probes:
         print("  " + p[:300])
+    blank = sum(1 for r in rows if not (r["src"] and r["tgt"] and r["good"]))
+    if blank:
+        print(f"  {blank} rows with an empty sender, receiver or goods key: the name tap is broken")
     missing = sorted({r["good"] for r in rows} - set(bases))
     if missing:
-        print(f"  goods with no base price (name not in English loc): {missing}")
+        print(f"  goods keys with no base price in 00_goods.txt: {missing}")
+    if traded:
+        rf = route_factors(rows, traded)
+        if rf:
+            print(f"\nRoute factor (real lane cost / draft x1.00 estimate), n={len(rf)} lane-months: "
+                  f"median {fmt(statistics.median(rf))}, 10th pct {fmt(q(rf, 0.1))}, "
+                  f"90th pct {fmt(q(rf, 0.9))}. The draft assumes 1.25.")
 
     errs = rule_selfcheck(rows, bases)
     if errs:
@@ -297,28 +335,36 @@ def report(lines, bases, csv_path=None):
 
 def selftest():
     """Synthetic run: 31 deals, the receiver's imports fall by exactly q, the
-    margin lands where the rule says. Checks parsing, chaining and maths."""
-    bases = {"Copper": 50.0, "Coffee": 30.0}
-    lines = ["START|1836.1.1|observer v0.01", "PROBE|1836.2.1|A=10.00|big2=123,456.79"]
+    margin lands where the rule says, every lane runs at x1.30. Checks parsing,
+    chaining and maths."""
+    bases = {"copper": 50.0, "coffee": 30.0}
+    traded = {"copper": 5.0, "coffee": 5.0}
+    lines = ["START|January 1, 1836|observer v0.02",
+             # a historical treaty: SIGN at game start, must not count as signed
+             "SIGN|January 1, 1836|Old|Treaty|coffee|start=1 January 1830|q=5|lane=0|bind=3650|left=3000|inscope=1|hist=1|s=1;0;0;0;0;0;0|t=1;0;0;0;0;0;0|mm=1"]
     for i in range(31):
-        good = "Copper" if i % 2 else "Coffee"
+        good = "copper" if i % 2 else "coffee"
         base, qn = bases[good], 10 + i
         sb, ss, tb, ts, ti = 100.0, 140.0, 120.0, 60.0, 40.0
         ps, pt = rule(base, sb, ss), rule(base, tb, ts)
         y = 1837 + i // 12
         m = i % 12 + 1
-        lines.append(f"SIGN|{y}.{m}.1|Land{i}|Other{i}|{good}|q={qn:.2f}|lane=1|bind=1825|left=1825|inscope=1|hist=0|"
-                     f"s={ps:.2f};{sb:.2f};{ss:.2f};0;0;0;0|t={pt:.2f};{tb:.2f};{ts:.2f};{ti:.2f};0;0;0|mm=40")
+        st = f"1 {list(MONTHS)[m - 1].title()} {y}"
+        lanemm = 1.3 * qn / traded[good]
+        lines.append(f"SIGN|{y}.{m}.1|Land{i}|Other{i}|{good}|start={st}|q={qn:.2f}|lane=1|bind=1825|left=1825|inscope=1|hist=0|"
+                     f"s={ps:.2f};{sb:.2f};{ss:.2f};0;0;0;0|t={pt:.2f};{tb:.2f};{ts:.2f};{ti:.2f};0;0;0|mm=40|lanemm={lanemm:.2f}")
         ps2, pt2 = rule(base, sb + qn, ss), rule(base, tb, ts + qn)
         for k in range(1, 26):
             yy, mm = y + (m - 1 + k) // 12, (m - 1 + k) % 12 + 1
-            lines.append(f"MON|{yy}.{mm}.1|Land{i}|Other{i}|{good}|q={qn:,.2f}|lane=1|bind=1825|left=1000|inscope=1|hist=0|"
-                         f"s={ps2:.2f};{sb + qn:.2f};{ss:.2f};0;0;0;0|t={pt2:.2f};{tb:.2f};{ts + qn:.2f};{ti - qn:.2f};0;0;0|mm=40")
-    lines.append("MON|1 July 1840|Old|Treaty|Coffee|q=5|lane=0|bind=0|left=0|inscope=0|hist=1|s=1;1;1;1;1;1;1|t=1;1;1;1;1;1;1|mm=1")
+            lines.append(f"MON|{yy}.{mm}.1|Land{i}|Other{i}|{good}|start={st}|q={qn:,.2f}|lane=1|bind=1825|left=1000|inscope=1|hist=0|"
+                         f"s={ps2:.2f};{sb + qn:.2f};{ss:.2f};0;0;0;0|t={pt2:.2f};{tb:.2f};{ts + qn:.2f};{ti - qn:.2f};0;0;0|mm=40|lanemm={lanemm:.2f}")
+    lines.append("MON|February 1, 1836|Old|Treaty|coffee|start=1 January 1830|q=5|lane=0|bind=3650|left=2970|inscope=1|hist=1|s=1;1;1;1;1;1;1|t=1;1;1;1;1;1;1|mm=1")
     assert num("1,234.5") == 1234.5 and num("12.3K") == 12300 and num("x") is None
     assert parse_date("7 July 1837") == date(1837, 7, 7) == parse_date("1837.7.7") == parse_date("July 7, 1837")
-    n = report(lines, bases)
+    n = report(lines, bases, traded=traded)
     assert n == 31, n
+    rf = route_factors([r for r in (parse_row(l) for l in lines) if r], traded)
+    assert rf and all(abs(x - 1.3) < 0.01 for x in rf), rf[:3]
     deals = build_deals([r for r in (parse_row(l) for l in lines) if r])
     _, _, out = analyse(deals, bases)
     assert all(abs(o["margin_real"] - o["margin_pred"]) < 0.02 for o in out)
@@ -341,7 +387,13 @@ def main():
     lines = read_lines(files)
     if not lines:
         sys.exit(f"no ST_OBS lines in {[f.name for f in files]}: is the observer mod in the playset?")
-    report(lines, base_prices(GAME_ROOT), a.csv)
+    # Only the latest game: an archive can hold an earlier, abandoned session
+    # (the v0.01 run whose names printed empty, 2026-11-10).
+    starts = [i for i, l in enumerate(lines) if l.startswith("START|")]
+    if len(starts) > 1:
+        print(f"{len(starts)} game starts in the logs; reading only the last ({lines[starts[-1]]})")
+        lines = lines[starts[-1]:]
+    report(lines, base_prices(GAME_ROOT), a.csv, goods_table(GAME_ROOT, "traded_quantity"))
 
 
 if __name__ == "__main__":

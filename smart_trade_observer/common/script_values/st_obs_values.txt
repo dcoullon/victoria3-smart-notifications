@@ -20,11 +20,6 @@ st_obs_price = {
 	}
 }
 
-# Probe only: how debug_log formats a large number (thousands separator, K).
-st_obs_big = {
-	value = 123456.789
-}
-
 st_obs_q = {
 	value = input_quantity
 }

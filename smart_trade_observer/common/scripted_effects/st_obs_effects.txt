@@ -1,48 +1,35 @@
 ﻿# Smart Treaties observer: one debug_log line per goods transfer article.
 # Called with a goods transfer ARTICLE as scope. Read by
-# tools/treaty_obs_report.py. Fields are ';'-separated inside s= and t=
-# because a number may print with a thousands comma.
+# tools/treaty_obs_report.py. Fields are ';'-separated inside s= and t=.
 #
-#   ST_OBS|<KIND>|<date>|<sender>|<receiver>|<good>|q=|lane=|bind=|left=|inscope=|hist=
+#   ST_OBS|<KIND>|<date>|<sender>|<receiver>|<goods key>|start=|q=|lane=|bind=|left=|inscope=|hist=
 #     |s=price;buy;sell;imports;exports;production;consumption   (sender's market)
 #     |t=price;buy;sell;imports;exports;production;consumption   (receiver's market)
 #     |mm=<merchant marine price in the sender's market>
+#     |lanemm=<the lane's merchant marine demand>                 (lane articles only)
 #
 # KIND: SIGN (treaty entered into force), MON (monthly), END (article
-# removed or treaty dissolved). Precedent for every dynamic-text call:
-# TimeKeeper.GetCurrentDate.GetString and SCOPE.sC(..).GetNameNoFormatting
-# in this repo's own debug_log lines; SCOPE.sGoods(..).GetNameNoFormatting and
-# THIS.ScriptValue(..) in vanilla's own event text.
+# removed or treaty dissolved).
+#
+# Learned on the first run (2026-11-10, game 1.15):
+# - SCOPE.sC('x') / SCOPE.sGoods('x') on a scope saved with save_scope_as
+#   inside this effect printed EMPTY, with no error in error.log. Names now
+#   come straight off the article: THIS.GetTreatyArticle.<promote>.
+# - THIS.ScriptValue and THIS.GetTreatyArticle.MakeScope.ScriptValue both
+#   print; large numbers print plain (123456.78), no separator, no K.
+# - Country.GetTag does not exist in this table; Treaty.GetStartDate is a
+#   function returning text, so it ends the chain (no .GetString).
+# - A treaty cannot hold a variable ("This scope doesn't support variables.
+#   Scope: Treaty"), so the negative-treaty alert keys on a list on the
+#   player's country instead.
+# - GetShippingLane.GetMerchantMarineDemandRaw resolved, so it is logged for
+#   lane articles: the real route cost behind the draft's x1.25 guess.
 st_obs_log_article = {
-	source_country = { save_scope_as = st_obs_src }
-	target_country = { save_scope_as = st_obs_tgt }
-	input_goods = { save_scope_as = st_obs_g }
-	debug_log = "ST_OBS|$KIND$|[TimeKeeper.GetCurrentDate.GetString]|[SCOPE.sC('st_obs_src').GetNameNoFormatting]|[SCOPE.sC('st_obs_tgt').GetNameNoFormatting]|[SCOPE.sGoods('st_obs_g').GetNameNoFormatting]|q=[THIS.ScriptValue('st_obs_q')|2]|lane=[THIS.ScriptValue('st_obs_has_lane')|0]|bind=[THIS.ScriptValue('st_obs_bind')|0]|left=[THIS.ScriptValue('st_obs_bind_left')|0]|inscope=[THIS.ScriptValue('st_obs_inscope')|0]|hist=[THIS.ScriptValue('st_obs_hist')|0]|s=[THIS.ScriptValue('st_obs_s_price')|2];[THIS.ScriptValue('st_obs_s_buy')|2];[THIS.ScriptValue('st_obs_s_sell')|2];[THIS.ScriptValue('st_obs_s_imp')|2];[THIS.ScriptValue('st_obs_s_exp')|2];[THIS.ScriptValue('st_obs_s_prod')|2];[THIS.ScriptValue('st_obs_s_cons')|2]|t=[THIS.ScriptValue('st_obs_t_price')|2];[THIS.ScriptValue('st_obs_t_buy')|2];[THIS.ScriptValue('st_obs_t_sell')|2];[THIS.ScriptValue('st_obs_t_imp')|2];[THIS.ScriptValue('st_obs_t_exp')|2];[THIS.ScriptValue('st_obs_t_prod')|2];[THIS.ScriptValue('st_obs_t_cons')|2]|mm=[THIS.ScriptValue('st_obs_s_mm')|2]"
-}
-
-# Runs once per game, on the first goods transfer the monthly pass finds.
-# Every field is a candidate whose answer we do not know yet; each resolves or
-# fails on its own, so one run settles all of them:
-#   A / B    which form prints a script value (the data lines use A)
-#   tag      a country tag, steadier than a name across formations
-#   gkey     the goods key, independent of the game language
-#   start    the treaty's start date, to tell two deals on one pair apart
-#   lanemm   the lane's merchant marine demand: the real route cost, which
-#            would measure the draft's x1.25 route guess directly
-#   big*     how a large number prints (separator, K suffix)
-# PROBE_VAR answers whether a treaty can hold a variable, which the
-# negative-treaty alert needs (docs/smart-treaties-next.md section 1).
-st_obs_probe = {
-	source_country = { save_scope_as = st_obs_src }
-	input_goods = { save_scope_as = st_obs_g }
-	debug_log = "ST_OBS|PROBE|[TimeKeeper.GetCurrentDate.GetString]|A=[THIS.ScriptValue('st_obs_q')|2]|B=[THIS.GetTreatyArticle.MakeScope.ScriptValue('st_obs_q')|2]|tag=[SCOPE.sC('st_obs_src').GetTag]|gkey=[SCOPE.sGoods('st_obs_g').GetKey]|start=[THIS.GetTreatyArticle.GetTreaty.GetStartDate.GetString]|lanemm=[THIS.GetTreatyArticle.GetShippingLane.GetMerchantMarineDemandRaw|2]|big2=[THIS.ScriptValue('st_obs_big')|2]|big0=[THIS.ScriptValue('st_obs_big')|0]|bigraw=[THIS.ScriptValue('st_obs_big')]"
-	treaty = { set_variable = st_obs_probe_var }
 	if = {
-		limit = { treaty = { has_variable = st_obs_probe_var } }
-		debug_log = "ST_OBS|PROBE_VAR|[TimeKeeper.GetCurrentDate.GetString]|treaty_holds_variable=yes"
-		treaty = { remove_variable = st_obs_probe_var }
+		limit = { exists = shipping_lane }
+		debug_log = "ST_OBS|$KIND$|[TimeKeeper.GetCurrentDate.GetString]|[THIS.GetTreatyArticle.GetSourceCountry.GetNameNoFormatting]|[THIS.GetTreatyArticle.GetTargetCountry.GetNameNoFormatting]|[THIS.GetTreatyArticle.GetGoods.GetKey]|start=[THIS.GetTreatyArticle.GetTreaty.GetStartDate]|q=[THIS.ScriptValue('st_obs_q')|2]|lane=1|bind=[THIS.ScriptValue('st_obs_bind')|0]|left=[THIS.ScriptValue('st_obs_bind_left')|0]|inscope=[THIS.ScriptValue('st_obs_inscope')|0]|hist=[THIS.ScriptValue('st_obs_hist')|0]|s=[THIS.ScriptValue('st_obs_s_price')|2];[THIS.ScriptValue('st_obs_s_buy')|2];[THIS.ScriptValue('st_obs_s_sell')|2];[THIS.ScriptValue('st_obs_s_imp')|2];[THIS.ScriptValue('st_obs_s_exp')|2];[THIS.ScriptValue('st_obs_s_prod')|2];[THIS.ScriptValue('st_obs_s_cons')|2]|t=[THIS.ScriptValue('st_obs_t_price')|2];[THIS.ScriptValue('st_obs_t_buy')|2];[THIS.ScriptValue('st_obs_t_sell')|2];[THIS.ScriptValue('st_obs_t_imp')|2];[THIS.ScriptValue('st_obs_t_exp')|2];[THIS.ScriptValue('st_obs_t_prod')|2];[THIS.ScriptValue('st_obs_t_cons')|2]|mm=[THIS.ScriptValue('st_obs_s_mm')|2]|lanemm=[THIS.GetTreatyArticle.GetShippingLane.GetMerchantMarineDemandRaw|2]"
 	}
 	else = {
-		debug_log = "ST_OBS|PROBE_VAR|[TimeKeeper.GetCurrentDate.GetString]|treaty_holds_variable=no"
+		debug_log = "ST_OBS|$KIND$|[TimeKeeper.GetCurrentDate.GetString]|[THIS.GetTreatyArticle.GetSourceCountry.GetNameNoFormatting]|[THIS.GetTreatyArticle.GetTargetCountry.GetNameNoFormatting]|[THIS.GetTreatyArticle.GetGoods.GetKey]|start=[THIS.GetTreatyArticle.GetTreaty.GetStartDate]|q=[THIS.ScriptValue('st_obs_q')|2]|lane=0|bind=[THIS.ScriptValue('st_obs_bind')|0]|left=[THIS.ScriptValue('st_obs_bind_left')|0]|inscope=[THIS.ScriptValue('st_obs_inscope')|0]|hist=[THIS.ScriptValue('st_obs_hist')|0]|s=[THIS.ScriptValue('st_obs_s_price')|2];[THIS.ScriptValue('st_obs_s_buy')|2];[THIS.ScriptValue('st_obs_s_sell')|2];[THIS.ScriptValue('st_obs_s_imp')|2];[THIS.ScriptValue('st_obs_s_exp')|2];[THIS.ScriptValue('st_obs_s_prod')|2];[THIS.ScriptValue('st_obs_s_cons')|2]|t=[THIS.ScriptValue('st_obs_t_price')|2];[THIS.ScriptValue('st_obs_t_buy')|2];[THIS.ScriptValue('st_obs_t_sell')|2];[THIS.ScriptValue('st_obs_t_imp')|2];[THIS.ScriptValue('st_obs_t_exp')|2];[THIS.ScriptValue('st_obs_t_prod')|2];[THIS.ScriptValue('st_obs_t_cons')|2]|mm=[THIS.ScriptValue('st_obs_s_mm')|2]"
 	}
 }
