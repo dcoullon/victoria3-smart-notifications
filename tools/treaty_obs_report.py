@@ -224,8 +224,12 @@ def analyse(deals, bases):
                 "margin_pred": p_t - p_s,
                 "margin_real": r["t_price"] - r["s_price"],
                 "t_sell_delta_per_q": (r["t_sell"] - s["t_sell"]) / q if q else None,
-                "t_imp_delta_per_q": (r["t_imp"] - s["t_imp"]) / q if q and r.get("t_imp") is not None and s.get("t_imp") is not None else None,
-                "s_exp_delta_per_q": (r["s_exp"] - s["s_exp"]) / q if q and r.get("s_exp") is not None and s.get("s_exp") is not None else None,
+                # A market's imports/exports INCLUDE the treaty's own goods
+                # (first v0.02 run: a lone 20-wine transfer showed exactly 20
+                # imported and 20 exported). So other trade = logged - q once
+                # the transfer runs; at SIGN it does not run yet.
+                "t_imp_delta_per_q": (r["t_imp"] - q - s["t_imp"]) / q if q and r.get("t_imp") is not None and s.get("t_imp") is not None else None,
+                "s_exp_delta_per_q": (r["s_exp"] - q - s["s_exp"]) / q if q and r.get("s_exp") is not None and s.get("s_exp") is not None else None,
             })
     return signed, usable, out
 
@@ -307,7 +311,7 @@ def report(lines, bases, csv_path=None, traded=None):
 
     print("\nMargin per unit, draft prediction vs real (receiver price - sender price):")
     print(f"  {'months':>6} {'n':>4} {'median real-pred':>17} {'|err| median':>13} "
-          f"{'sign agrees':>12} {'recv sell +/q':>14} {'recv imp +/q':>13} {'send exp +/q':>13}")
+          f"{'sign agrees':>12} {'recv sell +/q':>14} {'oth imp +/q':>13} {'oth exp +/q':>13}")
     for h in HORIZONS:
         sub = [o for o in out if o["months"] == h]
         if not sub:
@@ -319,8 +323,9 @@ def report(lines, bases, csv_path=None, traded=None):
         print(f"  {h:>6} {len(sub):>4} {fmt(statistics.median(diff)):>17} "
               f"{fmt(statistics.median([abs(x) for x in diff])):>13} {fmt(100 * agree, 0) + '%':>12} "
               f"{fmt(med('t_sell_delta_per_q')):>14} {fmt(med('t_imp_delta_per_q')):>13} {fmt(med('s_exp_delta_per_q')):>13}")
-    print("\n  recv imp +/q near -1: the transfer replaced the receiver's trade-center imports "
-          "(treaty profit moved, not added). Near 0: it added trade.")
+    print("\n  oth imp +/q: change in the receiver's OTHER imports (treaty goods taken out) per unit sent."
+          "\n  Near -1: the transfer replaced trade-center imports (treaty profit moved, not added)."
+          " Near 0: it added trade. oth exp +/q: the same for the sender's other exports.")
 
     if csv_path and out:
         with open(csv_path, "w", newline="", encoding="utf-8") as f:
@@ -357,7 +362,7 @@ def selftest():
         for k in range(1, 26):
             yy, mm = y + (m - 1 + k) // 12, (m - 1 + k) % 12 + 1
             lines.append(f"MON|{yy}.{mm}.1|Land{i}|Other{i}|{good}|start={st}|q={qn:,.2f}|lane=1|bind=1825|left=1000|inscope=1|hist=0|"
-                         f"s={ps2:.2f};{sb + qn:.2f};{ss:.2f};0;0;0;0|t={pt2:.2f};{tb:.2f};{ts + qn:.2f};{ti - qn:.2f};0;0;0|mm=40|lanemm={lanemm:.2f}")
+                         f"s={ps2:.2f};{sb + qn:.2f};{ss:.2f};0;{qn:.2f};0;0|t={pt2:.2f};{tb:.2f};{ts + qn:.2f};{ti:.2f};0;0;0|mm=40|lanemm={lanemm:.2f}")
     lines.append("MON|February 1, 1836|Old|Treaty|coffee|start=1 January 1830|q=5|lane=0|bind=3650|left=2970|inscope=1|hist=1|s=1;1;1;1;1;1;1|t=1;1;1;1;1;1;1|mm=1")
     assert num("1,234.5") == 1234.5 and num("12.3K") == 12300 and num("x") is None
     assert parse_date("7 July 1837") == date(1837, 7, 7) == parse_date("1837.7.7") == parse_date("July 7, 1837")
