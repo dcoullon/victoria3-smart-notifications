@@ -1,6 +1,6 @@
 # Smart Treaties: next build
 
-Locked 2026-11-05. Measurement build written 2026-11-10, not yet run. Goal (Damien): bigger numbers and more
+Locked 2026-11-05. Measurement run done 2026-11-10 (section 1, Results). Goal (Damien): bigger numbers and more
 people enjoying the mod. Findings behind this: smart-trade-investigation.md.
 
 ## Order
@@ -85,6 +85,35 @@ script iterator agrees with the UI.
   30 deals could take 7 to 217 game years. Run to the end of the game unless
   the report reaches 30 first; the plan's fallback (a player run with several
   deals) stands if the AI turns out to rarely sign them.
+
+**Results, v0.02 observer game, 1836 to April 1869** (archive
+`logs/treaty_obs_archive`; 1869 to 1892 lost when the Claude session
+restarted and its archiver tab died; 1892 on is in `treaty_obs_rotated_1300`
+and `treaty_obs_archive2`). All figures computed by `treaty_obs_report.py`
+and two scratch scripts over 10,004 monthly rows.
+
+| Claim | Evidence | Caveat |
+|---|---|---|
+| The AI signed 66 goods transfers, about 2 a year | SIGN rows with hist=0, May 1836 to Nov 1868 | 65 of 66 are 10 units, the minimum; receivers' median buy orders 19, so 10 units is about half their demand |
+| The price rule reproduces each logged price | receiver side median error 0.011%, 99th pct 0.58% (n=10,078); sender median 0.009%, 99th pct 13% | a few sender rows are off by up to 24%; cause unknown |
+| Goods land fast | receiver imports up by 0.9 q within 31 days for 47 of 61 deals that landed; median 19 days | monthly snapshots, so a day count is an upper bound; 3 deals took over 6 months, 5 never showed it |
+| The draft is pessimistic, and the error is on the receiver side | real margin minus predicted, median: sender price −1.4% to +0.0% of base price, receiver +4.9% to +10.3%, horizons 1 to 24 months | the receiver's real drop is 0.36 to 0.52 of the predicted one (−19% to −27% of base against −49% to −52%); tiny markets dominate |
+| A predicted profit holds | 69 of 71 checks across the five horizons stayed profitable (17 distinct deals) | a predicted loss turned out profitable in 5 to 12 deals per horizon |
+| Treaties stay in `every_scope_treaty` after binding ends | 5,232 of 5,235 rows with left=0 had inscope=1 | matches what Damien sees in the UI |
+| ×1.25 overstates the usual lane | per lane: 24 of 40 at ×1.00, 11 between 1.01 and 1.25, 5 above 1.25, highest 1.63 | 40 lanes, mostly AI routes |
+| Partial, temporary displacement of trade-center imports, maybe | receivers that already imported the good (n=19 to 23): other imports fell by a median 0.4 to 0.6 per unit sent at 3 to 12 months, 0 at 24 months (n=12) | small n, means swing from −1.08 to +0.36; not a finding yet |
+
+What it changes:
+- Alert (section 2): unblocked. Iterate `every_scope_treaty`; keep the
+  once-per-treaty memory in a variable list on the player's country.
+- Opportunity alert (section 4): predicted profits held for small AI deals.
+  Still untested at player sizes, where one deal is 50 to 500 units into a
+  big market. Next: a player run signing 4 or 5 such deals, logged by the
+  same observer.
+- Draft route default: the data favours ×1.00 over ×1.25, with the hover
+  range kept. Damien's call.
+- Draft receiver price: the rule predicts roughly twice the receiver's real
+  drop in these markets. Not tuned until the player-size run says the same.
 
 Run recipe:
 1. Claude starts `python tools/log_archiver.py --out <logs>/treaty_obs_archive`
