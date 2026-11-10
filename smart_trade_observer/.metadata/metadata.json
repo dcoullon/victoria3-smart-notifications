@@ -1,0 +1,14 @@
+{
+	"name": "ZZ Smart Treaties observer (dev only, never upload)",
+	"id": "smart_trade_observer",
+	"version": "0.01",
+	"supported_game_version": "1.15.*",
+	"short_description": "Dev-only measurement build: logs every goods transfer treaty in the world to debug.log. Never upload.",
+	"tags": [
+		"Utilities"
+	],
+	"relationships": [],
+	"game_custom_data": {
+		"multiplayer_synchronized": false
+	}
+}

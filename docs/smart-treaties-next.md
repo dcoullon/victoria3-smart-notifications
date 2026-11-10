@@ -1,6 +1,6 @@
 # Smart Treaties: next build
 
-Locked 2026-11-05, nothing built yet. Goal (Damien): bigger numbers and more
+Locked 2026-11-05. Measurement build written 2026-11-10, not yet run. Goal (Damien): bigger numbers and more
 people enjoying the mod. Findings behind this: smart-trade-investigation.md.
 
 ## Order
@@ -46,6 +46,30 @@ fallback is a player run with several deals.
 Same run, tagged probe: does a treaty hold a variable? Law scopes do not, and
 the docs do not say for treaties. If not, the alert uses
 `add_to_variable_list` on the player's country with the treaty as target.
+
+**Built 2026-11-10, not yet run.** Mod `smart_trade_observer/` (dev only,
+junctioned into the game's mod folder like the others), report
+`tools/treaty_obs_report.py` (`--selftest` passes on synthetic data). Lines:
+`ST_OBS|SIGN|MON|END|...` per goods transfer article, read through script
+values that copy the shipped mod's proven market reads. Two more answers
+ride on it: `inscope=` says whether the sender's `every_scope_treaty` still
+finds a treaty after its binding period (the alert iterates that way), and
+the one-off `PROBE` line tests the lane's real merchant marine demand, which
+would measure the ×1.25 route guess directly. Not measurable: the lane cost
+through script values (no script link exists), so the route question rests
+on that probe. Unknowns that could break it, all visible in the first game
+year: `market_goods_imports`/`_exports` as values (vanilla never uses them
+that way; a load error names the file), and the date and number formats
+(the report parses the common ones).
+
+Run recipe:
+1. `python tools/log_archiver.py` in a terminal, left running.
+2. Launcher: a playset with only "ZZ Smart Treaties observer", `-debug_mode`.
+3. New game 1836, any country, console `observe`, speed 5.
+4. After one game year: Claude reads the log (`treaty_obs_report.py` on the
+   archive) and confirms every field resolves. A broken field costs a restart
+   now instead of a 20-year run.
+5. Leave it to about 1856, quit, Ctrl+C the archiver, run the report.
 
 ## 2. "Treaty turned negative" alert
 

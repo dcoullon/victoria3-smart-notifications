@@ -106,10 +106,12 @@ def shipped_file_names() -> set[str]:
     return names
 # This repo now hosts more than one mod (see docs/multi-mod-split.md and
 # bulk_construction/), so the tag pattern covers every mod prefix in it:
-# SNW_ for Smart Notifications, BC_ for Bulk Construction. A new sibling
-# mod adds its prefix here, or its debug_log output is silently invisible
-# to every tool and slash command that reads logs through this module.
-MOD_TAG_PATTERN = r"(?:SNW|BC)_[A-Z_]+\|"
+# SNW_ for Smart Notifications, BC_ for Bulk Construction, ST_ for Smart
+# Treaties (ST_OBS| is the dev-only observer, read in full by
+# tools/treaty_obs_report.py). A new sibling mod adds its prefix here, or its
+# debug_log output is silently invisible to every tool and slash command that
+# reads logs through this module.
+MOD_TAG_PATTERN = r"(?:SNW|BC|ST)_[A-Z_]+\|"
 
 FILES_TO_SCAN = ["error.log", "debug.log"]
 

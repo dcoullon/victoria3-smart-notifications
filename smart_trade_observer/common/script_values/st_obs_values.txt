@@ -1,0 +1,176 @@
+﻿# Smart Treaties observer: read-only values, evaluated with a goods transfer
+# ARTICLE as root (THIS.ScriptValue in st_obs_effects.txt). Nothing here
+# changes the game. Plan: docs/smart-treaties-next.md section 1.
+#
+# Every market read below copies a pattern the shipped Smart Treaties mod
+# already uses in game (smart_trade/common/script_values/smart_trade_values.txt):
+# "input_market_goods(scope:x)" ?= { add = ... } with x saved as a temporary
+# scope in the same value. market_goods_buy_orders / _sell_orders /
+# _production / _consumption are used as values by vanilla itself;
+# _imports / _exports are not, so a load error naming this file would mean
+# those two are trigger-only.
+
+# Market goods root: today's market price, the shipped st_price formula.
+st_obs_price = {
+	value = goods.base_price
+	multiply = {
+		value = 1
+		add = { value = market_goods_pricier min = 0 }
+		subtract = { value = market_goods_cheaper min = 0 }
+	}
+}
+
+# Probe only: how debug_log formats a large number (thousands separator, K).
+st_obs_big = {
+	value = 123456.789
+}
+
+st_obs_q = {
+	value = input_quantity
+}
+
+st_obs_has_lane = {
+	value = 0
+	if = { limit = { exists = shipping_lane } value = 1 }
+}
+
+# Days, as signed and as left. 0 once the binding period is over.
+st_obs_bind = {
+	value = 0
+	treaty ?= { add = binding_period }
+}
+st_obs_bind_left = {
+	value = 0
+	treaty ?= { add = remaining_binding_period }
+}
+
+st_obs_hist = {
+	value = 0
+	if = { limit = { treaty = { is_historical_treaty = yes } } value = 1 }
+}
+
+# 1 if the sender's every_scope_treaty still finds this treaty. The script
+# docs say "in force treaties binding the scoped country", which may drop a
+# treaty once its binding period ends. The negative-treaty alert iterates
+# that way, so this decides whether it can.
+st_obs_inscope = {
+	value = 0
+	if = {
+		limit = {
+			treaty = { save_temporary_scope_as = st_obs_t }
+			source_country = { any_scope_treaty = { this = scope:st_obs_t } }
+		}
+		value = 1
+	}
+}
+
+# Sender's market (s_) and receiver's market (t_).
+st_obs_s_price = {
+	value = 0
+	if = {
+		limit = { source_country = { save_temporary_scope_as = st_obs_s } }
+		add = { "input_market_goods(scope:st_obs_s)" ?= { add = st_obs_price } }
+	}
+}
+st_obs_s_buy = {
+	value = 0
+	if = {
+		limit = { source_country = { save_temporary_scope_as = st_obs_s } }
+		add = { "input_market_goods(scope:st_obs_s)" ?= { add = market_goods_buy_orders } }
+	}
+}
+st_obs_s_sell = {
+	value = 0
+	if = {
+		limit = { source_country = { save_temporary_scope_as = st_obs_s } }
+		add = { "input_market_goods(scope:st_obs_s)" ?= { add = market_goods_sell_orders } }
+	}
+}
+st_obs_s_imp = {
+	value = 0
+	if = {
+		limit = { source_country = { save_temporary_scope_as = st_obs_s } }
+		add = { "input_market_goods(scope:st_obs_s)" ?= { add = market_goods_imports } }
+	}
+}
+st_obs_s_exp = {
+	value = 0
+	if = {
+		limit = { source_country = { save_temporary_scope_as = st_obs_s } }
+		add = { "input_market_goods(scope:st_obs_s)" ?= { add = market_goods_exports } }
+	}
+}
+st_obs_s_prod = {
+	value = 0
+	if = {
+		limit = { source_country = { save_temporary_scope_as = st_obs_s } }
+		add = { "input_market_goods(scope:st_obs_s)" ?= { add = market_goods_production } }
+	}
+}
+st_obs_s_cons = {
+	value = 0
+	if = {
+		limit = { source_country = { save_temporary_scope_as = st_obs_s } }
+		add = { "input_market_goods(scope:st_obs_s)" ?= { add = market_goods_consumption } }
+	}
+}
+
+st_obs_t_price = {
+	value = 0
+	if = {
+		limit = { target_country = { save_temporary_scope_as = st_obs_r } }
+		add = { "input_market_goods(scope:st_obs_r)" ?= { add = st_obs_price } }
+	}
+}
+st_obs_t_buy = {
+	value = 0
+	if = {
+		limit = { target_country = { save_temporary_scope_as = st_obs_r } }
+		add = { "input_market_goods(scope:st_obs_r)" ?= { add = market_goods_buy_orders } }
+	}
+}
+st_obs_t_sell = {
+	value = 0
+	if = {
+		limit = { target_country = { save_temporary_scope_as = st_obs_r } }
+		add = { "input_market_goods(scope:st_obs_r)" ?= { add = market_goods_sell_orders } }
+	}
+}
+st_obs_t_imp = {
+	value = 0
+	if = {
+		limit = { target_country = { save_temporary_scope_as = st_obs_r } }
+		add = { "input_market_goods(scope:st_obs_r)" ?= { add = market_goods_imports } }
+	}
+}
+st_obs_t_exp = {
+	value = 0
+	if = {
+		limit = { target_country = { save_temporary_scope_as = st_obs_r } }
+		add = { "input_market_goods(scope:st_obs_r)" ?= { add = market_goods_exports } }
+	}
+}
+st_obs_t_prod = {
+	value = 0
+	if = {
+		limit = { target_country = { save_temporary_scope_as = st_obs_r } }
+		add = { "input_market_goods(scope:st_obs_r)" ?= { add = market_goods_production } }
+	}
+}
+st_obs_t_cons = {
+	value = 0
+	if = {
+		limit = { target_country = { save_temporary_scope_as = st_obs_r } }
+		add = { "input_market_goods(scope:st_obs_r)" ?= { add = market_goods_consumption } }
+	}
+}
+
+# Merchant marine price in the sender's market: what shipping is paid in.
+st_obs_s_mm = {
+	value = 0
+	source_country ?= {
+		market ?= {
+			mg:merchant_marine ?= { add = st_obs_price }
+		}
+	}
+}

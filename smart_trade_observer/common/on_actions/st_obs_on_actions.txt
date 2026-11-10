@@ -1,0 +1,80 @@
+﻿# Smart Treaties observer: hooks. Append-only, like every mod in this repo:
+# we add our own on_action names to vanilla's lists and never redefine an
+# `effect` block. Roots per vanilla's own comments in 00_code_on_actions.txt:
+# on_monthly_pulse has no root; the treaty ones are rooted on the treaty, and
+# on_treaty_article_removed also sets scope:article.
+
+on_game_started = {
+	on_actions = { st_obs_game_started }
+}
+st_obs_game_started = {
+	effect = {
+		debug_log = "ST_OBS|START|[TimeKeeper.GetCurrentDate.GetString]|observer v0.01"
+	}
+}
+
+on_treaty_entered_into_force = {
+	on_actions = { st_obs_treaty_signed }
+}
+st_obs_treaty_signed = {
+	effect = {
+		every_scope_article = {
+			limit = { has_type = goods_transfer }
+			st_obs_log_article = { KIND = SIGN }
+		}
+	}
+}
+
+on_treaty_article_removed = {
+	on_actions = { st_obs_article_removed }
+}
+st_obs_article_removed = {
+	effect = {
+		if = {
+			limit = { scope:article = { has_type = goods_transfer } }
+			scope:article = { st_obs_log_article = { KIND = END } }
+		}
+	}
+}
+
+on_treaty_dissolved = {
+	on_actions = { st_obs_treaty_dissolved }
+}
+st_obs_treaty_dissolved = {
+	effect = {
+		every_scope_article = {
+			limit = { has_type = goods_transfer }
+			st_obs_log_article = { KIND = END }
+		}
+	}
+}
+
+# every_treaty covers drafts too; an observer game has no player drafting, and
+# the report keys deals on their SIGN line or on the game-start treaties.
+on_monthly_pulse = {
+	on_actions = { st_obs_monthly }
+}
+st_obs_monthly = {
+	effect = {
+		every_treaty = {
+			every_scope_article = {
+				limit = { has_type = goods_transfer }
+				st_obs_log_article = { KIND = MON }
+			}
+		}
+		if = {
+			limit = {
+				NOT = { has_global_variable = st_obs_probed }
+				any_treaty = { any_scope_article = { has_type = goods_transfer } }
+			}
+			set_global_variable = st_obs_probed
+			random_treaty = {
+				limit = { any_scope_article = { has_type = goods_transfer } }
+				random_scope_article = {
+					limit = { has_type = goods_transfer }
+					st_obs_probe = yes
+				}
+			}
+		}
+	}
+}
