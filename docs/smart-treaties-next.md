@@ -224,7 +224,18 @@ live acceptance, which script cannot see. Each scan writes
 `ST_REC|ROW|...` per suggestion, for checking against the draft. Not built
 yet: the opportunity alert, the same good twice. Before release: the Workshop
 description's "stores nothing in your save" stops being true (the player's
-country keeps the 5 suggestions in variables).
+country keeps the 5 suggestions in variables). Removing the mod mid-campaign
+leaves those variables unread in the save, the same as Smart Notifications'
+country variables, whose description already says "safe to add or remove
+mid-campaign". Suggested wording: "Save-safe. Add or remove it mid-campaign;
+it keeps its suggestions in your save, and they sit there unused if you
+remove it."
+
+Next iterations (Damien, 2026-11-10), after the first in-game check:
+- A smarter "enough surplus" than 10 units, which is small for most goods.
+- Allow a partner already receiving that good when adding volume is the
+  best option (today any existing transfer of the good between the two
+  excludes the pair).
 
 Accepted when: in the Spain campaign the tab shows at most 5 rows; for each,
 the draft with that partner and quantity shows the same weekly profit within
