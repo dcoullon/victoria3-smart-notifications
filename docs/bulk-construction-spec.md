@@ -317,6 +317,21 @@ This replaces the always-visible rows of 0.01-0.05: Build All is not the most
 frequent action when building, and the tag repeated on every label read as
 noise.
 
+**The queue fills slowly after a big press, and that limits the cap.**
+Measured 2026-11-12: a 10-level press over 337 states (3,370 clicks), game
+paused, the top-bar queue count went from +4,704 to +4,784 between two
+screenshots one second apart (filename timestamps, so 0.5 to 1.5 s): about 80
+per second, roughly 42 s to land the whole press. Our sweep fires every click
+in one frame (§4.5), so the likely cause is the engine applying the queued
+construction commands at about one per frame; vanilla's + button pays the
+same cost per click, a human just never clicks 3,370 times. Not fixable from
+the GUI; the script route (§2) would queue in one command but loses the
+abroad case and needs one scripted GUI per building type. Consequence for the
+10,000 cap: it reads the queue as applied, not the clicks still pending, so
+presses made during that window are not counted yet. A fast auto-clicker can
+still pile up a large backlog before the button greys out; accepted as the
+edge case it is (user decision, no cooldown).
+
 **error.log noise.** A triggered state with no property logs "Animation
 triggered has no valid state properties or sound effects" once per row per
 level: 580 lines in the first run. Every row-worker state now carries
