@@ -270,7 +270,7 @@ All verified by the user in a live game, against a real construction queue.
   uses, which is the correct default).
 - Touching Smart Notifications in any way.
 
-## 5a. Efficiency filter, queue cap, own section (built 2026-11-12, one run so far)
+## 5a. Efficiency filter, queue cap, own section (shipped 0.06, 2026-11-12)
 
 Asked for on the Workshop page by the same player twice: a 1 Nov crash from
 spamming the 10-level button with an auto-clicker, and on 12 Nov, Build All
@@ -351,25 +351,28 @@ cannot count a filtered datamodel, §4.4); rows below the threshold are not
 marked in the list (it would re-run the comparison on every row every frame);
 the setting resets when the game restarts (the variable system is not saved).
 
-### Acceptance criteria
+### Acceptance criteria (confirmed in game 2026-11-12, shipped as 0.06)
 
 0. **The section starts collapsed** with a "Build All" header under Filters;
    clicking it shows the controls, clicking again hides them. No label below
-   the header says "(Build All)".
+   the header says "(Build All)". *Confirmed. The header's final form (penalty
+   only, no level count, `aa34a7f`) was not itself seen in game before
+   upload.*
 1. **Unticked, nothing changes.** A 1-level press queues exactly what it did
-   before: one level in every clickable listed state. *Confirmed 2026-11-12.*
+   before: one level in every clickable listed state. *Confirmed.*
 2. **Ticked at 30%, penalised rows are skipped.** A state whose construction
    efficiency penalty for this building is above 30% gets no level; every
    other state (including exactly 30%) gets its level, as before. *First
-   build failed this (nothing queued, wrong scale); fixed, not yet re-run.*
+   build failed this (nothing queued, wrong scale); confirmed after the fix.*
 3. **The stepper moves 10% per click and stops at the ends.** `-` from 30%
    gives 20%; `+` gives 40%; `-` is disabled at 0% and `+` at 90%; both are
-   disabled while the box is unticked.
+   disabled while the box is unticked. *Confirmed.*
 4. **A 5-level press still interleaves** level-by-level across states (§4.2)
-   with the filter ticked.
+   with the filter ticked. *Confirmed.*
 5. **At 10,000+ government constructions the build button is disabled** and
-   its tooltip says why; below that it is enabled.
-6. Zero `error.log` lines attributable to this mod.
+   its tooltip says why; below that it is enabled. *Confirmed.*
+6. Zero `error.log` lines attributable to this mod. *Confirmed after the
+   `duration = 0  alpha = 1` fix (the first run logged 580 warnings).*
 
 ## 6. Naming and distribution
 
