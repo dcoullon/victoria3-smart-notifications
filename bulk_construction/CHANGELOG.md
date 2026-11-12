@@ -29,7 +29,7 @@ Partly run in game. Version bump once confirmed.
 
 - **Build All now has its own collapsible section** under Filters, closed by
   default. Click "Build All" to open it; it stays open until you restart the
-  game. The header shows your current settings while it is closed.
+  game. While the penalty limit is on, the header shows it.
 
 ## [0.05] - 2026-11-05
 

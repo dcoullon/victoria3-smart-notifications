@@ -63,8 +63,12 @@ types map_list_panel_types {
 				}
 
 				blockoverride "right_text" {
+					# Only the penalty limit, and only when it is on: it is the
+					# one setting that silently changes what a press does. The
+					# level count is left out (user call 2026-11-12): nothing
+					# can be pressed until the section is open anyway.
 					section_header_right_text = {
-						text = "BC_SECTION_SUMMARY"
+						text = "[AddLocalizationIf(GetVariableSystem.Exists('bc_pen_on'), 'BC_SUMMARY_EFF')]"
 					}
 				}
 

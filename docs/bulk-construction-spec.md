@@ -310,8 +310,9 @@ for military buildings only); the player sees it in the state's tooltips.
 **Placement (user decision 2026-11-12).** The controls sit in their own
 collapsible "Build All" section under vanilla's Filters, built from the same
 `section_header_button`, collapsed by default and remembered for the session.
-The header names the mod once and its right side summarises the settings
-("Levels: 1, max. penalty 30%"); the labels underneath carry no "(Build All)" tag.
+The header names the mod once and, while the penalty limit is ticked, its
+right side shows it ("Max. penalty 30%"; the level count was dropped from it
+after the second run, since nothing can be pressed until the section opens); the labels underneath carry no "(Build All)" tag.
 This replaces the always-visible rows of 0.01-0.05: Build All is not the most
 frequent action when building, and the tag repeated on every label read as
 noise.
