@@ -12,6 +12,19 @@ increment by `0.01` when something genuinely new ships **and is confirmed
 working**; bug fixes, fix-attempts on an unfinished feature, instrumentation
 and doc-only changes get a commit but no bump.
 
+## [Unreleased]
+
+Built, not yet run in game. Version bump once confirmed.
+
+### Added
+
+- **Minimum efficiency filter.** Tick the new box under the level buttons and
+  Build All skips every state whose construction efficiency for that building
+  is below the threshold (35% by default, 5% to 95% in 10% steps). Freshly
+  conquered states at 5% are no longer built in. Unticked, nothing changes.
+- **Queue limit.** The build button greys out once your construction queue
+  holds 10,000 or more government constructions, and its tooltip says why.
+
 ## [0.05] - 2026-11-05
 
 ### Changed

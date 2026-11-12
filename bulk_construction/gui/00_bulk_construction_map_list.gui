@@ -109,13 +109,74 @@ types map_list_panel_types {
 					}
 				}
 
+				# Efficiency filter (docs/bulk-construction-spec.md section 5a).
+				# Tickbox: 'bc_eff_on' exists = ticked. Threshold: 'bc_eff' holds
+				# one of '5' '15' ... '95' as a string, and UNSET MEANS 35 (the
+				# default), the same way an unset 'bc_levels' means 1 above. The
+				# variable system has no arithmetic, so -/+ walk a fixed ladder.
+				# The ladder here, the label, and the comparison in the row
+				# workers below must agree; check_bc_efficiency_ladder asserts it.
+				flowcontainer = {
+					direction = horizontal
+					parentanchor = hcenter
+					spacing = 6
+
+					checkbutton = {
+						using = check_button
+						size = { 24 24 }
+						parentanchor = vcenter
+						onclick = "[GetVariableSystem.Toggle('bc_eff_on')]"
+						checked = "[GetVariableSystem.Exists('bc_eff_on')]"
+						tooltip = "BC_EFF_TOOLTIP"
+					}
+
+					textbox = {
+						autoresize = yes
+						align = nobaseline
+						parentanchor = vcenter
+						text = "BC_EFF_LABEL"
+						tooltip = "BC_EFF_TOOLTIP"
+					}
+
+					button = {
+						size = { 28 28 }
+						using = default_button
+						raw_text = "-"
+						enabled = "[And(GetVariableSystem.Exists('bc_eff_on'), Not(GetVariableSystem.HasValue('bc_eff', '5')))]"
+						onclick = "[GetVariableSystem.Set('bc_eff', Select_CString(GetVariableSystem.HasValue('bc_eff', '95'), '85', Select_CString(GetVariableSystem.HasValue('bc_eff', '85'), '75', Select_CString(GetVariableSystem.HasValue('bc_eff', '75'), '65', Select_CString(GetVariableSystem.HasValue('bc_eff', '65'), '55', Select_CString(GetVariableSystem.HasValue('bc_eff', '55'), '45', Select_CString(GetVariableSystem.HasValue('bc_eff', '45'), '35', Select_CString(GetVariableSystem.HasValue('bc_eff', '25'), '15', Select_CString(GetVariableSystem.HasValue('bc_eff', '15'), '5', Select_CString(GetVariableSystem.HasValue('bc_eff', '5'), '5', '25'))))))))))]"
+					}
+
+					textbox = {
+						size = { 44 28 }
+						align = center|nobaseline
+						parentanchor = vcenter
+						text = "BC_EFF_VALUE"
+					}
+
+					button = {
+						size = { 28 28 }
+						using = default_button
+						raw_text = "+"
+						enabled = "[And(GetVariableSystem.Exists('bc_eff_on'), Not(GetVariableSystem.HasValue('bc_eff', '95')))]"
+						onclick = "[GetVariableSystem.Set('bc_eff', Select_CString(GetVariableSystem.HasValue('bc_eff', '5'), '15', Select_CString(GetVariableSystem.HasValue('bc_eff', '15'), '25', Select_CString(GetVariableSystem.HasValue('bc_eff', '25'), '35', Select_CString(GetVariableSystem.HasValue('bc_eff', '45'), '55', Select_CString(GetVariableSystem.HasValue('bc_eff', '55'), '65', Select_CString(GetVariableSystem.HasValue('bc_eff', '65'), '75', Select_CString(GetVariableSystem.HasValue('bc_eff', '75'), '85', Select_CString(GetVariableSystem.HasValue('bc_eff', '85'), '95', Select_CString(GetVariableSystem.HasValue('bc_eff', '95'), '95', '45'))))))))))]"
+					}
+				}
+
 				# 500 wide, not the original 420: the translations run up to ~11%%
 				# longer than English (Russian and Polish are the worst), and this
 				# label has to fit a three-digit count too. Vanilla's own filter row
 				# above sets minimumsize 554 (@panel_width_plus_14), so 500 is
 				# comfortably inside the panel.
+				#
+				# Queue cap (spec section 5a): each build button is disabled at
+				# 10,000+ government constructions. `enabled` re-reads the count
+				# every frame, so every press checks the live queue first. One
+				# press can still overshoot by up to one press; accepted. The
+				# 10000 here and in the tooltip's cap condition must match;
+				# check_bc_efficiency_ladder asserts it.
 				button = {
 					visible = "[Not(Or(GetVariableSystem.HasValue('bc_levels', '5'), GetVariableSystem.HasValue('bc_levels', '10')))]"
+					enabled = "[LessThan_int32(GetPlayer.GetNumGovernmentConstructionsInQueue, '(int32)10000')]"
 					size = { 500 30 }
 					using = default_button
 					text = "BC_BUILD_BUTTON_1"
@@ -124,6 +185,7 @@ types map_list_panel_types {
 				}
 				button = {
 					visible = "[GetVariableSystem.HasValue('bc_levels', '5')]"
+					enabled = "[LessThan_int32(GetPlayer.GetNumGovernmentConstructionsInQueue, '(int32)10000')]"
 					size = { 500 30 }
 					using = default_button
 					text = "BC_BUILD_BUTTON_5"
@@ -136,6 +198,7 @@ types map_list_panel_types {
 				}
 				button = {
 					visible = "[GetVariableSystem.HasValue('bc_levels', '10')]"
+					enabled = "[LessThan_int32(GetPlayer.GetNumGovernmentConstructionsInQueue, '(int32)10000')]"
 					size = { 500 30 }
 					using = default_button
 					text = "BC_BUILD_BUTTON_10"
@@ -163,6 +226,19 @@ types map_list_panel_types {
 			# the instrumentation is gone, so the build we playtest is now
 			# byte-identical to the build that ships. To count again:
 			# `git show 17faaec -- bulk_construction/` has it.
+			#
+			# Efficiency filter (spec section 5a): bc_build_N no longer calls
+			# OnClick itself. It triggers bc_do_N (which does) or bc_skip
+			# (which does nothing) on the child `bc_gate`, picking by name with
+			# Select_CString -- the same computed-name trigger Smart Treaties
+			# uses (engine-notes "Branches must be separate states"); a widget
+			# state has no condition field of its own. Unticked, the condition
+			# is always true and this is the old behaviour. The comparison is
+			# the row's own efficiency for this building type, the figure
+			# vanilla prints on the row (gui/map_list_panel.gui:1753). The
+			# threshold chain maps the 'bc_eff' ladder string to a number;
+			# unset falls through to 0.35. All ten copies must stay identical
+			# apart from N (check_bc_efficiency_ladder).
 			widget = {
 				size = { 1 1 }
 
@@ -176,52 +252,105 @@ types map_list_panel_types {
 
 							state = {
 								name = bc_build_1
-								on_start = "[MapListOption.OnClick]"
+								on_start = "[PdxGuiWidget.FindChild('bc_gate').TriggerAnimation(Select_CString(Or(Not(GetVariableSystem.Exists('bc_eff_on')), GreaterThanOrEqualTo_CFixedPoint(MapListOption.GetBuildingData.GetState.GetConstructionEfficiencyForBuildingType(MapListOption.GetBuildingData.GetBuilding.GetBuildingType), Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '5'), '(CFixedPoint)0.05', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '15'), '(CFixedPoint)0.15', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '25'), '(CFixedPoint)0.25', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '45'), '(CFixedPoint)0.45', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '55'), '(CFixedPoint)0.55', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '65'), '(CFixedPoint)0.65', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '75'), '(CFixedPoint)0.75', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '85'), '(CFixedPoint)0.85', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '95'), '(CFixedPoint)0.95', '(CFixedPoint)0.35'))))))))))), 'bc_do_1', 'bc_skip'))]"
 							}
 
 							state = {
 								name = bc_build_2
-								on_start = "[MapListOption.OnClick]"
+								on_start = "[PdxGuiWidget.FindChild('bc_gate').TriggerAnimation(Select_CString(Or(Not(GetVariableSystem.Exists('bc_eff_on')), GreaterThanOrEqualTo_CFixedPoint(MapListOption.GetBuildingData.GetState.GetConstructionEfficiencyForBuildingType(MapListOption.GetBuildingData.GetBuilding.GetBuildingType), Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '5'), '(CFixedPoint)0.05', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '15'), '(CFixedPoint)0.15', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '25'), '(CFixedPoint)0.25', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '45'), '(CFixedPoint)0.45', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '55'), '(CFixedPoint)0.55', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '65'), '(CFixedPoint)0.65', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '75'), '(CFixedPoint)0.75', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '85'), '(CFixedPoint)0.85', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '95'), '(CFixedPoint)0.95', '(CFixedPoint)0.35'))))))))))), 'bc_do_2', 'bc_skip'))]"
 							}
 
 							state = {
 								name = bc_build_3
-								on_start = "[MapListOption.OnClick]"
+								on_start = "[PdxGuiWidget.FindChild('bc_gate').TriggerAnimation(Select_CString(Or(Not(GetVariableSystem.Exists('bc_eff_on')), GreaterThanOrEqualTo_CFixedPoint(MapListOption.GetBuildingData.GetState.GetConstructionEfficiencyForBuildingType(MapListOption.GetBuildingData.GetBuilding.GetBuildingType), Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '5'), '(CFixedPoint)0.05', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '15'), '(CFixedPoint)0.15', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '25'), '(CFixedPoint)0.25', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '45'), '(CFixedPoint)0.45', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '55'), '(CFixedPoint)0.55', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '65'), '(CFixedPoint)0.65', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '75'), '(CFixedPoint)0.75', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '85'), '(CFixedPoint)0.85', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '95'), '(CFixedPoint)0.95', '(CFixedPoint)0.35'))))))))))), 'bc_do_3', 'bc_skip'))]"
 							}
 
 							state = {
 								name = bc_build_4
-								on_start = "[MapListOption.OnClick]"
+								on_start = "[PdxGuiWidget.FindChild('bc_gate').TriggerAnimation(Select_CString(Or(Not(GetVariableSystem.Exists('bc_eff_on')), GreaterThanOrEqualTo_CFixedPoint(MapListOption.GetBuildingData.GetState.GetConstructionEfficiencyForBuildingType(MapListOption.GetBuildingData.GetBuilding.GetBuildingType), Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '5'), '(CFixedPoint)0.05', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '15'), '(CFixedPoint)0.15', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '25'), '(CFixedPoint)0.25', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '45'), '(CFixedPoint)0.45', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '55'), '(CFixedPoint)0.55', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '65'), '(CFixedPoint)0.65', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '75'), '(CFixedPoint)0.75', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '85'), '(CFixedPoint)0.85', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '95'), '(CFixedPoint)0.95', '(CFixedPoint)0.35'))))))))))), 'bc_do_4', 'bc_skip'))]"
 							}
 
 							state = {
 								name = bc_build_5
-								on_start = "[MapListOption.OnClick]"
+								on_start = "[PdxGuiWidget.FindChild('bc_gate').TriggerAnimation(Select_CString(Or(Not(GetVariableSystem.Exists('bc_eff_on')), GreaterThanOrEqualTo_CFixedPoint(MapListOption.GetBuildingData.GetState.GetConstructionEfficiencyForBuildingType(MapListOption.GetBuildingData.GetBuilding.GetBuildingType), Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '5'), '(CFixedPoint)0.05', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '15'), '(CFixedPoint)0.15', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '25'), '(CFixedPoint)0.25', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '45'), '(CFixedPoint)0.45', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '55'), '(CFixedPoint)0.55', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '65'), '(CFixedPoint)0.65', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '75'), '(CFixedPoint)0.75', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '85'), '(CFixedPoint)0.85', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '95'), '(CFixedPoint)0.95', '(CFixedPoint)0.35'))))))))))), 'bc_do_5', 'bc_skip'))]"
 							}
 
 							state = {
 								name = bc_build_6
-								on_start = "[MapListOption.OnClick]"
+								on_start = "[PdxGuiWidget.FindChild('bc_gate').TriggerAnimation(Select_CString(Or(Not(GetVariableSystem.Exists('bc_eff_on')), GreaterThanOrEqualTo_CFixedPoint(MapListOption.GetBuildingData.GetState.GetConstructionEfficiencyForBuildingType(MapListOption.GetBuildingData.GetBuilding.GetBuildingType), Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '5'), '(CFixedPoint)0.05', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '15'), '(CFixedPoint)0.15', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '25'), '(CFixedPoint)0.25', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '45'), '(CFixedPoint)0.45', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '55'), '(CFixedPoint)0.55', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '65'), '(CFixedPoint)0.65', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '75'), '(CFixedPoint)0.75', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '85'), '(CFixedPoint)0.85', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '95'), '(CFixedPoint)0.95', '(CFixedPoint)0.35'))))))))))), 'bc_do_6', 'bc_skip'))]"
 							}
 
 							state = {
 								name = bc_build_7
-								on_start = "[MapListOption.OnClick]"
+								on_start = "[PdxGuiWidget.FindChild('bc_gate').TriggerAnimation(Select_CString(Or(Not(GetVariableSystem.Exists('bc_eff_on')), GreaterThanOrEqualTo_CFixedPoint(MapListOption.GetBuildingData.GetState.GetConstructionEfficiencyForBuildingType(MapListOption.GetBuildingData.GetBuilding.GetBuildingType), Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '5'), '(CFixedPoint)0.05', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '15'), '(CFixedPoint)0.15', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '25'), '(CFixedPoint)0.25', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '45'), '(CFixedPoint)0.45', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '55'), '(CFixedPoint)0.55', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '65'), '(CFixedPoint)0.65', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '75'), '(CFixedPoint)0.75', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '85'), '(CFixedPoint)0.85', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '95'), '(CFixedPoint)0.95', '(CFixedPoint)0.35'))))))))))), 'bc_do_7', 'bc_skip'))]"
 							}
 
 							state = {
 								name = bc_build_8
-								on_start = "[MapListOption.OnClick]"
+								on_start = "[PdxGuiWidget.FindChild('bc_gate').TriggerAnimation(Select_CString(Or(Not(GetVariableSystem.Exists('bc_eff_on')), GreaterThanOrEqualTo_CFixedPoint(MapListOption.GetBuildingData.GetState.GetConstructionEfficiencyForBuildingType(MapListOption.GetBuildingData.GetBuilding.GetBuildingType), Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '5'), '(CFixedPoint)0.05', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '15'), '(CFixedPoint)0.15', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '25'), '(CFixedPoint)0.25', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '45'), '(CFixedPoint)0.45', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '55'), '(CFixedPoint)0.55', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '65'), '(CFixedPoint)0.65', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '75'), '(CFixedPoint)0.75', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '85'), '(CFixedPoint)0.85', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '95'), '(CFixedPoint)0.95', '(CFixedPoint)0.35'))))))))))), 'bc_do_8', 'bc_skip'))]"
 							}
 
 							state = {
 								name = bc_build_9
-								on_start = "[MapListOption.OnClick]"
+								on_start = "[PdxGuiWidget.FindChild('bc_gate').TriggerAnimation(Select_CString(Or(Not(GetVariableSystem.Exists('bc_eff_on')), GreaterThanOrEqualTo_CFixedPoint(MapListOption.GetBuildingData.GetState.GetConstructionEfficiencyForBuildingType(MapListOption.GetBuildingData.GetBuilding.GetBuildingType), Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '5'), '(CFixedPoint)0.05', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '15'), '(CFixedPoint)0.15', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '25'), '(CFixedPoint)0.25', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '45'), '(CFixedPoint)0.45', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '55'), '(CFixedPoint)0.55', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '65'), '(CFixedPoint)0.65', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '75'), '(CFixedPoint)0.75', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '85'), '(CFixedPoint)0.85', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '95'), '(CFixedPoint)0.95', '(CFixedPoint)0.35'))))))))))), 'bc_do_9', 'bc_skip'))]"
 							}
 
 							state = {
 								name = bc_build_10
-								on_start = "[MapListOption.OnClick]"
+								on_start = "[PdxGuiWidget.FindChild('bc_gate').TriggerAnimation(Select_CString(Or(Not(GetVariableSystem.Exists('bc_eff_on')), GreaterThanOrEqualTo_CFixedPoint(MapListOption.GetBuildingData.GetState.GetConstructionEfficiencyForBuildingType(MapListOption.GetBuildingData.GetBuilding.GetBuildingType), Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '5'), '(CFixedPoint)0.05', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '15'), '(CFixedPoint)0.15', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '25'), '(CFixedPoint)0.25', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '45'), '(CFixedPoint)0.45', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '55'), '(CFixedPoint)0.55', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '65'), '(CFixedPoint)0.65', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '75'), '(CFixedPoint)0.75', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '85'), '(CFixedPoint)0.85', Select_CFixedPoint(GetVariableSystem.HasValue('bc_eff', '95'), '(CFixedPoint)0.95', '(CFixedPoint)0.35'))))))))))), 'bc_do_10', 'bc_skip'))]"
+							}
+
+							# The gate: one OnClick state per level, plus a no-op.
+							# Ten distinct names rather than one, so that ten
+							# levels triggered in one press are ten triggers and
+							# never one animation restarted.
+							widget = {
+								name = "bc_gate"
+								size = { 1 1 }
+
+								state = {
+									name = bc_skip
+								}
+								state = {
+									name = bc_do_1
+									on_start = "[MapListOption.OnClick]"
+								}
+								state = {
+									name = bc_do_2
+									on_start = "[MapListOption.OnClick]"
+								}
+								state = {
+									name = bc_do_3
+									on_start = "[MapListOption.OnClick]"
+								}
+								state = {
+									name = bc_do_4
+									on_start = "[MapListOption.OnClick]"
+								}
+								state = {
+									name = bc_do_5
+									on_start = "[MapListOption.OnClick]"
+								}
+								state = {
+									name = bc_do_6
+									on_start = "[MapListOption.OnClick]"
+								}
+								state = {
+									name = bc_do_7
+									on_start = "[MapListOption.OnClick]"
+								}
+								state = {
+									name = bc_do_8
+									on_start = "[MapListOption.OnClick]"
+								}
+								state = {
+									name = bc_do_9
+									on_start = "[MapListOption.OnClick]"
+								}
+								state = {
+									name = bc_do_10
+									on_start = "[MapListOption.OnClick]"
+								}
 							}
 						}
 					}

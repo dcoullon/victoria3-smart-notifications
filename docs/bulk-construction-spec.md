@@ -258,6 +258,8 @@ All verified by the user in a live game, against a real construction queue.
 
 - Any new filter of our own (the "Incorporated only" toggle, a nice-to-have) —
   the panel's existing Location filter comes for free, ours would not.
+  **Superseded 2026-11-12 by §5a** (the efficiency filter), once the
+  computed-name trigger made a per-row condition possible.
 - **A "Max" level option.** Deferred 2026-09-16 by the user: wait until the
   mod has been used in a real game and players have asked for it after public
   launch, rather than guess at the right ceiling now. There is also no GUI
@@ -267,6 +269,61 @@ All verified by the user in a live game, against a real construction queue.
   exists, but the GUI-native route inherits whatever funding the row's **+**
   uses, which is the correct default).
 - Touching Smart Notifications in any way.
+
+## 5a. Efficiency filter and queue cap (built 2026-11-12, not yet run in game)
+
+Asked for on the Workshop page by the same player twice: a 1 Nov crash from
+spamming the 10-level button with an auto-clicker, and on 12 Nov, Build All
+queueing in freshly conquered states at 5% construction efficiency.
+
+**What changed since §4 said a per-row condition had no form.** Smart
+Treaties found one (engine-notes § GUI expressions run every frame, "Branches
+must be separate states"): a state triggers a child state whose name is
+computed, `PdxGuiWidget.FindChild('x').TriggerAnimation(Select_CString(cond,
+'go', 'skip'))`. Each row's `bc_build_N` now does that, into `bc_do_N` (which
+calls `OnClick`) or `bc_skip` (which does nothing). The no-cheat property is
+untouched: we click fewer rows, never different ones.
+
+**The filter.** A tickbox plus a stepper, 5% to 95% in 10% steps, default 35%
+(user decisions 2026-11-12). Unticked, it has no effect. It compares the
+row's own figure, `State.GetConstructionEfficiencyForBuildingType`, which is
+the percentage vanilla prints on that row (`gui/map_list_panel.gui:1753`).
+Efficiency is a state value plus building-group modifiers (unincorporated is
+-50% for heavy industry, -20% for extraction), so the plain state figure would
+disagree with the number on screen. It does not change as levels are queued,
+so every level of one press gets the same verdict. No arithmetic exists in
+the variable system, so the stepper walks a fixed ladder of strings and the
+comparison maps the string back through a `Select_CFixedPoint` chain.
+
+**The cap.** The build buttons are disabled at 10,000 or more government
+constructions (`GetPlayer.GetNumGovernmentConstructionsInQueue`), with a
+tooltip line saying why. 10,000 is arbitrary by the user's call: no published
+late-game queue sizes exist, and one press can overshoot it by up to one
+press (about 2,000 entries at 200 states x 10 levels), which is accepted. A
+cooldown was considered for the auto-clicker case and dropped: it hurts every
+player for a once-reported edge case. Whether the 1 Nov crash came from queue
+length at all is unknown.
+
+**Not done:** the button count still reads "up to M" unfiltered (the GUI
+cannot count a filtered datamodel, §4.4); rows below the threshold are not
+marked in the list (it would re-run the comparison on every row every frame);
+the setting resets when the game restarts (the variable system is not saved).
+
+### Acceptance criteria
+
+1. **Unticked, nothing changes.** A 1-level press queues exactly what it did
+   before: one level in every clickable listed state.
+2. **Ticked at 35%, low-efficiency rows are skipped.** When a listed row
+   shows below 35%, no level is queued there; every row at or above 35% gets
+   its level, as before.
+3. **The stepper moves 10% per click and stops at the ends.** `-` from 35%
+   gives 25%; `+` gives 45%; `-` is disabled at 5% and `+` at 95%; both are
+   disabled while the box is unticked.
+4. **A 5-level press still interleaves** level-by-level across states (§4.2)
+   with the filter ticked.
+5. **At 10,000+ government constructions the build button is disabled** and
+   its tooltip says why; below that it is enabled.
+6. Zero `error.log` lines attributable to this mod.
 
 ## 6. Naming and distribution
 

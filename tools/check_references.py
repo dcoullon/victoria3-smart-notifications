@@ -1929,6 +1929,123 @@ def check_bc_button_labels_fit(root: Path) -> list[str]:
     return errs
 
 
+# Build All's efficiency filter (docs/bulk-construction-spec.md section 5a).
+# The ladder lives in three places that nothing in the engine ties together:
+# the -/+ onclick chains, the per-row threshold chain (x10), and the "unset
+# means 35" default. A drift between them builds in the wrong states or walks
+# the stepper off the ladder, silently.
+BC_EFF_LADDER = [5, 15, 25, 35, 45, 55, 65, 75, 85, 95]
+BC_EFF_DEFAULT = 35
+BC_QUEUE_CAP = 10000
+# The label shares a 500px row with a 24px tickbox, two 28px buttons and a
+# 44px value: about 350px left, ~46 columns at the build button's measured
+# 7.5px per column. 40 leaves headroom, like BC_BUTTON_MAX_COLS does.
+BC_EFF_LABEL_MAX_COLS = 40
+
+
+def _bc_select_chain(expr: str) -> tuple[dict, str]:
+    """Pairs of HasValue('bc_eff', X) -> Y in a nested Select chain, and the
+    final fallback (the value used when bc_eff is unset or unmatched)."""
+    pairs = dict(re.findall(r"HasValue\('bc_eff', '(\d+)'\), '([\d.()A-Za-z]+)'", expr))
+    tail = re.search(r"'([^']+)'\)+\]?\s*$", expr.strip().rstrip('"'))
+    return pairs, (tail.group(1) if tail else "")
+
+
+def check_bc_efficiency_ladder(root: Path) -> list[str]:
+    """Build All's stepper, row filter and queue cap agree with each other.
+
+    - `+` walks the ladder up one step, stops at the top, and from unset
+      (= the default) goes to the step above the default; `-` likewise down.
+    - All ten row workers carry the identical filter apart from their level,
+      route bc_build_N to bc_do_N, and the gate has bc_do_1..10 (each one
+      OnClick) plus a no-op bc_skip.
+    - Each row's threshold chain maps every ladder step except the default
+      to its fraction, and falls back to the default's fraction.
+    - Every build button is capped at BC_QUEUE_CAP, and the tooltip's cap
+      line is conditioned on the same number."""
+    path = root / "gui" / "00_bulk_construction_map_list.gui"
+    if not path.is_file():
+        return []
+    text, errs = _read(path), []
+    rel = path.relative_to(root).as_posix()
+    lad = [str(v) for v in BC_EFF_LADDER]
+    dflt = str(BC_EFF_DEFAULT)
+
+    # Stepper buttons.
+    for sign, raw in (("+", 'raw_text = "+"'), ("-", 'raw_text = "-"')):
+        i = text.find(raw)
+        m = re.search(r'onclick = "(\[GetVariableSystem\.Set\(\'bc_eff\'.*\])"', text[i:i + 3000]) if i >= 0 else None
+        if not m:
+            errs.append(f"{rel}: the efficiency stepper's '{sign}' button or its onclick is missing")
+            continue
+        pairs, fallback = _bc_select_chain(m.group(1))
+        k = lad.index(dflt)
+        want_fallback = lad[min(k + 1, len(lad) - 1)] if sign == "+" else lad[max(k - 1, 0)]
+        if fallback != want_fallback:
+            errs.append(f"{rel}: '{sign}' from the unset default ({dflt}) goes to {fallback!r}, "
+                        f"expected {want_fallback!r}")
+        for j, v in enumerate(lad):
+            nxt = lad[min(j + 1, len(lad) - 1)] if sign == "+" else lad[max(j - 1, 0)]
+            got = pairs.get(v, fallback)
+            if got != nxt:
+                errs.append(f"{rel}: '{sign}' from {v} goes to {got!r}, expected {nxt!r}")
+
+    # Row workers.
+    starts = re.findall(r"name = bc_build_(\d+)\s*\n\s*on_start = \"(.*)\"", text)
+    if sorted(int(n) for n, _ in starts) != list(range(1, 11)):
+        errs.append(f"{rel}: expected row states bc_build_1..10, found {[n for n, _ in starts]}")
+    bodies = set()
+    for n, body in starts:
+        if f"'bc_do_{n}', 'bc_skip'" not in body:
+            errs.append(f"{rel}: bc_build_{n} does not route to bc_do_{n} / bc_skip")
+        bodies.add(body.replace(f"'bc_do_{n}'", "'bc_do_N'"))
+        if "MapListOption.OnClick" in body:
+            errs.append(f"{rel}: bc_build_{n} calls OnClick directly, bypassing the efficiency filter")
+    if len(bodies) > 1:
+        errs.append(f"{rel}: the ten bc_build_N filters differ beyond their level number")
+    if starts:
+        pairs, fallback = _bc_select_chain(starts[0][1].split(", 'bc_do_")[0] + "]")
+        want = {v: f"(CFixedPoint){int(v) / 100:.2f}" for v in lad if v != dflt}
+        if pairs != want:
+            errs.append(f"{rel}: the row threshold chain maps {pairs}, expected {want}")
+        if fallback != f"(CFixedPoint){BC_EFF_DEFAULT / 100:.2f}":
+            errs.append(f"{rel}: the row threshold falls back to {fallback!r}, expected the "
+                        f"default {BC_EFF_DEFAULT}%")
+    gate = re.search(r'name = "bc_gate"(.*?)\n\t{7}\}', text, re.S)
+    if not gate:
+        errs.append(f"{rel}: the row gate widget `bc_gate` is missing")
+    else:
+        g = gate.group(1)
+        for n in range(1, 11):
+            if not re.search(rf"name = bc_do_{n}\s*\n\s*on_start = \"\[MapListOption\.OnClick\]\"", g):
+                errs.append(f"{rel}: bc_gate has no bc_do_{n} state calling OnClick")
+        if not re.search(r"name = bc_skip\s*\n\s*\}", g):
+            errs.append(f"{rel}: bc_gate has no no-op bc_skip state")
+
+    # Queue cap.
+    cap = f"LessThan_int32(GetPlayer.GetNumGovernmentConstructionsInQueue, '(int32){BC_QUEUE_CAP}')"
+    buttons = re.findall(r'text = "BC_BUILD_BUTTON_\d+"', text)
+    if text.count(cap) != len(buttons) or not buttons:
+        errs.append(f"{rel}: {text.count(cap)} of {len(buttons)} build buttons carry the "
+                    f"{BC_QUEUE_CAP} queue cap")
+    loc = root / "localization"
+    tip_cap = f"GreaterThanOrEqualTo_int32(GetPlayer.GetNumGovernmentConstructionsInQueue, '(int32){BC_QUEUE_CAP}')"
+    for p in sorted(loc.rglob("*.yml")) if loc.is_dir() else []:
+        for n, line in enumerate(_read(p).split(chr(10)), 1):
+            m = re.match(r'\s*(BC_BUILD_TOOLTIP_\d+|BC_EFF_LABEL):\d*\s*"(.*)"\s*$', line)
+            if not m:
+                continue
+            if m.group(1) == "BC_EFF_LABEL":
+                cols = sum(2 if unicodedata.east_asian_width(c) in ("W", "F") else 1 for c in m.group(2))
+                if cols > BC_EFF_LABEL_MAX_COLS:
+                    errs.append(f"{p.relative_to(root).as_posix()}:{n}: BC_EFF_LABEL is {cols} display "
+                                f"columns, over the {BC_EFF_LABEL_MAX_COLS} that fit beside the stepper")
+            elif tip_cap not in m.group(2) or "'BC_TOOLTIP_EFF'" not in m.group(2):
+                errs.append(f"{p.relative_to(root).as_posix()}:{n}: {m.group(1)} lacks the efficiency "
+                            f"or {BC_QUEUE_CAP} queue-cap tooltip line")
+    return errs
+
+
 ST_BUTTON_MAX_COLS = 8   # the 58px Best/Max button at fontsize_small
 
 
@@ -2129,6 +2246,7 @@ def run_all(root: Path) -> list[str]:
         errs += check_bc_loc_has_no_nested_arithmetic(root)
         errs += check_bc_loc_has_no_bracket_decoration(root)
         errs += check_bc_button_labels_fit(root)
+        errs += check_bc_efficiency_ladder(root)
 
     # Smart Trade: display only, so the same structural no-cheat rule applies.
     if read_mod_id(root) == SMART_TRADE_ID:
