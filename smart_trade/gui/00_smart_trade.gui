@@ -836,7 +836,7 @@ types pinnable_outliner_items {
 
 types article_input_types {
 	# Vanilla article_input_goods_list, copied verbatim at generation time from
-	# gui/right_click_menu.gui:10298-10620, with Smart Trade insertions.
+	# gui/right_click_menu.gui:10489-10811, with Smart Trade insertions.
 	type article_input_goods_list = dynamicgridbox {
 		datamodel_wrap = 4
 		flipdirection = yes
@@ -1357,7 +1357,7 @@ onclick = "[ArticleDraft.SetQuantity(Select_CFixedPoint(And(And(ArticleDraft.Has
 	}
 
 	# Vanilla selected_goods_and_amount, copied verbatim at generation time from
-	# gui/right_click_menu.gui:12238-12512, with Smart Trade insertions.
+	# gui/right_click_menu.gui:12429-12703, with Smart Trade insertions.
 	type selected_goods_and_amount = widget {
 		parentanchor = hcenter
 		size = { 400 74 }  # SMART TRADE: was 70; our button row, tightened (see generator)

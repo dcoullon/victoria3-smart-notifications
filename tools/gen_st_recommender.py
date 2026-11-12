@@ -500,9 +500,14 @@ st_rec_refresh_sgui = {
 
 # ---------------------------------------------------------------------------
 # GUI: vanilla's market_panel type, copied from the installed game with one
-# insertion after the Trade tab's trade-capacity line.
+# insertion: the last child of the Trade tab's trade-capacity section.
+# 1.15.1 replaced the per-country line (MARKET_COUNTRY_TRADE_CAPACITY) with a
+# market-wide box (MARKET_TRADE_CAPACITY) and a world-market-hub variant, both
+# in one flowcontainer shown on the world_market_trade tab; the block goes at
+# the end of that flowcontainer, under whichever box is showing.
 # ---------------------------------------------------------------------------
-GUI_ANCHOR = 'text = "MARKET_COUNTRY_TRADE_CAPACITY"'
+GUI_ANCHOR = 'text = "MARKET_TRADE_CAPACITY"'
+GUI_SECTION = "visible = \"[InformationPanel.IsTabSelected('world_market_trade')]\""
 
 GUI_BLOCK = """
 					### Smart Treaties: suggested goods transfers (tools/gen_st_recommender.py)
@@ -571,22 +576,28 @@ def gui():
     consts = "\n".join(l for l in src.splitlines() if l.startswith("@"))
     body, line = extract_type(src, "market_panel")
     a = body.index(GUI_ANCHOR)
-    # end of the textbox holding the anchor: the first closing brace at its depth
-    start = body.index("{", body.rindex("textbox = {", 0, a))
+    # the Trade tab section holding the anchor: the nearest flowcontainer
+    # before it that is gated on the world_market_trade tab
+    s = body.rindex(GUI_SECTION, 0, a)
+    start = body.rindex("flowcontainer = {", 0, s) + len("flowcontainer = ")
+    assert body[start:s].count("{") == 1, "trade section moved"
     depth = 0
     for j in range(start, len(body)):
         depth += body[j] == "{"
         depth -= body[j] == "}"
         if depth == 0:
-            end = j + 1
+            end = j
             break
+    assert end > a, "anchor outside the trade section"
+    # insert before the line holding the section's closing brace
+    k = body.rindex("\n", 0, end)
     rows = "\n".join(GUI_ROW.replace("@@N@@", str(n)) for n in range(1, SLOTS + 1))
     block = GUI_BLOCK.replace("@@ROWS@@", rows)
-    forked = body[:end] + "\n" + block + body[end:]
+    forked = body[:k] + "\n" + block.rstrip("\n") + body[k:]
     return HEADER + f"""#
 # Redefines vanilla's market_panel type (gui/market_panel.gui:{line}), copied
 # verbatim from the installed game at generation time with one insertion: the
-# suggested goods transfers under the Trade tab's trade capacity line. THE
+# suggested goods transfers under the Trade tab's trade capacity box. THE
 # FILENAME IS LOAD-BEARING: `00_` sorts before vanilla, and the engine keeps
 # the first definition it reads (engine-notes.md, "A partial .gui override
 # works"). A patch that changes the type makes --check fail until regenerated.

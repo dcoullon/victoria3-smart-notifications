@@ -211,7 +211,9 @@ already answers "what should I send to this country".
 writes the script (values, trigger, scan effect with one block per good, the
 monthly hook, the refresh button's scripted GUI) and forks vanilla's
 `market_panel` type into `gui/00_smart_trade_market.gui` with the block under
-the trade capacity line. Changes from the spec above, all Damien's
+the trade capacity line (since 1.15.1, which replaced the country's trade
+capacity line with a market-wide box: at the end of the Trade tab's capacity
+section, under that box or the selected hub's). Changes from the spec above, all Damien's
 (2026-11-10): acceptance is not computed (partners only need to be at peace
 with the player); everything vanilla's goods_transfer article requires is
 checked (reachable market, ports or touching markets, supply network, customs
