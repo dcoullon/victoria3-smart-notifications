@@ -270,7 +270,7 @@ All verified by the user in a live game, against a real construction queue.
   uses, which is the correct default).
 - Touching Smart Notifications in any way.
 
-## 5a. Efficiency filter and queue cap (built 2026-11-12, not yet run in game)
+## 5a. Efficiency filter, queue cap, own section (built 2026-11-12, one run so far)
 
 Asked for on the Workshop page by the same player twice: a 1 Nov crash from
 spamming the 10-level button with an auto-clicker, and on 12 Nov, Build All
@@ -284,16 +284,42 @@ computed, `PdxGuiWidget.FindChild('x').TriggerAnimation(Select_CString(cond,
 calls `OnClick`) or `bc_skip` (which does nothing). The no-cheat property is
 untouched: we click fewer rows, never different ones.
 
-**The filter.** A tickbox plus a stepper, 5% to 95% in 10% steps, default 35%
-(user decisions 2026-11-12). Unticked, it has no effect. It compares the
-row's own figure, `State.GetConstructionEfficiencyForBuildingType`, which is
-the percentage vanilla prints on that row (`gui/map_list_panel.gui:1753`).
-Efficiency is a state value plus building-group modifiers (unincorporated is
--50% for heavy industry, -20% for extraction), so the plain state figure would
-disagree with the number on screen. It does not change as levels are queued,
-so every level of one press gets the same verdict. No arithmetic exists in
-the variable system, so the stepper walks a fixed ladder of strings and the
-comparison maps the string back through a `Select_CFixedPoint` chain.
+**The filter.** A tickbox plus a stepper, 10% to 100% in 10% steps, default
+70% (user decisions 2026-11-12; first built as 5-95% with 35% default, changed
+after the first run because a non-round default read oddly). Unticked, it has
+no effect. It compares `State.GetConstructionEfficiencyForBuildingType`:
+a state value plus building-group modifiers (unincorporated is -50% for heavy
+industry, -20% for extraction), so it is the figure that applies to this
+building. It does not change as levels are queued, so every level of one
+press gets the same verdict. No arithmetic exists in the variable system, so
+the stepper walks a fixed ladder of strings and the comparison maps the
+string back through a `Select_CFixedPoint` chain.
+
+**That value is a signed modifier, not a multiplier.** 0 is normal, -0.30 a
+30% penalty, -0.95 the floor (`MIN_CONSTRUCTION_EFFICIENCY = 0.05`). Vanilla
+compares it to 0 and prints it as "-30% Construction Efficiency"
+(`gui/construction_queue.gui:462`). The first build compared it to 0.35 and
+so skipped every row: ticked, nothing was queued (playtest 2026-11-12, Power
+Plants and Sugar Plantations). The player's "70%" is effective efficiency, so
+step T maps to the modifier T-1: 70% keeps states with at most a 30% penalty.
+The build list does not print this figure on its rows (the one vanilla
+binding, `map_list_panel.gui:1753`, is for military buildings only), so the
+tooltip translates: "70% means at most a 30% penalty: the game shows that as
+-30% Construction Efficiency".
+
+**Placement (user decision 2026-11-12).** The controls sit in their own
+collapsible "Build All" section under vanilla's Filters, built from the same
+`section_header_button`, collapsed by default and remembered for the session.
+The header names the mod once and its right side summarises the settings
+("Levels: 1, min. 70%"); the labels underneath carry no "(Build All)" tag.
+This replaces the always-visible rows of 0.01-0.05: Build All is not the most
+frequent action when building, and the tag repeated on every label read as
+noise.
+
+**error.log noise.** A triggered state with no property logs "Animation
+triggered has no valid state properties or sound effects" once per row per
+level: 580 lines in the first run. Every row-worker state now carries
+`duration = 0  alpha = 1`, a no-op on a 1x1 widget.
 
 **The cap.** The build buttons are disabled at 10,000 or more government
 constructions (`GetPlayer.GetNumGovernmentConstructionsInQueue`), with a
@@ -311,13 +337,17 @@ the setting resets when the game restarts (the variable system is not saved).
 
 ### Acceptance criteria
 
+0. **The section starts collapsed** with a "Build All" header under Filters;
+   clicking it shows the controls, clicking again hides them. No label below
+   the header says "(Build All)".
 1. **Unticked, nothing changes.** A 1-level press queues exactly what it did
-   before: one level in every clickable listed state.
-2. **Ticked at 35%, low-efficiency rows are skipped.** When a listed row
-   shows below 35%, no level is queued there; every row at or above 35% gets
-   its level, as before.
-3. **The stepper moves 10% per click and stops at the ends.** `-` from 35%
-   gives 25%; `+` gives 45%; `-` is disabled at 5% and `+` at 95%; both are
+   before: one level in every clickable listed state. *Confirmed 2026-11-12.*
+2. **Ticked at 70%, penalised rows are skipped.** A state whose construction
+   efficiency for this building is worse than -30% gets no level; every other
+   state gets its level, as before. *First build failed this (nothing queued,
+   wrong scale); fixed, not yet re-run.*
+3. **The stepper moves 10% per click and stops at the ends.** `-` from 70%
+   gives 60%; `+` gives 80%; `-` is disabled at 10% and `+` at 100%; both are
    disabled while the box is unticked.
 4. **A 5-level press still interleaves** level-by-level across states (§4.2)
    with the filter ticked.
@@ -360,6 +390,9 @@ Remaining distribution work:
 - **Mod tag: `(Build All) `**, decided 2026-09-16, on the stepper label and on
   the build button — the two labels this mod adds to a vanilla panel. Not
   `(SN) `, which belongs to Smart Notifications (CLAUDE.md §3).
+  **Superseded 2026-11-12:** the controls now sit under one "Build All"
+  section header (§5a), which names the mod once; the labels inside are
+  untagged.
   **Parentheses, never square brackets.** `[Build All]` was the first
   proposal, and a literal `[...]` in loc is always parsed as a dynamic-text
   call with no escape available — it would have rendered the button blank,

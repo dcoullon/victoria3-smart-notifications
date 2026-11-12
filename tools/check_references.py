@@ -1934,8 +1934,12 @@ def check_bc_button_labels_fit(root: Path) -> list[str]:
 # the -/+ onclick chains, the per-row threshold chain (x10), and the "unset
 # means 35" default. A drift between them builds in the wrong states or walks
 # the stepper off the ladder, silently.
-BC_EFF_LADDER = [5, 15, 25, 35, 45, 55, 65, 75, 85, 95]
-BC_EFF_DEFAULT = 35
+# Ladder steps are EFFECTIVE efficiency in percent; the engine value they are
+# compared to is the signed modifier (0 normal, -0.30 = 30% penalty), so step
+# T maps to (T - 100) / 100. Comparing to T/100 skipped every row (playtest
+# 2026-11-12).
+BC_EFF_LADDER = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+BC_EFF_DEFAULT = 70
 BC_QUEUE_CAP = 10000
 # The label shares a 500px row with a 24px tickbox, two 28px buttons and a
 # 44px value: about 350px left, ~46 columns at the build button's measured
@@ -1946,7 +1950,7 @@ BC_EFF_LABEL_MAX_COLS = 40
 def _bc_select_chain(expr: str) -> tuple[dict, str]:
     """Pairs of HasValue('bc_eff', X) -> Y in a nested Select chain, and the
     final fallback (the value used when bc_eff is unset or unmatched)."""
-    pairs = dict(re.findall(r"HasValue\('bc_eff', '(\d+)'\), '([\d.()A-Za-z]+)'", expr))
+    pairs = dict(re.findall(r"HasValue\('bc_eff', '(\d+)'\), '([-\d.()A-Za-z]+)'", expr))
     tail = re.search(r"'([^']+)'\)+\]?\s*$", expr.strip().rstrip('"'))
     return pairs, (tail.group(1) if tail else "")
 
@@ -2003,14 +2007,25 @@ def check_bc_efficiency_ladder(root: Path) -> list[str]:
             errs.append(f"{rel}: bc_build_{n} calls OnClick directly, bypassing the efficiency filter")
     if len(bodies) > 1:
         errs.append(f"{rel}: the ten bc_build_N filters differ beyond their level number")
+    def _mod(step: int) -> str:
+        return "(CFixedPoint)0" if step == 100 else f"(CFixedPoint){(step - 100) / 100:.2f}"
     if starts:
         pairs, fallback = _bc_select_chain(starts[0][1].split(", 'bc_do_")[0] + "]")
-        want = {v: f"(CFixedPoint){int(v) / 100:.2f}" for v in lad if v != dflt}
+        want = {v: _mod(int(v)) for v in lad if v != dflt}
         if pairs != want:
-            errs.append(f"{rel}: the row threshold chain maps {pairs}, expected {want}")
-        if fallback != f"(CFixedPoint){BC_EFF_DEFAULT / 100:.2f}":
+            errs.append(f"{rel}: the row threshold chain maps {pairs}, expected {want} "
+                        f"(step T is the signed modifier T-1, not T)")
+        if fallback != _mod(BC_EFF_DEFAULT):
             errs.append(f"{rel}: the row threshold falls back to {fallback!r}, expected the "
-                        f"default {BC_EFF_DEFAULT}%")
+                        f"default {BC_EFF_DEFAULT}% as {_mod(BC_EFF_DEFAULT)!r}")
+    # A triggered state with no property logs "Animation triggered has no
+    # valid state properties" once per row per level (580 error.log lines in
+    # the 2026-11-12 playtest). 10 bc_build + 10 bc_do + bc_skip.
+    props = len(re.findall(r"name = bc_(?:build|do)_\d+\s*\n[^}]*?duration = 0\s*\n\s*alpha = 1", text)) \
+        + len(re.findall(r"name = bc_skip\s*\n\s*duration = 0\s*\n\s*alpha = 1", text))
+    if props != 21:
+        errs.append(f"{rel}: {props} of 21 row-worker states carry `duration = 0  alpha = 1`; "
+                    f"a bare triggered state spams error.log")
     gate = re.search(r'name = "bc_gate"(.*?)\n\t{7}\}', text, re.S)
     if not gate:
         errs.append(f"{rel}: the row gate widget `bc_gate` is missing")
@@ -2019,7 +2034,7 @@ def check_bc_efficiency_ladder(root: Path) -> list[str]:
         for n in range(1, 11):
             if not re.search(rf"name = bc_do_{n}\s*\n\s*on_start = \"\[MapListOption\.OnClick\]\"", g):
                 errs.append(f"{rel}: bc_gate has no bc_do_{n} state calling OnClick")
-        if not re.search(r"name = bc_skip\s*\n\s*\}", g):
+        if not re.search(r"name = bc_skip\s*\n(\s*(?:duration|alpha) = [\d.]+\s*\n)*\s*\}", g):
             errs.append(f"{rel}: bc_gate has no no-op bc_skip state")
 
     # Queue cap.

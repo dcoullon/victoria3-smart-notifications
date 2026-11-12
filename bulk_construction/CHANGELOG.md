@@ -14,16 +14,23 @@ and doc-only changes get a commit but no bump.
 
 ## [Unreleased]
 
-Built, not yet run in game. Version bump once confirmed.
+Partly run in game. Version bump once confirmed.
 
 ### Added
 
-- **Minimum efficiency filter.** Tick the new box under the level buttons and
-  Build All skips every state whose construction efficiency for that building
-  is below the threshold (35% by default, 5% to 95% in 10% steps). Freshly
-  conquered states at 5% are no longer built in. Unticked, nothing changes.
+- **Minimum efficiency filter.** Tick the box and Build All skips every state
+  where that building's construction efficiency is below the threshold (70%
+  by default, 10% to 100% in 10% steps; 70% means at most a 30% penalty).
+  Freshly conquered states at -95% are no longer built in. Unticked, nothing
+  changes.
 - **Queue limit.** The build button greys out once your construction queue
   holds 10,000 or more government constructions, and its tooltip says why.
+
+### Changed
+
+- **Build All now has its own collapsible section** under Filters, closed by
+  default. Click "Build All" to open it; it stays open until you restart the
+  game. The header shows your current settings while it is closed.
 
 ## [0.05] - 2026-11-05
 
