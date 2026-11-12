@@ -18,11 +18,10 @@ Partly run in game. Version bump once confirmed.
 
 ### Added
 
-- **Minimum efficiency filter.** Tick the box and Build All skips every state
-  where that building's construction efficiency is below the threshold (70%
-  by default, 10% to 100% in 10% steps; 70% means at most a 30% penalty).
-  Freshly conquered states at -95% are no longer built in. Unticked, nothing
-  changes.
+- **Construction penalty filter.** Tick the box and Build All only builds in
+  states whose construction efficiency penalty for that building is at or
+  below your limit (30% by default, 0% to 90% in 10% steps). Freshly
+  conquered states at -95% are no longer built in. Unticked, nothing changes.
 - **Queue limit.** The build button greys out once your construction queue
   holds 10,000 or more government constructions, and its tooltip says why.
 

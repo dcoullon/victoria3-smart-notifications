@@ -284,10 +284,12 @@ computed, `PdxGuiWidget.FindChild('x').TriggerAnimation(Select_CString(cond,
 calls `OnClick`) or `bc_skip` (which does nothing). The no-cheat property is
 untouched: we click fewer rows, never different ones.
 
-**The filter.** A tickbox plus a stepper, 10% to 100% in 10% steps, default
-70% (user decisions 2026-11-12; first built as 5-95% with 35% default, changed
-after the first run because a non-round default read oddly). Unticked, it has
-no effect. It compares `State.GetConstructionEfficiencyForBuildingType`:
+**The filter.** A tickbox plus a "Max. construction penalty" stepper, 0% to
+90% in 10% steps, default 30%: build only in states whose construction
+efficiency penalty for this building is that or less, inclusive (user
+decisions 2026-11-12). Worded as a penalty because that is how the game
+describes it ("-30% Construction Efficiency"); an earlier "min. efficiency
+70%" wording needed a tooltip to translate it. Unticked, it has no effect. It compares `State.GetConstructionEfficiencyForBuildingType`:
 a state value plus building-group modifiers (unincorporated is -50% for heavy
 industry, -20% for extraction), so it is the figure that applies to this
 building. It does not change as levels are queued, so every level of one
@@ -300,18 +302,16 @@ string back through a `Select_CFixedPoint` chain.
 compares it to 0 and prints it as "-30% Construction Efficiency"
 (`gui/construction_queue.gui:462`). The first build compared it to 0.35 and
 so skipped every row: ticked, nothing was queued (playtest 2026-11-12, Power
-Plants and Sugar Plantations). The player's "70%" is effective efficiency, so
-step T maps to the modifier T-1: 70% keeps states with at most a 30% penalty.
-The build list does not print this figure on its rows (the one vanilla
-binding, `map_list_panel.gui:1753`, is for military buildings only), so the
-tooltip translates: "70% means at most a 30% penalty: the game shows that as
--30% Construction Efficiency".
+Plants and Sugar Plantations). Max penalty P maps to the modifier -P, and a
+row passes when its modifier is >= -P. The build list does not print this
+figure on its rows (the one vanilla binding, `map_list_panel.gui:1753`, is
+for military buildings only); the player sees it in the state's tooltips.
 
 **Placement (user decision 2026-11-12).** The controls sit in their own
 collapsible "Build All" section under vanilla's Filters, built from the same
 `section_header_button`, collapsed by default and remembered for the session.
 The header names the mod once and its right side summarises the settings
-("Levels: 1, min. 70%"); the labels underneath carry no "(Build All)" tag.
+("Levels: 1, max. penalty 30%"); the labels underneath carry no "(Build All)" tag.
 This replaces the always-visible rows of 0.01-0.05: Build All is not the most
 frequent action when building, and the tag repeated on every label read as
 noise.
@@ -342,12 +342,12 @@ the setting resets when the game restarts (the variable system is not saved).
    the header says "(Build All)".
 1. **Unticked, nothing changes.** A 1-level press queues exactly what it did
    before: one level in every clickable listed state. *Confirmed 2026-11-12.*
-2. **Ticked at 70%, penalised rows are skipped.** A state whose construction
-   efficiency for this building is worse than -30% gets no level; every other
-   state gets its level, as before. *First build failed this (nothing queued,
-   wrong scale); fixed, not yet re-run.*
-3. **The stepper moves 10% per click and stops at the ends.** `-` from 70%
-   gives 60%; `+` gives 80%; `-` is disabled at 10% and `+` at 100%; both are
+2. **Ticked at 30%, penalised rows are skipped.** A state whose construction
+   efficiency penalty for this building is above 30% gets no level; every
+   other state (including exactly 30%) gets its level, as before. *First
+   build failed this (nothing queued, wrong scale); fixed, not yet re-run.*
+3. **The stepper moves 10% per click and stops at the ends.** `-` from 30%
+   gives 20%; `+` gives 40%; `-` is disabled at 0% and `+` at 90%; both are
    disabled while the box is unticked.
 4. **A 5-level press still interleaves** level-by-level across states (§4.2)
    with the filter ticked.

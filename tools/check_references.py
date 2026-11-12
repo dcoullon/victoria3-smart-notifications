@@ -1934,12 +1934,12 @@ def check_bc_button_labels_fit(root: Path) -> list[str]:
 # the -/+ onclick chains, the per-row threshold chain (x10), and the "unset
 # means 35" default. A drift between them builds in the wrong states or walks
 # the stepper off the ladder, silently.
-# Ladder steps are EFFECTIVE efficiency in percent; the engine value they are
-# compared to is the signed modifier (0 normal, -0.30 = 30% penalty), so step
-# T maps to (T - 100) / 100. Comparing to T/100 skipped every row (playtest
-# 2026-11-12).
-BC_EFF_LADDER = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-BC_EFF_DEFAULT = 70
+# Ladder steps are the MAXIMUM PENALTY in percent, worded as the game words a
+# construction efficiency penalty; the engine value compared is the signed
+# modifier (0 normal, -0.30 = 30% penalty), so step P maps to -P / 100.
+# Comparing to a positive fraction skipped every row (playtest 2026-11-12).
+BC_EFF_LADDER = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
+BC_EFF_DEFAULT = 30
 BC_QUEUE_CAP = 10000
 # The label shares a 500px row with a 24px tickbox, two 28px buttons and a
 # 44px value: about 350px left, ~46 columns at the build button's measured
@@ -1948,9 +1948,9 @@ BC_EFF_LABEL_MAX_COLS = 40
 
 
 def _bc_select_chain(expr: str) -> tuple[dict, str]:
-    """Pairs of HasValue('bc_eff', X) -> Y in a nested Select chain, and the
-    final fallback (the value used when bc_eff is unset or unmatched)."""
-    pairs = dict(re.findall(r"HasValue\('bc_eff', '(\d+)'\), '([-\d.()A-Za-z]+)'", expr))
+    """Pairs of HasValue('bc_pen', X) -> Y in a nested Select chain, and the
+    final fallback (the value used when bc_pen is unset or unmatched)."""
+    pairs = dict(re.findall(r"HasValue\('bc_pen', '(\d+)'\), '([-\d.()A-Za-z]+)'", expr))
     tail = re.search(r"'([^']+)'\)+\]?\s*$", expr.strip().rstrip('"'))
     return pairs, (tail.group(1) if tail else "")
 
@@ -1978,7 +1978,7 @@ def check_bc_efficiency_ladder(root: Path) -> list[str]:
     # Stepper buttons.
     for sign, raw in (("+", 'raw_text = "+"'), ("-", 'raw_text = "-"')):
         i = text.find(raw)
-        m = re.search(r'onclick = "(\[GetVariableSystem\.Set\(\'bc_eff\'.*\])"', text[i:i + 3000]) if i >= 0 else None
+        m = re.search(r'onclick = "(\[GetVariableSystem\.Set\(\'bc_pen\'.*\])"', text[i:i + 3000]) if i >= 0 else None
         if not m:
             errs.append(f"{rel}: the efficiency stepper's '{sign}' button or its onclick is missing")
             continue
@@ -2008,13 +2008,13 @@ def check_bc_efficiency_ladder(root: Path) -> list[str]:
     if len(bodies) > 1:
         errs.append(f"{rel}: the ten bc_build_N filters differ beyond their level number")
     def _mod(step: int) -> str:
-        return "(CFixedPoint)0" if step == 100 else f"(CFixedPoint){(step - 100) / 100:.2f}"
+        return "(CFixedPoint)0" if step == 0 else f"(CFixedPoint){-step / 100:.2f}"
     if starts:
         pairs, fallback = _bc_select_chain(starts[0][1].split(", 'bc_do_")[0] + "]")
         want = {v: _mod(int(v)) for v in lad if v != dflt}
         if pairs != want:
             errs.append(f"{rel}: the row threshold chain maps {pairs}, expected {want} "
-                        f"(step T is the signed modifier T-1, not T)")
+                        f"(max penalty P is the signed modifier -P)")
         if fallback != _mod(BC_EFF_DEFAULT):
             errs.append(f"{rel}: the row threshold falls back to {fallback!r}, expected the "
                         f"default {BC_EFF_DEFAULT}% as {_mod(BC_EFF_DEFAULT)!r}")
