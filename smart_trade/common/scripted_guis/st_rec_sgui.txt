@@ -28,9 +28,6 @@ st_rec_open_tab_sgui = {
 			debug_log = "ST_REC|OPEN_TAB|scan|[TimeKeeper.GetCurrentDate.GetString]"
 			st_rec_scan = yes
 		}
-		else = {
-			debug_log = "ST_REC|OPEN_TAB|skip|[TimeKeeper.GetCurrentDate.GetString]"
-		}
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
@@ -46,9 +43,6 @@ st_rec_open_show_sgui = {
 			limit = { NOT = { has_variable = st_rec_fresh } }
 			debug_log = "ST_REC|OPEN_SHOW|scan|[TimeKeeper.GetCurrentDate.GetString]"
 			st_rec_scan = yes
-		}
-		else = {
-			debug_log = "ST_REC|OPEN_SHOW|skip|[TimeKeeper.GetCurrentDate.GetString]"
 		}
 	}
 	ai_is_valid = { always = no }
@@ -96,15 +90,6 @@ st_rec_one_switch_sgui = {
 		debug_log = "ST_REC|ONE_SWITCH|[TimeKeeper.GetCurrentDate.GetString]"
 		st_rec_scan_one = yes
 	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-# DEV: logs that the goods picker's selection state fired (last try at
-# pre-selecting the good, 2026-11-13).
-st_rec_dbg_go_sgui = {
-	scope = country
-	effect = { debug_log = "ST_REC|PICK|go" }
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }

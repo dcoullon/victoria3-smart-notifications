@@ -1245,8 +1245,6 @@ REC_PICK_WIDGET = ("widget = {\n\tname = \"st_rec_pre\"\n\tsize = { 0 0 }\n"
                    "state = {\n\tname = st_none\n}\n"
                    "state = {\n\tname = st_rec_go\n"
                    "\ton_start = \"[GetVariableSystem.Clear('st_rec_good')]\"\n"
-                   "\ton_start = \"[GetScriptedGui('st_rec_dbg_go_sgui')"
-                   ".Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]\"\n"
                    "\ton_start = \"[ArticleDraft.SetGood(Goods.Self)]\"\n"
                    + "".join(f"\ton_start = {l[len('onclick = '):]}\n" for l in C_PICK_ONCLICKS.splitlines())
                    + "}\n}")
