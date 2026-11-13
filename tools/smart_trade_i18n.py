@@ -384,8 +384,9 @@ S["SMART_TRADE_TREATIES_TT"] = {
 # --- Trade recommender (tools/gen_st_recommender.py; market panel, Trade tab) ---
 # No profit threshold: any profitable deal can be a row (Damien, 2026-11-13).
 # "Goods Transfer" is vanilla's own article name (goods_transfer) per language.
-# Rows follow the flag, so a language that would decline the country's name
-# after "to" (Polish, Russian, Korean, Turkish) puts the name first instead.
+# Rows: {F} {C} is the partner as vanilla text writes it (flag icon, clickable
+# name). Languages that would decline the name after "to" (Polish, Russian,
+# Turkish) write "recipient: <name>"; Korean takes the particle as is.
 S["ST_REC_HEADER"] = {
     "english": "(ST) Suggested goods transfers",
     "french": "(ST) Transferts de marchandises suggérés",
@@ -447,7 +448,7 @@ S["ST_REC_PENDING"] = {
     "korean": "달이 바뀔 때 계산됩니다. 지금 계산하려면 새로 고침 버튼을 누르세요.",
     "turkish": "Ay döndüğünde hesaplanır. Şimdi hesaplamak için yenile düğmesine basın.",
 }
-S["ST_REC_FLAG_TT"] = {
+S["ST_REC_TREATY_TT"] = {
     "english": "Open a treaty with this country. Add a Goods Transfer you send them and this good is picked at the best quantity.",
     "french": "Ouvrir un traité avec ce pays. Ajoutez un Transfert de marchandises que vous leur envoyez : ce bien est choisi à la meilleure quantité.",
     "german": "Einen Vertrag mit diesem Land öffnen. Fügen Sie eine Warenübereignung hinzu, die Sie senden: Diese Ware wird in der besten Menge ausgewählt.",
@@ -460,38 +461,26 @@ S["ST_REC_FLAG_TT"] = {
     "korean": "이 국가와 조약을 엽니다. 내가 보내는 상품 양도를 추가하면 이 상품이 최적 수량으로 선택됩니다.",
     "turkish": "Bu ülkeyle bir antlaşma aç. Gönderdiğiniz bir Mal Transferi ekleyin; bu mal en iyi miktarda seçilir.",
 }
-S["ST_REC_ROW_TT"] = {
-    "english": "Estimate from first-week prices. Open a treaty with this country and add a Goods Transfer of this good to see the exact figure and their acceptance.",
-    "french": "Estimation aux prix de la première semaine. Ouvrez un traité avec ce pays et ajoutez un Transfert de marchandises de ce bien pour voir le chiffre exact et son acceptation.",
-    "german": "Schätzung zu den Preisen der ersten Woche. Öffnen Sie einen Vertrag mit diesem Land und fügen Sie eine Warenübereignung dieser Ware hinzu, um die genaue Zahl und die Akzeptanz zu sehen.",
-    "spanish": "Estimación con los precios de la primera semana. Abre un tratado con este país y añade una Transferencia de bienes de este bien para ver la cifra exacta y su aceptación.",
-    "braz_por": "Estimativa pelos preços da primeira semana. Abra um tratado com este país e adicione uma Transferência de Mercadorias deste bem para ver o valor exato e a aceitação.",
-    "polish": "Szacunek po cenach z pierwszego tygodnia. Otwórz traktat z tym krajem i dodaj Transfer towarów tego towaru, aby zobaczyć dokładną kwotę i akceptację.",
-    "russian": "Оценка по ценам первой недели. Откройте договор с этой страной и добавьте передачу товаров этого товара, чтобы увидеть точную сумму и одобрение.",
-    "simp_chinese": "按首周价格估算。与该国开启条约并添加此商品的商品输送，即可看到确切数字和对方的接受度。",
-    "japanese": "第1週の価格による推定。この国との条約を開き、この商品の商品の譲渡を追加すると正確な数字と受諾度が分かります。",
-    "korean": "첫 주 가격 기준 추정치입니다. 이 국가와 조약을 열고 이 상품의 상품 양도를 추가하면 정확한 수치와 수락도를 볼 수 있습니다.",
-    "turkish": "İlk hafta fiyatlarıyla tahmin. Bu ülkeyle bir antlaşma açın ve bu malın Mal Transferi'ni ekleyerek kesin rakamı ve kabulü görün.",
-}
 _REC_ROW = {
-    "english": "{Q} {G} to {C}: ~@money!{GAIN}/week",
-    "french": "{Q} {G} vers {C} : ~@money!{GAIN}/semaine",
-    "german": "{Q} {G} an {C}: ~@money!{GAIN}/Woche",
-    "spanish": "{Q} {G} a {C}: ~@money!{GAIN}/semana",
-    "braz_por": "{Q} {G} para {C}: ~@money!{GAIN}/semana",
-    "polish": "{C}: {Q} {G}, ~@money!{GAIN}/tydz.",
-    "russian": "{C}: {Q} {G}, ~@money!{GAIN}/нед.",
-    "simp_chinese": "{Q}单位{G}至{C}：约@money!{GAIN}/周",
-    "japanese": "{Q}の{G}を{C}へ：約@money!{GAIN}/週",
-    "korean": "{C}: {Q} {G}, ~@money!{GAIN}/주",
-    "turkish": "{C}: {Q} {G}, ~@money!{GAIN}/hafta",
+    "english": "Send {Q} {G} to {F} {C}: ~@money!{GAIN}/week",
+    "french": "Envoyer {Q} {G} vers {F} {C} : ~@money!{GAIN}/semaine",
+    "german": "{Q} {G} an {F} {C} senden: ~@money!{GAIN}/Woche",
+    "spanish": "Enviar {Q} {G} a {F} {C}: ~@money!{GAIN}/semana",
+    "braz_por": "Enviar {Q} {G} para {F} {C}: ~@money!{GAIN}/semana",
+    "polish": "Wyślij {Q} {G}, odbiorca: {F} {C}, ~@money!{GAIN}/tydz.",
+    "russian": "Отправить {Q} {G}, получатель: {F} {C}, ~@money!{GAIN}/нед.",
+    "simp_chinese": "输送{Q}单位{G}至{F}{C}：约@money!{GAIN}/周",
+    "japanese": "{Q}の{G}を{F}{C}へ送る：約@money!{GAIN}/週",
+    "korean": "{F} {C}에 {Q} {G} 보내기: ~@money!{GAIN}/주",
+    "turkish": "{Q} {G} gönder, alıcı: {F} {C}, ~@money!{GAIN}/hafta",
 }
 for _n in range(1, 6):
     _p = "GetPlayer.MakeScope.Var('st_rec_{}%d')" % _n
     S[f"ST_REC_ROW_{_n}"] = {
         _l: _t.format(Q="[" + _p.format("q") + ".GetValue|0]",
                       G="[" + _p.format("k") + ".GetGoods.GetName]",
-                      C="[" + _p.format("c") + ".GetCountry.GetNameNoFormatting]",
+                      F="[" + _p.format("c") + ".GetCountry.GetFlagTextIcon]",
+                      C="[" + _p.format("c") + ".GetCountry.GetName]",
                       GAIN="[" + _p.format("g") + ".GetValue|0]")
         for _l, _t in _REC_ROW.items()}
 

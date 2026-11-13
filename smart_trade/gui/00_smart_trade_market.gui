@@ -326,179 +326,225 @@ types smart_trade_market_types
 						direction = vertical
 						parentanchor = hcenter
 						visible = "[Market.GetOwner.IsLocalPlayer]"
-						margin = { 10 4 }
 						spacing = 2
 
-						flowcontainer = {
-							direction = horizontal
-							spacing = 6
-							textbox = {
-								text = "ST_REC_HEADER"
+						# A collapsible section, built from vanilla's section header as
+						# Bulk Construction's is (and vanilla's own "Filters" further
+						# down this panel). Open by default; 'st_rec_closed' is a GUI
+						# variable, so it resets when the game restarts (Damien,
+						# 2026-11-13: hide it to see the goods list below).
+						container = {
+							parentanchor = hcenter
+							section_header_button = {
+								blockoverride "layout" {
+									parentanchor = hcenter
+									size = { @panel_width 38 }
+								}
+								blockoverride "left_text" {
+									text = "ST_REC_HEADER"
+									fontsize_min = 12
+									elide = right
+								}
 								tooltip = "ST_REC_HEADER_TT"
-								autoresize = yes
-								align = nobaseline
-								using = fontsize_large
+								blockoverride "onclick" {
+									onclick = "[GetVariableSystem.Toggle('st_rec_closed')]"
+								}
+								blockoverride "onclick_showmore" {
+									visible = "[GetVariableSystem.Exists('st_rec_closed')]"
+								}
+								blockoverride "onclick_showless" {
+									visible = "[Not(GetVariableSystem.Exists('st_rec_closed'))]"
+								}
 							}
-							# vanilla type with its own icon (gui/shared/button_icons.gui:395),
-							# sized as in gui/important_actions_list.gui:29
+							# drawn over the header's right end; vanilla type with its own
+							# icon (gui/shared/button_icons.gui:395)
 							button_icon_reset = {
 								size = { 26 26 }
-								parentanchor = vcenter
+								parentanchor = right|vcenter
+								position = { -10 0 }
 								onclick = "[GetScriptedGui('st_rec_refresh_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 								tooltip = "ST_REC_REFRESH_TT"
 							}
 						}
+
 						flowcontainer = {
-							visible = "[GetPlayer.MakeScope.Var('st_rec_c1').IsSet]"
-							datacontext = "[GetPlayer.MakeScope.Var('st_rec_c1').GetCountry]"
-							direction = horizontal
-							spacing = 5
-							tiny_flag = {
-								parentanchor = vcenter
-								blockoverride "tooltip" {
-									tooltip = "ST_REC_FLAG_TT"
+							visible = "[Not(GetVariableSystem.Exists('st_rec_closed'))]"
+							direction = vertical
+							parentanchor = hcenter
+							margin = { 10 4 }
+							spacing = 2
+							flowcontainer = {
+								visible = "[GetPlayer.MakeScope.Var('st_rec_c1').IsSet]"
+								datacontext = "[GetPlayer.MakeScope.Var('st_rec_c1').GetCountry]"
+								direction = horizontal
+								spacing = 5
+								textbox = {
+									parentanchor = vcenter
+									text = "ST_REC_ROW_1"
+									autoresize = yes
+									multiline = yes
+									# @panel_width_minus_10 less the 26px button and the 5px gap
+									maximumsize = { 499 -1 }
+									align = nobaseline
 								}
-								blockoverride "flag_click" {
+								button_icon_round = {
+									size = { 26 26 }
+									parentanchor = vcenter
+									blockoverride "icon" {
+										texture = "gfx/interface/icons/generic_icons/diplomatic_treaties.dds"
+									}
+									# as vanilla's military_panel_formations.gui sizes an icon in this frame
+									blockoverride "icon_size" {
+										size = { 75% 75% }
+									}
+									tooltip = "ST_REC_TREATY_TT"
+									enabled = "[GetPlayer.CanSignTreatyWith(Country.Self)]"
 									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k1').GetGoods.GetKey)]"
 									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
 									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
 								}
 							}
-							textbox = {
-								parentanchor = vcenter
-								text = "ST_REC_ROW_1"
-								tooltip = "ST_REC_ROW_TT"
-								autoresize = yes
-								multiline = yes
-								# @panel_width_minus_10 less the 27px flag and the 5px gap
-								maximumsize = { 498 -1 }
-								align = nobaseline
-							}
-						}
-						flowcontainer = {
-							visible = "[GetPlayer.MakeScope.Var('st_rec_c2').IsSet]"
-							datacontext = "[GetPlayer.MakeScope.Var('st_rec_c2').GetCountry]"
-							direction = horizontal
-							spacing = 5
-							tiny_flag = {
-								parentanchor = vcenter
-								blockoverride "tooltip" {
-									tooltip = "ST_REC_FLAG_TT"
+							flowcontainer = {
+								visible = "[GetPlayer.MakeScope.Var('st_rec_c2').IsSet]"
+								datacontext = "[GetPlayer.MakeScope.Var('st_rec_c2').GetCountry]"
+								direction = horizontal
+								spacing = 5
+								textbox = {
+									parentanchor = vcenter
+									text = "ST_REC_ROW_2"
+									autoresize = yes
+									multiline = yes
+									# @panel_width_minus_10 less the 26px button and the 5px gap
+									maximumsize = { 499 -1 }
+									align = nobaseline
 								}
-								blockoverride "flag_click" {
+								button_icon_round = {
+									size = { 26 26 }
+									parentanchor = vcenter
+									blockoverride "icon" {
+										texture = "gfx/interface/icons/generic_icons/diplomatic_treaties.dds"
+									}
+									# as vanilla's military_panel_formations.gui sizes an icon in this frame
+									blockoverride "icon_size" {
+										size = { 75% 75% }
+									}
+									tooltip = "ST_REC_TREATY_TT"
+									enabled = "[GetPlayer.CanSignTreatyWith(Country.Self)]"
 									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k2').GetGoods.GetKey)]"
 									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
 									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
 								}
 							}
-							textbox = {
-								parentanchor = vcenter
-								text = "ST_REC_ROW_2"
-								tooltip = "ST_REC_ROW_TT"
-								autoresize = yes
-								multiline = yes
-								# @panel_width_minus_10 less the 27px flag and the 5px gap
-								maximumsize = { 498 -1 }
-								align = nobaseline
-							}
-						}
-						flowcontainer = {
-							visible = "[GetPlayer.MakeScope.Var('st_rec_c3').IsSet]"
-							datacontext = "[GetPlayer.MakeScope.Var('st_rec_c3').GetCountry]"
-							direction = horizontal
-							spacing = 5
-							tiny_flag = {
-								parentanchor = vcenter
-								blockoverride "tooltip" {
-									tooltip = "ST_REC_FLAG_TT"
+							flowcontainer = {
+								visible = "[GetPlayer.MakeScope.Var('st_rec_c3').IsSet]"
+								datacontext = "[GetPlayer.MakeScope.Var('st_rec_c3').GetCountry]"
+								direction = horizontal
+								spacing = 5
+								textbox = {
+									parentanchor = vcenter
+									text = "ST_REC_ROW_3"
+									autoresize = yes
+									multiline = yes
+									# @panel_width_minus_10 less the 26px button and the 5px gap
+									maximumsize = { 499 -1 }
+									align = nobaseline
 								}
-								blockoverride "flag_click" {
+								button_icon_round = {
+									size = { 26 26 }
+									parentanchor = vcenter
+									blockoverride "icon" {
+										texture = "gfx/interface/icons/generic_icons/diplomatic_treaties.dds"
+									}
+									# as vanilla's military_panel_formations.gui sizes an icon in this frame
+									blockoverride "icon_size" {
+										size = { 75% 75% }
+									}
+									tooltip = "ST_REC_TREATY_TT"
+									enabled = "[GetPlayer.CanSignTreatyWith(Country.Self)]"
 									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k3').GetGoods.GetKey)]"
 									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
 									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
 								}
 							}
-							textbox = {
-								parentanchor = vcenter
-								text = "ST_REC_ROW_3"
-								tooltip = "ST_REC_ROW_TT"
-								autoresize = yes
-								multiline = yes
-								# @panel_width_minus_10 less the 27px flag and the 5px gap
-								maximumsize = { 498 -1 }
-								align = nobaseline
-							}
-						}
-						flowcontainer = {
-							visible = "[GetPlayer.MakeScope.Var('st_rec_c4').IsSet]"
-							datacontext = "[GetPlayer.MakeScope.Var('st_rec_c4').GetCountry]"
-							direction = horizontal
-							spacing = 5
-							tiny_flag = {
-								parentanchor = vcenter
-								blockoverride "tooltip" {
-									tooltip = "ST_REC_FLAG_TT"
+							flowcontainer = {
+								visible = "[GetPlayer.MakeScope.Var('st_rec_c4').IsSet]"
+								datacontext = "[GetPlayer.MakeScope.Var('st_rec_c4').GetCountry]"
+								direction = horizontal
+								spacing = 5
+								textbox = {
+									parentanchor = vcenter
+									text = "ST_REC_ROW_4"
+									autoresize = yes
+									multiline = yes
+									# @panel_width_minus_10 less the 26px button and the 5px gap
+									maximumsize = { 499 -1 }
+									align = nobaseline
 								}
-								blockoverride "flag_click" {
+								button_icon_round = {
+									size = { 26 26 }
+									parentanchor = vcenter
+									blockoverride "icon" {
+										texture = "gfx/interface/icons/generic_icons/diplomatic_treaties.dds"
+									}
+									# as vanilla's military_panel_formations.gui sizes an icon in this frame
+									blockoverride "icon_size" {
+										size = { 75% 75% }
+									}
+									tooltip = "ST_REC_TREATY_TT"
+									enabled = "[GetPlayer.CanSignTreatyWith(Country.Self)]"
 									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k4').GetGoods.GetKey)]"
 									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
 									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
 								}
 							}
-							textbox = {
-								parentanchor = vcenter
-								text = "ST_REC_ROW_4"
-								tooltip = "ST_REC_ROW_TT"
-								autoresize = yes
-								multiline = yes
-								# @panel_width_minus_10 less the 27px flag and the 5px gap
-								maximumsize = { 498 -1 }
-								align = nobaseline
-							}
-						}
-						flowcontainer = {
-							visible = "[GetPlayer.MakeScope.Var('st_rec_c5').IsSet]"
-							datacontext = "[GetPlayer.MakeScope.Var('st_rec_c5').GetCountry]"
-							direction = horizontal
-							spacing = 5
-							tiny_flag = {
-								parentanchor = vcenter
-								blockoverride "tooltip" {
-									tooltip = "ST_REC_FLAG_TT"
+							flowcontainer = {
+								visible = "[GetPlayer.MakeScope.Var('st_rec_c5').IsSet]"
+								datacontext = "[GetPlayer.MakeScope.Var('st_rec_c5').GetCountry]"
+								direction = horizontal
+								spacing = 5
+								textbox = {
+									parentanchor = vcenter
+									text = "ST_REC_ROW_5"
+									autoresize = yes
+									multiline = yes
+									# @panel_width_minus_10 less the 26px button and the 5px gap
+									maximumsize = { 499 -1 }
+									align = nobaseline
 								}
-								blockoverride "flag_click" {
+								button_icon_round = {
+									size = { 26 26 }
+									parentanchor = vcenter
+									blockoverride "icon" {
+										texture = "gfx/interface/icons/generic_icons/diplomatic_treaties.dds"
+									}
+									# as vanilla's military_panel_formations.gui sizes an icon in this frame
+									blockoverride "icon_size" {
+										size = { 75% 75% }
+									}
+									tooltip = "ST_REC_TREATY_TT"
+									enabled = "[GetPlayer.CanSignTreatyWith(Country.Self)]"
 									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k5').GetGoods.GetKey)]"
 									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
 									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
 								}
 							}
+							# st_rec_g1 is set by every scan, so unset means none has run yet
 							textbox = {
-								parentanchor = vcenter
-								text = "ST_REC_ROW_5"
-								tooltip = "ST_REC_ROW_TT"
+								visible = "[Not(GetPlayer.MakeScope.Var('st_rec_g1').IsSet)]"
+								text = "ST_REC_PENDING"
 								autoresize = yes
 								multiline = yes
-								# @panel_width_minus_10 less the 27px flag and the 5px gap
-								maximumsize = { 498 -1 }
+								maximumsize = { @panel_width_minus_10 -1 }
 								align = nobaseline
 							}
-						}
-						# st_rec_g1 is set by every scan, so unset means none has run yet
-						textbox = {
-							visible = "[Not(GetPlayer.MakeScope.Var('st_rec_g1').IsSet)]"
-							text = "ST_REC_PENDING"
-							autoresize = yes
-							multiline = yes
-							maximumsize = { @panel_width_minus_10 -1 }
-							align = nobaseline
-						}
-						textbox = {
-							visible = "[And(GetPlayer.MakeScope.Var('st_rec_g1').IsSet, Not(GetPlayer.MakeScope.Var('st_rec_c1').IsSet))]"
-							text = "ST_REC_NONE"
-							autoresize = yes
-							multiline = yes
-							maximumsize = { @panel_width_minus_10 -1 }
-							align = nobaseline
+							textbox = {
+								visible = "[And(GetPlayer.MakeScope.Var('st_rec_g1').IsSet, Not(GetPlayer.MakeScope.Var('st_rec_c1').IsSet))]"
+								text = "ST_REC_NONE"
+								autoresize = yes
+								multiline = yes
+								maximumsize = { @panel_width_minus_10 -1 }
+								align = nobaseline
+							}
 						}
 					}
 				}

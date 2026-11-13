@@ -532,82 +532,114 @@ GUI_BLOCK = """
 						direction = vertical
 						parentanchor = hcenter
 						visible = "[Market.GetOwner.IsLocalPlayer]"
-						margin = { 10 4 }
 						spacing = 2
 
-						flowcontainer = {
-							direction = horizontal
-							spacing = 6
-							textbox = {
-								text = "ST_REC_HEADER"
+						# A collapsible section, built from vanilla's section header as
+						# Bulk Construction's is (and vanilla's own "Filters" further
+						# down this panel). Open by default; 'st_rec_closed' is a GUI
+						# variable, so it resets when the game restarts (Damien,
+						# 2026-11-13: hide it to see the goods list below).
+						container = {
+							parentanchor = hcenter
+							section_header_button = {
+								blockoverride "layout" {
+									parentanchor = hcenter
+									size = { @panel_width 38 }
+								}
+								blockoverride "left_text" {
+									text = "ST_REC_HEADER"
+									fontsize_min = 12
+									elide = right
+								}
 								tooltip = "ST_REC_HEADER_TT"
-								autoresize = yes
-								align = nobaseline
-								using = fontsize_large
+								blockoverride "onclick" {
+									onclick = "[GetVariableSystem.Toggle('st_rec_closed')]"
+								}
+								blockoverride "onclick_showmore" {
+									visible = "[GetVariableSystem.Exists('st_rec_closed')]"
+								}
+								blockoverride "onclick_showless" {
+									visible = "[Not(GetVariableSystem.Exists('st_rec_closed'))]"
+								}
 							}
-							# vanilla type with its own icon (gui/shared/button_icons.gui:395),
-							# sized as in gui/important_actions_list.gui:29
+							# drawn over the header's right end; vanilla type with its own
+							# icon (gui/shared/button_icons.gui:395)
 							button_icon_reset = {
 								size = { 26 26 }
-								parentanchor = vcenter
+								parentanchor = right|vcenter
+								position = { -10 0 }
 								onclick = "[GetScriptedGui('st_rec_refresh_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 								tooltip = "ST_REC_REFRESH_TT"
 							}
 						}
+
+						flowcontainer = {
+							visible = "[Not(GetVariableSystem.Exists('st_rec_closed'))]"
+							direction = vertical
+							parentanchor = hcenter
+							margin = { 10 4 }
+							spacing = 2
 @@ROWS@@
-						# st_rec_g1 is set by every scan, so unset means none has run yet
-						textbox = {
-							visible = "[Not(GetPlayer.MakeScope.Var('st_rec_g1').IsSet)]"
-							text = "ST_REC_PENDING"
-							autoresize = yes
-							multiline = yes
-							maximumsize = { @panel_width_minus_10 -1 }
-							align = nobaseline
-						}
-						textbox = {
-							visible = "[And(GetPlayer.MakeScope.Var('st_rec_g1').IsSet, Not(GetPlayer.MakeScope.Var('st_rec_c1').IsSet))]"
-							text = "ST_REC_NONE"
-							autoresize = yes
-							multiline = yes
-							maximumsize = { @panel_width_minus_10 -1 }
-							align = nobaseline
+							# st_rec_g1 is set by every scan, so unset means none has run yet
+							textbox = {
+								visible = "[Not(GetPlayer.MakeScope.Var('st_rec_g1').IsSet)]"
+								text = "ST_REC_PENDING"
+								autoresize = yes
+								multiline = yes
+								maximumsize = { @panel_width_minus_10 -1 }
+								align = nobaseline
+							}
+							textbox = {
+								visible = "[And(GetPlayer.MakeScope.Var('st_rec_g1').IsSet, Not(GetPlayer.MakeScope.Var('st_rec_c1').IsSet))]"
+								text = "ST_REC_NONE"
+								autoresize = yes
+								multiline = yes
+								maximumsize = { @panel_width_minus_10 -1 }
+								align = nobaseline
+							}
 						}
 					}
 """
 
-# Each row: the partner's flag, then the text. Clicking the flag opens a new
-# treaty draft with the partner (vanilla's own call, gui/country_panel.gui's
-# propose-treaty button) and leaves the good and partner in two GUI
-# variables; the goods picker (gen_smart_trade_gui.py, REC_PICK) selects that
-# good at the best quantity when the player adds a Goods Transfer they send
-# to that partner, then clears the variables.
-GUI_ROW = """						flowcontainer = {
-							visible = "[GetPlayer.MakeScope.Var('st_rec_c@@N@@').IsSet]"
-							datacontext = "[GetPlayer.MakeScope.Var('st_rec_c@@N@@').GetCountry]"
-							direction = horizontal
-							spacing = 5
-							tiny_flag = {
-								parentanchor = vcenter
-								blockoverride "tooltip" {
-									tooltip = "ST_REC_FLAG_TT"
+# Each row: "Send 55 [icon] Coffee to [flag] Great Britain: ~866/week" (Damien,
+# 2026-11-13), the country written the way vanilla text writes one
+# (GetFlagTextIcon, then GetName, which is the clickable name), then a treaty
+# button. The button opens a new treaty draft with the partner (vanilla's own
+# call and icon: the "Draft a treaty" right-click entry) and leaves the good
+# and partner in two GUI variables; the goods picker (gen_smart_trade_gui.py,
+# REC_PICK) selects that good at the best quantity when the player adds a
+# Goods Transfer they send to that partner, then clears the good.
+GUI_ROW = """							flowcontainer = {
+								visible = "[GetPlayer.MakeScope.Var('st_rec_c@@N@@').IsSet]"
+								datacontext = "[GetPlayer.MakeScope.Var('st_rec_c@@N@@').GetCountry]"
+								direction = horizontal
+								spacing = 5
+								textbox = {
+									parentanchor = vcenter
+									text = "ST_REC_ROW_@@N@@"
+									autoresize = yes
+									multiline = yes
+									# @panel_width_minus_10 less the 26px button and the 5px gap
+									maximumsize = { 499 -1 }
+									align = nobaseline
 								}
-								blockoverride "flag_click" {
+								button_icon_round = {
+									size = { 26 26 }
+									parentanchor = vcenter
+									blockoverride "icon" {
+										texture = "gfx/interface/icons/generic_icons/diplomatic_treaties.dds"
+									}
+									# as vanilla's military_panel_formations.gui sizes an icon in this frame
+									blockoverride "icon_size" {
+										size = { 75% 75% }
+									}
+									tooltip = "ST_REC_TREATY_TT"
+									enabled = "[GetPlayer.CanSignTreatyWith(Country.Self)]"
 									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k@@N@@').GetGoods.GetKey)]"
 									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
 									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
 								}
-							}
-							textbox = {
-								parentanchor = vcenter
-								text = "ST_REC_ROW_@@N@@"
-								tooltip = "ST_REC_ROW_TT"
-								autoresize = yes
-								multiline = yes
-								# @panel_width_minus_10 less the 27px flag and the 5px gap
-								maximumsize = { 498 -1 }
-								align = nobaseline
-							}
-						}"""
+							}"""
 
 
 def extract_type(text, name):

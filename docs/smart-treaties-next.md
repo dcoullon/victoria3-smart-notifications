@@ -194,15 +194,22 @@ already answers "what should I send to this country".
 - **Game start and load (Damien, 2026-11-13):** a new campaign scans from
   `on_game_started_after_lobby`. No on_action fires on load; the save holds
   the last scan's variables, so they show at once.
-- **Rows (Damien, 2026-11-13):** "[flag] 55 Coffee to Great Britain:
-  ~£866/week". The flag opens a new treaty draft with the partner
-  (`OpenTreatyDraftPanelForNewDraft`, vanilla's country panel call) and sets
-  two GUI variables, `st_rec_good` and `st_rec_to`. The engine exposes the
-  open draft only inside the draft panel, so the article cannot be added
-  from the market panel; instead the goods picker's creation state selects
-  that good at the best quantity when the player adds a Goods Transfer they
-  send to that partner (`check_st_rec_handoff_keys` keeps the two names in
-  step).
+- **Section (Damien, 2026-11-13):** a collapsible section header (vanilla's
+  `section_header_button`, as Build All's), open by default, so the goods
+  list below can get the room back. The refresh button sits on the header.
+- **Rows (Damien, 2026-11-13):** "Send 55 [icon] Coffee to [flag] Great
+  Britain: ~£866/week", the partner written as vanilla text writes one
+  (`GetFlagTextIcon`, then `GetName`, the clickable name), then a treaty
+  button. The engine-notes rule against `GetName` is about untyped script
+  scopes (`THIS`); on a typed Country vanilla loc uses it 465 times. Not yet
+  seen in game. The button opens a new treaty draft with the partner
+  (`OpenTreatyDraftPanelForNewDraft`, vanilla's "Draft a treaty" entry, same
+  icon) and sets two GUI variables, `st_rec_good` and `st_rec_to`. The
+  engine exposes the open draft only inside the draft panel, so the article
+  cannot be added from the market panel; instead the goods picker's creation
+  state selects that good at the best quantity when the player adds a Goods
+  Transfer they send to that partner (`check_st_rec_handoff_keys` keeps the
+  GUI variable names in step).
 - **Acceptance:** vanilla's `static_treaty_acceptance` (root = partner,
   `scope:other_country` = player; its treaty-options lookups are guarded with
   `exists`/`?=`) plus the goods article's own score at that quantity

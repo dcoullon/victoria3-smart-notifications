@@ -2117,7 +2117,7 @@ def check_st_rec_handoff_keys(root: Path) -> list[str]:
     if not (gui / "00_smart_trade_market.gui").is_file():
         return []
     text = "".join(_read(p) for p in sorted(gui.glob("*.gui")))
-    put = set(re.findall(r"GetVariableSystem\.Set\('(st_rec_\w+)'", text))
+    put = set(re.findall(r"GetVariableSystem\.(?:Set|Toggle)\('(st_rec_\w+)'", text))
     got = set(re.findall(r"GetVariableSystem\.(?:HasValue|Get|Exists)\('(st_rec_\w+)'", text))
     errs = [f"gui: GUI variable '{k}' is set but never read (suggestion-to-picker handoff)"
             for k in sorted(put - got)]
