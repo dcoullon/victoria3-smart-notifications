@@ -658,11 +658,10 @@ WATCHLIST_SPEC_SHARED_GROUPS = {
     # nobody the player follows in it), three keys only because each family
     # words it differently. Subject Released is NOT in here -- it is `none`
     # rather than `feed`, and sharers must agree on notification_type.
-    # Mod Loaded and Mod Updated: two one-off housekeeping notices the player
-    # would never want to tune apart, merged to one row 2026-09-10.
+    # Mod Loaded (and Mod Updated, until its removal on 2026-11-13: it fired
+    # in every new campaign and its version key had stopped tracking at 0.38).
     "smart_notifications_mod_notices_group": {
         "smart_notifications_mod_loaded",
-        "smart_notifications_mod_updated",
     },
     "smart_notifications_diplo_play_quiet_group": {
         "smart_notifications_diplo_play_start_quiet",

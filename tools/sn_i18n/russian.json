@@ -1,8 +1,6 @@
 {
  "notification_smart_notifications_mod_loaded_name": "Smart Notifications активен",
  "notification_smart_notifications_mod_loaded_desc": "Ваш список наблюдения уже заполнен великими державами и соседями; изменить его можно в «Настройках сообщений» (значок колокольчика).\\n\\nУже играли в Victoria 3? Один раз нажмите там #v Сбросить на настройки по умолчанию#!, иначе ваши сохранённые настройки будут перекрывать этот мод.",
- "notification_smart_notifications_mod_updated_name": "Smart Notifications обновлён",
- "notification_smart_notifications_mod_updated_desc": "В этой версии изменились приоритеты уведомлений.\\n\\nНажмите #v Сбросить на настройки по умолчанию#! в «Настройках сообщений», чтобы применить их; до тех пор ваши сохранённые настройки перекрывают этот мод.",
  "smart_notifications_mod_notices_group": "(SN) Уведомления мода",
  "invasion_against_us_notification_group": "Вторжение (против нас)",
  "diplo_play_subject_overlord_notification_group": "Освобождение субъекта (наш)",

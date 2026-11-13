@@ -1,8 +1,6 @@
 {
  "notification_smart_notifications_mod_loaded_name": "Smart Notifications aktiv",
  "notification_smart_notifications_mod_loaded_desc": "Ihre Beobachtungsliste ist mit Großmächten und Nachbarn vorausgefüllt. Bearbeiten Sie sie in den Nachrichteneinstellungen (Glockensymbol).\\n\\nSchon einmal Victoria 3 gespielt? Klicken Sie dort einmal auf #v Auf Standardeinstellungen zurücksetzen#!, sonst überschreiben Ihre gespeicherten Einstellungen diese Mod.",
- "notification_smart_notifications_mod_updated_name": "Smart Notifications aktualisiert",
- "notification_smart_notifications_mod_updated_desc": "In dieser Version wurden Benachrichtigungsprioritäten geändert.\\n\\nKlicken Sie in den Nachrichteneinstellungen auf #v Auf Standardeinstellungen zurücksetzen#!, um sie zu übernehmen. Bis dahin überschreiben Ihre eigenen gespeicherten Einstellungen diese Mod.",
  "smart_notifications_mod_notices_group": "(SN) Mod-Hinweise",
  "invasion_against_us_notification_group": "Invasion (gegen uns)",
  "diplo_play_subject_overlord_notification_group": "Klientelland unabhängig (eigenes)",

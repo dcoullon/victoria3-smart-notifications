@@ -240,7 +240,9 @@ this has been left open rather than guessed at.
 
 The mitigation is the same under either reading, which is why this is not
 urgent: a release that retunes tiers tells players to press Reset to Default
-Settings, via the release notes and the in-game "(SN) Mod Updated" notice.
+Settings, via the release notes. (An in-game "(SN) Mod Updated" notice did
+this until 2026-11-13; it was removed because it fired in every new campaign
+and its version key had stopped tracking at 0.38.)
 Resetting fixes the display and, if the mute reading is right, the behaviour
 too.
 

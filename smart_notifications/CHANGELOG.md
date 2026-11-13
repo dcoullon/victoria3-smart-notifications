@@ -19,6 +19,14 @@ instrumentation and doc-only changes get a commit but **no** version bump
 unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## Unreleased
+
+### Removed
+- The "Smart Notifications Updated" toast. It appeared in the first month of
+  every new campaign, whether or not the mod had changed anything. When a
+  release changes notification priorities, its update notes now say so and
+  tell you to press Reset to Default Settings in Message Settings.
+
 ## [0.43] - 2026-11-05
 
 Updated for game version 1.15. No settings reset needed: this release changes

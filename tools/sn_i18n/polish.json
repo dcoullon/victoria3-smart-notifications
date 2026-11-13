@@ -1,8 +1,6 @@
 {
  "notification_smart_notifications_mod_loaded_name": "Smart Notifications – mod aktywny",
  "notification_smart_notifications_mod_loaded_desc": "Twoja lista obserwowanych zawiera już wielkie mocarstwa i państwa sąsiadujące – możesz ją edytować w Ustawieniach wiadomości (ikona dzwonka).\\n\\nMasz już za sobą rozgrywki w Victorii 3? Kliknij tam raz #v Przywróć ustawienia domyślne#!, w przeciwnym razie twoje zapisane ustawienia zastąpią ustawienia tego moda.",
- "notification_smart_notifications_mod_updated_name": "Smart Notifications – aktualizacja",
- "notification_smart_notifications_mod_updated_desc": "W tej wersji zmieniono priorytety powiadomień.\\n\\nKliknij #v Przywróć ustawienia domyślne#! w Ustawieniach wiadomości, aby je zastosować – do tego czasu twoje zapisane ustawienia zastępują ustawienia tego moda.",
  "smart_notifications_mod_notices_group": "(SN) Komunikaty moda",
  "invasion_against_us_notification_group": "Najazd (przeciwko nam)",
  "diplo_play_subject_overlord_notification_group": "Wyswobodzenie państwa poddańczego (nasze)",

@@ -1,8 +1,6 @@
 {
  "notification_smart_notifications_mod_loaded_name": "Smart Notifications etkin",
  "notification_smart_notifications_mod_loaded_desc": "İzleme Listen üstün güçler ve komşularla önceden dolduruldu; Mesaj Ayarları (zil simgesi) içinden düzenleyebilirsin.\\n\\nDaha önce Victoria 3 oynadın mı? Orada bir kez #v Varsayılan Ayarlara Sıfırla#! butonuna bas, yoksa kayıtlı ayarların bu modu geçersiz kılar.",
- "notification_smart_notifications_mod_updated_name": "Smart Notifications Güncellendi",
- "notification_smart_notifications_mod_updated_desc": "Bu sürümde bildirim öncelikleri değişti.\\n\\nBunları uygulamak için Mesaj Ayarları içinde #v Varsayılan Ayarlara Sıfırla#! butonuna bas; o zamana kadar kendi kayıtlı ayarların bu modu geçersiz kılar.",
  "smart_notifications_mod_notices_group": "(SN) Mod Bildirimleri",
  "invasion_against_us_notification_group": "İşgal (Bize Karşı)",
  "diplo_play_subject_overlord_notification_group": "Egemenlik Altındaki Ülke Özgürleşti (Bizim)",

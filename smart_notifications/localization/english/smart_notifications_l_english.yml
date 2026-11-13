@@ -2,9 +2,6 @@
  notification_smart_notifications_mod_loaded_tooltip:0 "#header $notification_smart_notifications_mod_loaded_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_mod_loaded_desc$"
  notification_smart_notifications_mod_loaded_name:0 "Smart Notifications active"
  notification_smart_notifications_mod_loaded_desc:0 "Your Watchlist is pre-filled with great powers and neighbors - edit it in Message Settings (bell icon).\n\nPlayed Victoria 3 before? Press #v Reset to Default Settings#! there once, or your saved settings will override this mod."
- notification_smart_notifications_mod_updated_tooltip:0 "#header $notification_smart_notifications_mod_updated_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_mod_updated_desc$"
- notification_smart_notifications_mod_updated_name:0 "Smart Notifications Updated"
- notification_smart_notifications_mod_updated_desc:0 "Notification priorities changed in this version.\n\nPress #v Reset to Default Settings#! in Message Settings to apply them - until then your own saved settings override this mod."
  smart_notifications_mod_notices_group:0 "(SN) Mod Notices"
 
  # New Message Settings categories created by splitting a vanilla group so

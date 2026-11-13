@@ -1,8 +1,6 @@
 {
  "notification_smart_notifications_mod_loaded_name": "Smart Notifications ativo",
  "notification_smart_notifications_mod_loaded_desc": "Sua lista de monitoramento vem preenchida com superpotências e vizinhos. Edite-a em Configurações de Mensagens (ícone de sino).\\n\\nJá jogou Victoria 3 antes? Pressione #v Redefinir para Configurações Padrão#! lá uma vez, ou suas configurações salvas vão se sobrepor a este mod.",
- "notification_smart_notifications_mod_updated_name": "Smart Notifications atualizado",
- "notification_smart_notifications_mod_updated_desc": "As prioridades das notificações mudaram nesta versão.\\n\\nPressione #v Redefinir para Configurações Padrão#! em Configurações de Mensagens para aplicá-las. Até lá, suas próprias configurações salvas se sobrepõem a este mod.",
  "smart_notifications_mod_notices_group": "(SN) Avisos do Mod",
  "invasion_against_us_notification_group": "Invasão (Contra Nós)",
  "diplo_play_subject_overlord_notification_group": "Súdito Libertado (Nosso)",
