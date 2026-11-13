@@ -5,6 +5,15 @@ written so they can be pasted into Steam Workshop update notes. Versions follow
 `.metadata/metadata.json`'s `version`, same convention as Bulk Construction:
 `+0.01` only when something genuinely new ships and is confirmed working.
 
+## Unreleased
+
+### Added
+- Suggested goods transfers in the market panel's Trade tab: the 5 most
+  profitable deals you could propose, recomputed every month or on refresh.
+
+### Changed
+- The treasury tooltip leaves out "(ST) Net treaty income" while it is £0.
+
 ## [0.12] - game version 1.15
 
 ### Added

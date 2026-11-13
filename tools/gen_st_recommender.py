@@ -50,7 +50,6 @@ MOD = REPO / "smart_trade"
 GAME = Path(r"C:\Program Files (x86)\Steam\steamapps\common\Victoria 3\game")
 
 SLOTS = 5
-LIST_SHARE = 0.01     # a row needs weekly profit >= 1% of weekly income (assumption, Spain run calibrates)
 MIN_SURPLUS = 10      # vanilla's minimum transfer
 FACTORS = G.REGISTER_FACTORS
 ROUTE_EST = G.ROUTE_EST
@@ -131,8 +130,9 @@ st_rec_in_cap = {{
 	max = st_rec_in_vmax_h
 	min = 10
 }}
-# A row must earn at least {fnum(LIST_SHARE * 100)}% of the player's weekly income.
-st_rec_in_min = {{ value = income multiply = {fnum(LIST_SHARE)} min = 1 }}
+# A row must earn at least 1 a week: the top 5 profitable deals show, however
+# small (Damien, 2026-11-13; the 1%-of-income bar is gone).
+st_rec_in_min = {{ value = 1 }}
 
 # --- the price rule at the trial quantity ----------------------------------
 st_rec_b = {{ value = var:st_rec_bh add = var:st_rec_t }}
@@ -538,8 +538,17 @@ GUI_BLOCK = """
 							}
 						}
 @@ROWS@@
+						# st_rec_g1 is set by every scan, so unset means none has run yet
 						textbox = {
-							visible = "[Not(GetPlayer.MakeScope.Var('st_rec_c1').IsSet)]"
+							visible = "[Not(GetPlayer.MakeScope.Var('st_rec_g1').IsSet)]"
+							text = "ST_REC_PENDING"
+							autoresize = yes
+							multiline = yes
+							maximumsize = { @panel_width_minus_10 -1 }
+							align = nobaseline
+						}
+						textbox = {
+							visible = "[And(GetPlayer.MakeScope.Var('st_rec_g1').IsSet, Not(GetPlayer.MakeScope.Var('st_rec_c1').IsSet))]"
 							text = "ST_REC_NONE"
 							autoresize = yes
 							multiline = yes

@@ -47,8 +47,9 @@ st_rec_in_cap = {
 	max = st_rec_in_vmax_h
 	min = 10
 }
-# A row must earn at least 1% of the player's weekly income.
-st_rec_in_min = { value = income multiply = 0.01 min = 1 }
+# A row must earn at least 1 a week: the top 5 profitable deals show, however
+# small (Damien, 2026-11-13; the 1%-of-income bar is gone).
+st_rec_in_min = { value = 1 }
 
 # --- the price rule at the trial quantity ----------------------------------
 st_rec_b = { value = var:st_rec_bh add = var:st_rec_t }

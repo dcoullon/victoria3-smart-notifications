@@ -1108,7 +1108,13 @@ def loc_files():
         out[REPO / "smart_trade" / "localization" / lang / f"smart_trade_l_{lang}.yml"] = f"l_{lang}:\n{head}{body}"
         line = (f"#bold {I18N.NET_TREATY_INCOME[lang]}#! #tooltippable #tooltip:[GetPlayer.GetTooltipTag],"
                 f"SMART_TRADE_TREATIES_TT ~@money![@@P_NET@@|D+=]#!#!\\n\\n")
-        rep = "".join(f' {k}:0 "{line}{vanilla_loc_value(lang, k)}"\n' for k in REPLACED_KEYS)
+        # The line is left out while the net rounds to £0, e.g. no goods
+        # treaties (Damien, 2026-11-13). AddLocalizationIf has vanilla loc
+        # precedent (STATE_TT_UNREALIZED_TAXES).
+        show = f"GreaterThanOrEqualTo_CFixedPoint(Abs_CFixedPoint(@@P_NET@@), {fx(0.5)})"
+        rep = f' ST_TREASURY_LINE:0 "{line}"\n' + "".join(
+            f' {k}:0 "[AddLocalizationIf({show}, \'ST_TREASURY_LINE\')]{vanilla_loc_value(lang, k)}"\n'
+            for k in REPLACED_KEYS)
         out[REPO / "smart_trade" / "localization" / "replace" / lang / f"smart_trade_treasury_l_{lang}.yml"] = \
             f"l_{lang}:\n{head}{rep}"
     return out

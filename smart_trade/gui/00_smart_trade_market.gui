@@ -393,8 +393,17 @@ types smart_trade_market_types
 							maximumsize = { @panel_width_minus_10 -1 }
 							align = nobaseline
 						}
+						# st_rec_g1 is set by every scan, so unset means none has run yet
 						textbox = {
-							visible = "[Not(GetPlayer.MakeScope.Var('st_rec_c1').IsSet)]"
+							visible = "[Not(GetPlayer.MakeScope.Var('st_rec_g1').IsSet)]"
+							text = "ST_REC_PENDING"
+							autoresize = yes
+							multiline = yes
+							maximumsize = { @panel_width_minus_10 -1 }
+							align = nobaseline
+						}
+						textbox = {
+							visible = "[And(GetPlayer.MakeScope.Var('st_rec_g1').IsSet, Not(GetPlayer.MakeScope.Var('st_rec_c1').IsSet))]"
 							text = "ST_REC_NONE"
 							autoresize = yes
 							multiline = yes

@@ -184,9 +184,13 @@ already answers "what should I send to this country".
   (engine-notes.md § The GUI cannot pass a number to a script value), so it is
   ported to script values. A Python check compares the port with the GUI
   method on random market shapes before it ships; target within 2%.
-- **Meaningful:** weekly profit at least X% of the player's weekly income
-  (`income`, script-readable). X comes from the Spain run; the list starts at
-  1%, the alert at 5%. Both are assumptions until then.
+- **Meaningful:** the list has no bar since 2026-11-13 (Damien): the top 5
+  profitable deals show, however small. In his Spain game, tobacco to France
+  at £486 a week mattered against a net income of −£2.3K. The alert's bar
+  (start 5% of weekly income, `income`) is still an assumption.
+- **Empty states:** before the first scan (new game, mod just added) the
+  block says it computes when the month turns and points at the refresh
+  button; after a scan with no profitable deal it says so.
 - **Acceptance:** vanilla's `static_treaty_acceptance` (root = partner,
   `scope:other_country` = player; its treaty-options lookups are guarded with
   `exists`/`?=`) plus the goods article's own score at that quantity
