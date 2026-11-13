@@ -496,6 +496,9 @@ FULL_OVERRIDES_BY_MOD = {
     # single type from its own 00_-prefixed file instead. If that ever changes,
     # list the file here so drift against a patched vanilla is caught.
     "bulk_construction": [],
+    # Research Queue redefines one type (tech_tree_panel) from a 00_ file,
+    # generated from vanilla; check_rq_generated_files_current catches drift.
+    "research_queue": [],
 }
 
 
@@ -1233,6 +1236,7 @@ def check_census_build_not_stale(root: Path) -> list[str]:
 
 BULK_CONSTRUCTION_ID = "bulk_construction"
 SMART_TRADE_ID = "smart_trade"
+RESEARCH_QUEUE_ID = "research_queue"
 
 # Effects that would hand the player something the game did not charge them
 # for. All four are real vanilla effect names (common/effect_localization/),
@@ -1333,6 +1337,22 @@ def check_st_generated_files_current(root: Path) -> list[str]:
         if r.returncode != 0:
             errs.append(f"{script}: {r.stdout.strip() or r.stderr.strip()}")
     return errs
+
+
+def check_rq_generated_files_current(root: Path) -> list[str]:
+    """Research Queue's tech panel override is generated from the installed
+    game's tech_tree.gui, so a game patch that changes that panel, or a hand
+    edit, must fail the build rather than ship a stale copy of the panel."""
+    import subprocess
+    script = "tools/gen_research_queue_probe.py"
+    if not VANILLA_ROOT.is_dir():
+        _skip(script, "Victoria 3 not installed on this machine")
+        return []
+    r = subprocess.run([sys.executable, str(REPO_ROOT / script), "--check"],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        return [f"{script}: {r.stdout.strip() or r.stderr.strip()}"]
+    return []
 
 
 def check_no_nested_int_to_fixed_point(root: Path) -> list[str]:
@@ -2286,6 +2306,11 @@ def run_all(root: Path) -> list[str]:
         errs += check_st_entry_width_matches_vanilla(root)
         errs += check_st_cards_skip_border_trigger(root)
         errs += check_st_rec_gui_variable_names(root)
+
+    # Research Queue: issues only the player's own queue commands.
+    if read_mod_id(root) == RESEARCH_QUEUE_ID:
+        errs += check_no_cheat_verbs(root)
+        errs += check_rq_generated_files_current(root)
 
     return errs
 

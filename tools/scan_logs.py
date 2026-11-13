@@ -111,7 +111,7 @@ def shipped_file_names() -> set[str]:
 # tools/treaty_obs_report.py). A new sibling mod adds its prefix here, or its
 # debug_log output is silently invisible to every tool and slash command that
 # reads logs through this module.
-MOD_TAG_PATTERN = r"(?:SNW|BC|ST)_[A-Z_]+\|"
+MOD_TAG_PATTERN = r"(?:SNW|BC|ST|RQ)_[A-Z_]+\|"
 
 FILES_TO_SCAN = ["error.log", "debug.log"]
 

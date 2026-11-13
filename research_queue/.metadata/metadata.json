@@ -1,0 +1,15 @@
+{
+	"name": "Research Queue Reorder - Dev (probe)",
+	"id": "research_queue",
+	"version": "0.01",
+	"supported_game_version": "1.15.*",
+	"short_description": "Dev-only probe: drag and drop to reorder the research queue. Logs RQ_PROBE lines. Never upload.",
+	"tags": [
+		"User Interface",
+		"Utilities"
+	],
+	"relationships": [],
+	"game_custom_data": {
+		"multiplayer_synchronized": false
+	}
+}

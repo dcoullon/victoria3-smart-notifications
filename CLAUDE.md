@@ -17,6 +17,7 @@ smart_notifications/    published; the EU4-style watchlist and notification tuni
 bulk_construction/      "Build All": one button queues a building in every listed state
 smart_trade/            in development as "Smart Treaties" (id stays smart_trade); per-good P&L of goods transfer treaties (docs/smart-trade-investigation.md)
 smart_trade_observer/   dev only, never uploaded: logs every goods transfer (ST_OBS|) for tools/treaty_obs_report.py
+research_queue/         dev probe: drag and drop to reorder the research queue (RQ_PROBE|, tools/rq_probe_report.py; docs/research-queue-investigation.md)
 docs/ reference/ tools/ .claude/   shared across all of them
 ```
 
