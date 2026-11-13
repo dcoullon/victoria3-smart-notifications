@@ -312,6 +312,19 @@ of a treaty's profit is moved from your own trade centers to the treasury, and
 is not new money. Measurement answers that. The Trade tab keeps vanilla's
 import and export rows below the suggestions, so existing trade stays visible.
 
+**Run 5 (2026-11-13):** rows filled on opening the Trade tab (OPEN_TAB
+scanned, OPEN_SHOW skipped the same day: both hooks work, the guard holds),
+the treaty button's draft opened with the good selected (PICK|go x3), 60 fps
+capped throughout. Then (Damien): partner cutoff raised from -10 to 0, since
+no partner under it could be brought to accept; and a good's own panel, on
+the player's market tab, lists that good's 3 best partners, same rows and
+section UX. That list is computed for one good when its panel shows it
+(`st_rec_scan_one`, about 1/50 of a full scan; partners' acceptance is
+computed at most once a day, `st_rec_acc_fresh`), keyed on good and day in
+the GUI variable `st_rec_one_key`, so switching goods or a new day rescans.
+Hooks: a `_show` state and a `trigger_on_create` state on the "Looking for
+partners" line, plus the refresh button. Not yet run in game.
+
 **Performance review before release (2026-11-13, Damien: fans run a lot with
 the game on).** Read from the code, nothing measured yet:
 - Script, per in-game month: every monthly hook in the three published mods

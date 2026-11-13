@@ -37,7 +37,7 @@ st_rec_pair_ok = {
 	scope:st_rec_c = {
 		OR = {
 			NOT = { has_variable = st_rec_acc }
-			var:st_rec_acc >= -10
+			var:st_rec_acc >= 0
 		}
 	}
 }

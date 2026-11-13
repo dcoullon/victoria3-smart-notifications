@@ -398,17 +398,17 @@ S["ST_REC_HEADER"] = {
     "turkish": "(ST) Önerilen mal transferleri",
 }
 S["ST_REC_HEADER_TT"] = {
-    "english": "The 5 most profitable goods transfers you could propose now, recomputed every month: weekly profit estimated from first-week prices, at the best quantity the partner fully accepts.\nOnly profitable deals, goods your market has 10 or more spare of, and partners you are not at war with.\nIn brackets: the partner's base acceptance before any article (hover for details). Partners below -10 are left out once known, from their first month.",
-    "french": "Les 5 transferts de marchandises les plus rentables que vous pourriez proposer, recalculés chaque mois : profit hebdomadaire estimé aux prix de la première semaine, à la meilleure quantité que le partenaire accepte pleinement.\nSeulement les transferts rentables, les biens dont votre marché a au moins 10 en surplus et les partenaires avec qui vous n'êtes pas en guerre.\nEntre parenthèses : l'acceptation de base du partenaire avant tout article (survolez pour le détail). Les partenaires sous -10 sont exclus une fois leur chiffre connu, dès leur premier mois.",
-    "german": "Die 5 profitabelsten Warenübereignungen, die Sie jetzt vorschlagen könnten, jeden Monat neu berechnet: wöchentlicher Gewinn, geschätzt zu den Preisen der ersten Woche, bei der besten Menge, die der Partner voll akzeptiert.\nNur gewinnbringende Übereignungen, Waren, von denen Ihr Markt mindestens 10 übrig hat, und Partner, mit denen Sie nicht im Krieg sind.\nIn Klammern: die Grundakzeptanz des Partners vor jedem Artikel (Details beim Überfahren). Partner unter -10 werden ausgelassen, sobald ihr Wert bekannt ist, ab ihrem ersten Monat.",
-    "spanish": "Las 5 transferencias de bienes más rentables que podrías proponer ahora, recalculadas cada mes: beneficio semanal estimado con los precios de la primera semana, a la mejor cantidad que el socio acepta por completo.\nSolo transferencias rentables, bienes de los que tu mercado tiene al menos 10 de sobra y socios con los que no estás en guerra.\nEntre paréntesis: la aceptación base del socio antes de cualquier artículo (pasa el cursor para el detalle). Los socios por debajo de -10 se omiten una vez conocida su cifra, desde su primer mes.",
-    "braz_por": "As 5 transferências de mercadorias mais lucrativas que você poderia propor agora, recalculadas todo mês: lucro semanal estimado pelos preços da primeira semana, na melhor quantidade que o parceiro aceita totalmente.\nSó transferências lucrativas, mercadorias das quais seu mercado tem pelo menos 10 de sobra e parceiros com quem você não está em guerra.\nEntre parênteses: a aceitação base do parceiro antes de qualquer artigo (passe o cursor para detalhes). Parceiros abaixo de -10 ficam de fora quando o valor é conhecido, a partir do primeiro mês.",
-    "polish": "5 najbardziej opłacalnych transferów towarów, które możesz teraz zaproponować, przeliczanych co miesiąc: tygodniowy zysk szacowany po cenach z pierwszego tygodnia, przy najlepszej ilości, którą partner w pełni akceptuje.\nTylko opłacalne transfery, towary, których twój rynek ma co najmniej 10 nadwyżki, i partnerzy, z którymi nie prowadzisz wojny.\nW nawiasie: bazowa akceptacja partnera przed jakimkolwiek artykułem (najedź, by zobaczyć szczegóły). Partnerzy poniżej -10 są pomijani, gdy ich wartość jest znana, od ich pierwszego miesiąca.",
-    "russian": "5 самых выгодных передач товаров, которые можно предложить сейчас, пересчитываются каждый месяц: недельная прибыль по ценам первой недели при лучшем объёме, который партнёр полностью принимает.\nТолько прибыльные передачи, товары, которых на вашем рынке в избытке не меньше 10, и партнёры, с которыми вы не воюете.\nВ скобках: базовое одобрение партнёра до любых статей (наведите для подробностей). Партнёры ниже -10 исключаются, когда их значение известно, с их первого месяца.",
-    "simp_chinese": "你现在可以提议的5项最赚钱的商品输送，每月重新计算：按首周价格估算的每周利润，数量为对方完全接受的最优数量。\n只包括有利润的输送、你的市场有至少10单位盈余的商品，以及未与你交战的伙伴。\n括号内：在加入任何条款之前伙伴的基础接受度（悬停查看详情）。一旦得知数值（其第一个月起），低于-10的伙伴将被排除。",
-    "japanese": "今提案できる最も利益の大きい商品の譲渡5件。毎月再計算：第1週の価格で推定した週利益、相手が完全に受け入れる最適な量。\n利益が出る譲渡、自国市場に10以上の余剰がある商品、戦争中でない相手のみ。\n括弧内：条項を加える前の相手の基本受諾度（カーソルを合わせると詳細）。数値が分かり次第（最初の月から）、-10未満の相手は除外されます。",
-    "korean": "지금 제안할 수 있는 가장 수익성 높은 상품 양도 5건, 매달 재계산: 첫 주 가격으로 추정한 주간 이익, 상대가 완전히 수락하는 최적 수량 기준.\n이익이 나는 양도, 시장에 10 이상 잉여가 있는 상품, 전쟁 중이 아닌 상대만 표시합니다.\n괄호 안: 조항을 넣기 전 상대의 기본 수락도(마우스를 올리면 상세). 수치가 확인되면(첫 달부터) -10 미만인 상대는 제외됩니다.",
-    "turkish": "Şu anda önerebileceğiniz en kârlı 5 mal transferi, her ay yeniden hesaplanır: ilk hafta fiyatlarıyla tahmin edilen haftalık kâr, ortağın tamamen kabul ettiği en iyi miktarda.\nYalnızca kârlı transferler, pazarınızda en az 10 fazlası olan mallar ve savaşta olmadığınız ortaklar.\nParantez içinde: ortağın herhangi bir madde öncesi temel kabulü (ayrıntı için üzerine gelin). -10'un altındaki ortaklar, değerleri bilindiğinde (ilk aylarından itibaren) dışarıda bırakılır.",
+    "english": "The 5 most profitable goods transfers you could propose now, recomputed every month: weekly profit estimated from first-week prices, at the best quantity the partner fully accepts.\nOnly profitable deals, goods your market has 10 or more spare of, and partners you are not at war with.\nIn brackets: the partner's base acceptance before any article (hover for details). Partners below 0 are left out once known, from their first month.",
+    "french": "Les 5 transferts de marchandises les plus rentables que vous pourriez proposer, recalculés chaque mois : profit hebdomadaire estimé aux prix de la première semaine, à la meilleure quantité que le partenaire accepte pleinement.\nSeulement les transferts rentables, les biens dont votre marché a au moins 10 en surplus et les partenaires avec qui vous n'êtes pas en guerre.\nEntre parenthèses : l'acceptation de base du partenaire avant tout article (survolez pour le détail). Les partenaires sous 0 sont exclus une fois leur chiffre connu, dès leur premier mois.",
+    "german": "Die 5 profitabelsten Warenübereignungen, die Sie jetzt vorschlagen könnten, jeden Monat neu berechnet: wöchentlicher Gewinn, geschätzt zu den Preisen der ersten Woche, bei der besten Menge, die der Partner voll akzeptiert.\nNur gewinnbringende Übereignungen, Waren, von denen Ihr Markt mindestens 10 übrig hat, und Partner, mit denen Sie nicht im Krieg sind.\nIn Klammern: die Grundakzeptanz des Partners vor jedem Artikel (Details beim Überfahren). Partner unter 0 werden ausgelassen, sobald ihr Wert bekannt ist, ab ihrem ersten Monat.",
+    "spanish": "Las 5 transferencias de bienes más rentables que podrías proponer ahora, recalculadas cada mes: beneficio semanal estimado con los precios de la primera semana, a la mejor cantidad que el socio acepta por completo.\nSolo transferencias rentables, bienes de los que tu mercado tiene al menos 10 de sobra y socios con los que no estás en guerra.\nEntre paréntesis: la aceptación base del socio antes de cualquier artículo (pasa el cursor para el detalle). Los socios por debajo de 0 se omiten una vez conocida su cifra, desde su primer mes.",
+    "braz_por": "As 5 transferências de mercadorias mais lucrativas que você poderia propor agora, recalculadas todo mês: lucro semanal estimado pelos preços da primeira semana, na melhor quantidade que o parceiro aceita totalmente.\nSó transferências lucrativas, mercadorias das quais seu mercado tem pelo menos 10 de sobra e parceiros com quem você não está em guerra.\nEntre parênteses: a aceitação base do parceiro antes de qualquer artigo (passe o cursor para detalhes). Parceiros abaixo de 0 ficam de fora quando o valor é conhecido, a partir do primeiro mês.",
+    "polish": "5 najbardziej opłacalnych transferów towarów, które możesz teraz zaproponować, przeliczanych co miesiąc: tygodniowy zysk szacowany po cenach z pierwszego tygodnia, przy najlepszej ilości, którą partner w pełni akceptuje.\nTylko opłacalne transfery, towary, których twój rynek ma co najmniej 10 nadwyżki, i partnerzy, z którymi nie prowadzisz wojny.\nW nawiasie: bazowa akceptacja partnera przed jakimkolwiek artykułem (najedź, by zobaczyć szczegóły). Partnerzy poniżej 0 są pomijani, gdy ich wartość jest znana, od ich pierwszego miesiąca.",
+    "russian": "5 самых выгодных передач товаров, которые можно предложить сейчас, пересчитываются каждый месяц: недельная прибыль по ценам первой недели при лучшем объёме, который партнёр полностью принимает.\nТолько прибыльные передачи, товары, которых на вашем рынке в избытке не меньше 10, и партнёры, с которыми вы не воюете.\nВ скобках: базовое одобрение партнёра до любых статей (наведите для подробностей). Партнёры ниже 0 исключаются, когда их значение известно, с их первого месяца.",
+    "simp_chinese": "你现在可以提议的5项最赚钱的商品输送，每月重新计算：按首周价格估算的每周利润，数量为对方完全接受的最优数量。\n只包括有利润的输送、你的市场有至少10单位盈余的商品，以及未与你交战的伙伴。\n括号内：在加入任何条款之前伙伴的基础接受度（悬停查看详情）。一旦得知数值（其第一个月起），低于0的伙伴将被排除。",
+    "japanese": "今提案できる最も利益の大きい商品の譲渡5件。毎月再計算：第1週の価格で推定した週利益、相手が完全に受け入れる最適な量。\n利益が出る譲渡、自国市場に10以上の余剰がある商品、戦争中でない相手のみ。\n括弧内：条項を加える前の相手の基本受諾度（カーソルを合わせると詳細）。数値が分かり次第（最初の月から）、0未満の相手は除外されます。",
+    "korean": "지금 제안할 수 있는 가장 수익성 높은 상품 양도 5건, 매달 재계산: 첫 주 가격으로 추정한 주간 이익, 상대가 완전히 수락하는 최적 수량 기준.\n이익이 나는 양도, 시장에 10 이상 잉여가 있는 상품, 전쟁 중이 아닌 상대만 표시합니다.\n괄호 안: 조항을 넣기 전 상대의 기본 수락도(마우스를 올리면 상세). 수치가 확인되면(첫 달부터) 0 미만인 상대는 제외됩니다.",
+    "turkish": "Şu anda önerebileceğiniz en kârlı 5 mal transferi, her ay yeniden hesaplanır: ilk hafta fiyatlarıyla tahmin edilen haftalık kâr, ortağın tamamen kabul ettiği en iyi miktarda.\nYalnızca kârlı transferler, pazarınızda en az 10 fazlası olan mallar ve savaşta olmadığınız ortaklar.\nParantez içinde: ortağın herhangi bir madde öncesi temel kabulü (ayrıntı için üzerine gelin). 0'ın altındaki ortaklar, değerleri bilindiğinde (ilk aylarından itibaren) dışarıda bırakılır.",
 }
 S["ST_REC_REFRESH_TT"] = {
     "english": "Recompute the suggestions now.", "french": "Recalculer les suggestions maintenant.",
@@ -491,6 +491,59 @@ _REC_ROW = {
     "korean": "{C}({A})에 {Q} {G} 보내기: ~@money!{GAIN}/주",
     "turkish": "{Q} {G} gönder, alıcı: {C} ({A}), ~@money!{GAIN}/hafta",
 }
+# --- A good's own panel: its best partners (gen_st_recommender.py, gui_goods) ---
+# The (ST) tag goes on the section header only (CLAUDE.md, tagging rule).
+S["ST_REC_ONE_HEADER"] = {
+    "english": "(ST) Best partners for this good", "french": "(ST) Meilleurs partenaires pour ce bien",
+    "german": "(ST) Beste Partner für diese Ware", "spanish": "(ST) Mejores socios para este bien",
+    "braz_por": "(ST) Melhores parceiros para este bem", "polish": "(ST) Najlepsi partnerzy dla tego towaru",
+    "russian": "(ST) Лучшие партнёры для этого товара", "simp_chinese": "(ST) 此商品的最佳伙伴",
+    "japanese": "(ST) この商品の最適な相手", "korean": "(ST) 이 상품의 최적 상대",
+    "turkish": "(ST) Bu mal için en iyi ortaklar",
+}
+S["ST_REC_ONE_HEADER_TT"] = {
+    "english": "The 3 most profitable countries to send this good to with a goods transfer, worked out when you open this panel: weekly profit from first-week prices, at the best quantity the partner fully accepts. In brackets: the partner's base acceptance before any article (hover for details); partners below 0 are left out.",
+    "french": "Les 3 pays les plus rentables où envoyer ce bien par transfert de marchandises, calculés à l'ouverture de ce panneau : profit hebdomadaire aux prix de la première semaine, à la meilleure quantité que le partenaire accepte pleinement. Entre parenthèses : l'acceptation de base du partenaire avant tout article (survolez pour le détail) ; les partenaires sous 0 sont exclus.",
+    "german": "Die 3 profitabelsten Länder, an die Sie diese Ware per Warenübereignung senden können, berechnet beim Öffnen dieses Fensters: wöchentlicher Gewinn zu den Preisen der ersten Woche, bei der besten Menge, die der Partner voll akzeptiert. In Klammern: die Grundakzeptanz des Partners vor jedem Artikel (Details beim Überfahren); Partner unter 0 werden ausgelassen.",
+    "spanish": "Los 3 países más rentables a los que enviar este bien con una transferencia de bienes, calculados al abrir este panel: beneficio semanal con los precios de la primera semana, a la mejor cantidad que el socio acepta por completo. Entre paréntesis: la aceptación base del socio antes de cualquier artículo (pasa el cursor para el detalle); se omiten los socios por debajo de 0.",
+    "braz_por": "Os 3 países mais lucrativos para enviar este bem com uma transferência de mercadorias, calculados ao abrir este painel: lucro semanal pelos preços da primeira semana, na melhor quantidade que o parceiro aceita totalmente. Entre parênteses: a aceitação base do parceiro antes de qualquer artigo (passe o cursor para detalhes); parceiros abaixo de 0 ficam de fora.",
+    "polish": "3 najbardziej opłacalne kraje, do których można wysłać ten towar transferem towarów, obliczane przy otwarciu tego panelu: tygodniowy zysk po cenach z pierwszego tygodnia, przy najlepszej ilości, którą partner w pełni akceptuje. W nawiasie: bazowa akceptacja partnera przed jakimkolwiek artykułem (najedź, by zobaczyć szczegóły); partnerzy poniżej 0 są pomijani.",
+    "russian": "3 самые выгодные страны для передачи этого товара, рассчитываются при открытии этой панели: недельная прибыль по ценам первой недели при лучшем объёме, который партнёр полностью принимает. В скобках: базовое одобрение партнёра до любых статей (наведите для подробностей); партнёры ниже 0 исключаются.",
+    "simp_chinese": "通过商品输送发送此商品最赚钱的3个国家，在打开此面板时计算：按首周价格估算的每周利润，数量为对方完全接受的最优数量。括号内：在加入任何条款之前伙伴的基础接受度（悬停查看详情）；低于0的伙伴将被排除。",
+    "japanese": "商品の譲渡でこの商品を送るのに最も利益の大きい3か国。このパネルを開いたときに計算：第1週の価格で推定した週利益、相手が完全に受け入れる最適な量。括弧内：条項を加える前の相手の基本受諾度（カーソルを合わせると詳細）。0未満の相手は除外されます。",
+    "korean": "상품 양도로 이 상품을 보내기에 가장 수익성 높은 3개국, 이 패널을 열 때 계산: 첫 주 가격으로 추정한 주간 이익, 상대가 완전히 수락하는 최적 수량 기준. 괄호 안: 조항을 넣기 전 상대의 기본 수락도(마우스를 올리면 상세). 0 미만인 상대는 제외됩니다.",
+    "turkish": "Bu malı mal transferiyle göndermek için en kârlı 3 ülke, bu panel açıldığında hesaplanır: ilk hafta fiyatlarıyla haftalık kâr, ortağın tamamen kabul ettiği en iyi miktarda. Parantez içinde: ortağın herhangi bir madde öncesi temel kabulü (ayrıntı için üzerine gelin); 0'ın altındaki ortaklar dışarıda bırakılır.",
+}
+S["ST_REC_ONE_PENDING"] = {
+    "english": "Looking for partners...", "french": "Recherche de partenaires...",
+    "german": "Suche nach Partnern...", "spanish": "Buscando socios...",
+    "braz_por": "Procurando parceiros...", "polish": "Szukanie partnerów...",
+    "russian": "Поиск партнёров...", "simp_chinese": "正在寻找伙伴...",
+    "japanese": "相手を探しています...", "korean": "상대를 찾는 중...",
+    "turkish": "Ortak aranıyor...",
+}
+S["ST_REC_ONE_NONE"] = {
+    "english": "No partner would pay for this good right now. A goods transfer needs 10 or more spare in your market.",
+    "french": "Aucun partenaire ne paierait ce bien pour l'instant. Un transfert de marchandises demande au moins 10 en surplus sur votre marché.",
+    "german": "Derzeit würde kein Partner für diese Ware zahlen. Eine Warenübereignung braucht mindestens 10 Überschuss in Ihrem Markt.",
+    "spanish": "Ahora mismo ningún socio pagaría por este bien. Una transferencia de bienes necesita al menos 10 de sobra en tu mercado.",
+    "braz_por": "No momento nenhum parceiro pagaria por este bem. Uma transferência de mercadorias precisa de pelo menos 10 de sobra no seu mercado.",
+    "polish": "Obecnie żaden partner nie zapłaciłby za ten towar. Transfer towarów wymaga co najmniej 10 nadwyżki na twoim rynku.",
+    "russian": "Сейчас ни один партнёр не заплатил бы за этот товар. Для передачи товаров нужно не меньше 10 в избытке на вашем рынке.",
+    "simp_chinese": "目前没有伙伴愿意为此商品付款。商品输送需要你的市场有至少10单位盈余。",
+    "japanese": "現在、この商品に支払う相手はいません。商品の譲渡には自国市場に10以上の余剰が必要です。",
+    "korean": "현재 이 상품에 값을 치를 상대가 없습니다. 상품 양도에는 시장에 10 이상의 잉여가 필요합니다.",
+    "turkish": "Şu anda hiçbir ortak bu mal için ödeme yapmaz. Mal transferi için pazarınızda en az 10 fazla gerekir.",
+}
+for _n in range(1, 4):
+    _p = "GetPlayer.MakeScope.Var('st_rec_x{}%d')" % _n
+    S[f"ST_REC_ONE_ROW_{_n}"] = {
+        _l: _t.format(Q="[" + _p.format("q") + ".GetValue|0]",
+                      G="[GetPlayer.MakeScope.Var('st_rec_xk').GetGoods.GetName]",
+                      C="[" + _p.format("c") + ".GetCountry.GetName]",
+                      GAIN="[" + _p.format("g") + ".GetValue|0]",
+                      A=_REC_ACC)
+        for _l, _t in _REC_ROW.items()}
 for _n in range(1, 6):
     _p = "GetPlayer.MakeScope.Var('st_rec_{}%d')" % _n
     S[f"ST_REC_ROW_{_n}"] = {

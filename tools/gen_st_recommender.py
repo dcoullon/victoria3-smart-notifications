@@ -50,8 +50,9 @@ MOD = REPO / "smart_trade"
 GAME = Path(r"C:\Program Files (x86)\Steam\steamapps\common\Victoria 3\game")
 
 SLOTS = 5
+ONE_SLOTS = 3         # partners listed in a good's own panel (Damien, 2026-11-13)
 MIN_SURPLUS = 10      # vanilla's minimum transfer
-MIN_ACCEPTANCE = -10  # partners whose base acceptance is lower are left out (Damien, 2026-11-13)
+MIN_ACCEPTANCE = 0    # partners whose base acceptance is lower are left out (Damien, 2026-11-13: -10, then 0)
 FACTORS = G.REGISTER_FACTORS
 ROUTE_EST = G.ROUTE_EST
 
@@ -220,7 +221,9 @@ st_rec_vs_min = {{ value = var:st_rec_best subtract = var:st_rec_min }}
 {steps}
 """ + "\n".join(
         f"st_rec_vs_slot{n} = {{ value = var:st_rec_best subtract = var:st_rec_g{n} }}"
-        for n in range(1, SLOTS + 1)) + "\n" + """
+        for n in range(1, SLOTS + 1)) + "\n" + "\n".join(
+        f"st_rec_vs_xslot{n} = {{ value = var:st_rec_best subtract = var:st_rec_xg{n} }}"
+        for n in range(1, ONE_SLOTS + 1)) + "\n" + """
 # The partner's base acceptance of a treaty with the player: vanilla's own
 # static_treaty_acceptance (common/script_values), which wants root = the
 # evaluating country and scope:other_country = the proposer. ROOT HERE MUST
@@ -317,51 +320,62 @@ def search_steps():
     return "\n".join(out)
 
 
-def insert_block():
-    """Insert the good's best (st_rec_best/_bestq/_bc/_bk) into the sorted
-    slots: find the first slot it beats, shift the rest down."""
+def insert_block(prefix="st_rec_", slots=SLOTS, indent=0):
+    """Insert the candidate (st_rec_best/_bestq/_bc/_bk) into the sorted
+    slots: find the first slot it beats, shift the rest down. prefix
+    "st_rec_" is the Trade tab's top 5 across goods (with the good, k, per
+    slot); "st_rec_x" is one good's own top partners (no k: one good)."""
+    with_k = prefix == "st_rec_"
+    vs = "st_rec_vs_slot" if with_k else "st_rec_vs_xslot"
+
     def copy(src, dst):
-        return (f"\t\t\tif = {{ limit = {{ has_variable = st_rec_c{src} }}\n"
-                f"\t\t\t\tset_variable = {{ name = st_rec_g{dst} value = var:st_rec_g{src} }}\n"
-                f"\t\t\t\tset_variable = {{ name = st_rec_q{dst} value = var:st_rec_q{src} }}\n"
-                f"\t\t\t\tset_variable = {{ name = st_rec_c{dst} value = var:st_rec_c{src} }}\n"
-                f"\t\t\t\tset_variable = {{ name = st_rec_k{dst} value = var:st_rec_k{src} }}\n"
-                f"\t\t\t}}")
+        k = (f"\t\t\t\tset_variable = {{ name = {prefix}k{dst} value = var:{prefix}k{src} }}\n" if with_k else "")
+        return (f"\t\t\tif = {{ limit = {{ has_variable = {prefix}c{src} }}\n"
+                f"\t\t\t\tset_variable = {{ name = {prefix}g{dst} value = var:{prefix}g{src} }}\n"
+                f"\t\t\t\tset_variable = {{ name = {prefix}q{dst} value = var:{prefix}q{src} }}\n"
+                f"\t\t\t\tset_variable = {{ name = {prefix}c{dst} value = var:{prefix}c{src} }}\n"
+                + k + "\t\t\t}")
 
     def put(n):
-        return (f"\t\t\tset_variable = {{ name = st_rec_g{n} value = var:st_rec_best }}\n"
-                f"\t\t\tset_variable = {{ name = st_rec_q{n} value = var:st_rec_bestq }}\n"
-                f"\t\t\tset_variable = {{ name = st_rec_c{n} value = var:st_rec_bc }}\n"
-                f"\t\t\tset_variable = {{ name = st_rec_k{n} value = var:st_rec_bk }}")
+        k = f"\n\t\t\tset_variable = {{ name = {prefix}k{n} value = var:st_rec_bk }}" if with_k else ""
+        return (f"\t\t\tset_variable = {{ name = {prefix}g{n} value = var:st_rec_best }}\n"
+                f"\t\t\tset_variable = {{ name = {prefix}q{n} value = var:st_rec_bestq }}\n"
+                f"\t\t\tset_variable = {{ name = {prefix}c{n} value = var:st_rec_bc }}" + k)
 
     # Nested else so each slot's comparison runs only if the ones above failed.
     def level(n):
-        if n > SLOTS:
+        if n > slots:
             return ""
-        shifts = "\n".join(copy(j, j + 1) for j in range(SLOTS - 1, n - 1, -1))
+        shifts = "\n".join(copy(j, j + 1) for j in range(slots - 1, n - 1, -1))
         body = (shifts + "\n" if shifts else "") + put(n)
         inner = level(n + 1)
-        s = (f"\t\tset_variable = {{ name = st_rec_d value = st_rec_vs_slot{n} }}\n"
+        s = (f"\t\tset_variable = {{ name = st_rec_d value = {vs}{n} }}\n"
              f"\t\tif = {{\n\t\t\tlimit = {{ var:st_rec_d > 0 }}\n{body}\n\t\t}}")
         if inner:
             s += "\n\t\telse = {\n" + "\n".join("\t" + l for l in inner.splitlines()) + "\n\t\t}"
         return s
-    return level(1)
+    return "\n".join("\t" * indent + l for l in level(1).splitlines())
 
 
-def per_good_blocks(goods):
+def per_good_blocks(goods, one=False):
+    """The scan's per-good loop. one=True: st_rec_scan_one's version, which
+    runs only the block of the good saved as scope:st_rec_one and puts each
+    partner into that good's own top list (st_rec_try_partner_x)."""
     out = []
     for key, tq in goods:
+        only = f" scope:st_rec_one = g:{key}" if one else ""
+        try_ = "st_rec_try_partner_x" if one else "st_rec_try_partner"
+        start = "" if one else "\t\t\tst_rec_good_start = yes\n"
+        end = "" if one else "\t\t\tst_rec_good_end = yes\n"
         out.append(f"""\t# {key}
 \tif = {{
-\t\tlimit = {{ scope:st_rec_home = {{ exists = mg:{key} }} }}
+\t\tlimit = {{{only} scope:st_rec_home = {{ exists = mg:{key} }} }}
 \t\tscope:st_rec_home = {{ mg:{key} = {{ save_scope_as = st_rec_h goods = {{ save_scope_as = st_rec_g }} }} }}
 \t\tset_variable = {{ name = st_rec_sur value = st_rec_in_surplus }}
 \t\tif = {{
 \t\t\tlimit = {{ var:st_rec_sur >= {MIN_SURPLUS} scope:st_rec_h = {{ is_tradeable = yes }} }}
 \t\t\tset_variable = {{ name = st_rec_tq value = {fnum(tq)} }}
-\t\t\tst_rec_good_start = yes
-\t\t\tevery_market = {{
+{start}\t\t\tevery_market = {{
 \t\t\t\tlimit = {{
 \t\t\t\t\tNOT = {{ this = scope:st_rec_home }}
 \t\t\t\t\texists = mg:{key}
@@ -376,12 +390,12 @@ def per_good_blocks(goods):
 \t\t\t\telse = {{
 \t\t\t\t\troot = {{ set_variable = {{ name = st_rec_adj value = 0 }} }}
 \t\t\t\t}}
-\t\t\t\troot = {{ st_rec_try_partner = yes }}
+\t\t\t\troot = {{ {try_} = yes }}
 \t\t\t}}
-\t\t\tst_rec_good_end = yes
-\t\t}}
+{end}\t\t}}
 \t}}""")
-    return "\n".join(out)
+    body = "\n".join(out)
+    return "\n".join("\t" + l for l in body.splitlines()) if one else body
 
 
 def effects(goods):
@@ -391,6 +405,11 @@ def effects(goods):
         f"\tif = {{ limit = {{ has_variable = st_rec_k{n} }} remove_variable = st_rec_k{n} }}\n"
         f"\tif = {{ limit = {{ has_variable = st_rec_q{n} }} remove_variable = st_rec_q{n} }}"
         for n in range(1, SLOTS + 1))
+    one_reset = "\n".join(
+        f"\tset_variable = {{ name = st_rec_xg{n} value = -1 }}\n"
+        f"\tif = {{ limit = {{ has_variable = st_rec_xc{n} }} remove_variable = st_rec_xc{n} }}\n"
+        f"\tif = {{ limit = {{ has_variable = st_rec_xq{n} }} remove_variable = st_rec_xq{n} }}"
+        for n in range(1, ONE_SLOTS + 1))
     logs = "\n".join(
         f"\tif = {{ limit = {{ has_variable = st_rec_c{n} }}\n"
         f"\t\tdebug_log = \"ST_REC|ROW|[TimeKeeper.GetCurrentDate.GetString]|{n}|"
@@ -410,7 +429,18 @@ def effects(goods):
 
 st_rec_scan = {{
 	# the proposer that st_rec_acc reads (st_rec_values.txt)
-	set_global_variable = {{ name = st_rec_player value = root }}
+	# Written only when it changes; the read also stops the engine's
+	# "st_rec_player is set but never used" warning (a global_var: link in a
+	# script value does not count as a use).
+	if = {{
+		limit = {{
+			OR = {{
+				NOT = {{ has_global_variable = st_rec_player }}
+				NOT = {{ global_var:st_rec_player = root }}
+			}}
+		}}
+		set_global_variable = {{ name = st_rec_player value = root }}
+	}}
 	# today's scan is done: the Trade tab's open hooks skip until tomorrow
 	set_variable = {{ name = st_rec_fresh value = 1 days = 1 }}
 {reset}
@@ -418,21 +448,7 @@ st_rec_scan = {{
 	set_variable = {{ name = st_rec_n_full value = 0 }}
 	if = {{
 		limit = {{ is_junior_in_customs_union = no }}
-		market = {{ save_scope_as = st_rec_home }}
-		set_variable = {{ name = st_rec_min value = st_rec_in_min }}
-		set_variable = {{ name = st_rec_mm value = st_rec_in_mm }}
-		# Each partner's base acceptance of a treaty with the player, now,
-		# for st_rec_pair_ok's bar: st_rec_acc_scan is vanilla's formula with
-		# root read from scope:st_rec_eval (the partner); the proposer is
-		# scope:other_country, as vanilla expects.
-		save_scope_as = other_country
-		every_market = {{
-			limit = {{ NOT = {{ this = scope:st_rec_home }} exists = owner }}
-			owner = {{
-				save_scope_as = st_rec_eval
-				set_variable = {{ name = st_rec_acc value = st_rec_acc_scan }}
-			}}
-		}}
+		st_rec_prepare = yes
 		st_rec_scan_goods = yes
 	}}
 	debug_log = "ST_REC|SCAN|[TimeKeeper.GetCurrentDate.GetString]|pairs=[THIS.Var('st_rec_n_pairs').GetValue|0]|searched=[THIS.Var('st_rec_n_full').GetValue|0]|min=[THIS.Var('st_rec_min').GetValue|2]"
@@ -440,8 +456,85 @@ st_rec_scan = {{
 {cleanup}
 }}
 
+# Shared by st_rec_scan and st_rec_scan_one: the home market, the bars, and
+# each partner's base acceptance of a treaty with the player, now, for
+# st_rec_pair_ok (st_rec_acc_scan is vanilla's formula with root read from
+# scope:st_rec_eval, the partner; the proposer is scope:other_country, as
+# vanilla expects).
+st_rec_prepare = {{
+	market = {{ save_scope_as = st_rec_home }}
+	set_variable = {{ name = st_rec_min value = st_rec_in_min }}
+	set_variable = {{ name = st_rec_mm value = st_rec_in_mm }}
+	save_scope_as = other_country
+	# once a day: a good's panel can run several one-good scans in a day,
+	# and acceptance moves far slower than that
+	if = {{
+		limit = {{ NOT = {{ has_variable = st_rec_acc_fresh }} }}
+		set_variable = {{ name = st_rec_acc_fresh value = 1 days = 1 }}
+		every_market = {{
+			limit = {{ NOT = {{ this = scope:st_rec_home }} exists = owner }}
+			owner = {{
+				save_scope_as = st_rec_eval
+				set_variable = {{ name = st_rec_acc value = st_rec_acc_scan }}
+			}}
+		}}
+	}}
+}}
+
 st_rec_scan_goods = {{
 {per_good_blocks(goods)}
+}}
+
+# One good's best {ONE_SLOTS} partners, for the good's own panel (Damien,
+# 2026-11-13). Run from the panel (st_rec_one_sgui) with the good saved as
+# scope:st_rec_one; about 1/50 of a full scan. Results: st_rec_xc/xq/xg 1..{ONE_SLOTS}
+# and st_rec_xk (the good they are for).
+st_rec_scan_one = {{
+{one_reset}
+	set_variable = {{ name = st_rec_xk value = scope:st_rec_one }}
+	set_variable = {{ name = st_rec_n_pairs value = 0 }}
+	set_variable = {{ name = st_rec_n_full value = 0 }}
+	if = {{
+		limit = {{ is_junior_in_customs_union = no }}
+		st_rec_prepare = yes
+{per_good_blocks(goods, one=True)}
+	}}
+	debug_log = "ST_REC|ONE|[TimeKeeper.GetCurrentDate.GetString]|[THIS.Var('st_rec_xk').GetGoods.GetKey]|pairs=[THIS.Var('st_rec_n_pairs').GetValue|0]|searched=[THIS.Var('st_rec_n_full').GetValue|0]"
+{cleanup}
+}}
+
+# One partner market for st_rec_scan_one: the same rules and search as
+# st_rec_try_partner, then the pair goes into the good's own top {ONE_SLOTS}.
+st_rec_try_partner_x = {{
+	if = {{
+		limit = {{ st_rec_pair_ok = yes }}
+		change_variable = {{ name = st_rec_n_pairs add = 1 }}
+		set_variable = {{ name = st_rec_bh value = st_rec_in_bh }}
+		set_variable = {{ name = st_rec_sh value = st_rec_in_sh }}
+		set_variable = {{ name = st_rec_bp value = st_rec_in_bp }}
+		set_variable = {{ name = st_rec_sp value = st_rec_in_sp }}
+		set_variable = {{ name = st_rec_k value = st_rec_in_k }}
+		set_variable = {{ name = st_rec_ship value = st_rec_in_ship }}
+		set_variable = {{ name = st_rec_cap value = st_rec_in_cap }}
+		set_variable = {{ name = st_rec_t value = 10 }}
+		set_variable = {{ name = st_rec_gq value = st_rec_gain }}
+		if = {{
+			limit = {{ var:st_rec_gq > 0 }}
+			change_variable = {{ name = st_rec_n_full add = 1 }}
+			st_rec_search = yes
+			set_variable = {{ name = st_rec_t value = var:st_rec_q }}
+			set_variable = {{ name = st_rec_gq value = st_rec_gain }}
+			set_variable = {{ name = st_rec_best value = var:st_rec_gq }}
+			set_variable = {{ name = st_rec_bestq value = var:st_rec_q }}
+			set_variable = {{ name = st_rec_bc value = scope:st_rec_c }}
+			set_variable = {{ name = st_rec_bk value = scope:st_rec_g }}
+			set_variable = {{ name = st_rec_d value = st_rec_vs_min }}
+			if = {{
+				limit = {{ var:st_rec_d >= 0 }}
+{insert_block(prefix="st_rec_x", slots=ONE_SLOTS, indent=4)}
+			}}
+		}}
+	}}
 }}
 
 st_rec_good_start = {{
@@ -628,6 +721,17 @@ st_rec_open_show_sgui = {
 			debug_log = "ST_REC|OPEN_SHOW|skip|[TimeKeeper.GetCurrentDate.GetString]"
 		}
 	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+# A good's own panel: its best partners (st_rec_scan_one), the good passed
+# in as scope:st_rec_one. Fired by the panel when it shows a good it has no
+# list for today (a _show state), and by its refresh button.
+st_rec_one_sgui = {
+	scope = country
+	is_shown = { is_player = yes }
+	effect = { st_rec_scan_one = yes }
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
@@ -838,6 +942,166 @@ types smart_trade_market_types
 """
 
 
+# ---------------------------------------------------------------------------
+# GUI: vanilla's goods_panel type (a good's panel, its market tab), with one
+# insertion above the "Bought by / Sold by" lists: the good's best partners.
+# The list is keyed on the good AND the day in a GUI variable
+# (st_rec_one_key): a good shown with no list for today shows a "Looking
+# for partners" line, whose _show state runs the one-good scan and sets the
+# key, which hides the line again. So opening a good, or switching to
+# another good in the open panel, scans that good at most once a day.
+# ---------------------------------------------------------------------------
+GOODS_ANCHOR = "### BOUGHT BY / SOLD BY"
+ONE_KEY = "Concatenate(Goods.GetKey, TimeKeeper.GetCurrentDate.GetString)"
+ONE_RUN = ("GetScriptedGui('st_rec_one_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope)"
+           ".AddScope('st_rec_one', Goods.MakeScope).End)")
+
+GOODS_BLOCK = """
+					### Smart Treaties: this good's best partners (tools/gen_st_recommender.py)
+					flowcontainer = {
+						direction = vertical
+						parentanchor = hcenter
+						visible = "[Goods.GetMarket.GetOwner.IsLocalPlayer]"
+						spacing = 2
+
+						# collapsible like the Trade tab's section; open by default
+						container = {
+							parentanchor = hcenter
+							section_header_button = {
+								blockoverride "layout" {
+									parentanchor = hcenter
+									size = { @panel_width 38 }
+								}
+								blockoverride "left_text" {
+									text = "ST_REC_ONE_HEADER"
+									fontsize_min = 12
+									elide = right
+								}
+								tooltip = "ST_REC_ONE_HEADER_TT"
+								blockoverride "onclick" {
+									onclick = "[GetVariableSystem.Toggle('st_rec_one_closed')]"
+								}
+								blockoverride "onclick_showmore" {
+									visible = "[GetVariableSystem.Exists('st_rec_one_closed')]"
+								}
+								blockoverride "onclick_showless" {
+									visible = "[Not(GetVariableSystem.Exists('st_rec_one_closed'))]"
+								}
+							}
+							button_icon_reset = {
+								size = { 26 26 }
+								parentanchor = right|vcenter
+								position = { -10 0 }
+								onclick = "[GetVariableSystem.Set('st_rec_one_key', @@ONE_KEY@@)]"
+								onclick = "[@@ONE_RUN@@]"
+								tooltip = "ST_REC_REFRESH_TT"
+							}
+						}
+
+						flowcontainer = {
+							visible = "[Not(GetVariableSystem.Exists('st_rec_one_closed'))]"
+							direction = vertical
+							parentanchor = hcenter
+							margin = { 10 4 }
+							spacing = 2
+
+							# shown while there is no list for this good today; showing
+							# it is what runs the scan, which hides it again
+							textbox = {
+								visible = "[Not(GetVariableSystem.HasValue('st_rec_one_key', @@ONE_KEY@@))]"
+								text = "ST_REC_ONE_PENDING"
+								autoresize = yes
+								align = nobaseline
+								# two routes: _show when it appears in an open panel (a
+								# switch of good, a new day), trigger_on_create when the
+								# panel is built with it already visible, where _show
+								# does not fire (engine-notes, GUI expressions run
+								# every frame); the ST_REC|ONE log shows each scan
+								state = {
+									name = _show
+									on_start = "[GetVariableSystem.Set('st_rec_one_key', @@ONE_KEY@@)]"
+									on_start = "[@@ONE_RUN@@]"
+								}
+								state = {
+									name = st_rec_one_create
+									trigger_on_create = yes
+									on_start = "[GetVariableSystem.Set('st_rec_one_key', @@ONE_KEY@@)]"
+									on_start = "[@@ONE_RUN@@]"
+								}
+							}
+@@ROWS@@
+							textbox = {
+								visible = "[And(GetVariableSystem.HasValue('st_rec_one_key', @@ONE_KEY@@), Not(GetPlayer.MakeScope.Var('st_rec_xc1').IsSet))]"
+								text = "ST_REC_ONE_NONE"
+								autoresize = yes
+								multiline = yes
+								maximumsize = { @panel_width_minus_10 -1 }
+								align = nobaseline
+							}
+						}
+					}
+
+"""
+
+GOODS_ROW = """							flowcontainer = {
+								visible = "[And(GetVariableSystem.HasValue('st_rec_one_key', @@ONE_KEY@@), GetPlayer.MakeScope.Var('st_rec_xc@@N@@').IsSet)]"
+								datacontext = "[GetPlayer.MakeScope.Var('st_rec_xc@@N@@').GetCountry]"
+								direction = horizontal
+								spacing = 5
+								button_icon_round = {
+									size = { 26 26 }
+									parentanchor = vcenter
+									blockoverride "icon" {
+										texture = "gfx/interface/icons/generic_icons/diplomatic_treaties.dds"
+									}
+									blockoverride "icon_size" {
+										size = { 75% 75% }
+									}
+									tooltip = "ST_REC_TREATY_TT"
+									enabled = "[GetPlayer.CanSignTreatyWith(Country.Self)]"
+									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_xk').GetGoods.GetKey)]"
+									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
+								}
+								textbox = {
+									parentanchor = vcenter
+									text = "ST_REC_ONE_ROW_@@N@@"
+									autoresize = yes
+									multiline = yes
+									maximumsize = { 499 -1 }
+									align = nobaseline
+								}
+							}"""
+
+
+def gui_goods():
+    src = (GAME / "gui/goods_panel.gui").read_text(encoding="utf-8-sig")
+    consts = "\n".join(l for l in src.splitlines() if l.startswith("@"))
+    body, line = extract_type(src, "goods_panel")
+    assert body.count(GOODS_ANCHOR) == 1, "goods panel's Bought by / Sold by moved"
+    rows = "\n".join(GOODS_ROW.replace("@@N@@", str(n)) for n in range(1, ONE_SLOTS + 1))
+    block = (GOODS_BLOCK.replace("@@ROWS@@", rows).replace("@@ONE_KEY@@", ONE_KEY)
+             .replace("@@ONE_RUN@@", ONE_RUN)).strip("\n")
+    i = body.index(GOODS_ANCHOR)
+    i = body.rindex("\n", 0, i) + 1
+    forked = body[:i] + block + "\n\n" + body[i:]
+    return HEADER + f"""#
+# Redefines vanilla's goods_panel type (gui/goods_panel.gui:{line}), copied
+# verbatim from the installed game at generation time with one insertion:
+# the good's best partners, above "Bought by / Sold by". THE FILENAME IS
+# LOAD-BEARING: `00_` sorts before vanilla, and the engine keeps the first
+# definition it reads (engine-notes.md, "A partial .gui override works").
+# A patch that changes the type makes --check fail until regenerated.
+#
+# @constants are file-scoped, so vanilla's are copied here.
+{consts}
+
+types smart_trade_goods_types
+{{
+	{forked}
+}}
+"""
+
+
 OUTPUTS = {
     "common/script_values/st_rec_values.txt": lambda g: script_values() + acc_scan_value(),
     "common/scripted_triggers/st_rec_triggers.txt": lambda g: scripted_triggers(),
@@ -845,6 +1109,7 @@ OUTPUTS = {
     "common/on_actions/st_rec_on_actions.txt": lambda g: on_actions(),
     "common/scripted_guis/st_rec_sgui.txt": lambda g: sgui(),
     "gui/00_smart_trade_market.gui": lambda g: gui(),
+    "gui/00_smart_trade_goods.gui": lambda g: gui_goods(),
 }
 
 

@@ -55,6 +55,17 @@ st_rec_open_show_sgui = {
 	ai_chance = { base = 0 }
 }
 
+# A good's own panel: its best partners (st_rec_scan_one), the good passed
+# in as scope:st_rec_one. Fired by the panel when it shows a good it has no
+# list for today (a _show state), and by its refresh button.
+st_rec_one_sgui = {
+	scope = country
+	is_shown = { is_player = yes }
+	effect = { st_rec_scan_one = yes }
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
 # DEV: logs that the goods picker's selection state fired (last try at
 # pre-selecting the good, 2026-11-13).
 st_rec_dbg_go_sgui = {

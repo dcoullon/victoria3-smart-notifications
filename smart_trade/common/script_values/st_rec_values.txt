@@ -130,6 +130,9 @@ st_rec_vs_slot2 = { value = var:st_rec_best subtract = var:st_rec_g2 }
 st_rec_vs_slot3 = { value = var:st_rec_best subtract = var:st_rec_g3 }
 st_rec_vs_slot4 = { value = var:st_rec_best subtract = var:st_rec_g4 }
 st_rec_vs_slot5 = { value = var:st_rec_best subtract = var:st_rec_g5 }
+st_rec_vs_xslot1 = { value = var:st_rec_best subtract = var:st_rec_xg1 }
+st_rec_vs_xslot2 = { value = var:st_rec_best subtract = var:st_rec_xg2 }
+st_rec_vs_xslot3 = { value = var:st_rec_best subtract = var:st_rec_xg3 }
 
 # The partner's base acceptance of a treaty with the player: vanilla's own
 # static_treaty_acceptance (common/script_values), which wants root = the
