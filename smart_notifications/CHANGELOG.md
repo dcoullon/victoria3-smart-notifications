@@ -19,7 +19,9 @@ instrumentation and doc-only changes get a commit but **no** version bump
 unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
-## Unreleased
+## [0.44] - 2026-11-13
+
+No settings reset needed: this release changes no notification tiers.
 
 ### Removed
 - The "Smart Notifications Updated" toast. It appeared in the first month of
