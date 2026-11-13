@@ -24,6 +24,15 @@ types smart_trade_goods_types
 		name = "goods_panel"
 		datacontext = "[GoodsPanel.GetGoods]"
 
+		### Smart Treaties: this good's best partners, scanned when the panel opens
+		blockoverride "animation_state_block" {
+			state = {
+				name = _show
+				on_start = "[GetVariableSystem.Set('st_rec_one_key', Concatenate(GoodsPanel.GetGoods.GetKey, TimeKeeper.GetCurrentDate.GetString))]"
+				on_start = "[GetScriptedGui('st_rec_one_open_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('st_rec_one', GoodsPanel.GetGoods.MakeScope).End)]"
+			}
+		}
+
 		blockoverride "window_header_name"
 		{
 			raw_text = "#BOLD [GoodsPanel.GetGoods.GetName]#!"
@@ -420,21 +429,15 @@ types smart_trade_goods_types
 								text = "ST_REC_ONE_PENDING"
 								autoresize = yes
 								align = nobaseline
-								# two routes: _show when it appears in an open panel (a
-								# switch of good, a new day), trigger_on_create when the
-								# panel is built with it already visible, where _show
-								# does not fire (engine-notes, GUI expressions run
-								# every frame); the ST_REC|ONE log shows each scan
+								# appears when the open panel switches to a good with no
+								# list for today (the window's _show covers opening it).
+								# A trigger_on_create state here was dropped: the panel
+								# is built at startup, with no good, so it only logged an
+								# AddScope error (run 6).
 								state = {
 									name = _show
 									on_start = "[GetVariableSystem.Set('st_rec_one_key', Concatenate(Goods.GetKey, TimeKeeper.GetCurrentDate.GetString))]"
-									on_start = "[GetScriptedGui('st_rec_one_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('st_rec_one', Goods.MakeScope).End)]"
-								}
-								state = {
-									name = st_rec_one_create
-									trigger_on_create = yes
-									on_start = "[GetVariableSystem.Set('st_rec_one_key', Concatenate(Goods.GetKey, TimeKeeper.GetCurrentDate.GetString))]"
-									on_start = "[GetScriptedGui('st_rec_one_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('st_rec_one', Goods.MakeScope).End)]"
+									on_start = "[GetScriptedGui('st_rec_one_switch_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('st_rec_one', Goods.MakeScope).End)]"
 								}
 							}
 							flowcontainer = {

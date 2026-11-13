@@ -1579,7 +1579,15 @@ st_rec_scan_one = {
 	set_variable = { name = st_rec_xg3 value = -1 }
 	if = { limit = { has_variable = st_rec_xc3 } remove_variable = st_rec_xc3 }
 	if = { limit = { has_variable = st_rec_xq3 } remove_variable = st_rec_xq3 }
-	set_variable = { name = st_rec_xk value = scope:st_rec_one }
+	if = {
+		limit = {
+			OR = {
+				NOT = { has_variable = st_rec_xk }
+				NOT = { var:st_rec_xk = scope:st_rec_one }
+			}
+		}
+		set_variable = { name = st_rec_xk value = scope:st_rec_one }
+	}
 	set_variable = { name = st_rec_n_pairs value = 0 }
 	set_variable = { name = st_rec_n_full value = 0 }
 	if = {

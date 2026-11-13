@@ -491,7 +491,15 @@ st_rec_scan_goods = {{
 # and st_rec_xk (the good they are for).
 st_rec_scan_one = {{
 {one_reset}
-	set_variable = {{ name = st_rec_xk value = scope:st_rec_one }}
+	if = {{
+		limit = {{
+			OR = {{
+				NOT = {{ has_variable = st_rec_xk }}
+				NOT = {{ var:st_rec_xk = scope:st_rec_one }}
+			}}
+		}}
+		set_variable = {{ name = st_rec_xk value = scope:st_rec_one }}
+	}}
 	set_variable = {{ name = st_rec_n_pairs value = 0 }}
 	set_variable = {{ name = st_rec_n_full value = 0 }}
 	if = {{
@@ -726,12 +734,46 @@ st_rec_open_show_sgui = {
 }
 
 # A good's own panel: its best partners (st_rec_scan_one), the good passed
-# in as scope:st_rec_one. Fired by the panel when it shows a good it has no
-# list for today (a _show state), and by its refresh button.
+# in as scope:st_rec_one. Three routes, each logging its own tag:
+# ONE_OPEN (the panel window's _show, when it opens), ONE_SWITCH (the
+# "Looking for partners" line's _show, when the panel shows a good with no
+# list for today), ONE_REFRESH (the refresh button).
 st_rec_one_sgui = {
 	scope = country
 	is_shown = { is_player = yes }
-	effect = { st_rec_scan_one = yes }
+	effect = {
+		# never runs: tells the engine's static check that scope:st_rec_one
+		# is set (the GUI sets it, through AddScope, which the check cannot see)
+		if = { limit = { always = no } save_scope_as = st_rec_one }
+		debug_log = "ST_REC|ONE_REFRESH|[TimeKeeper.GetCurrentDate.GetString]"
+		st_rec_scan_one = yes
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+st_rec_one_open_sgui = {
+	scope = country
+	is_shown = { is_player = yes }
+	effect = {
+		# never runs: tells the engine's static check that scope:st_rec_one
+		# is set (the GUI sets it, through AddScope, which the check cannot see)
+		if = { limit = { always = no } save_scope_as = st_rec_one }
+		debug_log = "ST_REC|ONE_OPEN|[TimeKeeper.GetCurrentDate.GetString]"
+		st_rec_scan_one = yes
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+st_rec_one_switch_sgui = {
+	scope = country
+	is_shown = { is_player = yes }
+	effect = {
+		# never runs: tells the engine's static check that scope:st_rec_one
+		# is set (the GUI sets it, through AddScope, which the check cannot see)
+		if = { limit = { always = no } save_scope_as = st_rec_one }
+		debug_log = "ST_REC|ONE_SWITCH|[TimeKeeper.GetCurrentDate.GetString]"
+		st_rec_scan_one = yes
+	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
@@ -953,8 +995,29 @@ types smart_trade_market_types
 # ---------------------------------------------------------------------------
 GOODS_ANCHOR = "### BOUGHT BY / SOLD BY"
 ONE_KEY = "Concatenate(Goods.GetKey, TimeKeeper.GetCurrentDate.GetString)"
-ONE_RUN = ("GetScriptedGui('st_rec_one_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope)"
-           ".AddScope('st_rec_one', Goods.MakeScope).End)")
+def one_run(sgui, goods="Goods"):
+    return (f"GetScriptedGui('{sgui}').Execute(GuiScope.SetRoot(GetPlayer.MakeScope)"
+            f".AddScope('st_rec_one', {goods}.MakeScope).End)")
+
+
+ONE_RUN = one_run("st_rec_one_sgui")
+ONE_SWITCH = one_run("st_rec_one_switch_sgui")
+# the window root: its context is GoodsPanel.GetGoods, named explicitly
+ONE_OPEN_KEY = "Concatenate(GoodsPanel.GetGoods.GetKey, TimeKeeper.GetCurrentDate.GetString)"
+ONE_OPEN = one_run("st_rec_one_open_sgui", "GoodsPanel.GetGoods")
+# Vanilla fills this slot of default_block_window the same way: a second
+# _show state with an on_start, next to the window's own (building_browser_panel.gui,
+# BuildingBrowserPanel.Sort). goods_panel leaves it empty.
+GOODS_OPEN = """
+		### Smart Treaties: this good's best partners, scanned when the panel opens
+		blockoverride "animation_state_block" {
+			state = {
+				name = _show
+				on_start = "[GetVariableSystem.Set('st_rec_one_key', @@ONE_OPEN_KEY@@)]"
+				on_start = "[@@ONE_OPEN@@]"
+			}
+		}
+"""
 
 GOODS_BLOCK = """
 					### Smart Treaties: this good's best partners (tools/gen_st_recommender.py)
@@ -1012,21 +1075,15 @@ GOODS_BLOCK = """
 								text = "ST_REC_ONE_PENDING"
 								autoresize = yes
 								align = nobaseline
-								# two routes: _show when it appears in an open panel (a
-								# switch of good, a new day), trigger_on_create when the
-								# panel is built with it already visible, where _show
-								# does not fire (engine-notes, GUI expressions run
-								# every frame); the ST_REC|ONE log shows each scan
+								# appears when the open panel switches to a good with no
+								# list for today (the window's _show covers opening it).
+								# A trigger_on_create state here was dropped: the panel
+								# is built at startup, with no good, so it only logged an
+								# AddScope error (run 6).
 								state = {
 									name = _show
 									on_start = "[GetVariableSystem.Set('st_rec_one_key', @@ONE_KEY@@)]"
-									on_start = "[@@ONE_RUN@@]"
-								}
-								state = {
-									name = st_rec_one_create
-									trigger_on_create = yes
-									on_start = "[GetVariableSystem.Set('st_rec_one_key', @@ONE_KEY@@)]"
-									on_start = "[@@ONE_RUN@@]"
+									on_start = "[@@ONE_SWITCH@@]"
 								}
 							}
 @@ROWS@@
@@ -1080,10 +1137,15 @@ def gui_goods():
     assert body.count(GOODS_ANCHOR) == 1, "goods panel's Bought by / Sold by moved"
     rows = "\n".join(GOODS_ROW.replace("@@N@@", str(n)) for n in range(1, ONE_SLOTS + 1))
     block = (GOODS_BLOCK.replace("@@ROWS@@", rows).replace("@@ONE_KEY@@", ONE_KEY)
-             .replace("@@ONE_RUN@@", ONE_RUN)).strip("\n")
+             .replace("@@ONE_RUN@@", ONE_RUN).replace("@@ONE_SWITCH@@", ONE_SWITCH)).strip("\n")
+    opener = GOODS_OPEN.replace("@@ONE_OPEN_KEY@@", ONE_OPEN_KEY).replace("@@ONE_OPEN@@", ONE_OPEN)
     i = body.index(GOODS_ANCHOR)
     i = body.rindex("\n", 0, i) + 1
     forked = body[:i] + block + "\n\n" + body[i:]
+    # the open hook, right after the type's own datacontext line
+    dc = 'datacontext = "[GoodsPanel.GetGoods]"'
+    j = forked.index(dc) + len(dc)
+    forked = forked[:j] + "\n" + opener.rstrip("\n") + forked[j:]
     return HEADER + f"""#
 # Redefines vanilla's goods_panel type (gui/goods_panel.gui:{line}), copied
 # verbatim from the installed game at generation time with one insertion:

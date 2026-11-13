@@ -56,12 +56,46 @@ st_rec_open_show_sgui = {
 }
 
 # A good's own panel: its best partners (st_rec_scan_one), the good passed
-# in as scope:st_rec_one. Fired by the panel when it shows a good it has no
-# list for today (a _show state), and by its refresh button.
+# in as scope:st_rec_one. Three routes, each logging its own tag:
+# ONE_OPEN (the panel window's _show, when it opens), ONE_SWITCH (the
+# "Looking for partners" line's _show, when the panel shows a good with no
+# list for today), ONE_REFRESH (the refresh button).
 st_rec_one_sgui = {
 	scope = country
 	is_shown = { is_player = yes }
-	effect = { st_rec_scan_one = yes }
+	effect = {
+		# never runs: tells the engine's static check that scope:st_rec_one
+		# is set (the GUI sets it, through AddScope, which the check cannot see)
+		if = { limit = { always = no } save_scope_as = st_rec_one }
+		debug_log = "ST_REC|ONE_REFRESH|[TimeKeeper.GetCurrentDate.GetString]"
+		st_rec_scan_one = yes
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+st_rec_one_open_sgui = {
+	scope = country
+	is_shown = { is_player = yes }
+	effect = {
+		# never runs: tells the engine's static check that scope:st_rec_one
+		# is set (the GUI sets it, through AddScope, which the check cannot see)
+		if = { limit = { always = no } save_scope_as = st_rec_one }
+		debug_log = "ST_REC|ONE_OPEN|[TimeKeeper.GetCurrentDate.GetString]"
+		st_rec_scan_one = yes
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+st_rec_one_switch_sgui = {
+	scope = country
+	is_shown = { is_player = yes }
+	effect = {
+		# never runs: tells the engine's static check that scope:st_rec_one
+		# is set (the GUI sets it, through AddScope, which the check cannot see)
+		if = { limit = { always = no } save_scope_as = st_rec_one }
+		debug_log = "ST_REC|ONE_SWITCH|[TimeKeeper.GetCurrentDate.GetString]"
+		st_rec_scan_one = yes
+	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }

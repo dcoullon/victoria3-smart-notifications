@@ -322,8 +322,15 @@ section UX. That list is computed for one good when its panel shows it
 (`st_rec_scan_one`, about 1/50 of a full scan; partners' acceptance is
 computed at most once a day, `st_rec_acc_fresh`), keyed on good and day in
 the GUI variable `st_rec_one_key`, so switching goods or a new day rescans.
-Hooks: a `_show` state and a `trigger_on_create` state on the "Looking for
-partners" line, plus the refresh button. Not yet run in game.
+Hooks, run 6: neither fired on opening (only a refresh click scanned); the
+`trigger_on_create` state fired once at startup, with no good, and logged
+"Promote 'AddScope' returned nullptr". The same lesson as the market panel:
+panels are built at startup, so only a real visibility change fires. Now
+three tagged routes: ONE_OPEN, a `_show` state in the window's
+`animation_state_block` (vanilla fills that slot the same way in
+building_browser_panel.gui, a second `_show` with an on_start next to the
+window's own); ONE_SWITCH, the "Looking for partners" line's `_show`, for a
+switch of good in the open panel; ONE_REFRESH, the button. Not yet run.
 
 **Performance review before release (2026-11-13, Damien: fans run a lot with
 the game on).** Read from the code, nothing measured yet:
