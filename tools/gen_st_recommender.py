@@ -79,6 +79,31 @@ def fnum(x):
 # the player set by the effect (st_rec_load), so a value never has to reach
 # into another scope mid-search. var: reads: vanilla `value = var:x`.
 # ---------------------------------------------------------------------------
+def acc_scan_value():
+    """st_rec_acc_scan: vanilla's static_treaty_acceptance, copied from the
+    installed game at generation time with every `root` read from
+    scope:st_rec_eval instead. Vanilla's wants root = the evaluating country
+    (the partner), but the player's scan has the player as root; the scan
+    saves each partner as st_rec_eval before evaluating it. Copied, not
+    hand-written, so a patch that changes the formula changes this too
+    (check_st_generated_files_current flags the drift)."""
+    text = (GAME / "common/script_values/static_treaty_acceptance.txt").read_text(encoding="utf-8-sig")
+    m = re.search(r"^static_treaty_acceptance = \{", text, re.M)
+    i, depth = text.index("{", m.start()), 0
+    for j in range(i, len(text)):
+        depth += text[j] == "{"
+        depth -= text[j] == "}"
+        if depth == 0:
+            break
+    body = text[m.start():j + 1].replace("static_treaty_acceptance = {", "st_rec_acc_scan = {", 1)
+    body, n = re.subn(r"\broot\b", "scope:st_rec_eval", body)
+    assert n >= 20, f"only {n} root references: vanilla's acceptance formula changed, review st_rec_acc_scan"
+    return ("\n# GENERATED copy of vanilla's static_treaty_acceptance "
+            "(common/script_values/static_treaty_acceptance.txt),\n"
+            f"# with its {n} `root` references read from scope:st_rec_eval (the partner):\n"
+            "# the scan's root is the player. See acc_scan_value() in the generator.\n" + body + "\n")
+
+
 def script_values():
     steps = "\n".join(
         f"st_rec_step_{i} = {{ value = var:st_rec_q multiply = {fnum(f)} min = st_rec_q_plus1 }}"
@@ -256,8 +281,8 @@ st_rec_pair_ok = {
 	}
 	scope:st_rec_p = { treaty_imports < market_import_cap }
 	scope:st_rec_h = { treaty_exports < market_export_cap }
-	# Base acceptance, stored by the partner on its own monthly pulse
-	# (st_rec_acc_monthly); unknown until then, and an unknown never filters.
+	# Base acceptance, computed for every market owner at the start of the
+	# scan (st_rec_scan); an unknown never filters.
 	scope:st_rec_c = {
 		OR = {
 			NOT = { has_variable = st_rec_acc }
@@ -394,6 +419,18 @@ st_rec_scan = {{
 		market = {{ save_scope_as = st_rec_home }}
 		set_variable = {{ name = st_rec_min value = st_rec_in_min }}
 		set_variable = {{ name = st_rec_mm value = st_rec_in_mm }}
+		# Each partner's base acceptance of a treaty with the player, now,
+		# for st_rec_pair_ok's bar: st_rec_acc_scan is vanilla's formula with
+		# root read from scope:st_rec_eval (the partner); the proposer is
+		# scope:other_country, as vanilla expects.
+		save_scope_as = other_country
+		every_market = {{
+			limit = {{ NOT = {{ this = scope:st_rec_home }} exists = owner }}
+			owner = {{
+				save_scope_as = st_rec_eval
+				set_variable = {{ name = st_rec_acc value = st_rec_acc_scan }}
+			}}
+		}}
 		st_rec_scan_goods = yes
 	}}
 	debug_log = "ST_REC|SCAN|[TimeKeeper.GetCurrentDate.GetString]|pairs=[THIS.Var('st_rec_n_pairs').GetValue|0]|searched=[THIS.Var('st_rec_n_full').GetValue|0]|min=[THIS.Var('st_rec_min').GetValue|2]"
@@ -515,30 +552,9 @@ st_rec_monthly = {
 }
 
 
-# Each AI country stores its base acceptance of a treaty with the player
-# (st_rec_acc in st_rec_values.txt: root must be the partner, which it is
-# here). The player's scan reads it to leave out partners below the bar.
-# A scan from on_game_started_after_lobby was tried and dropped (2026-11-13):
-# it ran before the markets were filled in (pairs=0). The first scan of a
-# campaign now comes from the market panel (st_rec_init_sgui).
-st_rec_acc_monthly = {
-	trigger = { is_ai = yes }
-	effect = {
-		# a save from before this version: no scan has stored the player yet
-		if = {
-			limit = { NOT = { has_global_variable = st_rec_player } }
-			every_country = {
-				limit = { is_player = yes }
-				set_global_variable = { name = st_rec_player value = this }
-			}
-		}
-		set_variable = { name = st_rec_acc value = st_rec_acc }
-	}
-}
-on_monthly_pulse_country = {
-	on_actions = { st_rec_acc_monthly }
-}
-
+# Each partner's base acceptance is computed by the scan itself
+# (st_rec_acc_scan). An AI-side monthly store was used first and dropped
+# (2026-11-13): it lagged up to a month behind the scan.
 # The player, for st_rec_acc, from the first day. No root scope here
 # (vanilla's comment), so the player is found as Smart Notifications' own
 # game-start hook finds it. Only the global variable: a scan here ran before
@@ -569,46 +585,38 @@ st_rec_refresh_sgui = {
 	ai_chance = { base = 0 }
 }
 
-# The first scan of a campaign, or of a save from before this version,
-# fired by the market panel: scans only while no scan has found a candidate,
-# then costs one variable check. Two hooks, each logging its own tag, since
-# the first try (trigger_on_create alone) never fired (2026-11-13, no INIT
-# line; likely because the panel is built at startup, before there is a
-# player): INIT_CREATE from trigger_on_create, INIT_SHOW from a _show state
-# on a widget shown with the Trade tab.
-st_rec_init_sgui = {
+# Forced scans when the player opens the Trade tab (Damien, 2026-11-13: the
+# list must never be empty there). Two hooks, each logging its own tag,
+# since the earlier ones (a trigger_on_create state and a _show state, both
+# on zero-size widgets) never fired: OPEN_TAB from an extra onclick on the
+# Trade tab button, OPEN_SHOW from a _show state on vanilla's own Trade
+# section, whose visibility flips with the tab.
+st_rec_open_tab_sgui = {
 	scope = country
 	is_shown = { is_player = yes }
 	effect = {
-		if = {
-			limit = {
-				OR = {
-					NOT = { has_variable = st_rec_n_pairs }
-					var:st_rec_n_pairs = 0
-				}
-			}
-			debug_log = "ST_REC|INIT_CREATE|[TimeKeeper.GetCurrentDate.GetString]"
-			st_rec_scan = yes
-		}
+		debug_log = "ST_REC|OPEN_TAB|[TimeKeeper.GetCurrentDate.GetString]"
+		st_rec_scan = yes
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
-st_rec_init_show_sgui = {
+st_rec_open_show_sgui = {
 	scope = country
 	is_shown = { is_player = yes }
 	effect = {
-		if = {
-			limit = {
-				OR = {
-					NOT = { has_variable = st_rec_n_pairs }
-					var:st_rec_n_pairs = 0
-				}
-			}
-			debug_log = "ST_REC|INIT_SHOW|[TimeKeeper.GetCurrentDate.GetString]"
-			st_rec_scan = yes
-		}
+		debug_log = "ST_REC|OPEN_SHOW|[TimeKeeper.GetCurrentDate.GetString]"
+		st_rec_scan = yes
 	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+# DEV: logs that the goods picker's selection state fired (last try at
+# pre-selecting the good, 2026-11-13).
+st_rec_dbg_go_sgui = {
+	scope = country
+	effect = { debug_log = "ST_REC|PICK|go" }
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
@@ -625,6 +633,7 @@ st_rec_init_show_sgui = {
 # ---------------------------------------------------------------------------
 GUI_ANCHOR = 'text = "MARKET_TRADE_CAPACITY"'
 GUI_SECTION = "visible = \"[InformationPanel.IsTabSelected('world_market_trade')]\""
+TAB_ONCLICK = "onclick = \"[InformationPanel.SelectTab('world_market_trade')]\""
 
 GUI_BLOCK = """
 					### Smart Treaties: suggested goods transfers (tools/gen_st_recommender.py)
@@ -633,26 +642,6 @@ GUI_BLOCK = """
 						parentanchor = hcenter
 						visible = "[Market.GetOwner.IsLocalPlayer]"
 						spacing = 2
-
-						# The first scan, while no scan has found a candidate (the
-						# condition is in the scripted GUIs): when the panel is
-						# built, and when the Trade tab is shown.
-						widget = {
-							size = { 0 0 }
-							state = {
-								name = st_rec_init
-								trigger_on_create = yes
-								on_start = "[GetScriptedGui('st_rec_init_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
-							}
-						}
-						widget = {
-							size = { 0 0 }
-							visible = "[InformationPanel.IsTabSelected('world_market_trade')]"
-							state = {
-								name = _show
-								on_start = "[GetScriptedGui('st_rec_init_show_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
-							}
-						}
 
 						# A collapsible section, built from vanilla's section header as
 						# Bulk Construction's is (and vanilla's own "Filters" further
@@ -726,10 +715,8 @@ GUI_BLOCK = """
 # clickable name, as vanilla text does; the figure in brackets is the
 # partner's base acceptance, with vanilla's breakdown on hover. The button
 # opens a new treaty draft with the partner (vanilla's own call and icon:
-# the "Draft a treaty" right-click entry). Pre-selecting the good in the
-# draft was tried and dropped (2026-11-13): the picker's card saw the right
-# good, source and target, but its partner check never passed, and the
-# goods cards already show each good's gain.
+# the "Draft a treaty" right-click entry) and leaves the good in the GUI
+# variable st_rec_good for the goods picker (gen_smart_trade_gui.py, 1c).
 GUI_ROW = """							flowcontainer = {
 								visible = "[GetPlayer.MakeScope.Var('st_rec_c@@N@@').IsSet]"
 								datacontext = "[GetPlayer.MakeScope.Var('st_rec_c@@N@@').GetCountry]"
@@ -747,6 +734,8 @@ GUI_ROW = """							flowcontainer = {
 									}
 									tooltip = "ST_REC_TREATY_TT"
 									enabled = "[GetPlayer.CanSignTreatyWith(Country.Self)]"
+									# the good, for the goods picker to select (gen_smart_trade_gui.py, REC_PICK)
+									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k@@N@@').GetGoods.GetKey)]"
 									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
 								}
 								textbox = {
@@ -795,10 +784,25 @@ def gui():
     rows = "\n".join(GUI_ROW.replace("@@N@@", str(n)) for n in range(1, SLOTS + 1))
     block = GUI_BLOCK.replace("@@ROWS@@", rows)
     forked = body[:k] + "\n" + block.rstrip("\n") + body[k:]
+    # A forced scan when the Trade section is shown (s < k, so the block
+    # insertion above did not move it): the section's own visibility flips
+    # with the tab, unlike a child that is always visible.
+    s_end = s + len(GUI_SECTION)
+    forked = (forked[:s_end] + "\n\t\t\t\t\t### Smart Treaties: scan when the Trade tab is shown\n"
+              "\t\t\t\t\tstate = {\n\t\t\t\t\t\tname = _show\n"
+              "\t\t\t\t\t\ton_start = \"[GetScriptedGui('st_rec_open_show_sgui')"
+              ".Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]\"\n\t\t\t\t\t}" + forked[s_end:])
+    # ...and when the Trade tab button is clicked (several onclick lines on one
+    # button run in order: engine-notes, run 11)
+    assert forked.count(TAB_ONCLICK) == 1, "the Trade tab button changed"
+    forked = forked.replace(TAB_ONCLICK, TAB_ONCLICK + "\n\t\t\t\t\t### Smart Treaties: scan on opening the tab\n"
+                            "\t\t\t\t\tonclick = \"[GetScriptedGui('st_rec_open_tab_sgui')"
+                            ".Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]\"")
     return HEADER + f"""#
 # Redefines vanilla's market_panel type (gui/market_panel.gui:{line}), copied
-# verbatim from the installed game at generation time with one insertion: the
-# suggested goods transfers under the Trade tab's trade capacity box. THE
+# verbatim from the installed game at generation time with three insertions:
+# the suggested goods transfers under the Trade tab's trade capacity box, and
+# a forced scan from the Trade tab button and from the Trade section. THE
 # FILENAME IS LOAD-BEARING: `00_` sorts before vanilla, and the engine keeps
 # the first definition it reads (engine-notes.md, "A partial .gui override
 # works"). A patch that changes the type makes --check fail until regenerated.
@@ -815,7 +819,7 @@ types smart_trade_market_types
 
 
 OUTPUTS = {
-    "common/script_values/st_rec_values.txt": lambda g: script_values(),
+    "common/script_values/st_rec_values.txt": lambda g: script_values() + acc_scan_value(),
     "common/scripted_triggers/st_rec_triggers.txt": lambda g: scripted_triggers(),
     "common/scripted_effects/st_rec_effects.txt": lambda g: effects(g),
     "common/on_actions/st_rec_on_actions.txt": lambda g: on_actions(),

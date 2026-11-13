@@ -32,8 +32,8 @@ st_rec_pair_ok = {
 	}
 	scope:st_rec_p = { treaty_imports < market_import_cap }
 	scope:st_rec_h = { treaty_exports < market_export_cap }
-	# Base acceptance, stored by the partner on its own monthly pulse
-	# (st_rec_acc_monthly); unknown until then, and an unknown never filters.
+	# Base acceptance, computed for every market owner at the start of the
+	# scan (st_rec_scan); an unknown never filters.
 	scope:st_rec_c = {
 		OR = {
 			NOT = { has_variable = st_rec_acc }

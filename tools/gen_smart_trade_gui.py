@@ -1157,6 +1157,13 @@ CARD_CHIP = '''blockoverride "entire_icon_button" {
 					}
 
 					''' + CARD_ANCHOR + '''
+						### SMART TRADE: the good suggested in the market panel,
+						### outlined with vanilla's selection frame (see 1c).
+						icon = {
+							visible = "[GetVariableSystem.HasValue('st_rec_good', Goods.GetKey)]"
+							using = highlighted_square_selection
+							alwaystransparent = yes
+						}
 						### SMART TRADE: best weekly gain for this good (estimate).
 						### The figures inside are hover-transparent, so each
 						### fixed-size widget carries the tooltip. Nested so a
@@ -1222,11 +1229,34 @@ def lazy_widgets():
             + "\n\twidget = {\n\t\tname = \"st_leaf\"\n\t\tsize = { 0 0 }\n" + "\n".join(leaf) + "\n\t}\n}")
 
 
+# 1c. A good suggested in the market panel (gen_st_recommender.py, GUI_ROW):
+#     the row's treaty button leaves the good's key in the GUI variable
+#     st_rec_good. Last try (Damien, 2026-11-13), two methods in one build:
+#     (a) the card for that good, in a Goods Transfer the player sends,
+#     selects itself at the best quantity when created, as a click would,
+#     and clears the key; (b) the card is outlined with vanilla's selection
+#     frame while the key is set, in case (a) does not fire. The first try
+#     also matched the partner by GetIDString; probes showed the right card,
+#     source and target, and that check never passing, so it is gone.
+REC_PICK_COND = f"And(GetVariableSystem.HasValue('st_rec_good', Goods.GetKey), {C_MINE})"
+REC_PICK_STEP = (f"PdxGuiWidget.FindChild('st_rec_pre').TriggerAnimation("
+                 f"Select_CString({REC_PICK_COND}, 'st_rec_go', 'st_none'))")
+REC_PICK_WIDGET = ("widget = {\n\tname = \"st_rec_pre\"\n\tsize = { 0 0 }\n"
+                   "state = {\n\tname = st_none\n}\n"
+                   "state = {\n\tname = st_rec_go\n"
+                   "\ton_start = \"[GetVariableSystem.Clear('st_rec_good')]\"\n"
+                   "\ton_start = \"[GetScriptedGui('st_rec_dbg_go_sgui')"
+                   ".Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]\"\n"
+                   "\ton_start = \"[ArticleDraft.SetGood(Goods.Self)]\"\n"
+                   + "".join(f"\ton_start = {l[len('onclick = '):]}\n" for l in C_PICK_ONCLICKS.splitlines())
+                   + "}\n}")
+
 ITEM_ANCHOR = 'item = {\n\t\t\tcontainer = {'
 ITEM_STATE = (ITEM_ANCHOR + "\n### SMART TRADE: the card's figure, computed once on creation\n"
               "state = {\n\tname = st_created\n\ttrigger_on_create = yes\n"
               f"\ton_start = \"[GetVariableSystem.Set({ONCE_KEY}, 'n')]\"\n"
-              "\ton_start = \"[@@LAZY_STEP1@@]\"\n}\n" + lazy_widgets())
+              "\ton_start = \"[@@LAZY_STEP1@@]\"\n"
+              f"\ton_start = \"[{REC_PICK_STEP}]\"\n}}\n" + lazy_widgets() + "\n" + REC_PICK_WIDGET)
 
 PICK_ANCHOR = 'onclick = "[ArticleDraft.SetGood(Goods.Self)]"'
 PICK_BEST = PICK_ANCHOR + '''

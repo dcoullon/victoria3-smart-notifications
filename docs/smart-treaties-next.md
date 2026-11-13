@@ -194,24 +194,30 @@ already answers "what should I send to this country".
 - **Game start and load (Damien, 2026-11-13):** a scan from
   `on_game_started_after_lobby` ran before the markets were filled in
   (pairs=0, 8 s after the lobby; a refresh 33 s later on the same day found
-  378) and was dropped. A `trigger_on_create` state in the market panel
-  never fired either (no INIT line, run 3; the panel is probably built at
-  startup, before there is a player). Now two hooks, each logging its own
-  tag: `INIT_CREATE` (trigger_on_create) and `INIT_SHOW` (a `_show` state on
-  a widget shown with the Trade tab); both scan only while no scan has found
-  a candidate. No on_action fires on load; the save holds the last scan.
+  378) and was dropped. Hooks on zero-size widgets in the market block (a
+  `trigger_on_create` state, then a `_show` state) never fired either (no
+  INIT lines, runs 3 and 4). Now a forced scan each time the Trade tab
+  opens (Damien's call), two ways, each tagged: `OPEN_TAB`, an extra
+  onclick on vanilla's Trade tab button, and `OPEN_SHOW`, a `_show` state
+  on vanilla's Trade section, whose visibility flips with the tab. No
+  on_action fires on load; the save holds the last scan.
+- **Scan dates (Damien, run 4):** the "monthly" pulse runs every 30 days
+  from the country's own offset (Spain 1836: 23 Jan, 22 Feb, 24 Mar ... 20
+  Oct, 19 Nov), so updates drift through the month. Expected; the tab-open
+  scan makes it matter less.
 - **Base acceptance (Damien, 2026-11-13):** after the partner's name, in
   brackets: "Great Britain (-33)". Vanilla's `static_treaty_acceptance`
   evaluated from the partner's side (`st_rec_acc`), the player passed as
   `scope:other_country` through `global_var:st_rec_player`. Confirmed run 3:
-  the value matches the draft's (Great Britain -31 to -33 in 1836). The
-  hover first errored (engine-notes § A script value's breakdown loses
-  scopes saved inside an iterator); the global variable is the fix, not yet
-  seen. The scan cannot evaluate it (its root is the player), so each AI
-  country stores it on its monthly pulse and the scan leaves out partners
-  below -10 once stored: confirmed, Great Britain (-31) and France (-12)
-  left the list from the 22 February scan. Every AI country now keeps one
-  variable in the save, for the Workshop wording.
+  the value matches the draft's (Great Britain -31 to -33 in 1836); run 4:
+  the hover shows vanilla's lines. The filter first read a value each AI
+  country stored on its own monthly pulse, which lagged (Great Britain at
+  -41 still listed on 23 January). Now the scan computes each market
+  owner's acceptance itself at its start: `st_rec_acc_scan`, vanilla's
+  formula copied at generation time with its `root` references read from
+  `scope:st_rec_eval` (the partner). Per good, the best partner at or above
+  -10 is kept, so a good loses its partner and not its row: coffee went
+  from Great Britain (847/week) to Portugal or Russia (about 250).
 - **Churn (Damien's question, run 3):** the January to February change was
   mostly that filter taking effect (Great Britain and France stored their
   values on 30 and 26 January, after the 23 January scan). February to
@@ -227,14 +233,14 @@ already answers "what should I send to this country".
   button opens a new treaty draft with the partner
   (`OpenTreatyDraftPanelForNewDraft`, vanilla's "Draft a treaty" entry,
   same icon).
-- **Pre-selecting the good in the draft: dropped (Damien, 2026-11-13, a
-  nice-to-have since the goods cards show each gain).** The engine exposes
-  the open draft only inside the draft panel, so the attempt went through
-  GUI variables read by the goods picker. Run 3 probes: the click ran, the
-  pending good's own card was created with source Spain and target Great
-  Britain, and the selection state never fired, so the partner-ID
-  comparison (`HasValue('st_rec_to', ArticleDraft.GetSecondOrTarget.GetIDString)`)
-  failed for a reason not found.
+- **Pre-selecting the good in the draft, last try (Damien, 2026-11-13):**
+  the treaty button leaves the good in the GUI variable `st_rec_good`; the
+  goods picker (a) selects that good's card at the best quantity when it is
+  created in a Goods Transfer the player sends (`ST_REC|PICK|go` logs it),
+  and (b) outlines the card with vanilla's selection frame while the key is
+  set. The first try also matched the partner by `GetIDString`; run 3
+  probes showed the right card, source and target, and that check never
+  passing, so it is gone. If neither works, drop it for good.
 - **Acceptance:** vanilla's `static_treaty_acceptance` (root = partner,
   `scope:other_country` = player; its treaty-options lookups are guarded with
   `exists`/`?=`) plus the goods article's own score at that quantity

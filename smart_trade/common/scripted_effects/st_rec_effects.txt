@@ -35,6 +35,18 @@ st_rec_scan = {
 		market = { save_scope_as = st_rec_home }
 		set_variable = { name = st_rec_min value = st_rec_in_min }
 		set_variable = { name = st_rec_mm value = st_rec_in_mm }
+		# Each partner's base acceptance of a treaty with the player, now,
+		# for st_rec_pair_ok's bar: st_rec_acc_scan is vanilla's formula with
+		# root read from scope:st_rec_eval (the partner); the proposer is
+		# scope:other_country, as vanilla expects.
+		save_scope_as = other_country
+		every_market = {
+			limit = { NOT = { this = scope:st_rec_home } exists = owner }
+			owner = {
+				save_scope_as = st_rec_eval
+				set_variable = { name = st_rec_acc value = st_rec_acc_scan }
+			}
+		}
 		st_rec_scan_goods = yes
 	}
 	debug_log = "ST_REC|SCAN|[TimeKeeper.GetCurrentDate.GetString]|pairs=[THIS.Var('st_rec_n_pairs').GetValue|0]|searched=[THIS.Var('st_rec_n_full').GetValue|0]|min=[THIS.Var('st_rec_min').GetValue|2]"

@@ -11,30 +11,9 @@ st_rec_monthly = {
 }
 
 
-# Each AI country stores its base acceptance of a treaty with the player
-# (st_rec_acc in st_rec_values.txt: root must be the partner, which it is
-# here). The player's scan reads it to leave out partners below the bar.
-# A scan from on_game_started_after_lobby was tried and dropped (2026-11-13):
-# it ran before the markets were filled in (pairs=0). The first scan of a
-# campaign now comes from the market panel (st_rec_init_sgui).
-st_rec_acc_monthly = {
-	trigger = { is_ai = yes }
-	effect = {
-		# a save from before this version: no scan has stored the player yet
-		if = {
-			limit = { NOT = { has_global_variable = st_rec_player } }
-			every_country = {
-				limit = { is_player = yes }
-				set_global_variable = { name = st_rec_player value = this }
-			}
-		}
-		set_variable = { name = st_rec_acc value = st_rec_acc }
-	}
-}
-on_monthly_pulse_country = {
-	on_actions = { st_rec_acc_monthly }
-}
-
+# Each partner's base acceptance is computed by the scan itself
+# (st_rec_acc_scan). An AI-side monthly store was used first and dropped
+# (2026-11-13): it lagged up to a month behind the scan.
 # The player, for st_rec_acc, from the first day. No root scope here
 # (vanilla's comment), so the player is found as Smart Notifications' own
 # game-start hook finds it. Only the global variable: a scan here ran before
