@@ -332,6 +332,31 @@ building_browser_panel.gui, a second `_show` with an on_start next to the
 window's own); ONE_SWITCH, the "Looking for partners" line's `_show`, for a
 switch of good in the open panel; ONE_REFRESH, the button. Not yet run.
 
+**Long run, 1836 to August 1851 (2026-11-13), from the observer archive:**
+- Acceptance filter: Great Britain was listed only on 1 January 1836 and
+  then not until 1839 (the 23 January 1836 scan already left it out), and
+  Damien sees the row figures match the treaty draft. A first reading that
+  the scan-time copy computes too high compared France's figure with run 3,
+  a different campaign: wrong, withdrawn. Open: why the 1 January scan of a
+  new game let Great Britain through (first day only).
+- Goods panel scans on opening: 3 of 3 (ONE_OPEN). Trade tab: OPEN_TAB.
+- Suggestions churn about 1 row in 5 per monthly scan; steadiest picks tea
+  to Russia, wine to Brazil, tobacco and sugar to France.
+- The suggested Great Qing hardwood deal ("44, about 535 a week", April
+  1836, signed 5 May): recomputed from the observer's monthly rows as the
+  outliner computes net, 134 of 184 monthly snapshots negative; positive on
+  balance to August 1842 (about +9K), then negative every month from
+  September 1842 (Qing's price fell from the 70.00 ceiling to 42.70) until
+  Damien cancelled it after April 1851: 109 months, median -477 a week,
+  about -264K (monthly snapshots x 52/12 weeks, an estimate). He did not
+  notice it was negative although the outliner shows each treaty's net.
+  The route cost on this lane ran 1.56x the draft's per-unit estimate
+  (draft assumes 1.25).
+- So the dropped "treaty turned negative" alert (section 2) is back on the
+  table, with one change: as specced (once per treaty) it would have fired
+  in August 1837 and stayed silent through the 9-year loss. It needs to
+  re-arm after a recovery, or be a persistent alert while the loss lasts.
+
 **Save safety, confirmed 2026-11-13 (Damien):** a save made with the mod loads
 and plays with the mod disabled. The Workshop line changes anyway, since the
 mod now keeps values in the save (WORKSHOP_UPDATE_DRAFT.md, edit 5).
