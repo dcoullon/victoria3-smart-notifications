@@ -461,18 +461,42 @@ S["ST_REC_TREATY_TT"] = {
     "korean": "이 국가와 조약을 엽니다. 내가 보내는 상품 양도를 추가하면 이 상품이 최적 수량으로 선택됩니다.",
     "turkish": "Bu ülkeyle bir antlaşma aç. Gönderdiğiniz bir Mal Transferi ekleyin; bu mal en iyi miktarda seçilir.",
 }
+# The partner's base acceptance (st_rec_acc, evaluated from the partner's side
+# through the row's Country datacontext), with an inline tooltip holding
+# vanilla's own breakdown; the same #tooltippable form as the treasury line.
+_REC_ACC_WORD = {
+    "english": "base acceptance", "french": "acceptation de base", "german": "Grundakzeptanz",
+    "spanish": "aceptación base", "braz_por": "aceitação base", "polish": "akceptacja bazowa",
+    "russian": "базовое одобрение", "simp_chinese": "基础接受度", "japanese": "基本受諾度",
+    "korean": "기본 수락도", "turkish": "temel kabul",
+}
+_REC_ACC = ("#tooltippable #tooltip:[Country.GetTooltipTag],ST_REC_ACC_TT "
+            "{W} [Country.MakeScope.ScriptValue('st_rec_acc')|+=0]#!#!")
+S["ST_REC_ACC_TT"] = {
+    "english": "#header Base acceptance#!\nWhat this country thinks of a treaty with you before any article:\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\nThe goods transfer itself adds to it in the treaty draft. Partners below -10 are left out once their figure is known (first month).",
+    "french": "#header Acceptation de base#!\nCe que ce pays pense d'un traité avec vous avant tout article :\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\nLe transfert de marchandises y ajoute dans le projet de traité. Les partenaires sous -10 sont exclus une fois leur chiffre connu (premier mois).",
+    "german": "#header Grundakzeptanz#!\nWas dieses Land von einem Vertrag mit Ihnen hält, vor jedem Artikel:\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\nDie Warenübereignung selbst kommt im Vertragsentwurf hinzu. Partner unter -10 werden ausgelassen, sobald ihr Wert bekannt ist (erster Monat).",
+    "spanish": "#header Aceptación base#!\nLo que este país piensa de un tratado contigo antes de cualquier artículo:\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\nLa transferencia de bienes suma a esto en el borrador. Los socios por debajo de -10 se omiten una vez conocida su cifra (primer mes).",
+    "braz_por": "#header Aceitação base#!\nO que este país pensa de um tratado com você antes de qualquer artigo:\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\nA transferência de mercadorias soma a isso no rascunho. Parceiros abaixo de -10 ficam de fora quando o valor é conhecido (primeiro mês).",
+    "polish": "#header Akceptacja bazowa#!\nCo ten kraj sądzi o traktacie z tobą przed jakimkolwiek artykułem:\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\nSam transfer towarów dodaje do tego w projekcie traktatu. Partnerzy poniżej -10 są pomijani, gdy ich wartość jest znana (pierwszy miesiąc).",
+    "russian": "#header Базовое одобрение#!\nЧто эта страна думает о договоре с вами до любых статей:\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\nСама передача товаров добавляется к этому в проекте договора. Партнёры ниже -10 исключаются, когда их значение известно (первый месяц).",
+    "simp_chinese": "#header 基础接受度#!\n在加入任何条款之前，该国对与你签订条约的看法：\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\n商品输送本身会在条约草案中另行加减。一旦得知数值（第一个月），低于-10的伙伴将被排除。",
+    "japanese": "#header 基本受諾度#!\n条項を加える前に、この国があなたとの条約をどう見ているか：\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\n商品の譲渡そのものは条約草案で加算されます。数値が分かり次第（最初の月）、-10未満の相手は除外されます。",
+    "korean": "#header 기본 수락도#!\n조항을 넣기 전에 이 국가가 당신과의 조약을 어떻게 보는지:\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\n상품 양도 자체는 조약 초안에서 더해집니다. 수치가 확인되면(첫 달) -10 미만인 상대는 제외됩니다.",
+    "turkish": "#header Temel kabul#!\nBu ülkenin, herhangi bir madde eklenmeden önce sizinle bir antlaşma hakkındaki görüşü:\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\nMal transferi taslakta buna ayrıca eklenir. Değerleri bilindiğinde (ilk ay) -10'un altındaki ortaklar dışarıda bırakılır.",
+}
 _REC_ROW = {
-    "english": "Send {Q} {G} to {F} {C}: ~@money!{GAIN}/week",
-    "french": "Envoyer {Q} {G} vers {F} {C} : ~@money!{GAIN}/semaine",
-    "german": "{Q} {G} an {F} {C} senden: ~@money!{GAIN}/Woche",
-    "spanish": "Enviar {Q} {G} a {F} {C}: ~@money!{GAIN}/semana",
-    "braz_por": "Enviar {Q} {G} para {F} {C}: ~@money!{GAIN}/semana",
-    "polish": "Wyślij {Q} {G}, odbiorca: {F} {C}, ~@money!{GAIN}/tydz.",
-    "russian": "Отправить {Q} {G}, получатель: {F} {C}, ~@money!{GAIN}/нед.",
-    "simp_chinese": "输送{Q}单位{G}至{F}{C}：约@money!{GAIN}/周",
-    "japanese": "{Q}の{G}を{F}{C}へ送る：約@money!{GAIN}/週",
-    "korean": "{F} {C}에 {Q} {G} 보내기: ~@money!{GAIN}/주",
-    "turkish": "{Q} {G} gönder, alıcı: {F} {C}, ~@money!{GAIN}/hafta",
+    "english": "Send {Q} {G} to {F} {C}: ~@money!{GAIN}/week, {A}",
+    "french": "Envoyer {Q} {G} vers {F} {C} : ~@money!{GAIN}/semaine, {A}",
+    "german": "{Q} {G} an {F} {C} senden: ~@money!{GAIN}/Woche, {A}",
+    "spanish": "Enviar {Q} {G} a {F} {C}: ~@money!{GAIN}/semana, {A}",
+    "braz_por": "Enviar {Q} {G} para {F} {C}: ~@money!{GAIN}/semana, {A}",
+    "polish": "Wyślij {Q} {G}, odbiorca: {F} {C}, ~@money!{GAIN}/tydz., {A}",
+    "russian": "Отправить {Q} {G}, получатель: {F} {C}, ~@money!{GAIN}/нед., {A}",
+    "simp_chinese": "输送{Q}单位{G}至{F}{C}：约@money!{GAIN}/周，{A}",
+    "japanese": "{Q}の{G}を{F}{C}へ送る：約@money!{GAIN}/週、{A}",
+    "korean": "{F} {C}에 {Q} {G} 보내기: ~@money!{GAIN}/주, {A}",
+    "turkish": "{Q} {G} gönder, alıcı: {F} {C}, ~@money!{GAIN}/hafta, {A}",
 }
 for _n in range(1, 6):
     _p = "GetPlayer.MakeScope.Var('st_rec_{}%d')" % _n
@@ -481,7 +505,8 @@ for _n in range(1, 6):
                       G="[" + _p.format("k") + ".GetGoods.GetName]",
                       F="[" + _p.format("c") + ".GetCountry.GetFlagTextIcon]",
                       C="[" + _p.format("c") + ".GetCountry.GetName]",
-                      GAIN="[" + _p.format("g") + ".GetValue|0]")
+                      GAIN="[" + _p.format("g") + ".GetValue|0]",
+                      A=_REC_ACC.format(W=_REC_ACC_WORD[_l]))
         for _l, _t in _REC_ROW.items()}
 
 # The treasury line's own label, prepended to vanilla's expenses headers.

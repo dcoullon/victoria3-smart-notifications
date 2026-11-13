@@ -10,9 +10,9 @@ written so they can be pasted into Steam Workshop update notes. Versions follow
 ### Added
 - Suggested goods transfers in the market panel's Trade tab: the 5 most
   profitable deals you could propose, computed at game start, every month and
-  on refresh, in a section you can collapse. The treaty button at the end of
-  a row opens a treaty with that country; add a Goods Transfer you send and
-  the suggested good is picked at the best quantity.
+  on refresh, in a section you can collapse. Each row shows the partner's
+  base acceptance (details on hover), and partners below -10 are left out.
+  The treaty button at the start of a row opens a treaty with that country.
 
 ### Changed
 - The treasury tooltip leaves out "(ST) Net treaty income" while it is £0.

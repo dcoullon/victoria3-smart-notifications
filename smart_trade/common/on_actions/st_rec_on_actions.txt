@@ -10,19 +10,25 @@ st_rec_monthly = {
 	effect = { st_rec_scan = yes }
 }
 
-# A new campaign gets its suggestions before the first month turns (Damien,
-# 2026-11-13). No root scope here (vanilla's comment), so each human player
-# is found the way Smart Notifications' own game-start hook does it. No
-# on_action fires when a save is loaded; the save already holds the last
-# scan's variables, so they show at once.
-on_game_started_after_lobby = {
-	on_actions = { st_rec_game_start }
-}
-st_rec_game_start = {
+
+# Each AI country stores its base acceptance of a treaty with the player
+# (st_rec_acc in st_rec_values.txt: root must be the partner, which it is
+# here). The player's scan reads it to leave out partners below the bar.
+# A scan from on_game_started_after_lobby was tried and dropped (2026-11-13):
+# it ran before the markets were filled in (pairs=0). The first scan of a
+# campaign now comes from the market panel (st_rec_init_sgui).
+st_rec_acc_monthly = {
+	trigger = { is_ai = yes }
 	effect = {
-		every_country = {
-			limit = { is_player = yes }
-			st_rec_scan = yes
+		set_variable = { name = st_rec_acc value = st_rec_acc }
+		# DEV: checked against the treaty draft's own figure (Great Britain
+		# toward Spain, 1836: -32). Great powers only, to keep it short.
+		if = {
+			limit = { country_rank = rank_value:great_power }
+			debug_log = "ST_REC|ACC|[TimeKeeper.GetCurrentDate.GetString]|[THIS.GetCountry.GetNameNoFormatting]|[THIS.Var('st_rec_acc').GetValue|0]"
 		}
 	}
+}
+on_monthly_pulse_country = {
+	on_actions = { st_rec_acc_monthly }
 }

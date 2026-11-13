@@ -328,6 +328,17 @@ types smart_trade_market_types
 						visible = "[Market.GetOwner.IsLocalPlayer]"
 						spacing = 2
 
+						# Scans when the panel is built, if no scan has found any
+						# candidate yet (st_rec_init_sgui holds the condition).
+						widget = {
+							size = { 0 0 }
+							state = {
+								name = st_rec_init
+								trigger_on_create = yes
+								on_start = "[GetScriptedGui('st_rec_init_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+							}
+						}
+
 						# A collapsible section, built from vanilla's section header as
 						# Bulk Construction's is (and vanilla's own "Filters" further
 						# down this panel). Open by default; 'st_rec_closed' is a GUI
@@ -378,15 +389,6 @@ types smart_trade_market_types
 								datacontext = "[GetPlayer.MakeScope.Var('st_rec_c1').GetCountry]"
 								direction = horizontal
 								spacing = 5
-								textbox = {
-									parentanchor = vcenter
-									text = "ST_REC_ROW_1"
-									autoresize = yes
-									multiline = yes
-									# @panel_width_minus_10 less the 26px button and the 5px gap
-									maximumsize = { 499 -1 }
-									align = nobaseline
-								}
 								button_icon_round = {
 									size = { 26 26 }
 									parentanchor = vcenter
@@ -401,7 +403,17 @@ types smart_trade_market_types
 									enabled = "[GetPlayer.CanSignTreatyWith(Country.Self)]"
 									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k1').GetGoods.GetKey)]"
 									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
+									onclick = "[GetScriptedGui('st_rec_dbg_click_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('dst', Country.MakeScope).End)]"
 									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
+								}
+								textbox = {
+									parentanchor = vcenter
+									text = "ST_REC_ROW_1"
+									autoresize = yes
+									multiline = yes
+									# @panel_width_minus_10 less the 26px button and the 5px gap
+									maximumsize = { 499 -1 }
+									align = nobaseline
 								}
 							}
 							flowcontainer = {
@@ -409,15 +421,6 @@ types smart_trade_market_types
 								datacontext = "[GetPlayer.MakeScope.Var('st_rec_c2').GetCountry]"
 								direction = horizontal
 								spacing = 5
-								textbox = {
-									parentanchor = vcenter
-									text = "ST_REC_ROW_2"
-									autoresize = yes
-									multiline = yes
-									# @panel_width_minus_10 less the 26px button and the 5px gap
-									maximumsize = { 499 -1 }
-									align = nobaseline
-								}
 								button_icon_round = {
 									size = { 26 26 }
 									parentanchor = vcenter
@@ -432,7 +435,17 @@ types smart_trade_market_types
 									enabled = "[GetPlayer.CanSignTreatyWith(Country.Self)]"
 									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k2').GetGoods.GetKey)]"
 									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
+									onclick = "[GetScriptedGui('st_rec_dbg_click_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('dst', Country.MakeScope).End)]"
 									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
+								}
+								textbox = {
+									parentanchor = vcenter
+									text = "ST_REC_ROW_2"
+									autoresize = yes
+									multiline = yes
+									# @panel_width_minus_10 less the 26px button and the 5px gap
+									maximumsize = { 499 -1 }
+									align = nobaseline
 								}
 							}
 							flowcontainer = {
@@ -440,15 +453,6 @@ types smart_trade_market_types
 								datacontext = "[GetPlayer.MakeScope.Var('st_rec_c3').GetCountry]"
 								direction = horizontal
 								spacing = 5
-								textbox = {
-									parentanchor = vcenter
-									text = "ST_REC_ROW_3"
-									autoresize = yes
-									multiline = yes
-									# @panel_width_minus_10 less the 26px button and the 5px gap
-									maximumsize = { 499 -1 }
-									align = nobaseline
-								}
 								button_icon_round = {
 									size = { 26 26 }
 									parentanchor = vcenter
@@ -463,7 +467,17 @@ types smart_trade_market_types
 									enabled = "[GetPlayer.CanSignTreatyWith(Country.Self)]"
 									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k3').GetGoods.GetKey)]"
 									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
+									onclick = "[GetScriptedGui('st_rec_dbg_click_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('dst', Country.MakeScope).End)]"
 									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
+								}
+								textbox = {
+									parentanchor = vcenter
+									text = "ST_REC_ROW_3"
+									autoresize = yes
+									multiline = yes
+									# @panel_width_minus_10 less the 26px button and the 5px gap
+									maximumsize = { 499 -1 }
+									align = nobaseline
 								}
 							}
 							flowcontainer = {
@@ -471,15 +485,6 @@ types smart_trade_market_types
 								datacontext = "[GetPlayer.MakeScope.Var('st_rec_c4').GetCountry]"
 								direction = horizontal
 								spacing = 5
-								textbox = {
-									parentanchor = vcenter
-									text = "ST_REC_ROW_4"
-									autoresize = yes
-									multiline = yes
-									# @panel_width_minus_10 less the 26px button and the 5px gap
-									maximumsize = { 499 -1 }
-									align = nobaseline
-								}
 								button_icon_round = {
 									size = { 26 26 }
 									parentanchor = vcenter
@@ -494,7 +499,17 @@ types smart_trade_market_types
 									enabled = "[GetPlayer.CanSignTreatyWith(Country.Self)]"
 									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k4').GetGoods.GetKey)]"
 									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
+									onclick = "[GetScriptedGui('st_rec_dbg_click_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('dst', Country.MakeScope).End)]"
 									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
+								}
+								textbox = {
+									parentanchor = vcenter
+									text = "ST_REC_ROW_4"
+									autoresize = yes
+									multiline = yes
+									# @panel_width_minus_10 less the 26px button and the 5px gap
+									maximumsize = { 499 -1 }
+									align = nobaseline
 								}
 							}
 							flowcontainer = {
@@ -502,15 +517,6 @@ types smart_trade_market_types
 								datacontext = "[GetPlayer.MakeScope.Var('st_rec_c5').GetCountry]"
 								direction = horizontal
 								spacing = 5
-								textbox = {
-									parentanchor = vcenter
-									text = "ST_REC_ROW_5"
-									autoresize = yes
-									multiline = yes
-									# @panel_width_minus_10 less the 26px button and the 5px gap
-									maximumsize = { 499 -1 }
-									align = nobaseline
-								}
 								button_icon_round = {
 									size = { 26 26 }
 									parentanchor = vcenter
@@ -525,7 +531,17 @@ types smart_trade_market_types
 									enabled = "[GetPlayer.CanSignTreatyWith(Country.Self)]"
 									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k5').GetGoods.GetKey)]"
 									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
+									onclick = "[GetScriptedGui('st_rec_dbg_click_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('dst', Country.MakeScope).End)]"
 									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
+								}
+								textbox = {
+									parentanchor = vcenter
+									text = "ST_REC_ROW_5"
+									autoresize = yes
+									multiline = yes
+									# @panel_width_minus_10 less the 26px button and the 5px gap
+									maximumsize = { 499 -1 }
+									align = nobaseline
 								}
 							}
 							# st_rec_g1 is set by every scan, so unset means none has run yet

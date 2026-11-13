@@ -4,7 +4,7 @@
 # st_rec_g (goods), st_rec_h / st_rec_p (home / partner market goods).
 # Mirrors vanilla's goods_transfer article (13_goods_transfer.txt), plus
 # "not at war" and "not already moving this good between us" (spec). The
-# partner's opinion of the player is NOT checked (Damien, 2026-11-10).
+# partner's base acceptance is checked once known (Damien, 2026-11-13).
 st_rec_pair_ok = {
 	NOT = { this = scope:st_rec_c }
 	NOT = { has_war_with = scope:st_rec_c }
@@ -32,4 +32,12 @@ st_rec_pair_ok = {
 	}
 	scope:st_rec_p = { treaty_imports < market_import_cap }
 	scope:st_rec_h = { treaty_exports < market_export_cap }
+	# Base acceptance, stored by the partner on its own monthly pulse
+	# (st_rec_acc_monthly); unknown until then, and an unknown never filters.
+	scope:st_rec_c = {
+		OR = {
+			NOT = { has_variable = st_rec_acc }
+			var:st_rec_acc >= -10
+		}
+	}
 }

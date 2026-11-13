@@ -130,3 +130,19 @@ st_rec_vs_slot2 = { value = var:st_rec_best subtract = var:st_rec_g2 }
 st_rec_vs_slot3 = { value = var:st_rec_best subtract = var:st_rec_g3 }
 st_rec_vs_slot4 = { value = var:st_rec_best subtract = var:st_rec_g4 }
 st_rec_vs_slot5 = { value = var:st_rec_best subtract = var:st_rec_g5 }
+
+# The partner's base acceptance of a treaty with the player: vanilla's own
+# static_treaty_acceptance (common/script_values), which wants root = the
+# evaluating country and scope:other_country = the proposer. ROOT HERE MUST
+# BE THE PARTNER: the GUI evaluates it through Country.MakeScope.ScriptValue,
+# and each AI country stores it on its own monthly pulse; the player's scan
+# cannot, because its root is the player. Single player: the proposer is the
+# one human country. Not yet confirmed in game (2026-11-13).
+st_rec_acc = {
+	value = 0
+	every_country = {
+		limit = { is_player = yes }
+		save_temporary_scope_as = other_country
+	}
+	add = static_treaty_acceptance
+}

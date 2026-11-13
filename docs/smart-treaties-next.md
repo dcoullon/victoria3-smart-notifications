@@ -191,9 +191,28 @@ already answers "what should I send to this country".
 - **Empty states:** before the first scan (mod just added to a save) the
   block says it computes when the month turns and points at the refresh
   button; after a scan with no profitable deal it says so.
-- **Game start and load (Damien, 2026-11-13):** a new campaign scans from
-  `on_game_started_after_lobby`. No on_action fires on load; the save holds
-  the last scan's variables, so they show at once.
+- **Game start and load (Damien, 2026-11-13):** a scan from
+  `on_game_started_after_lobby` ran before the markets were filled in
+  (pairs=0, 8 s after the lobby; a refresh 33 s later on the same day found
+  378) and was dropped. The market panel now fires `st_rec_init_sgui` each
+  time it is built, which scans only while no scan has found a candidate.
+  No on_action fires on load; the save holds the last scan's variables.
+- **Base acceptance (Damien, 2026-11-13):** each row ends with the partner's
+  base acceptance, vanilla's `static_treaty_acceptance` evaluated from the
+  partner's side (`st_rec_acc`, root = partner, the player saved as
+  `scope:other_country`), breakdown on hover through
+  `GetScriptValueDesc`. The scan cannot evaluate it (its root is the
+  player), so each AI country stores it on its monthly pulse and the scan
+  leaves out partners below -10 once that value exists. Unconfirmed: that
+  the value matches the draft's (Great Britain toward Spain, 1 January
+  1836: -32; `ST_REC|ACC` logs the great powers), that the treaty-less
+  evaluation of `ai_treaty_fairness` does not error, and that the hover
+  breakdown shows vanilla's lines rather than one wrapped line. Every AI
+  country now keeps one variable in the save, for the Workshop wording.
+- **Pre-selection did not fire in its first run.** `ST_REC|CLICK`,
+  `ST_REC|PICK|any`, `ST_REC|PICK|card` (with the draft's source and target
+  when the card is created) and `ST_REC|PICK|go` log each step; remove them
+  once it works.
 - **Section (Damien, 2026-11-13):** a collapsible section header (vanilla's
   `section_header_button`, as Build All's), open by default, so the goods
   list below can get the room back. The refresh button sits on the header.
