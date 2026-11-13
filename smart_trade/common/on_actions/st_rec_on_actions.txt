@@ -9,3 +9,20 @@ st_rec_monthly = {
 	trigger = { is_player = yes }
 	effect = { st_rec_scan = yes }
 }
+
+# A new campaign gets its suggestions before the first month turns (Damien,
+# 2026-11-13). No root scope here (vanilla's comment), so each human player
+# is found the way Smart Notifications' own game-start hook does it. No
+# on_action fires when a save is loaded; the save already holds the last
+# scan's variables, so they show at once.
+on_game_started_after_lobby = {
+	on_actions = { st_rec_game_start }
+}
+st_rec_game_start = {
+	effect = {
+		every_country = {
+			limit = { is_player = yes }
+			st_rec_scan = yes
+		}
+	}
+}

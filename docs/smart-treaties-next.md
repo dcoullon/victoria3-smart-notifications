@@ -188,9 +188,21 @@ already answers "what should I send to this country".
   profitable deals show, however small. In his Spain game, tobacco to France
   at £486 a week mattered against a net income of −£2.3K. The alert's bar
   (start 5% of weekly income, `income`) is still an assumption.
-- **Empty states:** before the first scan (new game, mod just added) the
+- **Empty states:** before the first scan (mod just added to a save) the
   block says it computes when the month turns and points at the refresh
   button; after a scan with no profitable deal it says so.
+- **Game start and load (Damien, 2026-11-13):** a new campaign scans from
+  `on_game_started_after_lobby`. No on_action fires on load; the save holds
+  the last scan's variables, so they show at once.
+- **Rows (Damien, 2026-11-13):** "[flag] 55 Coffee to Great Britain:
+  ~£866/week". The flag opens a new treaty draft with the partner
+  (`OpenTreatyDraftPanelForNewDraft`, vanilla's country panel call) and sets
+  two GUI variables, `st_rec_good` and `st_rec_to`. The engine exposes the
+  open draft only inside the draft panel, so the article cannot be added
+  from the market panel; instead the goods picker's creation state selects
+  that good at the best quantity when the player adds a Goods Transfer they
+  send to that partner (`check_st_rec_handoff_keys` keeps the two names in
+  step).
 - **Acceptance:** vanilla's `static_treaty_acceptance` (root = partner,
   `scope:other_country` = player; its treaty-options lookups are guarded with
   `exists`/`?=`) plus the goods article's own score at that quantity

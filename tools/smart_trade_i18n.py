@@ -384,7 +384,8 @@ S["SMART_TRADE_TREATIES_TT"] = {
 # --- Trade recommender (tools/gen_st_recommender.py; market panel, Trade tab) ---
 # No profit threshold: any profitable deal can be a row (Damien, 2026-11-13).
 # "Goods Transfer" is vanilla's own article name (goods_transfer) per language.
-# Each row keeps the calls in the order Q, G, C, GAIN in every language.
+# Rows follow the flag, so a language that would decline the country's name
+# after "to" (Polish, Russian, Korean, Turkish) puts the name first instead.
 S["ST_REC_HEADER"] = {
     "english": "(ST) Suggested goods transfers",
     "french": "(ST) Transferts de marchandises suggérés",
@@ -446,6 +447,19 @@ S["ST_REC_PENDING"] = {
     "korean": "달이 바뀔 때 계산됩니다. 지금 계산하려면 새로 고침 버튼을 누르세요.",
     "turkish": "Ay döndüğünde hesaplanır. Şimdi hesaplamak için yenile düğmesine basın.",
 }
+S["ST_REC_FLAG_TT"] = {
+    "english": "Open a treaty with this country. Add a Goods Transfer you send them and this good is picked at the best quantity.",
+    "french": "Ouvrir un traité avec ce pays. Ajoutez un Transfert de marchandises que vous leur envoyez : ce bien est choisi à la meilleure quantité.",
+    "german": "Einen Vertrag mit diesem Land öffnen. Fügen Sie eine Warenübereignung hinzu, die Sie senden: Diese Ware wird in der besten Menge ausgewählt.",
+    "spanish": "Abrir un tratado con este país. Añade una Transferencia de bienes que les envías y este bien se elige con la mejor cantidad.",
+    "braz_por": "Abrir um tratado com este país. Adicione uma Transferência de Mercadorias que você envia e este bem é escolhido na melhor quantidade.",
+    "polish": "Otwórz traktat z tym krajem. Dodaj Transfer towarów, który wysyłasz, a ten towar zostanie wybrany w najlepszej ilości.",
+    "russian": "Открыть договор с этой страной. Добавьте передачу товаров от вас, и этот товар будет выбран в лучшем объёме.",
+    "simp_chinese": "与该国开启条约。添加一项由你输送的商品输送，此商品会以最优数量自动选中。",
+    "japanese": "この国との条約を開きます。自国が送る商品の譲渡を追加すると、この商品が最適な量で選ばれます。",
+    "korean": "이 국가와 조약을 엽니다. 내가 보내는 상품 양도를 추가하면 이 상품이 최적 수량으로 선택됩니다.",
+    "turkish": "Bu ülkeyle bir antlaşma aç. Gönderdiğiniz bir Mal Transferi ekleyin; bu mal en iyi miktarda seçilir.",
+}
 S["ST_REC_ROW_TT"] = {
     "english": "Estimate from first-week prices. Open a treaty with this country and add a Goods Transfer of this good to see the exact figure and their acceptance.",
     "french": "Estimation aux prix de la première semaine. Ouvrez un traité avec ce pays et ajoutez un Transfert de marchandises de ce bien pour voir le chiffre exact et son acceptation.",
@@ -460,17 +474,17 @@ S["ST_REC_ROW_TT"] = {
     "turkish": "İlk hafta fiyatlarıyla tahmin. Bu ülkeyle bir antlaşma açın ve bu malın Mal Transferi'ni ekleyerek kesin rakamı ve kabulü görün.",
 }
 _REC_ROW = {
-    "english": "Send {Q} {G} to {C}: about @money!{GAIN} a week",
-    "french": "Envoyer {Q} {G} vers {C} : environ @money!{GAIN} par semaine",
-    "german": "{Q} {G} an {C} senden: etwa @money!{GAIN} pro Woche",
-    "spanish": "Enviar {Q} {G} a {C}: aprox. @money!{GAIN} por semana",
-    "braz_por": "Enviar {Q} {G} para {C}: cerca de @money!{GAIN} por semana",
-    "polish": "Wyślij {Q} {G}, odbiorca: {C}: ok. @money!{GAIN} na tydzień",
-    "russian": "Отправить {Q} {G}, получатель: {C}: около @money!{GAIN} в неделю",
-    "simp_chinese": "输送{Q}单位{G}至{C}：每周约@money!{GAIN}",
-    "japanese": "{Q}の{G}を{C}へ送る：週約@money!{GAIN}",
-    "korean": "{Q} {G} 보내기, 수령국: {C}: 주당 약 @money!{GAIN}",
-    "turkish": "{Q} {G} gönder, alıcı: {C}: haftada yaklaşık @money!{GAIN}",
+    "english": "{Q} {G} to {C}: ~@money!{GAIN}/week",
+    "french": "{Q} {G} vers {C} : ~@money!{GAIN}/semaine",
+    "german": "{Q} {G} an {C}: ~@money!{GAIN}/Woche",
+    "spanish": "{Q} {G} a {C}: ~@money!{GAIN}/semana",
+    "braz_por": "{Q} {G} para {C}: ~@money!{GAIN}/semana",
+    "polish": "{C}: {Q} {G}, ~@money!{GAIN}/tydz.",
+    "russian": "{C}: {Q} {G}, ~@money!{GAIN}/нед.",
+    "simp_chinese": "{Q}单位{G}至{C}：约@money!{GAIN}/周",
+    "japanese": "{Q}の{G}を{C}へ：約@money!{GAIN}/週",
+    "korean": "{C}: {Q} {G}, ~@money!{GAIN}/주",
+    "turkish": "{C}: {Q} {G}, ~@money!{GAIN}/hafta",
 }
 for _n in range(1, 6):
     _p = "GetPlayer.MakeScope.Var('st_rec_{}%d')" % _n

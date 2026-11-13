@@ -2106,6 +2106,29 @@ def check_st_cards_skip_border_trigger(root: Path) -> list[str]:
     return errs
 
 
+def check_st_rec_handoff_keys(root: Path) -> list[str]:
+    """The suggestion rows' flags (00_smart_trade_market.gui) hand a good and
+    a partner to the goods picker (00_smart_trade.gui) through GUI variables
+    named st_rec_*. The two files come from different generators; a name
+    written on one side and never read on the other fails silently in game
+    (the picker just never selects anything). Every st_rec_* name set must
+    be read, and every one read must be set."""
+    gui = root / "gui"
+    if not (gui / "00_smart_trade_market.gui").is_file():
+        return []
+    text = "".join(_read(p) for p in sorted(gui.glob("*.gui")))
+    put = set(re.findall(r"GetVariableSystem\.Set\('(st_rec_\w+)'", text))
+    got = set(re.findall(r"GetVariableSystem\.(?:HasValue|Get|Exists)\('(st_rec_\w+)'", text))
+    errs = [f"gui: GUI variable '{k}' is set but never read (suggestion-to-picker handoff)"
+            for k in sorted(put - got)]
+    errs += [f"gui: GUI variable '{k}' is read but never set (suggestion-to-picker handoff)"
+             for k in sorted(got - put)]
+    if not put:
+        errs.append("gui: the suggestion rows set no st_rec_* GUI variable; the flag no longer "
+                    "hands its good to the goods picker")
+    return errs
+
+
 def check_st_button_labels_fit(root: Path) -> list[str]:
     """Smart Treaties' Best/Max labels must fit their 58px button in every
     language (same failure as check_bc_button_labels_fit: an overrun clips in
@@ -2269,6 +2292,7 @@ def run_all(root: Path) -> list[str]:
         errs += check_st_generated_files_current(root)
         errs += check_st_entry_width_matches_vanilla(root)
         errs += check_st_cards_skip_border_trigger(root)
+        errs += check_st_rec_handoff_keys(root)
 
     return errs
 

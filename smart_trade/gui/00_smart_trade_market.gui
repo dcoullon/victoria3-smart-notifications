@@ -348,50 +348,140 @@ types smart_trade_market_types
 								tooltip = "ST_REC_REFRESH_TT"
 							}
 						}
-						textbox = {
+						flowcontainer = {
 							visible = "[GetPlayer.MakeScope.Var('st_rec_c1').IsSet]"
-							text = "ST_REC_ROW_1"
-							tooltip = "ST_REC_ROW_TT"
-							autoresize = yes
-							multiline = yes
-							maximumsize = { @panel_width_minus_10 -1 }
-							align = nobaseline
+							datacontext = "[GetPlayer.MakeScope.Var('st_rec_c1').GetCountry]"
+							direction = horizontal
+							spacing = 5
+							tiny_flag = {
+								parentanchor = vcenter
+								blockoverride "tooltip" {
+									tooltip = "ST_REC_FLAG_TT"
+								}
+								blockoverride "flag_click" {
+									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k1').GetGoods.GetKey)]"
+									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
+									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
+								}
+							}
+							textbox = {
+								parentanchor = vcenter
+								text = "ST_REC_ROW_1"
+								tooltip = "ST_REC_ROW_TT"
+								autoresize = yes
+								multiline = yes
+								# @panel_width_minus_10 less the 27px flag and the 5px gap
+								maximumsize = { 498 -1 }
+								align = nobaseline
+							}
 						}
-						textbox = {
+						flowcontainer = {
 							visible = "[GetPlayer.MakeScope.Var('st_rec_c2').IsSet]"
-							text = "ST_REC_ROW_2"
-							tooltip = "ST_REC_ROW_TT"
-							autoresize = yes
-							multiline = yes
-							maximumsize = { @panel_width_minus_10 -1 }
-							align = nobaseline
+							datacontext = "[GetPlayer.MakeScope.Var('st_rec_c2').GetCountry]"
+							direction = horizontal
+							spacing = 5
+							tiny_flag = {
+								parentanchor = vcenter
+								blockoverride "tooltip" {
+									tooltip = "ST_REC_FLAG_TT"
+								}
+								blockoverride "flag_click" {
+									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k2').GetGoods.GetKey)]"
+									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
+									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
+								}
+							}
+							textbox = {
+								parentanchor = vcenter
+								text = "ST_REC_ROW_2"
+								tooltip = "ST_REC_ROW_TT"
+								autoresize = yes
+								multiline = yes
+								# @panel_width_minus_10 less the 27px flag and the 5px gap
+								maximumsize = { 498 -1 }
+								align = nobaseline
+							}
 						}
-						textbox = {
+						flowcontainer = {
 							visible = "[GetPlayer.MakeScope.Var('st_rec_c3').IsSet]"
-							text = "ST_REC_ROW_3"
-							tooltip = "ST_REC_ROW_TT"
-							autoresize = yes
-							multiline = yes
-							maximumsize = { @panel_width_minus_10 -1 }
-							align = nobaseline
+							datacontext = "[GetPlayer.MakeScope.Var('st_rec_c3').GetCountry]"
+							direction = horizontal
+							spacing = 5
+							tiny_flag = {
+								parentanchor = vcenter
+								blockoverride "tooltip" {
+									tooltip = "ST_REC_FLAG_TT"
+								}
+								blockoverride "flag_click" {
+									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k3').GetGoods.GetKey)]"
+									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
+									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
+								}
+							}
+							textbox = {
+								parentanchor = vcenter
+								text = "ST_REC_ROW_3"
+								tooltip = "ST_REC_ROW_TT"
+								autoresize = yes
+								multiline = yes
+								# @panel_width_minus_10 less the 27px flag and the 5px gap
+								maximumsize = { 498 -1 }
+								align = nobaseline
+							}
 						}
-						textbox = {
+						flowcontainer = {
 							visible = "[GetPlayer.MakeScope.Var('st_rec_c4').IsSet]"
-							text = "ST_REC_ROW_4"
-							tooltip = "ST_REC_ROW_TT"
-							autoresize = yes
-							multiline = yes
-							maximumsize = { @panel_width_minus_10 -1 }
-							align = nobaseline
+							datacontext = "[GetPlayer.MakeScope.Var('st_rec_c4').GetCountry]"
+							direction = horizontal
+							spacing = 5
+							tiny_flag = {
+								parentanchor = vcenter
+								blockoverride "tooltip" {
+									tooltip = "ST_REC_FLAG_TT"
+								}
+								blockoverride "flag_click" {
+									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k4').GetGoods.GetKey)]"
+									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
+									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
+								}
+							}
+							textbox = {
+								parentanchor = vcenter
+								text = "ST_REC_ROW_4"
+								tooltip = "ST_REC_ROW_TT"
+								autoresize = yes
+								multiline = yes
+								# @panel_width_minus_10 less the 27px flag and the 5px gap
+								maximumsize = { 498 -1 }
+								align = nobaseline
+							}
 						}
-						textbox = {
+						flowcontainer = {
 							visible = "[GetPlayer.MakeScope.Var('st_rec_c5').IsSet]"
-							text = "ST_REC_ROW_5"
-							tooltip = "ST_REC_ROW_TT"
-							autoresize = yes
-							multiline = yes
-							maximumsize = { @panel_width_minus_10 -1 }
-							align = nobaseline
+							datacontext = "[GetPlayer.MakeScope.Var('st_rec_c5').GetCountry]"
+							direction = horizontal
+							spacing = 5
+							tiny_flag = {
+								parentanchor = vcenter
+								blockoverride "tooltip" {
+									tooltip = "ST_REC_FLAG_TT"
+								}
+								blockoverride "flag_click" {
+									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k5').GetGoods.GetKey)]"
+									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
+									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
+								}
+							}
+							textbox = {
+								parentanchor = vcenter
+								text = "ST_REC_ROW_5"
+								tooltip = "ST_REC_ROW_TT"
+								autoresize = yes
+								multiline = yes
+								# @panel_width_minus_10 less the 27px flag and the 5px gap
+								maximumsize = { 498 -1 }
+								align = nobaseline
+							}
 						}
 						# st_rec_g1 is set by every scan, so unset means none has run yet
 						textbox = {

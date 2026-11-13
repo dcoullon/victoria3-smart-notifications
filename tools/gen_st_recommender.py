@@ -481,6 +481,23 @@ st_rec_monthly = {
 	trigger = { is_player = yes }
 	effect = { st_rec_scan = yes }
 }
+
+# A new campaign gets its suggestions before the first month turns (Damien,
+# 2026-11-13). No root scope here (vanilla's comment), so each human player
+# is found the way Smart Notifications' own game-start hook does it. No
+# on_action fires when a save is loaded; the save already holds the last
+# scan's variables, so they show at once.
+on_game_started_after_lobby = {
+	on_actions = { st_rec_game_start }
+}
+st_rec_game_start = {
+	effect = {
+		every_country = {
+			limit = { is_player = yes }
+			st_rec_scan = yes
+		}
+	}
+}
 """
 
 
@@ -558,14 +575,38 @@ GUI_BLOCK = """
 					}
 """
 
-GUI_ROW = """						textbox = {
+# Each row: the partner's flag, then the text. Clicking the flag opens a new
+# treaty draft with the partner (vanilla's own call, gui/country_panel.gui's
+# propose-treaty button) and leaves the good and partner in two GUI
+# variables; the goods picker (gen_smart_trade_gui.py, REC_PICK) selects that
+# good at the best quantity when the player adds a Goods Transfer they send
+# to that partner, then clears the variables.
+GUI_ROW = """						flowcontainer = {
 							visible = "[GetPlayer.MakeScope.Var('st_rec_c@@N@@').IsSet]"
-							text = "ST_REC_ROW_@@N@@"
-							tooltip = "ST_REC_ROW_TT"
-							autoresize = yes
-							multiline = yes
-							maximumsize = { @panel_width_minus_10 -1 }
-							align = nobaseline
+							datacontext = "[GetPlayer.MakeScope.Var('st_rec_c@@N@@').GetCountry]"
+							direction = horizontal
+							spacing = 5
+							tiny_flag = {
+								parentanchor = vcenter
+								blockoverride "tooltip" {
+									tooltip = "ST_REC_FLAG_TT"
+								}
+								blockoverride "flag_click" {
+									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k@@N@@').GetGoods.GetKey)]"
+									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
+									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
+								}
+							}
+							textbox = {
+								parentanchor = vcenter
+								text = "ST_REC_ROW_@@N@@"
+								tooltip = "ST_REC_ROW_TT"
+								autoresize = yes
+								multiline = yes
+								# @panel_width_minus_10 less the 27px flag and the 5px gap
+								maximumsize = { 498 -1 }
+								align = nobaseline
+							}
 						}"""
 
 

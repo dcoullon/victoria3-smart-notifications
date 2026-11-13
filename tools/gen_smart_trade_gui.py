@@ -1222,11 +1222,29 @@ def lazy_widgets():
             + "\n\twidget = {\n\t\tname = \"st_leaf\"\n\t\tsize = { 0 0 }\n" + "\n".join(leaf) + "\n\t}\n}")
 
 
+# 1c. A good picked from the market panel's suggestions (gen_st_recommender.py,
+#     GUI_ROW): the row's flag leaves the good's key and the partner's ID in
+#     two GUI variables. The card for that good, in a Goods Transfer the
+#     player sends to that partner, selects itself at the best quantity, as
+#     a click on it would, and clears the key so a rebuild cannot repeat it.
+REC_PICK_COND = ("And(GetVariableSystem.HasValue('st_rec_good', Goods.GetKey), "
+                 "GetVariableSystem.HasValue('st_rec_to', ArticleDraft.GetSecondOrTarget.GetIDString), "
+                 f"{C_MINE})")
+REC_PICK_STEP = f"PdxGuiWidget.FindChild('st_rec_pre').TriggerAnimation(Select_CString({REC_PICK_COND}, 'st_rec_go', 'st_none'))"
+REC_PICK_WIDGET = ("widget = {\n\tname = \"st_rec_pre\"\n\tsize = { 0 0 }\n"
+                   "state = {\n\tname = st_none\n}\n"
+                   "state = {\n\tname = st_rec_go\n"
+                   "\ton_start = \"[GetVariableSystem.Clear('st_rec_good')]\"\n"
+                   "\ton_start = \"[ArticleDraft.SetGood(Goods.Self)]\"\n"
+                   + "".join(f"\ton_start = {l[len('onclick = '):]}\n" for l in C_PICK_ONCLICKS.splitlines())
+                   + "}\n}")
+
 ITEM_ANCHOR = 'item = {\n\t\t\tcontainer = {'
 ITEM_STATE = (ITEM_ANCHOR + "\n### SMART TRADE: the card's figure, computed once on creation\n"
               "state = {\n\tname = st_created\n\ttrigger_on_create = yes\n"
               f"\ton_start = \"[GetVariableSystem.Set({ONCE_KEY}, 'n')]\"\n"
-              "\ton_start = \"[@@LAZY_STEP1@@]\"\n}\n" + lazy_widgets())
+              "\ton_start = \"[@@LAZY_STEP1@@]\"\n"
+              f"\ton_start = \"[{REC_PICK_STEP}]\"\n}}\n" + lazy_widgets() + "\n" + REC_PICK_WIDGET)
 
 PICK_ANCHOR = 'onclick = "[ArticleDraft.SetGood(Goods.Self)]"'
 PICK_BEST = PICK_ANCHOR + '''
