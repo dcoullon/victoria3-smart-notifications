@@ -292,7 +292,9 @@ def main() -> int:
         return 1
     stale = []
     for path, content in ((OUT_GUI, build_gui()), (OUT_SGUI, build_sgui())):
-        current = path.read_text(encoding="utf-8") if path.exists() else None
+        # Normalise line endings: git's autocrlf rewrites these files to CRLF
+        # on checkout, which must not read as a stale generation.
+        current = path.read_text(encoding="utf-8").replace("\r\n", "\n") if path.exists() else None
         if current == content:
             continue
         if check:
