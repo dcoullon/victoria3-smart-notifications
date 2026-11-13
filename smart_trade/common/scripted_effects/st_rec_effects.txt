@@ -8,6 +8,8 @@
 st_rec_scan = {
 	# the proposer that st_rec_acc reads (st_rec_values.txt)
 	set_global_variable = { name = st_rec_player value = root }
+	# today's scan is done: the Trade tab's open hooks skip until tomorrow
+	set_variable = { name = st_rec_fresh value = 1 days = 1 }
 	set_variable = { name = st_rec_g1 value = -1 }
 	if = { limit = { has_variable = st_rec_c1 } remove_variable = st_rec_c1 }
 	if = { limit = { has_variable = st_rec_k1 } remove_variable = st_rec_k1 }

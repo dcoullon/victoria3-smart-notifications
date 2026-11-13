@@ -411,6 +411,8 @@ def effects(goods):
 st_rec_scan = {{
 	# the proposer that st_rec_acc reads (st_rec_values.txt)
 	set_global_variable = {{ name = st_rec_player value = root }}
+	# today's scan is done: the Trade tab's open hooks skip until tomorrow
+	set_variable = {{ name = st_rec_fresh value = 1 days = 1 }}
 {reset}
 	set_variable = {{ name = st_rec_n_pairs value = 0 }}
 	set_variable = {{ name = st_rec_n_full value = 0 }}
@@ -595,8 +597,17 @@ st_rec_open_tab_sgui = {
 	scope = country
 	is_shown = { is_player = yes }
 	effect = {
-		debug_log = "ST_REC|OPEN_TAB|[TimeKeeper.GetCurrentDate.GetString]"
-		st_rec_scan = yes
+		# Prices move once a day, so a second scan on the same day (both
+		# hooks on one click, or reopening the tab while paused) would
+		# repeat the first; the refresh button always scans.
+		if = {
+			limit = { NOT = { has_variable = st_rec_fresh } }
+			debug_log = "ST_REC|OPEN_TAB|scan|[TimeKeeper.GetCurrentDate.GetString]"
+			st_rec_scan = yes
+		}
+		else = {
+			debug_log = "ST_REC|OPEN_TAB|skip|[TimeKeeper.GetCurrentDate.GetString]"
+		}
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
@@ -605,8 +616,17 @@ st_rec_open_show_sgui = {
 	scope = country
 	is_shown = { is_player = yes }
 	effect = {
-		debug_log = "ST_REC|OPEN_SHOW|[TimeKeeper.GetCurrentDate.GetString]"
-		st_rec_scan = yes
+		# Prices move once a day, so a second scan on the same day (both
+		# hooks on one click, or reopening the tab while paused) would
+		# repeat the first; the refresh button always scans.
+		if = {
+			limit = { NOT = { has_variable = st_rec_fresh } }
+			debug_log = "ST_REC|OPEN_SHOW|scan|[TimeKeeper.GetCurrentDate.GetString]"
+			st_rec_scan = yes
+		}
+		else = {
+			debug_log = "ST_REC|OPEN_SHOW|skip|[TimeKeeper.GetCurrentDate.GetString]"
+		}
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }

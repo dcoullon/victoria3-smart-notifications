@@ -312,6 +312,37 @@ of a treaty's profit is moved from your own trade centers to the treasury, and
 is not new money. Measurement answers that. The Trade tab keeps vanilla's
 import and export rows below the suggestions, so existing trade stays visible.
 
+**Performance review before release (2026-11-13, Damien: fans run a lot with
+the game on).** Read from the code, nothing measured yet:
+- Script, per in-game month: every monthly hook in the three published mods
+  checks `is_player` first, so about 200 AI countries cost one check each.
+  The recommender scans once a month for the player, plus on opening the
+  Trade tab; a same-day guard (`st_rec_fresh`, 1 day) stops a second scan
+  from the second hook or a reopened tab, and the refresh button always
+  scans. The observer (dev only) walks the world's treaties once a month.
+  Earlier tick-probe result: no measurable cost from the published mods
+  (2026-10-07, see smart-trade-investigation.md).
+- Per frame (every binding of a visible widget reruns each frame, paused or
+  not): the outliner's treaty rows, always on screen, evaluate the
+  per-treaty script values (`st_treaty_margin`, `st_treaty_money`,
+  `st_treaty_has_lane`) about 15 times per row per frame, mostly because six
+  layout branches repeat the same "has a figure" test. Each value walks
+  the treaty's few articles. Estimate, from the picker's fitted 1 to 6 us
+  per step: about 1 to 4 ms per frame with 3 to 10 treaties. Fixable by
+  nesting the branches so the test runs once per row; not done before
+  measuring, since that layout took several runs to get right.
+- Fixed: the suggestion rows showed acceptance through a live ScriptValue
+  (vanilla's formula, 5 rows, every frame while the Trade tab is open); they
+  now read the value the scan stores on each partner.
+- Fine: the draft panel's large bindings are almost all onclick and
+  creation-state code (run once), and its per-frame text runs only while a
+  Goods Transfer draft is open.
+
+Measurement run before release: Steam's FPS counter (no debug mode), paused,
+same save, each screen with and without the three mods: the map with the
+outliner's treaties open and closed, the market panel's Trade tab. Then the
+tick probe at speed 5 for about 15 in-game months, with and without mods.
+
 ## 4. Opportunity alert
 
 From the recommender's monthly result, no extra search. A toast in its own

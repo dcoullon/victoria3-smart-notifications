@@ -457,8 +457,11 @@ S["ST_REC_TREATY_TT"] = {
 # evaluated from the partner's side through the row's Country datacontext),
 # with an inline tooltip holding vanilla's own breakdown lines; the same
 # #tooltippable form as the treasury line.
+# The figure is the value the scan stored on the partner (st_rec_acc_scan, the
+# same formula): a live ScriptValue here would rerun vanilla's acceptance
+# formula per row on every frame. The breakdown runs only on hover.
 _REC_ACC = ("#tooltippable #tooltip:[Country.GetTooltipTag],ST_REC_ACC_TT "
-            "[Country.MakeScope.ScriptValue('st_rec_acc')|+=0]#!#!")
+            "[Country.MakeScope.Var('st_rec_acc').GetValue|+=0]#!#!")
 S["ST_REC_ACC_TT"] = {
     "english": "#header Base acceptance: [Country.GetNameNoFormatting]#!\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]",
     "french": "#header Acceptation de base: [Country.GetNameNoFormatting]#!\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]",
