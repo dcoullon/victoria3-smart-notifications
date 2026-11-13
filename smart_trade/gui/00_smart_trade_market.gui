@@ -328,14 +328,23 @@ types smart_trade_market_types
 						visible = "[Market.GetOwner.IsLocalPlayer]"
 						spacing = 2
 
-						# Scans when the panel is built, if no scan has found any
-						# candidate yet (st_rec_init_sgui holds the condition).
+						# The first scan, while no scan has found a candidate (the
+						# condition is in the scripted GUIs): when the panel is
+						# built, and when the Trade tab is shown.
 						widget = {
 							size = { 0 0 }
 							state = {
 								name = st_rec_init
 								trigger_on_create = yes
 								on_start = "[GetScriptedGui('st_rec_init_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+							}
+						}
+						widget = {
+							size = { 0 0 }
+							visible = "[InformationPanel.IsTabSelected('world_market_trade')]"
+							state = {
+								name = _show
+								on_start = "[GetScriptedGui('st_rec_init_show_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 							}
 						}
 
@@ -401,9 +410,6 @@ types smart_trade_market_types
 									}
 									tooltip = "ST_REC_TREATY_TT"
 									enabled = "[GetPlayer.CanSignTreatyWith(Country.Self)]"
-									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k1').GetGoods.GetKey)]"
-									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
-									onclick = "[GetScriptedGui('st_rec_dbg_click_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('dst', Country.MakeScope).End)]"
 									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
 								}
 								textbox = {
@@ -433,9 +439,6 @@ types smart_trade_market_types
 									}
 									tooltip = "ST_REC_TREATY_TT"
 									enabled = "[GetPlayer.CanSignTreatyWith(Country.Self)]"
-									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k2').GetGoods.GetKey)]"
-									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
-									onclick = "[GetScriptedGui('st_rec_dbg_click_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('dst', Country.MakeScope).End)]"
 									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
 								}
 								textbox = {
@@ -465,9 +468,6 @@ types smart_trade_market_types
 									}
 									tooltip = "ST_REC_TREATY_TT"
 									enabled = "[GetPlayer.CanSignTreatyWith(Country.Self)]"
-									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k3').GetGoods.GetKey)]"
-									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
-									onclick = "[GetScriptedGui('st_rec_dbg_click_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('dst', Country.MakeScope).End)]"
 									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
 								}
 								textbox = {
@@ -497,9 +497,6 @@ types smart_trade_market_types
 									}
 									tooltip = "ST_REC_TREATY_TT"
 									enabled = "[GetPlayer.CanSignTreatyWith(Country.Self)]"
-									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k4').GetGoods.GetKey)]"
-									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
-									onclick = "[GetScriptedGui('st_rec_dbg_click_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('dst', Country.MakeScope).End)]"
 									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
 								}
 								textbox = {
@@ -529,9 +526,6 @@ types smart_trade_market_types
 									}
 									tooltip = "ST_REC_TREATY_TT"
 									enabled = "[GetPlayer.CanSignTreatyWith(Country.Self)]"
-									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k5').GetGoods.GetKey)]"
-									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
-									onclick = "[GetScriptedGui('st_rec_dbg_click_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('dst', Country.MakeScope).End)]"
 									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
 								}
 								textbox = {

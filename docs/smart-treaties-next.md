@@ -194,41 +194,47 @@ already answers "what should I send to this country".
 - **Game start and load (Damien, 2026-11-13):** a scan from
   `on_game_started_after_lobby` ran before the markets were filled in
   (pairs=0, 8 s after the lobby; a refresh 33 s later on the same day found
-  378) and was dropped. The market panel now fires `st_rec_init_sgui` each
-  time it is built, which scans only while no scan has found a candidate.
-  No on_action fires on load; the save holds the last scan's variables.
-- **Base acceptance (Damien, 2026-11-13):** each row ends with the partner's
-  base acceptance, vanilla's `static_treaty_acceptance` evaluated from the
-  partner's side (`st_rec_acc`, root = partner, the player saved as
-  `scope:other_country`), breakdown on hover through
-  `GetScriptValueDesc`. The scan cannot evaluate it (its root is the
-  player), so each AI country stores it on its monthly pulse and the scan
-  leaves out partners below -10 once that value exists. Unconfirmed: that
-  the value matches the draft's (Great Britain toward Spain, 1 January
-  1836: -32; `ST_REC|ACC` logs the great powers), that the treaty-less
-  evaluation of `ai_treaty_fairness` does not error, and that the hover
-  breakdown shows vanilla's lines rather than one wrapped line. Every AI
-  country now keeps one variable in the save, for the Workshop wording.
-- **Pre-selection did not fire in its first run.** `ST_REC|CLICK`,
-  `ST_REC|PICK|any`, `ST_REC|PICK|card` (with the draft's source and target
-  when the card is created) and `ST_REC|PICK|go` log each step; remove them
-  once it works.
+  378) and was dropped. A `trigger_on_create` state in the market panel
+  never fired either (no INIT line, run 3; the panel is probably built at
+  startup, before there is a player). Now two hooks, each logging its own
+  tag: `INIT_CREATE` (trigger_on_create) and `INIT_SHOW` (a `_show` state on
+  a widget shown with the Trade tab); both scan only while no scan has found
+  a candidate. No on_action fires on load; the save holds the last scan.
+- **Base acceptance (Damien, 2026-11-13):** after the partner's name, in
+  brackets: "Great Britain (-33)". Vanilla's `static_treaty_acceptance`
+  evaluated from the partner's side (`st_rec_acc`), the player passed as
+  `scope:other_country` through `global_var:st_rec_player`. Confirmed run 3:
+  the value matches the draft's (Great Britain -31 to -33 in 1836). The
+  hover first errored (engine-notes § A script value's breakdown loses
+  scopes saved inside an iterator); the global variable is the fix, not yet
+  seen. The scan cannot evaluate it (its root is the player), so each AI
+  country stores it on its monthly pulse and the scan leaves out partners
+  below -10 once stored: confirmed, Great Britain (-31) and France (-12)
+  left the list from the 22 February scan. Every AI country now keeps one
+  variable in the save, for the Workshop wording.
+- **Churn (Damien's question, run 3):** the January to February change was
+  mostly that filter taking effect (Great Britain and France stored their
+  values on 30 and 26 January, after the 23 January scan). February to
+  April the top 4 held: sugar to Austria, tobacco and coffee to Russia, wine
+  to Brazil. Candidate pairs fell 378 to 248 (-34%) as the 1836 economy
+  settled.
 - **Section (Damien, 2026-11-13):** a collapsible section header (vanilla's
   `section_header_button`, as Build All's), open by default, so the goods
   list below can get the room back. The refresh button sits on the header.
-- **Rows (Damien, 2026-11-13):** "Send 55 [icon] Coffee to [flag] Great
-  Britain: ~£866/week", the partner written as vanilla text writes one
-  (`GetFlagTextIcon`, then `GetName`, the clickable name), then a treaty
-  button. The engine-notes rule against `GetName` is about untyped script
-  scopes (`THIS`); on a typed Country vanilla loc uses it 465 times. Not yet
-  seen in game. The button opens a new treaty draft with the partner
-  (`OpenTreatyDraftPanelForNewDraft`, vanilla's "Draft a treaty" entry, same
-  icon) and sets two GUI variables, `st_rec_good` and `st_rec_to`. The
-  engine exposes the open draft only inside the draft panel, so the article
-  cannot be added from the market panel; instead the goods picker's creation
-  state selects that good at the best quantity when the player adds a Goods
-  Transfer they send to that partner (`check_st_rec_handoff_keys` keeps the
-  GUI variable names in step).
+- **Rows (Damien, 2026-11-13):** a treaty button, then "Send 55 [icon]
+  Coffee to [flag] Great Britain (-33): ~£866/week", on one line. `GetName`
+  draws the flag and the clickable name (engine-notes § `GetName`). The
+  button opens a new treaty draft with the partner
+  (`OpenTreatyDraftPanelForNewDraft`, vanilla's "Draft a treaty" entry,
+  same icon).
+- **Pre-selecting the good in the draft: dropped (Damien, 2026-11-13, a
+  nice-to-have since the goods cards show each gain).** The engine exposes
+  the open draft only inside the draft panel, so the attempt went through
+  GUI variables read by the goods picker. Run 3 probes: the click ran, the
+  pending good's own card was created with source Spain and target Great
+  Britain, and the selection state never fired, so the partner-ID
+  comparison (`HasValue('st_rec_to', ArticleDraft.GetSecondOrTarget.GetIDString)`)
+  failed for a reason not found.
 - **Acceptance:** vanilla's `static_treaty_acceptance` (root = partner,
   `scope:other_country` = player; its treaty-options lookups are guarded with
   `exists`/`?=`) plus the goods article's own score at that quantity

@@ -10,10 +10,13 @@ st_rec_refresh_sgui = {
 	ai_chance = { base = 0 }
 }
 
-# Fired by the market panel each time it is built (a trigger_on_create
-# state): scans only if no scan has found any candidate yet, so a new
-# campaign or a save from before the mod gets suggestions the first time the
-# panel opens. Once a scan found candidates this is one variable check.
+# The first scan of a campaign, or of a save from before this version,
+# fired by the market panel: scans only while no scan has found a candidate,
+# then costs one variable check. Two hooks, each logging its own tag, since
+# the first try (trigger_on_create alone) never fired (2026-11-13, no INIT
+# line; likely because the panel is built at startup, before there is a
+# player): INIT_CREATE from trigger_on_create, INIT_SHOW from a _show state
+# on a widget shown with the Trade tab.
 st_rec_init_sgui = {
 	scope = country
 	is_shown = { is_player = yes }
@@ -25,45 +28,28 @@ st_rec_init_sgui = {
 					var:st_rec_n_pairs = 0
 				}
 			}
-			debug_log = "ST_REC|INIT|[TimeKeeper.GetCurrentDate.GetString]"
+			debug_log = "ST_REC|INIT_CREATE|[TimeKeeper.GetCurrentDate.GetString]"
 			st_rec_scan = yes
 		}
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
-
-# DEV probes for the treaty button's hand-off to the goods picker, which
-# did not select anything in its first run (2026-11-13). Each logs one step:
-# CLICK (the button ran), PICK|any (a goods card was created while a good
-# was pending), PICK|card (the pending good's own card, with the draft's
-# source and target at that moment), PICK|go (the selection state fired).
-st_rec_dbg_click_sgui = {
+st_rec_init_show_sgui = {
 	scope = country
+	is_shown = { is_player = yes }
 	effect = {
-		scope:dst = { debug_log = "ST_REC|CLICK|dst=[THIS.GetCountry.GetNameNoFormatting]" }
+		if = {
+			limit = {
+				OR = {
+					NOT = { has_variable = st_rec_n_pairs }
+					var:st_rec_n_pairs = 0
+				}
+			}
+			debug_log = "ST_REC|INIT_SHOW|[TimeKeeper.GetCurrentDate.GetString]"
+			st_rec_scan = yes
+		}
 	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-st_rec_dbg_any_sgui = {
-	scope = country
-	effect = { debug_log = "ST_REC|PICK|any" }
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-st_rec_dbg_card_sgui = {
-	scope = country
-	effect = {
-		scope:src = { debug_log = "ST_REC|PICK|card|src=[THIS.GetCountry.GetNameNoFormatting]" }
-		scope:dst = { debug_log = "ST_REC|PICK|card|dst=[THIS.GetCountry.GetNameNoFormatting]" }
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-st_rec_dbg_go_sgui = {
-	scope = country
-	effect = { debug_log = "ST_REC|PICK|go" }
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }

@@ -137,11 +137,16 @@ st_rec_vs_slot5 = { value = var:st_rec_best subtract = var:st_rec_g5 }
 # BE THE PARTNER: the GUI evaluates it through Country.MakeScope.ScriptValue,
 # and each AI country stores it on its own monthly pulse; the player's scan
 # cannot, because its root is the player. Single player: the proposer is the
-# one human country. Not yet confirmed in game (2026-11-13).
+# human country, kept in global_var:st_rec_player (set at game start, by
+# every scan, and by the AI pulse when missing).
+# Confirmed 2026-11-13: the value matches the treaty draft's (Great Britain
+# toward Spain, 1836: -31 to -33). A first version found the player with
+# every_country; the value was right but GetScriptValueDesc (the hover)
+# lost the saved scope, ~100 "value of type none" errors per line. The scope
+# is now saved through a link block, as vanilla's own first lines do.
 st_rec_acc = {
 	value = 0
-	every_country = {
-		limit = { is_player = yes }
+	global_var:st_rec_player ?= {
 		save_temporary_scope_as = other_country
 	}
 	add = static_treaty_acceptance

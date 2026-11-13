@@ -202,11 +202,16 @@ st_rec_vs_min = {{ value = var:st_rec_best subtract = var:st_rec_min }}
 # BE THE PARTNER: the GUI evaluates it through Country.MakeScope.ScriptValue,
 # and each AI country stores it on its own monthly pulse; the player's scan
 # cannot, because its root is the player. Single player: the proposer is the
-# one human country. Not yet confirmed in game (2026-11-13).
+# human country, kept in global_var:st_rec_player (set at game start, by
+# every scan, and by the AI pulse when missing).
+# Confirmed 2026-11-13: the value matches the treaty draft's (Great Britain
+# toward Spain, 1836: -31 to -33). A first version found the player with
+# every_country; the value was right but GetScriptValueDesc (the hover)
+# lost the saved scope, ~100 "value of type none" errors per line. The scope
+# is now saved through a link block, as vanilla's own first lines do.
 st_rec_acc = {
 	value = 0
-	every_country = {
-		limit = { is_player = yes }
+	global_var:st_rec_player ?= {
 		save_temporary_scope_as = other_country
 	}
 	add = static_treaty_acceptance
@@ -379,6 +384,8 @@ def effects(goods):
 # nothing in the game (check_no_cheat_verbs).
 
 st_rec_scan = {{
+	# the proposer that st_rec_acc reads (st_rec_values.txt)
+	set_global_variable = {{ name = st_rec_player value = root }}
 {reset}
 	set_variable = {{ name = st_rec_n_pairs value = 0 }}
 	set_variable = {{ name = st_rec_n_full value = 0 }}
@@ -517,17 +524,35 @@ st_rec_monthly = {
 st_rec_acc_monthly = {
 	trigger = { is_ai = yes }
 	effect = {
-		set_variable = { name = st_rec_acc value = st_rec_acc }
-		# DEV: checked against the treaty draft's own figure (Great Britain
-		# toward Spain, 1836: -32). Great powers only, to keep it short.
+		# a save from before this version: no scan has stored the player yet
 		if = {
-			limit = { country_rank = rank_value:great_power }
-			debug_log = "ST_REC|ACC|[TimeKeeper.GetCurrentDate.GetString]|[THIS.GetCountry.GetNameNoFormatting]|[THIS.Var('st_rec_acc').GetValue|0]"
+			limit = { NOT = { has_global_variable = st_rec_player } }
+			every_country = {
+				limit = { is_player = yes }
+				set_global_variable = { name = st_rec_player value = this }
+			}
 		}
+		set_variable = { name = st_rec_acc value = st_rec_acc }
 	}
 }
 on_monthly_pulse_country = {
 	on_actions = { st_rec_acc_monthly }
+}
+
+# The player, for st_rec_acc, from the first day. No root scope here
+# (vanilla's comment), so the player is found as Smart Notifications' own
+# game-start hook finds it. Only the global variable: a scan here ran before
+# the markets were filled in (see above).
+st_rec_game_start = {
+	effect = {
+		every_country = {
+			limit = { is_player = yes }
+			set_global_variable = { name = st_rec_player value = this }
+		}
+	}
+}
+on_game_started_after_lobby = {
+	on_actions = { st_rec_game_start }
 }
 """
 
@@ -544,10 +569,13 @@ st_rec_refresh_sgui = {
 	ai_chance = { base = 0 }
 }
 
-# Fired by the market panel each time it is built (a trigger_on_create
-# state): scans only if no scan has found any candidate yet, so a new
-# campaign or a save from before the mod gets suggestions the first time the
-# panel opens. Once a scan found candidates this is one variable check.
+# The first scan of a campaign, or of a save from before this version,
+# fired by the market panel: scans only while no scan has found a candidate,
+# then costs one variable check. Two hooks, each logging its own tag, since
+# the first try (trigger_on_create alone) never fired (2026-11-13, no INIT
+# line; likely because the panel is built at startup, before there is a
+# player): INIT_CREATE from trigger_on_create, INIT_SHOW from a _show state
+# on a widget shown with the Trade tab.
 st_rec_init_sgui = {
 	scope = country
 	is_shown = { is_player = yes }
@@ -559,45 +587,28 @@ st_rec_init_sgui = {
 					var:st_rec_n_pairs = 0
 				}
 			}
-			debug_log = "ST_REC|INIT|[TimeKeeper.GetCurrentDate.GetString]"
+			debug_log = "ST_REC|INIT_CREATE|[TimeKeeper.GetCurrentDate.GetString]"
 			st_rec_scan = yes
 		}
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
-
-# DEV probes for the treaty button's hand-off to the goods picker, which
-# did not select anything in its first run (2026-11-13). Each logs one step:
-# CLICK (the button ran), PICK|any (a goods card was created while a good
-# was pending), PICK|card (the pending good's own card, with the draft's
-# source and target at that moment), PICK|go (the selection state fired).
-st_rec_dbg_click_sgui = {
+st_rec_init_show_sgui = {
 	scope = country
+	is_shown = { is_player = yes }
 	effect = {
-		scope:dst = { debug_log = "ST_REC|CLICK|dst=[THIS.GetCountry.GetNameNoFormatting]" }
+		if = {
+			limit = {
+				OR = {
+					NOT = { has_variable = st_rec_n_pairs }
+					var:st_rec_n_pairs = 0
+				}
+			}
+			debug_log = "ST_REC|INIT_SHOW|[TimeKeeper.GetCurrentDate.GetString]"
+			st_rec_scan = yes
+		}
 	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-st_rec_dbg_any_sgui = {
-	scope = country
-	effect = { debug_log = "ST_REC|PICK|any" }
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-st_rec_dbg_card_sgui = {
-	scope = country
-	effect = {
-		scope:src = { debug_log = "ST_REC|PICK|card|src=[THIS.GetCountry.GetNameNoFormatting]" }
-		scope:dst = { debug_log = "ST_REC|PICK|card|dst=[THIS.GetCountry.GetNameNoFormatting]" }
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-st_rec_dbg_go_sgui = {
-	scope = country
-	effect = { debug_log = "ST_REC|PICK|go" }
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
@@ -623,14 +634,23 @@ GUI_BLOCK = """
 						visible = "[Market.GetOwner.IsLocalPlayer]"
 						spacing = 2
 
-						# Scans when the panel is built, if no scan has found any
-						# candidate yet (st_rec_init_sgui holds the condition).
+						# The first scan, while no scan has found a candidate (the
+						# condition is in the scripted GUIs): when the panel is
+						# built, and when the Trade tab is shown.
 						widget = {
 							size = { 0 0 }
 							state = {
 								name = st_rec_init
 								trigger_on_create = yes
 								on_start = "[GetScriptedGui('st_rec_init_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+							}
+						}
+						widget = {
+							size = { 0 0 }
+							visible = "[InformationPanel.IsTabSelected('world_market_trade')]"
+							state = {
+								name = _show
+								on_start = "[GetScriptedGui('st_rec_init_show_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 							}
 						}
 
@@ -701,15 +721,15 @@ GUI_BLOCK = """
 					}
 """
 
-# Each row: "Send 55 [icon] Coffee to [flag] Great Britain: ~866/week" (Damien,
-# 2026-11-13), after a treaty button, the country written the way vanilla
-# text writes one (GetFlagTextIcon, then GetName, which is the clickable
-# name), then the partner's base acceptance with vanilla's breakdown on hover.
-# The button opens a new treaty draft with the partner (vanilla's own call
-# and icon: the "Draft a treaty" right-click entry) and leaves the good
-# and partner in two GUI variables; the goods picker (gen_smart_trade_gui.py,
-# REC_PICK) selects that good at the best quantity when the player adds a
-# Goods Transfer they send to that partner, then clears the good.
+# Each row (Damien, 2026-11-13): a treaty button, then "Send 55 [icon] Coffee
+# to [flag] Great Britain (-33): ~866/week". GetName draws the flag and the
+# clickable name, as vanilla text does; the figure in brackets is the
+# partner's base acceptance, with vanilla's breakdown on hover. The button
+# opens a new treaty draft with the partner (vanilla's own call and icon:
+# the "Draft a treaty" right-click entry). Pre-selecting the good in the
+# draft was tried and dropped (2026-11-13): the picker's card saw the right
+# good, source and target, but its partner check never passed, and the
+# goods cards already show each good's gain.
 GUI_ROW = """							flowcontainer = {
 								visible = "[GetPlayer.MakeScope.Var('st_rec_c@@N@@').IsSet]"
 								datacontext = "[GetPlayer.MakeScope.Var('st_rec_c@@N@@').GetCountry]"
@@ -727,9 +747,6 @@ GUI_ROW = """							flowcontainer = {
 									}
 									tooltip = "ST_REC_TREATY_TT"
 									enabled = "[GetPlayer.CanSignTreatyWith(Country.Self)]"
-									onclick = "[GetVariableSystem.Set('st_rec_good', GetPlayer.MakeScope.Var('st_rec_k@@N@@').GetGoods.GetKey)]"
-									onclick = "[GetVariableSystem.Set('st_rec_to', Country.GetIDString)]"
-									onclick = "[GetScriptedGui('st_rec_dbg_click_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('dst', Country.MakeScope).End)]"
 									onclick = "[InformationPanelBar.OpenTreatyDraftPanelForNewDraft(GetPlayer.Self, Country.Self)]"
 								}
 								textbox = {

@@ -20,15 +20,33 @@ st_rec_monthly = {
 st_rec_acc_monthly = {
 	trigger = { is_ai = yes }
 	effect = {
-		set_variable = { name = st_rec_acc value = st_rec_acc }
-		# DEV: checked against the treaty draft's own figure (Great Britain
-		# toward Spain, 1836: -32). Great powers only, to keep it short.
+		# a save from before this version: no scan has stored the player yet
 		if = {
-			limit = { country_rank = rank_value:great_power }
-			debug_log = "ST_REC|ACC|[TimeKeeper.GetCurrentDate.GetString]|[THIS.GetCountry.GetNameNoFormatting]|[THIS.Var('st_rec_acc').GetValue|0]"
+			limit = { NOT = { has_global_variable = st_rec_player } }
+			every_country = {
+				limit = { is_player = yes }
+				set_global_variable = { name = st_rec_player value = this }
+			}
 		}
+		set_variable = { name = st_rec_acc value = st_rec_acc }
 	}
 }
 on_monthly_pulse_country = {
 	on_actions = { st_rec_acc_monthly }
+}
+
+# The player, for st_rec_acc, from the first day. No root scope here
+# (vanilla's comment), so the player is found as Smart Notifications' own
+# game-start hook finds it. Only the global variable: a scan here ran before
+# the markets were filled in (see above).
+st_rec_game_start = {
+	effect = {
+		every_country = {
+			limit = { is_player = yes }
+			set_global_variable = { name = st_rec_player value = this }
+		}
+	}
+}
+on_game_started_after_lobby = {
+	on_actions = { st_rec_game_start }
 }

@@ -1222,51 +1222,11 @@ def lazy_widgets():
             + "\n\twidget = {\n\t\tname = \"st_leaf\"\n\t\tsize = { 0 0 }\n" + "\n".join(leaf) + "\n\t}\n}")
 
 
-# 1c. A good picked from the market panel's suggestions (gen_st_recommender.py,
-#     GUI_ROW): the row's flag leaves the good's key and the partner's ID in
-#     two GUI variables. The card for that good, in a Goods Transfer the
-#     player sends to that partner, selects itself at the best quantity, as
-#     a click on it would, and clears the key so a rebuild cannot repeat it.
-REC_PICK_COND = ("And(GetVariableSystem.HasValue('st_rec_good', Goods.GetKey), "
-                 "GetVariableSystem.HasValue('st_rec_to', ArticleDraft.GetSecondOrTarget.GetIDString), "
-                 f"{C_MINE})")
-# DEV probes (2026-11-13, the first run selected nothing): each logs one
-# step through a scripted GUI in st_rec_sgui.txt. 'any': a card was created
-# while a good was pending; 'card': the pending good's own card, with the
-# draft's source and target at that moment; 'go': the selection fired.
-def REC_DBG(name, scopes=""):
-    return (f"GetScriptedGui('st_rec_dbg_{name}_sgui')"
-            f".Execute(GuiScope.SetRoot(GetPlayer.MakeScope){scopes}.End)")
-
-
-REC_DBG_CARD = REC_DBG("card", ".AddScope('src', ArticleDraft.GetFirstOrSource.MakeScope)"
-                       ".AddScope('dst', ArticleDraft.GetSecondOrTarget.MakeScope)")
-REC_DBG_STEP = ("PdxGuiWidget.FindChild('st_rec_dbg').TriggerAnimation(Select_CString("
-                "GetVariableSystem.HasValue('st_rec_good', Goods.GetKey), 'st_dbg_card', "
-                "Select_CString(GetVariableSystem.Exists('st_rec_good'), 'st_dbg_any', 'st_none')))")
-REC_DBG_WIDGET = ("widget = {\n\tname = \"st_rec_dbg\"\n\tsize = { 0 0 }\n"
-                  "state = {\n\tname = st_none\n}\n"
-                  f"state = {{\n\tname = st_dbg_any\n\ton_start = \"[{REC_DBG('any')}]\"\n}}\n"
-                  f"state = {{\n\tname = st_dbg_card\n\ton_start = \"[{REC_DBG_CARD}]\"\n}}\n"
-                  "}")
-REC_PICK_STEP = f"PdxGuiWidget.FindChild('st_rec_pre').TriggerAnimation(Select_CString({REC_PICK_COND}, 'st_rec_go', 'st_none'))"
-REC_PICK_WIDGET = ("widget = {\n\tname = \"st_rec_pre\"\n\tsize = { 0 0 }\n"
-                   "state = {\n\tname = st_none\n}\n"
-                   "state = {\n\tname = st_rec_go\n"
-                   "\ton_start = \"[GetVariableSystem.Clear('st_rec_good')]\"\n"
-                   f"\ton_start = \"[{REC_DBG('go')}]\"\n"
-                   "\ton_start = \"[ArticleDraft.SetGood(Goods.Self)]\"\n"
-                   + "".join(f"\ton_start = {l[len('onclick = '):]}\n" for l in C_PICK_ONCLICKS.splitlines())
-                   + "}\n}")
-
 ITEM_ANCHOR = 'item = {\n\t\t\tcontainer = {'
 ITEM_STATE = (ITEM_ANCHOR + "\n### SMART TRADE: the card's figure, computed once on creation\n"
               "state = {\n\tname = st_created\n\ttrigger_on_create = yes\n"
               f"\ton_start = \"[GetVariableSystem.Set({ONCE_KEY}, 'n')]\"\n"
-              "\ton_start = \"[@@LAZY_STEP1@@]\"\n"
-              f"\ton_start = \"[{REC_DBG_STEP}]\"\n"
-              f"\ton_start = \"[{REC_PICK_STEP}]\"\n}}\n" + lazy_widgets() + "\n" + REC_PICK_WIDGET
-              + "\n" + REC_DBG_WIDGET)
+              "\ton_start = \"[@@LAZY_STEP1@@]\"\n}\n" + lazy_widgets())
 
 PICK_ANCHOR = 'onclick = "[ArticleDraft.SetGood(Goods.Self)]"'
 PICK_BEST = PICK_ANCHOR + '''

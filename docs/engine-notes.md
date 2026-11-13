@@ -20,6 +20,7 @@ in new code; `CLAUDE.md` only states the rule, not the reasoning.
 - [An alert type needs TWO name-shaped loc keys, not one](#an-alert-type-needs-two-name-shaped-loc-keys-not-one)
 - [Literal \[...\] in loc text is always a dynamic-text function call](#literal--in-loc-text-is-always-a-dynamic-text-function-call)
 - [GetName is not a valid dynamic-text function — use GetNameNoFormatting](#getname-is-not-a-valid-dynamic-text-function-—-use-getnamenoformatting)
+- [A script value's breakdown loses scopes saved inside an iterator](#a-script-values-breakdown-loses-scopes-saved-inside-an-iterator)
 - [validate_syntax.py bug: comment-stripping wasn't quote-aware](#validate_syntaxpy-bug-comment-stripping-wasnt-quote-aware)
 - [A scripted GUI's is_valid also gates whether .Execute() runs](#a-scripted-guis-is_valid-also-gates-whether-execute-runs)
 - [No confirmed way to pass the player in as a GuiScope AddScope value — RESOLVED via two different techniques, not this one](#no-confirmed-way-to-pass-the-player-in-as-a-guiscope-addscope-value-—-resolved-via-two-different-techniques-not-this-one)
@@ -571,6 +572,29 @@ which was never actually confirmed working in-game before Phase 2 closed
 — so that assumption carried forward uncaught until this bug. **Always
 use `.GetNameNoFormatting` for a country's name in dynamic text/loc/
 debug_log going forward — never plain `.GetName`.**
+
+**Narrowed 2026-11-13:** the failure is on an untyped script scope
+(`THIS` in a `debug_log` or `custom_tooltip`). On a typed `Country` in GUI
+loc (`[...Var('x').GetCountry.GetName]`, `[Country.GetName]`), `GetName`
+works, as in 465 vanilla loc lines: it draws the flag and the clickable
+name, so adding `GetFlagTextIcon` before it shows two flags (Smart Treaties
+suggestion rows, Damien's run; no error.log line). Use `GetName` there when
+the name should behave like vanilla's; `GetNameNoFormatting` everywhere else.
+
+## A script value's breakdown loses scopes saved inside an iterator
+
+Found 2026-11-13 (Smart Treaties, base acceptance per suggestion). A wrapper
+script value found the player with
+`every_country = { limit = { is_player = yes } save_temporary_scope_as = other_country }`
+and then added vanilla's `static_treaty_acceptance`. `X.MakeScope.ScriptValue`
+returned the right figure (Great Britain -31 to -33, the draft's own), but
+`X.MakeScope.GetScriptValueDesc` on the same value logged about 100
+"Value of wrong type in 'GetScriptValueDesc for ...'. Got value of type
+'none'" per line: in the breakdown pass the scope saved inside the
+iterator does not exist. Save it through a link block instead, as
+vanilla's own values do (`scope:other_country = { save_temporary_scope_as = actor }`),
+here `global_var:st_rec_player ?= { save_temporary_scope_as = other_country }`.
+Whether that fixes the breakdown is unconfirmed until the next run.
 
 ## `validate_syntax.py` bug: comment-stripping wasn't quote-aware
 

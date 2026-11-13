@@ -384,9 +384,6 @@ S["SMART_TRADE_TREATIES_TT"] = {
 # --- Trade recommender (tools/gen_st_recommender.py; market panel, Trade tab) ---
 # No profit threshold: any profitable deal can be a row (Damien, 2026-11-13).
 # "Goods Transfer" is vanilla's own article name (goods_transfer) per language.
-# Rows: {F} {C} is the partner as vanilla text writes it (flag icon, clickable
-# name). Languages that would decline the name after "to" (Polish, Russian,
-# Turkish) write "recipient: <name>"; Korean takes the particle as is.
 S["ST_REC_HEADER"] = {
     "english": "(ST) Suggested goods transfers",
     "french": "(ST) Transferts de marchandises suggérés",
@@ -401,17 +398,17 @@ S["ST_REC_HEADER"] = {
     "turkish": "(ST) Önerilen mal transferleri",
 }
 S["ST_REC_HEADER_TT"] = {
-    "english": "The 5 most profitable goods transfers you could propose now, recomputed every month: weekly profit estimated from first-week prices, at the best quantity the partner fully accepts.\nOnly profitable deals, goods your market has 10 or more spare of, and partners you are not at war with.\nTheir opinion of you is not checked: look at the treaty's acceptance before proposing.",
-    "french": "Les 5 transferts de marchandises les plus rentables que vous pourriez proposer, recalculés chaque mois : profit hebdomadaire estimé aux prix de la première semaine, à la meilleure quantité que le partenaire accepte pleinement.\nSeulement les transferts rentables, les biens dont votre marché a au moins 10 en surplus et les partenaires avec qui vous n'êtes pas en guerre.\nL'opinion du partenaire n'est pas vérifiée : regardez l'acceptation du traité avant de proposer.",
-    "german": "Die 5 profitabelsten Warenübereignungen, die Sie jetzt vorschlagen könnten, jeden Monat neu berechnet: wöchentlicher Gewinn, geschätzt zu den Preisen der ersten Woche, bei der besten Menge, die der Partner voll akzeptiert.\nNur gewinnbringende Übereignungen, Waren, von denen Ihr Markt mindestens 10 übrig hat, und Partner, mit denen Sie nicht im Krieg sind.\nDie Meinung des Partners wird nicht geprüft: Sehen Sie sich vor dem Vorschlag die Akzeptanz des Vertrags an.",
-    "spanish": "Las 5 transferencias de bienes más rentables que podrías proponer ahora, recalculadas cada mes: beneficio semanal estimado con los precios de la primera semana, a la mejor cantidad que el socio acepta por completo.\nSolo transferencias rentables, bienes de los que tu mercado tiene al menos 10 de sobra y socios con los que no estás en guerra.\nNo se comprueba la opinión del socio: mira la aceptación del tratado antes de proponerlo.",
-    "braz_por": "As 5 transferências de mercadorias mais lucrativas que você poderia propor agora, recalculadas todo mês: lucro semanal estimado pelos preços da primeira semana, na melhor quantidade que o parceiro aceita totalmente.\nSó transferências lucrativas, mercadorias das quais seu mercado tem pelo menos 10 de sobra e parceiros com quem você não está em guerra.\nA opinião do parceiro não é verificada: veja a aceitação do tratado antes de propor.",
-    "polish": "5 najbardziej opłacalnych transferów towarów, które możesz teraz zaproponować, przeliczanych co miesiąc: tygodniowy zysk szacowany po cenach z pierwszego tygodnia, przy najlepszej ilości, którą partner w pełni akceptuje.\nTylko opłacalne transfery, towary, których twój rynek ma co najmniej 10 nadwyżki, i partnerzy, z którymi nie prowadzisz wojny.\nOpinia partnera nie jest sprawdzana: przed propozycją sprawdź akceptację traktatu.",
-    "russian": "5 самых выгодных передач товаров, которые можно предложить сейчас, пересчитываются каждый месяц: недельная прибыль по ценам первой недели при лучшем объёме, который партнёр полностью принимает.\nТолько прибыльные передачи, товары, которых на вашем рынке в избытке не меньше 10, и партнёры, с которыми вы не воюете.\nМнение партнёра не проверяется: перед предложением посмотрите одобрение договора.",
-    "simp_chinese": "你现在可以提议的5项最赚钱的商品输送，每月重新计算：按首周价格估算的每周利润，数量为对方完全接受的最优数量。\n只包括有利润的输送、你的市场有至少10单位盈余的商品，以及未与你交战的伙伴。\n不检查对方对你的态度：提议前请查看条约的接受度。",
-    "japanese": "今提案できる最も利益の大きい商品の譲渡5件。毎月再計算：第1週の価格で推定した週利益、相手が完全に受け入れる最適な量。\n利益が出る譲渡、自国市場に10以上の余剰がある商品、戦争中でない相手のみ。\n相手の態度は確認しません：提案前に条約の受諾度を確認してください。",
-    "korean": "지금 제안할 수 있는 가장 수익성 높은 상품 양도 5건, 매달 재계산: 첫 주 가격으로 추정한 주간 이익, 상대가 완전히 수락하는 최적 수량 기준.\n이익이 나는 양도, 시장에 10 이상 잉여가 있는 상품, 전쟁 중이 아닌 상대만 표시합니다.\n상대의 태도는 확인하지 않습니다: 제안 전에 조약의 수락도를 확인하세요.",
-    "turkish": "Şu anda önerebileceğiniz en kârlı 5 mal transferi, her ay yeniden hesaplanır: ilk hafta fiyatlarıyla tahmin edilen haftalık kâr, ortağın tamamen kabul ettiği en iyi miktarda.\nYalnızca kârlı transferler, pazarınızda en az 10 fazlası olan mallar ve savaşta olmadığınız ortaklar.\nOrtağın sizin hakkınızdaki görüşü kontrol edilmez: önermeden önce antlaşmanın kabulüne bakın.",
+    "english": "The 5 most profitable goods transfers you could propose now, recomputed every month: weekly profit estimated from first-week prices, at the best quantity the partner fully accepts.\nOnly profitable deals, goods your market has 10 or more spare of, and partners you are not at war with.\nIn brackets: the partner's base acceptance before any article (hover for details). Partners below -10 are left out once known, from their first month.",
+    "french": "Les 5 transferts de marchandises les plus rentables que vous pourriez proposer, recalculés chaque mois : profit hebdomadaire estimé aux prix de la première semaine, à la meilleure quantité que le partenaire accepte pleinement.\nSeulement les transferts rentables, les biens dont votre marché a au moins 10 en surplus et les partenaires avec qui vous n'êtes pas en guerre.\nEntre parenthèses : l'acceptation de base du partenaire avant tout article (survolez pour le détail). Les partenaires sous -10 sont exclus une fois leur chiffre connu, dès leur premier mois.",
+    "german": "Die 5 profitabelsten Warenübereignungen, die Sie jetzt vorschlagen könnten, jeden Monat neu berechnet: wöchentlicher Gewinn, geschätzt zu den Preisen der ersten Woche, bei der besten Menge, die der Partner voll akzeptiert.\nNur gewinnbringende Übereignungen, Waren, von denen Ihr Markt mindestens 10 übrig hat, und Partner, mit denen Sie nicht im Krieg sind.\nIn Klammern: die Grundakzeptanz des Partners vor jedem Artikel (Details beim Überfahren). Partner unter -10 werden ausgelassen, sobald ihr Wert bekannt ist, ab ihrem ersten Monat.",
+    "spanish": "Las 5 transferencias de bienes más rentables que podrías proponer ahora, recalculadas cada mes: beneficio semanal estimado con los precios de la primera semana, a la mejor cantidad que el socio acepta por completo.\nSolo transferencias rentables, bienes de los que tu mercado tiene al menos 10 de sobra y socios con los que no estás en guerra.\nEntre paréntesis: la aceptación base del socio antes de cualquier artículo (pasa el cursor para el detalle). Los socios por debajo de -10 se omiten una vez conocida su cifra, desde su primer mes.",
+    "braz_por": "As 5 transferências de mercadorias mais lucrativas que você poderia propor agora, recalculadas todo mês: lucro semanal estimado pelos preços da primeira semana, na melhor quantidade que o parceiro aceita totalmente.\nSó transferências lucrativas, mercadorias das quais seu mercado tem pelo menos 10 de sobra e parceiros com quem você não está em guerra.\nEntre parênteses: a aceitação base do parceiro antes de qualquer artigo (passe o cursor para detalhes). Parceiros abaixo de -10 ficam de fora quando o valor é conhecido, a partir do primeiro mês.",
+    "polish": "5 najbardziej opłacalnych transferów towarów, które możesz teraz zaproponować, przeliczanych co miesiąc: tygodniowy zysk szacowany po cenach z pierwszego tygodnia, przy najlepszej ilości, którą partner w pełni akceptuje.\nTylko opłacalne transfery, towary, których twój rynek ma co najmniej 10 nadwyżki, i partnerzy, z którymi nie prowadzisz wojny.\nW nawiasie: bazowa akceptacja partnera przed jakimkolwiek artykułem (najedź, by zobaczyć szczegóły). Partnerzy poniżej -10 są pomijani, gdy ich wartość jest znana, od ich pierwszego miesiąca.",
+    "russian": "5 самых выгодных передач товаров, которые можно предложить сейчас, пересчитываются каждый месяц: недельная прибыль по ценам первой недели при лучшем объёме, который партнёр полностью принимает.\nТолько прибыльные передачи, товары, которых на вашем рынке в избытке не меньше 10, и партнёры, с которыми вы не воюете.\nВ скобках: базовое одобрение партнёра до любых статей (наведите для подробностей). Партнёры ниже -10 исключаются, когда их значение известно, с их первого месяца.",
+    "simp_chinese": "你现在可以提议的5项最赚钱的商品输送，每月重新计算：按首周价格估算的每周利润，数量为对方完全接受的最优数量。\n只包括有利润的输送、你的市场有至少10单位盈余的商品，以及未与你交战的伙伴。\n括号内：在加入任何条款之前伙伴的基础接受度（悬停查看详情）。一旦得知数值（其第一个月起），低于-10的伙伴将被排除。",
+    "japanese": "今提案できる最も利益の大きい商品の譲渡5件。毎月再計算：第1週の価格で推定した週利益、相手が完全に受け入れる最適な量。\n利益が出る譲渡、自国市場に10以上の余剰がある商品、戦争中でない相手のみ。\n括弧内：条項を加える前の相手の基本受諾度（カーソルを合わせると詳細）。数値が分かり次第（最初の月から）、-10未満の相手は除外されます。",
+    "korean": "지금 제안할 수 있는 가장 수익성 높은 상품 양도 5건, 매달 재계산: 첫 주 가격으로 추정한 주간 이익, 상대가 완전히 수락하는 최적 수량 기준.\n이익이 나는 양도, 시장에 10 이상 잉여가 있는 상품, 전쟁 중이 아닌 상대만 표시합니다.\n괄호 안: 조항을 넣기 전 상대의 기본 수락도(마우스를 올리면 상세). 수치가 확인되면(첫 달부터) -10 미만인 상대는 제외됩니다.",
+    "turkish": "Şu anda önerebileceğiniz en kârlı 5 mal transferi, her ay yeniden hesaplanır: ilk hafta fiyatlarıyla tahmin edilen haftalık kâr, ortağın tamamen kabul ettiği en iyi miktarda.\nYalnızca kârlı transferler, pazarınızda en az 10 fazlası olan mallar ve savaşta olmadığınız ortaklar.\nParantez içinde: ortağın herhangi bir madde öncesi temel kabulü (ayrıntı için üzerine gelin). -10'un altındaki ortaklar, değerleri bilindiğinde (ilk aylarından itibaren) dışarıda bırakılır.",
 }
 S["ST_REC_REFRESH_TT"] = {
     "english": "Recompute the suggestions now.", "french": "Recalculer les suggestions maintenant.",
@@ -449,64 +446,56 @@ S["ST_REC_PENDING"] = {
     "turkish": "Ay döndüğünde hesaplanır. Şimdi hesaplamak için yenile düğmesine basın.",
 }
 S["ST_REC_TREATY_TT"] = {
-    "english": "Open a treaty with this country. Add a Goods Transfer you send them and this good is picked at the best quantity.",
-    "french": "Ouvrir un traité avec ce pays. Ajoutez un Transfert de marchandises que vous leur envoyez : ce bien est choisi à la meilleure quantité.",
-    "german": "Einen Vertrag mit diesem Land öffnen. Fügen Sie eine Warenübereignung hinzu, die Sie senden: Diese Ware wird in der besten Menge ausgewählt.",
-    "spanish": "Abrir un tratado con este país. Añade una Transferencia de bienes que les envías y este bien se elige con la mejor cantidad.",
-    "braz_por": "Abrir um tratado com este país. Adicione uma Transferência de Mercadorias que você envia e este bem é escolhido na melhor quantidade.",
-    "polish": "Otwórz traktat z tym krajem. Dodaj Transfer towarów, który wysyłasz, a ten towar zostanie wybrany w najlepszej ilości.",
-    "russian": "Открыть договор с этой страной. Добавьте передачу товаров от вас, и этот товар будет выбран в лучшем объёме.",
-    "simp_chinese": "与该国开启条约。添加一项由你输送的商品输送，此商品会以最优数量自动选中。",
-    "japanese": "この国との条約を開きます。自国が送る商品の譲渡を追加すると、この商品が最適な量で選ばれます。",
-    "korean": "이 국가와 조약을 엽니다. 내가 보내는 상품 양도를 추가하면 이 상품이 최적 수량으로 선택됩니다.",
-    "turkish": "Bu ülkeyle bir antlaşma aç. Gönderdiğiniz bir Mal Transferi ekleyin; bu mal en iyi miktarda seçilir.",
+    "english": "Open a treaty with this country.", "french": "Ouvrir un traité avec ce pays.",
+    "german": "Einen Vertrag mit diesem Land öffnen.", "spanish": "Abrir un tratado con este país.",
+    "braz_por": "Abrir um tratado com este país.", "polish": "Otwórz traktat z tym krajem.",
+    "russian": "Открыть договор с этой страной.", "simp_chinese": "与该国开启条约。",
+    "japanese": "この国との条約を開きます。", "korean": "이 국가와 조약을 엽니다.",
+    "turkish": "Bu ülkeyle bir antlaşma aç.",
 }
-# The partner's base acceptance (st_rec_acc, evaluated from the partner's side
-# through the row's Country datacontext), with an inline tooltip holding
-# vanilla's own breakdown; the same #tooltippable form as the treasury line.
-_REC_ACC_WORD = {
-    "english": "base acceptance", "french": "acceptation de base", "german": "Grundakzeptanz",
-    "spanish": "aceptación base", "braz_por": "aceitação base", "polish": "akceptacja bazowa",
-    "russian": "базовое одобрение", "simp_chinese": "基础接受度", "japanese": "基本受諾度",
-    "korean": "기본 수락도", "turkish": "temel kabul",
-}
+# The partner's base acceptance in brackets after its name (st_rec_acc,
+# evaluated from the partner's side through the row's Country datacontext),
+# with an inline tooltip holding vanilla's own breakdown lines; the same
+# #tooltippable form as the treasury line.
 _REC_ACC = ("#tooltippable #tooltip:[Country.GetTooltipTag],ST_REC_ACC_TT "
-            "{W} [Country.MakeScope.ScriptValue('st_rec_acc')|+=0]#!#!")
+            "[Country.MakeScope.ScriptValue('st_rec_acc')|+=0]#!#!")
 S["ST_REC_ACC_TT"] = {
-    "english": "#header Base acceptance#!\nWhat this country thinks of a treaty with you before any article:\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\nThe goods transfer itself adds to it in the treaty draft. Partners below -10 are left out once their figure is known (first month).",
-    "french": "#header Acceptation de base#!\nCe que ce pays pense d'un traité avec vous avant tout article :\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\nLe transfert de marchandises y ajoute dans le projet de traité. Les partenaires sous -10 sont exclus une fois leur chiffre connu (premier mois).",
-    "german": "#header Grundakzeptanz#!\nWas dieses Land von einem Vertrag mit Ihnen hält, vor jedem Artikel:\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\nDie Warenübereignung selbst kommt im Vertragsentwurf hinzu. Partner unter -10 werden ausgelassen, sobald ihr Wert bekannt ist (erster Monat).",
-    "spanish": "#header Aceptación base#!\nLo que este país piensa de un tratado contigo antes de cualquier artículo:\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\nLa transferencia de bienes suma a esto en el borrador. Los socios por debajo de -10 se omiten una vez conocida su cifra (primer mes).",
-    "braz_por": "#header Aceitação base#!\nO que este país pensa de um tratado com você antes de qualquer artigo:\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\nA transferência de mercadorias soma a isso no rascunho. Parceiros abaixo de -10 ficam de fora quando o valor é conhecido (primeiro mês).",
-    "polish": "#header Akceptacja bazowa#!\nCo ten kraj sądzi o traktacie z tobą przed jakimkolwiek artykułem:\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\nSam transfer towarów dodaje do tego w projekcie traktatu. Partnerzy poniżej -10 są pomijani, gdy ich wartość jest znana (pierwszy miesiąc).",
-    "russian": "#header Базовое одобрение#!\nЧто эта страна думает о договоре с вами до любых статей:\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\nСама передача товаров добавляется к этому в проекте договора. Партнёры ниже -10 исключаются, когда их значение известно (первый месяц).",
-    "simp_chinese": "#header 基础接受度#!\n在加入任何条款之前，该国对与你签订条约的看法：\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\n商品输送本身会在条约草案中另行加减。一旦得知数值（第一个月），低于-10的伙伴将被排除。",
-    "japanese": "#header 基本受諾度#!\n条項を加える前に、この国があなたとの条約をどう見ているか：\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\n商品の譲渡そのものは条約草案で加算されます。数値が分かり次第（最初の月）、-10未満の相手は除外されます。",
-    "korean": "#header 기본 수락도#!\n조항을 넣기 전에 이 국가가 당신과의 조약을 어떻게 보는지:\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\n상품 양도 자체는 조약 초안에서 더해집니다. 수치가 확인되면(첫 달) -10 미만인 상대는 제외됩니다.",
-    "turkish": "#header Temel kabul#!\nBu ülkenin, herhangi bir madde eklenmeden önce sizinle bir antlaşma hakkındaki görüşü:\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]\nMal transferi taslakta buna ayrıca eklenir. Değerleri bilindiğinde (ilk ay) -10'un altındaki ortaklar dışarıda bırakılır.",
+    "english": "#header Base acceptance: [Country.GetNameNoFormatting]#!\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]",
+    "french": "#header Acceptation de base: [Country.GetNameNoFormatting]#!\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]",
+    "german": "#header Grundakzeptanz: [Country.GetNameNoFormatting]#!\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]",
+    "spanish": "#header Aceptación base: [Country.GetNameNoFormatting]#!\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]",
+    "braz_por": "#header Aceitação base: [Country.GetNameNoFormatting]#!\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]",
+    "polish": "#header Akceptacja bazowa: [Country.GetNameNoFormatting]#!\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]",
+    "russian": "#header Базовое одобрение: [Country.GetNameNoFormatting]#!\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]",
+    "simp_chinese": "#header 基础接受度: [Country.GetNameNoFormatting]#!\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]",
+    "japanese": "#header 基本受諾度: [Country.GetNameNoFormatting]#!\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]",
+    "korean": "#header 기본 수락도: [Country.GetNameNoFormatting]#!\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]",
+    "turkish": "#header Temel kabul: [Country.GetNameNoFormatting]#!\n[Country.MakeScope.GetScriptValueDesc('st_rec_acc')]",
 }
+# GetName draws the flag and the clickable name, as vanilla text does.
+# Languages that would decline the name after "to" (Polish, Russian, Turkish)
+# write "recipient: <name>"; Korean takes the particle as is.
 _REC_ROW = {
-    "english": "Send {Q} {G} to {F} {C}: ~@money!{GAIN}/week, {A}",
-    "french": "Envoyer {Q} {G} vers {F} {C} : ~@money!{GAIN}/semaine, {A}",
-    "german": "{Q} {G} an {F} {C} senden: ~@money!{GAIN}/Woche, {A}",
-    "spanish": "Enviar {Q} {G} a {F} {C}: ~@money!{GAIN}/semana, {A}",
-    "braz_por": "Enviar {Q} {G} para {F} {C}: ~@money!{GAIN}/semana, {A}",
-    "polish": "Wyślij {Q} {G}, odbiorca: {F} {C}, ~@money!{GAIN}/tydz., {A}",
-    "russian": "Отправить {Q} {G}, получатель: {F} {C}, ~@money!{GAIN}/нед., {A}",
-    "simp_chinese": "输送{Q}单位{G}至{F}{C}：约@money!{GAIN}/周，{A}",
-    "japanese": "{Q}の{G}を{F}{C}へ送る：約@money!{GAIN}/週、{A}",
-    "korean": "{F} {C}에 {Q} {G} 보내기: ~@money!{GAIN}/주, {A}",
-    "turkish": "{Q} {G} gönder, alıcı: {F} {C}, ~@money!{GAIN}/hafta, {A}",
+    "english": "Send {Q} {G} to {C} ({A}): ~@money!{GAIN}/week",
+    "french": "Envoyer {Q} {G} vers {C} ({A}) : ~@money!{GAIN}/semaine",
+    "german": "{Q} {G} an {C} ({A}) senden: ~@money!{GAIN}/Woche",
+    "spanish": "Enviar {Q} {G} a {C} ({A}): ~@money!{GAIN}/semana",
+    "braz_por": "Enviar {Q} {G} para {C} ({A}): ~@money!{GAIN}/semana",
+    "polish": "Wyślij {Q} {G}, odbiorca: {C} ({A}), ~@money!{GAIN}/tydz.",
+    "russian": "Отправить {Q} {G}, получатель: {C} ({A}), ~@money!{GAIN}/нед.",
+    "simp_chinese": "输送{Q}单位{G}至{C}（{A}）：约@money!{GAIN}/周",
+    "japanese": "{Q}の{G}を{C}（{A}）へ送る：約@money!{GAIN}/週",
+    "korean": "{C}({A})에 {Q} {G} 보내기: ~@money!{GAIN}/주",
+    "turkish": "{Q} {G} gönder, alıcı: {C} ({A}), ~@money!{GAIN}/hafta",
 }
 for _n in range(1, 6):
     _p = "GetPlayer.MakeScope.Var('st_rec_{}%d')" % _n
     S[f"ST_REC_ROW_{_n}"] = {
         _l: _t.format(Q="[" + _p.format("q") + ".GetValue|0]",
                       G="[" + _p.format("k") + ".GetGoods.GetName]",
-                      F="[" + _p.format("c") + ".GetCountry.GetFlagTextIcon]",
                       C="[" + _p.format("c") + ".GetCountry.GetName]",
                       GAIN="[" + _p.format("g") + ".GetValue|0]",
-                      A=_REC_ACC.format(W=_REC_ACC_WORD[_l]))
+                      A=_REC_ACC)
         for _l, _t in _REC_ROW.items()}
 
 # The treasury line's own label, prepended to vanilla's expenses headers.
