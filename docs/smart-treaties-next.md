@@ -332,6 +332,10 @@ building_browser_panel.gui, a second `_show` with an on_start next to the
 window's own); ONE_SWITCH, the "Looking for partners" line's `_show`, for a
 switch of good in the open panel; ONE_REFRESH, the button. Not yet run.
 
+**Save safety, confirmed 2026-11-13 (Damien):** a save made with the mod loads
+and plays with the mod disabled. The Workshop line changes anyway, since the
+mod now keeps values in the save (WORKSHOP_UPDATE_DRAFT.md, edit 5).
+
 **Performance review before release (2026-11-13, Damien: fans run a lot with
 the game on).** Read from the code, nothing measured yet:
 - Script, per in-game month: every monthly hook in the three published mods
