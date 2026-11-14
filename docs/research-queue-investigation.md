@@ -79,7 +79,8 @@ the new build.
    e. the prerequisite behind its dependent (should refuse);
    f. the tech from step 2, anywhere.
 5. F12 while the red message shows, and once at the end.
-6. Tell me before relaunching the game: a relaunch replaces debug.log.
+6. Tell me when done. (A relaunch is safe: the game keeps the previous five
+   logs as debug.1.log to debug.5.log, and the report reads them.)
 
 Then I run `python tools/rq_probe_report.py` and `python tools/scan_logs.py`.
 
@@ -87,20 +88,26 @@ Then I run `python tools/rq_probe_report.py` and `python tools/scan_logs.py`.
 
 ### Run 1 (2026-11-13, 1861 Spain save)
 
-Read from `rq_probe_report.py` before the game was restarted (a restart
-replaces debug.log, so the raw lines are gone; read the report before
-relaunching next time). Only 3 techs were queued, so nothing sat in the
-overflow pop-up.
+Read from `rq_probe_report.py`; the raw lines are in debug.5.log as of
+2026-11-14 (the game rotates its logs, keeping five). Only 3 techs were
+queued, so nothing sat in the overflow pop-up.
+
+### Run 2 attempt (2026-11-13, launch at 18:21)
+
+The new build loaded cleanly (the panel override registered, nothing of ours
+in error.log), but the session logged no RQ_PROBE line at all and its
+screenshots show Smart Treaties, not the tech panel. Either no drag was made
+in that launch, or no drop landed on any target. Not counted as a run.
 
 | # | Verdict | Evidence |
 |---|---|---|
-| H1 | PASS | 15 `drop|x|k` lines, none `noop` |
+| H1 | PASS | 14 `drop|x|k` lines, none `noop` |
 | H2 | partly | queued techs dump as positions 1..3; the current research never appeared in a dump. Vanilla shows the badge only for position > 0 (tech_tree.gui:1165), so unqueued and current techs are <= 0. Whether the 5 shown slots include the current research is still open (needs 6+ queued) |
 | H3 | PASS for shown techs | every drop's `fire_top` lines were exactly the member set, in queue order. Overflow re-queue (`fire_tail`) not exercised |
-| H4 | PASS 14 of 14 | the 15th drop's lines were cut off mid-write (game still running when read), not a wrong order |
+| H4 | PASS 14 of 14 | full log re-read from debug.5.log on 2026-11-14 (a first read mid-session had caught one drop half-written) |
 | H5 | not tested | every queued tech had 0 progress |
-| H6 | PASS | B (remove then re-add in one click) moved the tech to the back |
-| H7 | recorded | N (ResearchWithUnlocks on a queued tech) emptied the queue: after-dump empty, and the user saw the techs disappear. Research cannot be used for "drop on first" |
+| H6 | PASS 5 of 5 | B (remove then re-add in one click) moved the tech to the back |
+| H7 | recorded | N (ResearchWithUnlocks on a queued tech) emptied the queue all 3 times: after-dump empty, and the user saw the techs disappear. Research cannot be used for "drop on first" |
 | H8 | not tested | no queued pair had a prerequisite link. Superseded: the next build blocks such drops instead of observing them |
 | H9 | PASS with markup | `GetName` renders, wrapped in tooltip markup (`TechnologyTooltip <name>`); the report strips it |
 

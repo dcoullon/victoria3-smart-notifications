@@ -62,14 +62,21 @@ def main() -> int:
     logs = VIC3_USER_DIR / "logs"
     if "--logs-dir" in sys.argv:
         logs = Path(sys.argv[sys.argv.index("--logs-dir") + 1])
-    log = logs / "debug.log"
-    if not log.exists():
-        print(f"no {log}")
-        return 1
-    ev = read_events(log)
+    # The game rotates debug.log into debug.1.log .. debug.5.log at each launch
+    # (and at some save loads), so take the newest one that has probe lines.
+    candidates = [logs / "debug.log"] + [logs / f"debug.{i}.log" for i in range(1, 6)]
+    ev, log = [], None
+    for c in candidates:
+        if c.exists():
+            ev = read_events(c)
+            if ev:
+                log = c
+                break
     if not ev:
-        print("No RQ_PROBE lines at all: the mod did not load, or nothing was clicked.")
+        print("No RQ_PROBE lines in debug.log or debug.1-5.log: the mod did not load, "
+              "or no drop ever landed.")
         return 1
+    print(f"reading {log.name}")
 
     starts = [i for i, e in enumerate(ev) if e[0] in ("drop", "back", "now")]
     passed = failed = 0
