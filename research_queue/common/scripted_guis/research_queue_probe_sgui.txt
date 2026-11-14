@@ -411,6 +411,416 @@ rq_probe_pos_over = {
 	ai_chance = { base = 0 }
 }
 
+rq_probe_tpos_1 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|1|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_2 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|2|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_3 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|3|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_4 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|4|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_5 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|5|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_6 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|6|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_7 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|7|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_8 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|8|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_9 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|9|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_10 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|10|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_11 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|11|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_12 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|12|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_13 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|13|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_14 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|14|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_15 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|15|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_16 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|16|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_17 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|17|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_18 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|18|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_19 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|19|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_20 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|20|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_21 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|21|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_22 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|22|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_23 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|23|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_24 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|24|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_25 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|25|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_26 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|26|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_27 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|27|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_28 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|28|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_29 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|29|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_30 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|30|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_31 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|31|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_32 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|32|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_33 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|33|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_34 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|34|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_35 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|35|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_36 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|36|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_37 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|37|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_38 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|38|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_39 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|39|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_40 = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|40|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_tpos_over = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|tpos|over|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
 rq_probe_drop_1_2 = {
 	scope = country
 	effect = {
@@ -451,6 +861,15 @@ rq_probe_drop_1_6 = {
 	scope = country
 	effect = {
 		debug_log = "RQ_PROBE|drop|1|6"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_drop_1_end = {
+	scope = country
+	effect = {
+		debug_log = "RQ_PROBE|drop|1|end"
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
@@ -501,6 +920,15 @@ rq_probe_drop_2_6 = {
 	ai_chance = { base = 0 }
 }
 
+rq_probe_drop_2_end = {
+	scope = country
+	effect = {
+		debug_log = "RQ_PROBE|drop|2|end"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
 rq_probe_drop_3_1 = {
 	scope = country
 	effect = {
@@ -541,6 +969,15 @@ rq_probe_drop_3_6 = {
 	scope = country
 	effect = {
 		debug_log = "RQ_PROBE|drop|3|6"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_drop_3_end = {
+	scope = country
+	effect = {
+		debug_log = "RQ_PROBE|drop|3|end"
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
@@ -591,6 +1028,15 @@ rq_probe_drop_4_6 = {
 	ai_chance = { base = 0 }
 }
 
+rq_probe_drop_4_end = {
+	scope = country
+	effect = {
+		debug_log = "RQ_PROBE|drop|4|end"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
 rq_probe_drop_5_1 = {
 	scope = country
 	effect = {
@@ -631,6 +1077,15 @@ rq_probe_drop_5_6 = {
 	scope = country
 	effect = {
 		debug_log = "RQ_PROBE|drop|5|6"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_drop_5_end = {
+	scope = country
+	effect = {
+		debug_log = "RQ_PROBE|drop|5|end"
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
@@ -681,6 +1136,15 @@ rq_probe_drop_6_5 = {
 	ai_chance = { base = 0 }
 }
 
+rq_probe_drop_6_end = {
+	scope = country
+	effect = {
+		debug_log = "RQ_PROBE|drop|6|end"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
 rq_probe_drop_noop = {
 	scope = country
 	effect = {
@@ -719,21 +1183,11 @@ rq_probe_fire_tail = {
 	ai_chance = { base = 0 }
 }
 
-rq_probe_now = {
+rq_probe_blocked = {
 	scope = country
 	saved_scopes = { t }
 	effect = {
-		debug_log = "RQ_PROBE|now|[SCOPE.sT('t').GetName]"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_back = {
-	scope = country
-	saved_scopes = { t }
-	effect = {
-		debug_log = "RQ_PROBE|back|[SCOPE.sT('t').GetName]"
+		debug_log = "RQ_PROBE|blocked|[SCOPE.sT('t').GetName]"
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
