@@ -1,0 +1,13 @@
+﻿# Smart Treaties: "a goods transfer is losing money" alert (st_alert_effects.txt).
+# Its own group, so a player can mute or demote it in Message Settings. Posted
+# from the player's scope; the text reads scope:st_tna_goods, st_tna_partner
+# and the value st_tna_loss, saved just before.
+st_treaty_article_losing = {
+	type = country
+	group = "st_treaty_article_losing_group"
+
+	texture = "gfx/interface/icons/notification_icons/trade_route.dds"
+
+	notification_type = toast
+	color = bad
+}

@@ -139,7 +139,31 @@ process into `logs/treaty_obs_spain`, so it survives the Claude app and
 session restarts, but not a reboot. Useful once he has signed about 5 deals of
 50 units or more, at least 2 by sea and 2 overland, each with 6 months of data.
 
-## 2. "Treaty turned negative" alert (dropped, Damien 2026-11-10)
+## 2. "Goods transfer losing money" alert (built 2026-11-13, not yet run in game)
+
+Revived after the long run: the Great Qing hardwood deal lost money every
+month from September 1842 to April 1851 and Damien did not notice, although
+the outliner shows each treaty's net. Rules (Damien, chosen on that run's
+data): per goods article the player sends; fires after 6 monthly checks in a
+row with an estimated weekly net below -50; then quiet until 6 checks in a
+row at or above -50 (once per losing streak); a treaty coming into force,
+renegotiation included, starts its articles afresh. On the 1836-1851 data:
+Qing hardwood Nov 1836 and Feb 1843, France hardwood Feb 1846 and Feb 1848,
+nothing for silk (lost 13-24 a week at worst) or tobacco. "Once per treaty"
+was rejected: it would have warned in 1836 and stayed silent through
+1842-1851. Files: common/script_values/st_alert_values.txt,
+common/scripted_effects/st_alert_effects.txt, common/on_actions/st_alert_on_actions.txt,
+common/messages/st_alert_messages.txt; state in variable lists on the
+player (check_st_tna_lists_created). Shipping is the draft's estimate
+(script cannot read a lane), which runs low on long routes.
+
+Accepted when: an article losing more than 50 a week for 6 monthly checks
+posts one toast naming the good, partner and weekly loss (ST_TNA|FIRE), and
+nothing more until it recovers for 6 checks (ST_TNA|REARM); no toast for an
+article losing less, for goods the player receives, or twice in one streak;
+ST_TNA|RESET shows whether a renegotiation fires on_treaty_entered_into_force.
+
+### Earlier spec (dropped 2026-11-10, kept for reference)
 
 The outliner already shows each treaty's net. Kept for reference:
 

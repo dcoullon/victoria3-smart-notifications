@@ -2142,6 +2142,27 @@ def check_st_rec_gui_variable_names(root: Path) -> list[str]:
     return errs
 
 
+def check_st_tna_lists_created(root: Path) -> list[str]:
+    """The losing-transfer alert (scripted_effects/st_alert_effects.txt) keeps
+    its state in variable lists on the player. Querying a list that was never
+    created is an engine error, not a false (Smart Notifications, 2026-09-09),
+    so st_tna_monthly creates every list, empty, before any check. Every list
+    the file reads or writes must be among those created, or a new list added
+    later errors on its first month."""
+    path = root / "common" / "scripted_effects" / "st_alert_effects.txt"
+    if not path.is_file():
+        return []
+    text = _read(path)
+    m = re.search(r"^st_tna_monthly = \{(.*?)every_scope_treaty", text, re.M | re.S)
+    if not m:
+        return [f"{path.name}: st_tna_monthly no longer creates its lists before the treaty loop"]
+    created = set(re.findall(r"add_to_variable_list = \{ name = (st_tna_\w+) target = this \}", m.group(1)))
+    used = set(re.findall(r"(?:variable_list|list_variable) = \{ name = (st_tna_\w+)", text))
+    used |= set(re.findall(r"has_variable_list = (st_tna_\w+)", text))
+    return [f"{path.name}: list '{k}' is used but st_tna_monthly never creates it"
+            for k in sorted(used - created)]
+
+
 def check_st_button_labels_fit(root: Path) -> list[str]:
     """Smart Treaties' Best/Max labels must fit their 58px button in every
     language (same failure as check_bc_button_labels_fit: an overrun clips in
@@ -2306,6 +2327,7 @@ def run_all(root: Path) -> list[str]:
         errs += check_st_entry_width_matches_vanilla(root)
         errs += check_st_cards_skip_border_trigger(root)
         errs += check_st_rec_gui_variable_names(root)
+        errs += check_st_tna_lists_created(root)
 
     # Research Queue: issues only the player's own queue commands.
     if read_mod_id(root) == RESEARCH_QUEUE_ID:

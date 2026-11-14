@@ -1,0 +1,40 @@
+﻿# Smart Treaties: "a goods transfer is losing money" alert (Damien, 2026-11-13).
+# Read-only values; the monthly check is in scripted_effects/st_alert_effects.txt.
+#
+# Root: a treaty article (goods_transfer) the PLAYER sends. Its weekly net,
+# estimated the way the draft does: (partner price - home price) x quantity,
+# minus shipping when there is a lane. Script cannot read a lane's real
+# merchant marine demand (only the GUI can, which is what the outliner uses),
+# so shipping is the draft's estimate: quantity / traded quantity x 1.25,
+# priced in the player's market. On a long route this runs low (the Spain to
+# Great Qing lane cost 1.56x the per-unit estimate in the 1836-1851 run), so
+# the alert can miss a borderline article; it never fires on a profitable one
+# because of shipping.
+
+# Merchant marine price in the sender's market.
+st_tna_mm_price = {
+	value = 0
+	source_country = {
+		market = {
+			mg:merchant_marine ?= { add = st_price }
+		}
+	}
+}
+
+st_tna_article_net = {
+	value = st_article_margin
+	if = {
+		limit = { exists = shipping_lane }
+		subtract = {
+			value = st_article_lane_units
+			multiply = 1.25
+			multiply = st_tna_mm_price
+		}
+	}
+}
+
+# The weekly loss as a positive number, for the toast's text.
+st_tna_article_loss = {
+	value = st_tna_article_net
+	multiply = -1
+}

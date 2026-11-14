@@ -16,6 +16,9 @@ written so they can be pasted into Steam Workshop update notes. Versions follow
   with the good already picked when you add a Goods Transfer.
 - Each good's panel (your market's tab) lists the 3 best countries to send
   that good to, in the same form.
+- A warning when a goods transfer you send has lost money 6 months in a row.
+  Once per losing streak; renegotiating the treaty resets it. Its own
+  "(ST) Goods Transfer Losing Money" group in Message Settings.
 
 ### Changed
 - The treasury tooltip leaves out "(ST) Net treaty income" while it is £0.

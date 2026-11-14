@@ -381,6 +381,61 @@ S["SMART_TRADE_TREATIES_TT"] = {
     "korean": "#header 조약 순수입#!\n보내는 상품: @money![@@P_TRADE@@|D+=]\n항로 비용: @money![@@NEG_P_SHIP@@|D+=] (추정)\n자금 양도: @money![@@P_MONEY@@|D+=]\n운송비는 자국 시장 가격의 상선으로 지불합니다. 항구가 많을수록 싸집니다.\n자세한 내용은 아웃라이너의 조약 목록을 보세요.",
     "turkish": "#header Net antlaşma geliri#!\nGönderdiğiniz mallar: @money![@@P_TRADE@@|D+=]\nNakliye rotası maliyeti: @money![@@NEG_P_SHIP@@|D+=] (tahmin)\nPara Transferleri: @money![@@P_MONEY@@|D+=]\nNakliye, pazar fiyatınızdan Denizci Tüccar ile ödenir; daha çok liman fiyatı düşürür.\nAyrıntılar Yan Bilgi'deki antlaşma listesinde.",
 }
+# --- "Goods transfer losing money" toast (common/messages/st_alert_messages.txt) ---
+# The (ST) tag goes on the Message Settings group only (CLAUDE.md, tagging rule).
+S["st_treaty_article_losing_group"] = {
+    "english": '(ST) Goods Transfer Losing Money',
+    "french": '(ST) Transfert de marchandises à perte',
+    "german": '(ST) Warenübereignung mit Verlust',
+    "spanish": '(ST) Transferencia de bienes con pérdidas',
+    "braz_por": '(ST) Transferência de Mercadorias com prejuízo',
+    "polish": '(ST) Transfer towarów przynosi straty',
+    "russian": '(ST) Убыточная передача товаров',
+    "simp_chinese": '(ST) 亏损的商品输送',
+    "japanese": '(ST) 赤字の商品の譲渡',
+    "korean": '(ST) 손실 중인 상품 양도',
+    "turkish": '(ST) Zarar eden mal transferi',
+}
+S["notification_st_treaty_article_losing_name"] = {
+    "english": "[SCOPE.sGoods('st_tna_goods').GetName] to [SCOPE.sC('st_tna_partner').GetNameNoFormatting] is losing money",
+    "french": "[SCOPE.sGoods('st_tna_goods').GetName] vers [SCOPE.sC('st_tna_partner').GetNameNoFormatting] est à perte",
+    "german": "[SCOPE.sGoods('st_tna_goods').GetName] an [SCOPE.sC('st_tna_partner').GetNameNoFormatting] macht Verlust",
+    "spanish": "[SCOPE.sGoods('st_tna_goods').GetName] a [SCOPE.sC('st_tna_partner').GetNameNoFormatting] da pérdidas",
+    "braz_por": "[SCOPE.sGoods('st_tna_goods').GetName] para [SCOPE.sC('st_tna_partner').GetNameNoFormatting] está dando prejuízo",
+    "polish": "[SCOPE.sGoods('st_tna_goods').GetName], odbiorca: [SCOPE.sC('st_tna_partner').GetNameNoFormatting], przynosi straty",
+    "russian": "[SCOPE.sGoods('st_tna_goods').GetName], получатель: [SCOPE.sC('st_tna_partner').GetNameNoFormatting], приносит убытки",
+    "simp_chinese": "输送至[SCOPE.sC('st_tna_partner').GetNameNoFormatting]的[SCOPE.sGoods('st_tna_goods').GetName]正在亏损",
+    "japanese": "[SCOPE.sC('st_tna_partner').GetNameNoFormatting]への[SCOPE.sGoods('st_tna_goods').GetName]が赤字です",
+    "korean": "[SCOPE.sC('st_tna_partner').GetNameNoFormatting]에 보내는 [SCOPE.sGoods('st_tna_goods').GetName]이(가) 손실 중입니다",
+    "turkish": "[SCOPE.sGoods('st_tna_goods').GetName], alıcı: [SCOPE.sC('st_tna_partner').GetNameNoFormatting], zarar ediyor",
+}
+S["notification_st_treaty_article_losing_desc"] = {
+    "english": "Sending [SCOPE.sGoods('st_tna_goods').GetName] to [SCOPE.sC('st_tna_partner').GetNameNoFormatting] has lost money for 6 months in a row: about @money![SCOPE.GetValue('st_tna_loss')|0] a week now (an estimate; the outliner shows the treaty's exact figure). Renegotiate the treaty to drop this good, or cancel the treaty.",
+    "french": "Envoyer [SCOPE.sGoods('st_tna_goods').GetName] vers [SCOPE.sC('st_tna_partner').GetNameNoFormatting] est à perte depuis 6 mois d'affilée : environ @money![SCOPE.GetValue('st_tna_loss')|0] par semaine actuellement (estimation ; l'aperçu affiche le chiffre exact du traité). Renégociez le traité pour retirer ce bien, ou annulez le traité.",
+    "german": "[SCOPE.sGoods('st_tna_goods').GetName] an [SCOPE.sC('st_tna_partner').GetNameNoFormatting] zu senden macht seit 6 Monaten in Folge Verlust: derzeit etwa @money![SCOPE.GetValue('st_tna_loss')|0] pro Woche (Schätzung; die Übersicht zeigt den genauen Wert des Vertrags). Verhandeln Sie den Vertrag neu, um diese Ware zu streichen, oder kündigen Sie ihn.",
+    "spanish": "Enviar [SCOPE.sGoods('st_tna_goods').GetName] a [SCOPE.sC('st_tna_partner').GetNameNoFormatting] lleva 6 meses seguidos dando pérdidas: unas @money![SCOPE.GetValue('st_tna_loss')|0] por semana ahora (estimación; el resumen muestra la cifra exacta del tratado). Renegocia el tratado para quitar este bien o cancélalo.",
+    "braz_por": "Enviar [SCOPE.sGoods('st_tna_goods').GetName] para [SCOPE.sC('st_tna_partner').GetNameNoFormatting] está dando prejuízo há 6 meses seguidos: cerca de @money![SCOPE.GetValue('st_tna_loss')|0] por semana agora (estimativa; o resumo mostra o valor exato do tratado). Renegocie o tratado para retirar este bem ou cancele o tratado.",
+    "polish": "Wysyłanie towaru [SCOPE.sGoods('st_tna_goods').GetName] (odbiorca: [SCOPE.sC('st_tna_partner').GetNameNoFormatting]) przynosi straty od 6 miesięcy z rzędu: obecnie ok. @money![SCOPE.GetValue('st_tna_loss')|0] na tydzień (szacunek; przegląd pokazuje dokładną kwotę traktatu). Renegocjuj traktat, aby usunąć ten towar, albo go zerwij.",
+    "russian": "Передача товара [SCOPE.sGoods('st_tna_goods').GetName] (получатель: [SCOPE.sC('st_tna_partner').GetNameNoFormatting]) убыточна 6 месяцев подряд: сейчас около @money![SCOPE.GetValue('st_tna_loss')|0] в неделю (оценка; обзор показывает точную сумму договора). Пересмотрите договор, чтобы убрать этот товар, или расторгните его.",
+    "simp_chinese": "向[SCOPE.sC('st_tna_partner').GetNameNoFormatting]输送[SCOPE.sGoods('st_tna_goods').GetName]已连续6个月亏损：目前每周约@money![SCOPE.GetValue('st_tna_loss')|0]（估算值；概览窗口显示条约的确切数字）。重新谈判条约以移除此商品，或取消条约。",
+    "japanese": "[SCOPE.sC('st_tna_partner').GetNameNoFormatting]への[SCOPE.sGoods('st_tna_goods').GetName]の譲渡は6か月連続で赤字です：現在、週約@money![SCOPE.GetValue('st_tna_loss')|0]（推定値。概要に条約の正確な数値が表示されます）。条約を再交渉してこの商品を外すか、条約を破棄してください。",
+    "korean": "[SCOPE.sC('st_tna_partner').GetNameNoFormatting]에 [SCOPE.sGoods('st_tna_goods').GetName]을(를) 보내는 양도가 6개월 연속 손실 중입니다: 현재 주당 약 @money![SCOPE.GetValue('st_tna_loss')|0](추정치이며, 개요에 조약의 정확한 수치가 표시됩니다). 조약을 재협상해 이 상품을 빼거나 조약을 취소하세요.",
+    "turkish": "[SCOPE.sGoods('st_tna_goods').GetName] malını [SCOPE.sC('st_tna_partner').GetNameNoFormatting] ülkesine göndermek 6 aydır üst üste zarar ediyor: şu anda haftada yaklaşık @money![SCOPE.GetValue('st_tna_loss')|0] (tahmin; genel bakış antlaşmanın kesin rakamını gösterir). Bu malı çıkarmak için antlaşmayı yeniden müzakere edin ya da antlaşmayı iptal edin.",
+}
+S["notification_st_treaty_article_losing_tooltip"] = {
+    "english": '#header $notification_st_treaty_article_losing_name$#!\n$TOOLTIP_DELIMITER$\n$notification_st_treaty_article_losing_desc$',
+    "french": '#header $notification_st_treaty_article_losing_name$#!\n$TOOLTIP_DELIMITER$\n$notification_st_treaty_article_losing_desc$',
+    "german": '#header $notification_st_treaty_article_losing_name$#!\n$TOOLTIP_DELIMITER$\n$notification_st_treaty_article_losing_desc$',
+    "spanish": '#header $notification_st_treaty_article_losing_name$#!\n$TOOLTIP_DELIMITER$\n$notification_st_treaty_article_losing_desc$',
+    "braz_por": '#header $notification_st_treaty_article_losing_name$#!\n$TOOLTIP_DELIMITER$\n$notification_st_treaty_article_losing_desc$',
+    "polish": '#header $notification_st_treaty_article_losing_name$#!\n$TOOLTIP_DELIMITER$\n$notification_st_treaty_article_losing_desc$',
+    "russian": '#header $notification_st_treaty_article_losing_name$#!\n$TOOLTIP_DELIMITER$\n$notification_st_treaty_article_losing_desc$',
+    "simp_chinese": '#header $notification_st_treaty_article_losing_name$#!\n$TOOLTIP_DELIMITER$\n$notification_st_treaty_article_losing_desc$',
+    "japanese": '#header $notification_st_treaty_article_losing_name$#!\n$TOOLTIP_DELIMITER$\n$notification_st_treaty_article_losing_desc$',
+    "korean": '#header $notification_st_treaty_article_losing_name$#!\n$TOOLTIP_DELIMITER$\n$notification_st_treaty_article_losing_desc$',
+    "turkish": '#header $notification_st_treaty_article_losing_name$#!\n$TOOLTIP_DELIMITER$\n$notification_st_treaty_article_losing_desc$',
+}
+
 # --- Trade recommender (tools/gen_st_recommender.py; market panel, Trade tab) ---
 # No profit threshold: any profitable deal can be a row (Damien, 2026-11-13).
 # "Goods Transfer" is vanilla's own article name (goods_transfer) per language.
