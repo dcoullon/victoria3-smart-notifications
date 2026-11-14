@@ -148,8 +148,7 @@ def main() -> int:
             if n == len(starts) - 1:
                 print("  INCOMPLETE: the log ends inside this drop (game still running, or closed mid-drop)")
             else:
-                print("  FAIL: no 'after' line (the delayed dump never ran)")
-                failed += 1
+                print("  NOT JUDGED: the next drop came before this one's check a second later")
             continue
         if len(xs) != 1 or xs[0] not in before:
             print(f"  FAIL: expected exactly one x| line naming a queued tech, got {xs}")

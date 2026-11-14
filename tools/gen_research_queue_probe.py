@@ -18,8 +18,9 @@ tech is itself in the set, later in queue order, and comes back with it.
 
 Ordering (run 2): triggered GUI states run when the walk of the widget tree
 reaches them, not in call order. So nothing here waits on another state's
-result. The dragged tech's name is recorded when the drag starts; the drop
-handler refuses the move if it does not match the dropped tech. The
+result. The dragged tech's name is recorded when the drag starts (each drag
+overwrites it, nothing clears it); the drop handler refuses the move if it
+does not match the dropped tech, so a stale name can only cancel a move. The
 controller sits before the queue row in the tree and the hidden overflow
 list after it, so one pass sends the shown techs back before the overflow.
 
@@ -64,7 +65,7 @@ DRAGGED = "GetDraggedDatacontext('Technology')"
 DRAGGED_POS = f"{DRAGGED}.GetResearchQueuePosition({PLAYER})"
 NAME = "Technology.GetNameNoFormatting"
 XNAME = "GetVariableSystem.Get('rq_xname')"
-IS_X = f"GetVariableSystem.Exists(Concatenate('rq_isx_', {NAME}))"
+IS_X = f"EqualTo_string({NAME}, {XNAME})"
 PRE_OF_X = f"GetVariableSystem.Exists(Concatenate3({NAME}, '>', {XNAME}))"
 DEP_OF_X = f"GetVariableSystem.Exists(Concatenate3({XNAME}, '>', {NAME}))"
 ROOT_ONLY = "GuiScope.SetRoot(GetPlayer.MakeScope).End"
@@ -284,7 +285,6 @@ def controller(n: int) -> str:
     for d, f in moves(n):
         gos.append(f"{ind}state = {{ name = rq_go_{d}_{f}  duration = 0  alpha = 1\n"
                    f"{ind}\ton_start = \"[GetScriptedGui('rq_probe_drop_{d}_{f}').Execute({ROOT_ONLY})]\"\n"
-                   f"{ind}\ton_start = \"[GetVariableSystem.Set(Concatenate('rq_isx_', {XNAME}), 'y')]\"\n"
                    f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_dump')]\"\n"
                    f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_edges')]\"\n"
                    f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_mv_{d}_{f}')]\"\n"
@@ -306,8 +306,6 @@ def controller(n: int) -> str:
         f"{ind}state = {{ name = rq_after  duration = 1  alpha = 1\n"
         f"{ind}\ton_finish = \"[GetScriptedGui('rq_probe_after').Execute({ROOT_ONLY})]\"\n"
         f"{ind}\ton_finish = \"[PdxGuiTriggerAllAnimations('rq_dump')]\"\n"
-        f"{ind}\ton_finish = \"[GetVariableSystem.Clear(Concatenate('rq_isx_', {XNAME}))]\"\n"
-        f"{ind}\ton_finish = \"[GetVariableSystem.Clear('rq_xname')]\"\n"
         f"{ind}}}\n\n"
         f"{ind}# Every direct or indirect prerequisite pair, \"prerequisite>dependent\"\n"
         f"{ind}# by tech name, from the game's common/technology/technologies at\n"

@@ -67,7 +67,7 @@ moves your queue. Relaunch the game to load the new build.
 3. Shift-click techs until the "+N" button appears (8 or more). Include two
    chains, e.g. Socialism (queues Labor Movement) and Film (queues Realism
    and Camera). Shift-click the tech from step 2 back in too.
-4. Drag, one at a time, about a second apart:
+4. Drag, one at a time:
    a. a dependent ahead of its prerequisite (its prerequisite should come
       along and land just before it);
    b. a prerequisite behind its dependent (the dependent should come along);
@@ -228,6 +228,6 @@ prerequisites) over random valid queues from the real tech data: 215,029
 drops, 0 fail. That covers the rule, not the GUI wiring, which only a launch
 tests.
 
-Known edge: a drag started within a second of the previous drop can be
-refused (`drop|badx`), because the previous drop's cleanup clears the
-recorded name. Refused, never misdirected.
+The recorded name is overwritten by every drag and never cleared (a first
+build cleared it a second after each drop, which refused a drag started
+inside that second).
