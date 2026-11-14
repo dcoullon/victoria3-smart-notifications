@@ -22,6 +22,9 @@ written so they can be pasted into Steam Workshop update notes. Versions follow
 
 ### Changed
 - The treasury tooltip leaves out "(ST) Net treaty income" while it is £0.
+- Shipping estimates for drafts depend on the route: within a continent they
+  assume a short lane, between continents a long one (measured: up to 1.6
+  times the short-lane cost). Signed treaties still use the real lane.
 
 ## [0.12] - game version 1.15
 

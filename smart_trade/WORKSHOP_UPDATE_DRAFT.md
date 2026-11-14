@@ -37,6 +37,16 @@ New:
 
     Suggestions use the same rule, at the best quantity your partner fully accepts.
 
+### Edit 3b: "Where the numbers come from", one sentence changed
+
+Current:
+
+    A draft has no route yet (the game only picks one when you sign), so drafts assume a medium-length route (we use the real costs once it's signed).
+
+New:
+
+    A draft has no route yet (the game only picks one when you sign), so drafts estimate it from whether your capitals are on the same continent (we use the real costs once it's signed).
+
 ### Edit 4: "No cheating"
 
 Current:
@@ -75,7 +85,7 @@ New (the market panel and the goods panel are now replaced too):
 
 ## Simplified Chinese: the full description, ready to paste
 
-Includes edits 1 to 5 and 2b. If you skip edit 1 in English, keep the live Chinese
+Includes edits 1 to 5, 2b and 3b. If you skip edit 1 in English, keep the live Chinese
 first line instead of the first line below.
 
 ```
@@ -112,7 +122,7 @@ first line instead of the first line below.
 
 [h2]数字从何而来[/h2]
 
-预测价格使用游戏自身的价格规则，按首周价格计算。已签署的条约使用实际的购买、出售和船运线路费用。草案还没有航线（游戏在签署时才选定航线），因此草案按中等长度的航线估算（签署后改用实际费用）。建议使用同样的规则，按对方完全接受的最优数量计算。
+预测价格使用游戏自身的价格规则，按首周价格计算。已签署的条约使用实际的购买、出售和船运线路费用。草案还没有航线（游戏在签署时才选定航线），因此草案根据双方首都是否在同一大洲来估算航线（签署后改用实际费用）。建议使用同样的规则，按对方完全接受的最优数量计算。
 
 [h2]不作弊[/h2]
 

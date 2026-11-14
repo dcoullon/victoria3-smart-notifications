@@ -94,10 +94,20 @@ def f_imb(b, s):
     return mul(fx(0.75), clamp1(ratio(b, s)))
 
 
-# Route multiplier assumed for drafts that go by sea (Damien, 2026-10-05):
-# the middle of x1.00 (under 1000 travel distance) and x1.50 (long routes),
-# on the view that most partners whose markets do not touch ours are far.
-ROUTE_EST = 1.25
+# Route multiplier for drafts that go by sea: a lane's real merchant marine
+# demand per estimated unit (quantity / traded quantity). Was 1.25 for every
+# route (Damien, 2026-10-05). Measured 2026-11-13 on Spain's lanes, constant
+# over time: 1.00 to Sardinia-Piedmont (same continent), 1.52 to Siam, 1.56 to
+# Great Qing, 1.62 to Japan (other continents); in the 1836 AI run 24 of 40
+# lanes were exactly 1.00. So 1.0 when both capitals share one of vanilla's
+# five geographic regions, 1.6 when not (st_far_route_sgui decides). The
+# suggestions and the losing-transfer alert use the same factors
+# (tools/gen_st_recommender.py imports these). ROUTE_HI is the top of the
+# draft hover's "by route length" range, above the highest lane measured
+# (1.63 in the AI run).
+ROUTE_NEAR = 1.0
+ROUTE_FAR = 1.6
+ROUTE_HI = 1.7
 
 # Best-quantity search shapes (see Market.chain / Market.register).
 CHAIN_DECADES = 5          # 10 to 1,000,000 units
@@ -116,6 +126,10 @@ REGISTER_FACTORS = [2 ** e for e in (12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0.5,
 D_ADJ = ("GetScriptedGui('st_markets_adjacent_sgui').IsValid(GuiScope.SetRoot("
          "ArticleDraft.GetFirstOrSource.MakeScope).AddScope('st_other', "
          "ArticleDraft.GetSecondOrTarget.MakeScope).End)")
+# The two capitals are on different continents: the ROUTE_FAR estimate.
+D_FAR = ("GetScriptedGui('st_far_route_sgui').IsValid(GuiScope.SetRoot("
+         "ArticleDraft.GetFirstOrSource.MakeScope).AddScope('st_other', "
+         "ArticleDraft.GetSecondOrTarget.MakeScope).End)")
 
 
 class Market:
@@ -123,10 +137,11 @@ class Market:
 
     def __init__(self, g, home="ArticleDraft.GetFirstOrSource.GetMarket.Self",
                  partner="ArticleDraft.GetSecondOrTarget.GetMarket.Self",
-                 adj=D_ADJ, points=CHAIN_POINTS):
+                 adj=D_ADJ, far=D_FAR, points=CHAIN_POINTS):
         """adj: the "markets border" test, or True/False when the caller has
         already settled it (the goods cards: one branch per answer, so no
-        formula inside repeats the check)."""
+        formula inside repeats the check). far: the "other continent" test
+        for the route factor, settled the same way."""
         self.points = points
         gh = f"{g}.WithMarketContext({home})"
         gp = f"{g}.WithMarketContext({partner})"
@@ -134,8 +149,11 @@ class Market:
         self.bp, self.sp = f"{gp}.GetMarketBuyOrders", f"{gp}.GetMarketSellOrders"
         self.ph, self.pp = f"{gh}.GetMarketPrice", f"{gp}.GetMarketPrice"
         self.base, self.tq = f"{g}.GetBasePrice", f"{g}.GetTradedQuantity"
-        # Shipping per unit on a short route (x1.00); zero overland.
-        sea = mul(div(MMP, self.tq), fx(ROUTE_EST))
+        # Shipping per unit by sea, by continent (ROUTE_NEAR / ROUTE_FAR);
+        # zero overland.
+        route = (fx(ROUTE_FAR) if far is True else fx(ROUTE_NEAR) if far is False
+                 else sel(far, fx(ROUTE_FAR), fx(ROUTE_NEAR)))
+        sea = mul(div(MMP, self.tq), route)
         self.ship_unit = fx(0) if adj is True else sea if adj is False else sel(adj, fx(0), sea)
         # First-unit margin after shipping: the deal pays only if this is > 0.
         self.edge = sub(sub(self.pp, self.ph), self.ship_unit)
@@ -370,8 +388,8 @@ D_PH1, D_PP1 = D.ph1(D_Q), D.pp1(D_Q)
 D_MARGIN = D.margin(D_Q)
 D_TQ = D.tq
 D_SHIP_LO = mul(div(D_Q, D_TQ), MMP)
-D_SHIP_HI = mul(D_SHIP_LO, fx(1.5))
-D_SHIP_MID = mul(D_SHIP_LO, fx(ROUTE_EST))
+D_SHIP_HI = mul(D_SHIP_LO, fx(ROUTE_HI))
+D_SHIP_MID = mul(D_SHIP_LO, sel(D_FAR, fx(ROUTE_FAR), fx(ROUTE_NEAR)))
 D_NET_LO = sub(D_MARGIN, D_SHIP_HI)
 D_NET_HI = sub(D_MARGIN, D_SHIP_LO)
 D_NET_MID = sub(D_MARGIN, D_SHIP_MID)
@@ -404,7 +422,8 @@ C_CHAIN = Market("Goods", **CHAIN_CTX).chain()
 # (Portugal to Spain, goods list open, paused): 6 fps computing every frame,
 # 73 reading the stored figure, 77 with no figure at all.
 C_SHOW_LAND = f"And({C_MINE}, {Market('Goods', adj=True).pays10})"
-C_SHOW_SEA = f"And({C_MINE}, {Market('Goods', adj=False).pays10})"
+C_SHOW_SEA = f"And({C_MINE}, {Market('Goods', adj=False, far=False).pays10})"
+C_SHOW_FAR = f"And({C_MINE}, {Market('Goods', adj=False, far=True).pays10})"
 ONCE_KEY = "Concatenate4('st_g_', ArticleDraft.GetSecondOrTarget.GetIDString, '_', Goods.GetKey)"
 ONCE_SHOWN = f"And(GetVariableSystem.Exists({ONCE_KEY}), Not(GetVariableSystem.HasValue({ONCE_KEY}, 'n')))"
 ONCE_MISSING = f"Not(GetVariableSystem.Exists({ONCE_KEY}))"
@@ -416,12 +435,16 @@ ONCE_TEXT = f"@money!#P +[GetVariableSystem.Get({ONCE_KEY})]#!"
 # state calling FindChild(...).TriggerAnimation(...) (gui/achievements/popup.gui).
 LAZY_STEP1 = (f"PdxGuiWidget.FindChild('st_pick').TriggerAnimation(Select_CString({D_ADJ}, "
               f"Select_CString({C_SHOW_LAND}, 'st_pl', 'st_none'), "
-              f"Select_CString({C_SHOW_SEA}, 'st_ps', 'st_none')))")
-LAZY_MARKETS = (("l", Market("Goods", adj=True)), ("s", Market("Goods", adj=False)))
+              f"Select_CString({D_FAR}, "
+              f"Select_CString({C_SHOW_FAR}, 'st_pf', 'st_none'), "
+              f"Select_CString({C_SHOW_SEA}, 'st_ps', 'st_none'))))")
+LAZY_MARKETS = (("l", Market("Goods", adj=True)), ("s", Market("Goods", adj=False, far=False)),
+                ("f", Market("Goods", adj=False, far=True)))
 # Fallback, no stored figure (no hook ran): computed live every frame, one
 # border test per card picking the land or sea chain.
 C_CHAIN_LAND = Market("Goods", adj=True, **CHAIN_CTX).chain()
-C_CHAIN_SEA = Market("Goods", adj=False, **CHAIN_CTX).chain()
+C_CHAIN_SEA = Market("Goods", adj=False, far=False, **CHAIN_CTX).chain()
+C_CHAIN_FAR = Market("Goods", adj=False, far=True, **CHAIN_CTX).chain()
 
 # Picking a good lands where Best would (Damien: the default IS Best),
 # including past the cap while acceptance stays positive.
@@ -582,9 +605,22 @@ types smart_trade_types {
 	# The Market context sits on an inner container so that an instance's
 	# own datacontext (the Goods) adds to it instead of replacing it.
 	type smart_trade_best_gain = container {
+		# The border and continent tests once each, then a chain with neither
+		# inside (it used to embed the border test in every step).
 		container = {
-			datacontext = "[ArticleDraft.GetSecondOrTarget.GetMarket]"
-			@@C_CHAIN@@
+			visible = "[@@D_ADJ@@]"
+			smart_trade_best_gain_land = {}
+		}
+		container = {
+			visible = "[Not(@@D_ADJ@@)]"
+			container = {
+				visible = "[@@D_FAR@@]"
+				smart_trade_best_gain_far = {}
+			}
+			container = {
+				visible = "[Not(@@D_FAR@@)]"
+				smart_trade_best_gain_sea = {}
+			}
 		}
 	}
 
@@ -601,6 +637,13 @@ types smart_trade_types {
 		container = {
 			datacontext = "[ArticleDraft.GetSecondOrTarget.GetMarket]"
 			@@C_CHAIN_SEA@@
+		}
+	}
+
+	type smart_trade_best_gain_far = container {
+		container = {
+			datacontext = "[ArticleDraft.GetSecondOrTarget.GetMarket]"
+			@@C_CHAIN_FAR@@
 		}
 	}
 
@@ -1202,12 +1245,21 @@ CARD_CHIP = '''blockoverride "entire_icon_button" {
 										}
 									}
 									container = {
-										visible = "[Not(@@D_ADJ@@)]"
+										visible = "[And(Not(@@D_ADJ@@), Not(@@D_FAR@@))]"
 										widget = {
 											visible = "[@@C_SHOW_SEA@@]"
 											size = { 60 16 }
 											tooltipwidget = { smart_trade_card_tooltip = {} }
 											smart_trade_best_gain_sea = {}
+										}
+									}
+									container = {
+										visible = "[And(Not(@@D_ADJ@@), @@D_FAR@@)]"
+										widget = {
+											visible = "[@@C_SHOW_FAR@@]"
+											size = { 60 16 }
+											tooltipwidget = { smart_trade_card_tooltip = {} }
+											smart_trade_best_gain_far = {}
 										}
 									}
 								}

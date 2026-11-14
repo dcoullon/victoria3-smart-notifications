@@ -157,7 +157,8 @@ common/messages/st_alert_messages.txt; state in variable lists on the
 player (check_st_tna_lists_created). Shipping is estimated (script cannot
 read a lane): quantity / traded quantity x a route factor by continent,
 x1.25 when both capitals share one of vanilla's five geographic regions,
-x1.6 when not (st_tna_route; the suggestions use the same, st_rec_route).
+x1.6 when not (st_tna_route; the suggestions use the same, st_rec_route;
+within a continent x1.0 since run 8, see below).
 Measured on Spain's lanes, real demand per estimated unit, constant over
 time: Sardinia-Piedmont 1.00, Siam 1.52, Great Qing 1.56, Japan 1.62. The
 first version used 1.25 everywhere and missed Japan small arms losing 166 to
@@ -165,9 +166,15 @@ first version used 1.25 everywhere and missed Japan small arms losing 166 to
 -216). Replayed on 1836-1865: the new estimate fires in the same months as
 the real net for Japan (1856, 1858, 1864), Qing, Siam and France hardwood,
 plus two early warnings for Sardinia tobacco (1854, 1865) where x1.25 runs
-above that lane's real 1.00. The draft in the treaty panel still uses x1.25
-everywhere, so a far partner's suggestion row now reads lower than its
-draft.
+above that lane's real 1.00. Run 8 confirmed one: the toast fired for
+Sardinia tobacco at about -127 (real -77 to -97) while Japan, the real loser,
+did not. So within a continent the factor is now 1.0, and the draft in the
+treaty panel uses the same continent rule (st_far_route_sgui, D_FAR in
+tools/gen_smart_trade_gui.py; the range in its hover now runs x1.0 to x1.7).
+Replayed: alerts in exactly the months the real net gives, nothing for
+Sardinia. The draft's per-frame figure under the Best tooltip now tests the
+border and the continent once (4 IsValid instead of 68). Toast text
+shortened (the "an estimate" remark dropped, Damien).
 
 Accepted when: an article losing more than 100 a week for 6 monthly checks
 posts one toast naming the good, partner and weekly loss (ST_TNA|FIRE), and

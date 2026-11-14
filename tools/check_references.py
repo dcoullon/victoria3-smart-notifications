@@ -2106,7 +2106,7 @@ def check_st_cards_skip_border_trigger(root: Path) -> list[str]:
     if not path.is_file():
         return []
     text, errs = _read(path), []
-    for name in ("smart_trade_best_gain_land", "smart_trade_best_gain_sea"):
+    for name in ("smart_trade_best_gain_land", "smart_trade_best_gain_sea", "smart_trade_best_gain_far"):
         body = _gui_type_body(text, name)
         if not body:
             errs.append(f"{path.name}: type {name} is missing (the goods cards' per-frame chain)")
