@@ -2,13 +2,15 @@
 # Written once by a one-off script; edit by hand.
 #
 # Per goods transfer article the player sends: a toast when its estimated
-# weekly net (st_tna_article_net) has been below -50 for 6 monthly checks
-# in a row. Then quiet until the article has been at or above -50 for 6
+# weekly net (st_tna_article_net) has been below -100 for 6 monthly checks
+# in a row. Then quiet until the article has been at or above -100 for 6
 # monthly checks in a row (one warning per losing streak), or until the
 # treaty is renegotiated (st_tna_on_treaty_in_force forgets its articles).
 # Chosen on Damien's 1836-1851 data: once per treaty would have warned about
-# the Great Qing deal in 1836 and stayed silent through its 1842-1851 loss; a
-# 0 bar would have warned about silk losing 13 a week.
+# the Great Qing deal in 1837 and stayed silent through its 1842-1851 loss; a
+# 0 bar would have warned about silk losing 13 a week. The 100 bar is
+# Damien's (2026-11-13; 50 at first): on that data it warns for Qing hardwood
+# in Nov 1837 and Feb 1843 and France hardwood in Mar 1848.
 #
 # State lives on the player in variable lists of article scopes (a treaty
 # cannot hold variables): st_tna_n1..n6 = months losing in a row,
@@ -57,7 +59,7 @@ st_tna_monthly = {
 			save_scope_value_as = { name = st_tna_loss value = st_tna_article_loss }
 			debug_log = "ST_TNA|CHECK|[TimeKeeper.GetCurrentDate.GetString]|[SCOPE.sGoods('st_tna_goods').GetKey]|[SCOPE.sC('st_tna_partner').GetNameNoFormatting]|net=[THIS.ScriptValue('st_tna_article_net')|0]"
 			if = {
-				limit = { st_tna_article_net < -50 }
+				limit = { st_tna_article_net < -100 }
 				root = { st_tna_losing = yes }
 			}
 			else = {
@@ -67,7 +69,7 @@ st_tna_monthly = {
 	}
 }
 
-# Root: the player; scope:st_tna_a = an article losing more than 50 a week.
+# Root: the player; scope:st_tna_a = an article losing more than 100 a week.
 st_tna_losing = {
 	remove_list_variable = { name = st_tna_p1 target = scope:st_tna_a }
 	remove_list_variable = { name = st_tna_p2 target = scope:st_tna_a }
@@ -93,7 +95,7 @@ st_tna_losing = {
 	}
 }
 
-# Root: the player; scope:st_tna_a = an article not losing more than 50 a week.
+# Root: the player; scope:st_tna_a = an article not losing more than 100 a week.
 st_tna_not_losing = {
 	remove_list_variable = { name = st_tna_n1 target = scope:st_tna_a }
 	remove_list_variable = { name = st_tna_n2 target = scope:st_tna_a }
