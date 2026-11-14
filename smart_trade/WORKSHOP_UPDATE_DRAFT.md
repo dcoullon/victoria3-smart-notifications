@@ -20,7 +20,7 @@ New:
 
 ### Edit 2b: "Real net profit or loss on all your treaties after you sign", one bullet added at the end
 
-    [*][b]A warning when a goods transfer loses money[/b] 6 months in a row, naming the good and the weekly loss. Once per losing streak; renegotiating the treaty resets it.
+    [*][b]A warning when a goods transfer loses more than £100 a week[/b] 6 months in a row, naming the good and the weekly loss. Once per losing streak; renegotiating the treaty resets it.
 
 ### Edit 2: new section, between "Real net profit or loss on all your treaties after you sign" and "Where the numbers come from"
 
@@ -108,7 +108,7 @@ first line instead of the first line below.
 [*][b]每项条约的净额[/b]显示在概览窗口中，总额显示在"条约"标题上。
 [*][b]每种商品的净额[/b]显示在条约面板中。悬停可查看完整明细，包含船运线路费用。
 [*][b]条约净收入[/b]显示在国库提示框中，紧挨着游戏自带的收入和支出（不用再悬停 3 个不同位置来判断条约是否亏钱）。
-[*][b]商品输送连续 6 个月亏损时发出提醒[/b]，注明商品和每周亏损额。每段亏损期只提醒一次；重新谈判条约后会重置。
+[*][b]商品输送连续 6 个月每周亏损超过 £100 时发出提醒[/b]，注明商品和每周亏损额。每段亏损期只提醒一次；重新谈判条约后会重置。
 [/list]
 
 [h2]该做哪些交易[/h2]
@@ -141,4 +141,15 @@ first line instead of the first line below.
 
 [h2]反馈[/h2]
 有任何问题请在评论区留言，我会修复。也欢迎提出建议和评分（截图下方的点赞按钮）！
+```
+
+## Update note for the upload (the "Change notes" field)
+
+```
+0.13: Which deals to make.
+- Your market's Trade tab lists the 5 most profitable goods transfers you could propose, with each partner's base acceptance (hover for the game's breakdown). Partners below 0 are left out. The treaty button opens the draft with the good already picked.
+- Each good's panel lists its 3 best partners.
+- A warning when a goods transfer you send loses more than £100 a week 6 months in a row. Once per losing streak, in its own Message Settings group.
+- Draft shipping now depends on the route: within a continent or between continents.
+Saves made with 0.13 keep a few numbers for the suggestions; removing the mod leaves them unused.
 ```

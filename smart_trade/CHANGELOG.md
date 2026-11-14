@@ -9,14 +9,15 @@ written so they can be pasted into Steam Workshop update notes. Versions follow
 
 ### Added
 - Suggested goods transfers in the market panel's Trade tab: the 5 most
-  profitable deals you could propose, computed at game start, every month and
-  on refresh, in a section you can collapse. Each row shows the partner's
+  profitable deals you could propose, recomputed every month, when you open
+  the tab and on refresh, in a section you can collapse. Each row shows the partner's
   base acceptance (details on hover), and partners below 0 are left out.
   The treaty button at the start of a row opens a treaty with that country,
   with the good already picked when you add a Goods Transfer.
 - Each good's panel (your market's tab) lists the 3 best countries to send
   that good to, in the same form.
-- A warning when a goods transfer you send has lost money 6 months in a row.
+- A warning when a goods transfer you send has lost more than £100 a week,
+  6 months in a row.
   Once per losing streak; renegotiating the treaty resets it. Its own
   "(ST) Goods Transfer Losing Money" group in Message Settings.
 
