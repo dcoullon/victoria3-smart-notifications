@@ -20,15 +20,24 @@ st_rec_in_sp = { value = 0 scope:st_rec_p = { add = market_goods_sell_orders } }
 st_rec_in_k = { value = 0 scope:st_rec_h = { add = goods.base_price } multiply = 0.75 }
 st_rec_in_surplus = { value = 0 scope:st_rec_h = { add = market_goods_sell_orders subtract = market_goods_buy_orders } }
 # Shipping per unit: zero when the markets touch, else the merchant marine
-# the draft assumes (traded_quantity units per merchant marine) x 1.25,
-# priced in the player's market. Same as the draft (Market.ship_unit).
+# the draft assumes (traded_quantity units per merchant marine) x a route
+# factor, priced in the player's market: 1.25 when both capitals
+# are on the same continent (the draft's own figure), 1.6 when not
+# (measured, see ROUTE_FAR in the generator).
 st_rec_in_ship = {
 	value = 0
 	if = {
 		limit = { var:st_rec_adj < 1 }
 		value = var:st_rec_mm
 		divide = var:st_rec_tq
-		multiply = 1.25
+		multiply = st_rec_route
+	}
+}
+st_rec_route = {
+	value = 1.6
+	if = {
+		limit = { st_rec_same_continent = yes }
+		value = 1.25
 	}
 }
 st_rec_in_mm = { value = 0 market = { mg:merchant_marine ?= { add = st_price } } }

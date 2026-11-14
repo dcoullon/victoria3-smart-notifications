@@ -5,11 +5,9 @@
 # estimated the way the draft does: (partner price - home price) x quantity,
 # minus shipping when there is a lane. Script cannot read a lane's real
 # merchant marine demand (only the GUI can, which is what the outliner uses),
-# so shipping is the draft's estimate: quantity / traded quantity x 1.25,
-# priced in the player's market. On a long route this runs low (the Spain to
-# Great Qing lane cost 1.56x the per-unit estimate in the 1836-1851 run), so
-# the alert can miss a borderline article; it never fires on a profitable one
-# because of shipping.
+# so shipping is estimated: quantity / traded quantity x a route factor by
+# continent (st_tna_route), priced in the player's market. Off by the lane's
+# real length either way; the factors lean toward the higher cost.
 
 # Merchant marine price in the sender's market.
 st_tna_mm_price = {
@@ -27,9 +25,23 @@ st_tna_article_net = {
 		limit = { exists = shipping_lane }
 		subtract = {
 			value = st_article_lane_units
-			multiply = 1.25
+			multiply = st_tna_route
 			multiply = st_tna_mm_price
 		}
+	}
+}
+
+# Route factor by continent, the same as the suggestions' (ROUTE_NEAR and
+# ROUTE_FAR in tools/gen_st_recommender.py; st_article_same_continent is in
+# st_rec_triggers.txt). Measured 2026-11-13 on Spain's lanes, real demand per
+# estimated unit: 1.00 within Europe, 1.52 to 1.62 to Asia, constant over
+# time. The first version used 1.25 everywhere and missed Japan small arms
+# losing 166 to 260 a week (estimate: -55 to +34).
+st_tna_route = {
+	value = 1.6
+	if = {
+		limit = { st_article_same_continent = yes }
+		value = 1.25
 	}
 }
 

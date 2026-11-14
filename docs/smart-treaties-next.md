@@ -154,8 +154,20 @@ tobacco. "Once per treaty" was rejected: it would have warned in 1837 and
 stayed silent through 1842-1851. Files: common/script_values/st_alert_values.txt,
 common/scripted_effects/st_alert_effects.txt, common/on_actions/st_alert_on_actions.txt,
 common/messages/st_alert_messages.txt; state in variable lists on the
-player (check_st_tna_lists_created). Shipping is the draft's estimate
-(script cannot read a lane), which runs low on long routes.
+player (check_st_tna_lists_created). Shipping is estimated (script cannot
+read a lane): quantity / traded quantity x a route factor by continent,
+x1.25 when both capitals share one of vanilla's five geographic regions,
+x1.6 when not (st_tna_route; the suggestions use the same, st_rec_route).
+Measured on Spain's lanes, real demand per estimated unit, constant over
+time: Sardinia-Piedmont 1.00, Siam 1.52, Great Qing 1.56, Japan 1.62. The
+first version used 1.25 everywhere and missed Japan small arms losing 166 to
+260 a week in 1864 (its estimate: -55 to +34; Damien's screenshots, outliner
+-216). Replayed on 1836-1865: the new estimate fires in the same months as
+the real net for Japan (1856, 1858, 1864), Qing, Siam and France hardwood,
+plus two early warnings for Sardinia tobacco (1854, 1865) where x1.25 runs
+above that lane's real 1.00. The draft in the treaty panel still uses x1.25
+everywhere, so a far partner's suggestion row now reads lower than its
+draft.
 
 Accepted when: an article losing more than 100 a week for 6 monthly checks
 posts one toast naming the good, partner and weekly loss (ST_TNA|FIRE), and

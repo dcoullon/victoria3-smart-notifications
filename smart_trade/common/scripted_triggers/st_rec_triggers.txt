@@ -41,3 +41,58 @@ st_rec_pair_ok = {
 		}
 	}
 }
+
+# Both capitals on the same continent (vanilla's geographic regions), for the
+# shipping route factor (st_rec_route). A capital in none of the five counts
+# as far, the higher cost.
+st_rec_same_continent = {
+	OR = {
+		AND = {
+			capital ?= { is_in_geographic_region = geographic_region_europe }
+			scope:st_rec_c = { capital ?= { is_in_geographic_region = geographic_region_europe } }
+		}
+		AND = {
+			capital ?= { is_in_geographic_region = geographic_region_americas }
+			scope:st_rec_c = { capital ?= { is_in_geographic_region = geographic_region_americas } }
+		}
+		AND = {
+			capital ?= { is_in_geographic_region = geographic_region_africa }
+			scope:st_rec_c = { capital ?= { is_in_geographic_region = geographic_region_africa } }
+		}
+		AND = {
+			capital ?= { is_in_geographic_region = geographic_region_asia }
+			scope:st_rec_c = { capital ?= { is_in_geographic_region = geographic_region_asia } }
+		}
+		AND = {
+			capital ?= { is_in_geographic_region = geographic_region_oceania }
+			scope:st_rec_c = { capital ?= { is_in_geographic_region = geographic_region_oceania } }
+		}
+	}
+}
+
+# The same test for a treaty article (the losing-transfer alert,
+# st_alert_values.txt): its sender's and receiver's capitals.
+st_article_same_continent = {
+	OR = {
+		AND = {
+			source_country = { capital ?= { is_in_geographic_region = geographic_region_europe } }
+			target_country = { capital ?= { is_in_geographic_region = geographic_region_europe } }
+		}
+		AND = {
+			source_country = { capital ?= { is_in_geographic_region = geographic_region_americas } }
+			target_country = { capital ?= { is_in_geographic_region = geographic_region_americas } }
+		}
+		AND = {
+			source_country = { capital ?= { is_in_geographic_region = geographic_region_africa } }
+			target_country = { capital ?= { is_in_geographic_region = geographic_region_africa } }
+		}
+		AND = {
+			source_country = { capital ?= { is_in_geographic_region = geographic_region_asia } }
+			target_country = { capital ?= { is_in_geographic_region = geographic_region_asia } }
+		}
+		AND = {
+			source_country = { capital ?= { is_in_geographic_region = geographic_region_oceania } }
+			target_country = { capital ?= { is_in_geographic_region = geographic_region_oceania } }
+		}
+	}
+}
