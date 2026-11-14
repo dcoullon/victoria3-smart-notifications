@@ -275,9 +275,14 @@ class Market:
 
     def leaf_text(self, d):
         """Decade d's best gain as text, whole units: the GUI's one
-        number-to-text route is FixedPointToInt + ToString_int32."""
+        number-to-text route is FixedPointToInt + ToString_int32.
+        FixedPointToInt rounds to the nearest unit, while the draft's own
+        figure (|D format) drops the fraction: Denmark furniture read 160 on
+        the card and 159 once picked, at 11 x (52.50 - 38.00) = 159.5
+        (Damien, 2026-11-14). Subtracting 0.5 first rounds down instead, so
+        both read the same; the cards only show positive gains."""
         lo = 10 * 10 ** d
-        return f"ToString_int32(FixedPointToInt({self.best_gain_leaf(lo, 10 * lo)}))"
+        return f"ToString_int32(FixedPointToInt({sub(self.best_gain_leaf(lo, 10 * lo), fx(0.5))}))"
 
     def register(self, guard=None, reset=True):
         """onclick statements that leave the draft at the best quantity.
