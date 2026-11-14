@@ -5,7 +5,7 @@ written so they can be pasted into Steam Workshop update notes. Versions follow
 `.metadata/metadata.json`'s `version`, same convention as Bulk Construction:
 `+0.01` only when something genuinely new ships and is confirmed working.
 
-## Unreleased
+## [0.13] - which deals to make
 
 ### Added
 - Suggested goods transfers in the market panel's Trade tab: the 5 most
