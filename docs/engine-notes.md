@@ -51,6 +51,7 @@ in new code; `CLAUDE.md` only states the rule, not the reasoning.
 - [A missing texture draws nothing and logs nothing](#a-missing-texture-draws-nothing-and-logs-nothing)
 - [visible does not gate widget creation, so it cannot guard an action](#visible-does-not-gate-widget-creation-so-it-cannot-guard-an-action)
 - [GUI expressions run every frame: compute once on creation, store text](#gui-expressions-run-every-frame-compute-once-on-creation-store-text)
+- [Triggered GUI states run in widget-tree order, not call order](#triggered-gui-states-run-in-widget-tree-order-not-call-order)
 
 <!-- /TOC -->
 
@@ -1831,3 +1832,37 @@ noticeably faster; it was not timed.
 
 `check_st_cards_skip_border_trigger` asserts the creation hook exists and
 that no step after the first calls the border trigger.
+
+## Triggered GUI states run in widget-tree order, not call order
+
+Confirmed 2026-11-14 by the Research Queue probe's run 2
+(docs/research-queue-investigation.md § Run 2).
+
+`PdxGuiTriggerAllAnimations('x')` and `PdxGuiWidget.FindChild(...).TriggerAnimation('x')`
+only mark a state as pending. Its `on_start` runs when the engine's walk of
+the widget tree reaches that widget, so two triggers issued in one `on_start`
+run in tree order, whatever order they were called in. By contrast,
+`GetVariableSystem.Set/Clear/Exists` and every expression (including the
+`Select_CString` choosing a state name) are evaluated immediately.
+
+What this broke:
+- A check state triggered first and a go/blocked decision evaluated right
+  after it: the decision read the variable before the check had set it, so
+  blocked moves went ahead (the `blocked` log line still printed, before the
+  move's own lines).
+- Two `TriggerAll` calls in one state, aimed at a list before and a list
+  after the caller in the tree: the later list ran first.
+
+How to work with it:
+- Never evaluate an expression that depends on a state triggered in the
+  same `on_start`. Compute what you need immediately (variables, a
+  `trigger_on_create` state that ran earlier), or split the work across
+  frames.
+- When order matters across widgets, put the triggering widget before all of
+  them in the tree and the targets in the order they must run. Within one
+  datamodel, items run in datamodel order (the probe's queue-order sends
+  held in every run).
+
+Also confirmed in the same run, though it is a game rule rather than a GUI
+one: `Technology.RemoveFromQueue` also removes every queued tech that depends
+on the removed one.

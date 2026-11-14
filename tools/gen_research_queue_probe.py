@@ -2,33 +2,32 @@
 
 The engine has no "move a tech to position N" command (Technology exposes
 only AddToQueue, AddToQueueWithUnlocks, RemoveFromQueue, Research,
-ResearchWithUnlocks; see reference/data_types). So moving tech X from
-position x to final position f is emulated by sending a chosen set of techs
-to the back of the queue (remove, then re-add), in queue order:
+ResearchWithUnlocks; see reference/data_types). A move is emulated by
+sending a chosen set of techs to the back of the queue (remove, then
+re-add), in queue order. Moving tech X to slot f, with its queued
+prerequisites or dependents travelling with it:
 
-    up   (f < x): every queued tech at position >= f except X
-    down (f > x): X, then every queued tech at position > f
-    end         : X only (it lands after the last shown tech)
+    up to f   : X and its prerequisites (direct or indirect) stay; every
+                other tech at position >= f goes to the back
+    down to f : X, every tech at position > f, and every dependent of X go
+                to the back; the rest stays
 
-Every tech beyond the shown ones (the overflow pop-up) is always re-queued
-too, or it would end up in front. They live in a hidden copy of the overflow
-list so they exist as widgets even while the pop-up is closed.
+Removing a tech also removes its queued dependents (run 2), so a sent-back
+tech must never leave a dependent behind: every dependent of a sent-back
+tech is itself in the set, later in queue order, and comes back with it.
 
-Drop zones (run 1 showed a drop has to land on the middle of a tech icon):
-each shown tech has a gap on its left meaning "insert before me", its icon
-keeps the run 1 meaning (moving left lands before it, moving right after
-it), and a zone right of the row means "after the last shown tech".
+Ordering (run 2): triggered GUI states run when the walk of the widget tree
+reaches them, not in call order. So nothing here waits on another state's
+result. The dragged tech's name is recorded when the drag starts; the drop
+handler refuses the move if it does not match the dropped tech. The
+controller sits before the queue row in the tree and the hidden overflow
+list after it, so one pass sends the shown techs back before the overflow.
 
-Prerequisite check, before any command runs: the GUI builds a set of
-"prerequisite>dependent" name pairs from the game's tech files, every shown
-tech records its name by position, and every tech the move would cross
-checks itself against the dragged one. A conflict blocks the drop and shows
-"X needs Y first". Crossing is enough: in a chain Y -> A -> X with Y queued,
-A has to sit between them, so a move of X past Y also crosses A.
-
-The GUI cannot pass a number into script, so every (x, f) pair gets its own
-animation names and its own literal member set, generated here. The same goes
-for the queue-dump log lines, one scripted GUI per position.
+Drop zones: each shown tech has a gap on its left ("insert before me"), its
+icon means "before it" when moving left and "after it" when moving right,
+and a zone right of the row means "after the last shown tech". The drag
+itself lives in the vanilla type queued_technology (redefined here), so the
+techs in the "+N" pop-up can be dragged onto the row too.
 
 This is a PROBE: it logs (RQ_PROBE|) what it fires and dumps the queue
 before and after, read back by tools/rq_probe_report.py
@@ -61,22 +60,25 @@ END_W = 60     # px of the "after the last shown tech" zone
 
 PLAYER = "GetPlayer.Self"
 POS = f"Technology.GetResearchQueuePosition({PLAYER})"
-DRAGGED_POS = f"GetDraggedDatacontext('Technology').GetResearchQueuePosition({PLAYER})"
+DRAGGED = "GetDraggedDatacontext('Technology')"
+DRAGGED_POS = f"{DRAGGED}.GetResearchQueuePosition({PLAYER})"
 NAME = "Technology.GetNameNoFormatting"
 XNAME = "GetVariableSystem.Get('rq_xname')"
+IS_X = f"GetVariableSystem.Exists(Concatenate('rq_isx_', {NAME}))"
+PRE_OF_X = f"GetVariableSystem.Exists(Concatenate3({NAME}, '>', {XNAME}))"
+DEP_OF_X = f"GetVariableSystem.Exists(Concatenate3({XNAME}, '>', {NAME}))"
 ROOT_ONLY = "GuiScope.SetRoot(GetPlayer.MakeScope).End"
 ROOT_TECH = "GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('t', Technology.MakeScope).End"
 BOM = "﻿"
 
 
-def top_count() -> int:
+def shown_count() -> int:
+    """Queued techs the row shows. Run 2 confirmed it is the define itself:
+    5 `pos` lines with 6+ techs queued; the current research is not one."""
     m = re.search(r"TECH_TREE_RESEARCH_QUEUE_DISPLAY_COUNT\s*=\s*(\d+)", DEFINES.read_text(encoding="utf-8-sig"))
     if not m:
         sys.exit(f"FAIL: TECH_TREE_RESEARCH_QUEUE_DISPLAY_COUNT not found in {DEFINES}")
-    # +1: still unknown whether the shown list counts the tech being
-    # researched (run 1 had too few techs queued to tell). One slot more is
-    # harmless if it does and required if it does not.
-    return int(m.group(1)) + 1
+    return int(m.group(1))
 
 
 def block_at(text: str, start: int) -> int:
@@ -108,23 +110,21 @@ def prereq_edges() -> list[tuple[str, str]]:
     return edges
 
 
-def targets(x: int, n: int) -> list:
-    return [f for f in range(1, n + 1) if f != x] + ["end"]
+def ancestor_pairs() -> list[tuple[str, str]]:
+    """(prerequisite, dependent) for every direct or indirect prerequisite."""
+    direct: dict[str, set[str]] = {}
+    for p, t in prereq_edges():
+        direct.setdefault(t, set()).add(p)
+    memo: dict[str, set[str]] = {}
 
+    def anc(t: str) -> set[str]:
+        if t not in memo:
+            memo[t] = set()
+            for p in direct.get(t, ()):
+                memo[t] |= {p} | anc(p)
+        return memo[t]
 
-def members(x: int, f, n: int) -> list[int]:
-    if f == "end":
-        return [x]
-    if x > f:
-        return [p for p in range(f, n + 1) if p != x]
-    return [x] + list(range(f + 1, n + 1))
-
-
-def gap_target(x: int, k: int):
-    """Final position when the tech at x is dropped in the gap before slot k."""
-    if x in (k, k - 1):
-        return None
-    return k - 1 if x < k else k
+    return sorted((p, t) for t in direct for p in anc(t))
 
 
 def i32(n: int) -> str:
@@ -138,20 +138,40 @@ def ladder(cases: list[tuple[str, str]], default: str) -> str:
     return expr
 
 
-def any_of(terms: list[str]) -> str:
-    cond = terms[-1]
-    for t in reversed(terms[:-1]):  # Or() is binary in this engine
-        cond = f"Or({t}, {cond})"
-    return cond
+def moves(n: int) -> list[tuple[str, int]]:
+    return [("up", f) for f in range(1, n + 1)] + [("down", f) for f in range(2, n + 1)]
 
 
-def crossed(x: int, f) -> str:
-    """True on the shown tech that a move of x to f passes over."""
-    if f == "end":
-        return f"GreaterThan_int32({POS}, {i32(x)})"
-    if f < x:
-        return f"And(GreaterThan_int32({POS}, {i32(f - 1)}), LessThan_int32({POS}, {i32(x)}))"
-    return f"And(GreaterThan_int32({POS}, {i32(x)}), LessThan_int32({POS}, {i32(f + 1)}))"
+def guarded(cases: list[tuple[str, str]]) -> str:
+    """A drop expression: refuse unless the name recorded at drag start is the dropped tech's."""
+    match = f"EqualTo_string({DRAGGED}.GetNameNoFormatting, {XNAME})"
+    return f"Select_CString({match}, {ladder(cases, 'rq_noop')}, 'rq_badx')"
+
+
+def at(k: int, cond: str) -> str:
+    return f"And(EqualTo_int32({POS}, {i32(k)}), {cond})"
+
+
+def icon_drop(n: int) -> str:
+    cases = []
+    for k in range(1, n + 1):
+        cases.append((at(k, f"GreaterThan_int32({DRAGGED_POS}, {i32(k)})"), f"rq_go_up_{k}"))
+        if k >= 2:
+            cases.append((at(k, f"LessThan_int32({DRAGGED_POS}, {i32(k)})"), f"rq_go_down_{k}"))
+    return guarded(cases)
+
+
+def gap_drop(n: int) -> str:
+    cases = []
+    for k in range(1, n + 1):
+        cases.append((at(k, f"GreaterThan_int32({DRAGGED_POS}, {i32(k)})"), f"rq_go_up_{k}"))
+        if k >= 3:
+            cases.append((at(k, f"LessThan_int32({DRAGGED_POS}, {i32(k - 1)})"), f"rq_go_down_{k - 1}"))
+    return guarded(cases)
+
+
+def end_drop(n: int) -> str:
+    return guarded([(f"LessThan_int32({DRAGGED_POS}, {i32(n)})", f"rq_go_down_{n}")])
 
 
 def dump_parts(ind: str, tag: str) -> str:
@@ -169,10 +189,42 @@ def dump_parts(ind: str, tag: str) -> str:
             + "".join(states) + f"{ind}}}\n")
 
 
-def send_back(ind: str, log: str) -> str:
-    return (f"{ind}on_start = \"[GetScriptedGui('{log}').Execute({ROOT_TECH})]\"\n"
-            f"{ind}on_start = \"[Execute(Technology.RemoveFromQueue({PLAYER}))]\"\n"
-            f"{ind}on_start = \"[Execute(Technology.AddToQueueWithUnlocks({PLAYER}))]\"\n")
+def mover_parts(ind: str, log: str, member: dict) -> str:
+    """One rq_mv_<dir>_<f> state per move, each gating this tech into the
+    send-back set, plus the gates. `member` maps (dir, f) to a condition, or
+    to None for "always"."""
+    states = []
+    for (d, f), cond in member.items():
+        pick = "'rq_do'" if cond is None else f"Select_CString({cond}, 'rq_do', 'rq_skip')"
+        states.append(f"{ind}state = {{ name = rq_mv_{d}_{f}  duration = 0  alpha = 1\n"
+                      f"{ind}\ton_start = \"[PdxGuiWidget.FindChild('rq_xgate').TriggerAnimation("
+                      f"Select_CString({IS_X}, 'rq_xlog', 'rq_skip'))]\"\n"
+                      f"{ind}\ton_start = \"[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation({pick})]\"\n"
+                      f"{ind}}}\n")
+    return ("".join(states) +
+            f"{ind}widget = {{\n{ind}\tname = \"rq_gate\"\n{ind}\tsize = {{ 1 1 }}\n"
+            f"{ind}\tstate = {{ name = rq_skip  duration = 0  alpha = 1 }}\n"
+            f"{ind}\tstate = {{ name = rq_do  duration = 0  alpha = 1\n"
+            f"{ind}\t\ton_start = \"[GetScriptedGui('{log}').Execute({ROOT_TECH})]\"\n"
+            f"{ind}\t\ton_start = \"[Execute(Technology.RemoveFromQueue({PLAYER}))]\"\n"
+            f"{ind}\t\ton_start = \"[Execute(Technology.AddToQueueWithUnlocks({PLAYER}))]\"\n"
+            f"{ind}\t}}\n{ind}}}\n"
+            f"{ind}widget = {{\n{ind}\tname = \"rq_xgate\"\n{ind}\tsize = {{ 1 1 }}\n"
+            f"{ind}\tstate = {{ name = rq_skip  duration = 0  alpha = 1 }}\n"
+            f"{ind}\tstate = {{ name = rq_xlog  duration = 0  alpha = 1\n"
+            f"{ind}\t\ton_start = \"[GetScriptedGui('rq_probe_x').Execute({ROOT_TECH})]\"\n"
+            f"{ind}\t}}\n{ind}}}\n")
+
+
+def row_member(d: str, f: int):
+    if d == "up":
+        return f"And(GreaterThan_int32({POS}, {i32(f - 1)}), Not(Or({IS_X}, {PRE_OF_X})))"
+    return f"Or({IS_X}, Or(GreaterThan_int32({POS}, {i32(f)}), {DEP_OF_X}))"
+
+
+def tail_member(d: str, f: int):
+    # Overflow techs sit beyond every slot f; on a down move all of them go.
+    return f"Not(Or({IS_X}, {PRE_OF_X}))" if d == "up" else None
 
 
 def drop_target(ind: str, expr: str) -> str:
@@ -182,44 +234,95 @@ def drop_target(ind: str, expr: str) -> str:
             f"{ind}}}\n")
 
 
-def blk_state(ind: str, name: str, msg: str) -> str:
-    return (f"{ind}state = {{ name = {name}  duration = 0  alpha = 1\n"
-            f"{ind}\ton_start = \"[GetScriptedGui('rq_probe_blocked').Execute({ROOT_TECH})]\"\n"
-            f"{ind}\ton_start = \"[GetVariableSystem.Set('rq_block', 'y')]\"\n"
-            f"{ind}\ton_start = \"[GetVariableSystem.Set('rq_msg', {msg})]\"\n"
-            f"{ind}}}\n")
+def queued_technology_type() -> str:
+    """Vanilla's type queued_technology plus the drag. The row and the "+N"
+    pop-up both instantiate it, so both become draggable."""
+    text = VANILLA_GUI.read_text(encoding="utf-8-sig")
+    start = text.index("\ttype queued_technology = ")
+    body = text[start:block_at(text, start)]
+    anchor = "\t\tsize = { 80 80 }\n"
+    if body.count(anchor) < 1 or not body.startswith("\ttype queued_technology = widget {"):
+        sys.exit("FAIL: vanilla type queued_technology changed shape; re-read tech_tree.gui")
+    drag = (
+        "\n\t\t# RQ: drag this tech (vanilla pattern: construction_queue.gui:354). The\n"
+        "\t\t# drag widget records the dragged tech's name when it is created; the\n"
+        "\t\t# drop refuses the move unless the name matches the dropped tech.\n"
+        "\t\tdraggable_behavior = {\n"
+        "\t\t\tdraggable_id = \"rq_tech\"\n"
+        "\t\t\tdrag_widget = {\n"
+        "\t\t\t\twidget = {\n"
+        "\t\t\t\t\tsize = { 1 1 }\n"
+        "\t\t\t\t\twidget = {\n"
+        "\t\t\t\t\t\tposition = \"[GuiCurrentDrag.CurrentPosition]\"\n"
+        "\t\t\t\t\t\twidgetanchor = center\n"
+        f"\t\t\t\t\t\tsize = {{ {ICON} {ICON} }}\n"
+        "\t\t\t\t\t\talpha = 0.7\n"
+        "\t\t\t\t\t\tstate = { name = rq_dragstart  trigger_on_create = yes  duration = 0  alpha = 0.7\n"
+        f"\t\t\t\t\t\t\ton_start = \"[GetVariableSystem.Set('rq_xname', {NAME})]\"\n"
+        "\t\t\t\t\t\t}\n"
+        "\t\t\t\t\t\ticon = {\n"
+        "\t\t\t\t\t\t\ttexture = \"gfx/interface/backgrounds/round_frame_dec.dds\"\n"
+        "\t\t\t\t\t\t\tparentanchor = center\n"
+        f"\t\t\t\t\t\t\tsize = {{ {ICON} {ICON} }}\n"
+        "\t\t\t\t\t\t}\n"
+        "\t\t\t\t\t\ticon = {\n"
+        "\t\t\t\t\t\t\tparentanchor = center\n"
+        "\t\t\t\t\t\t\tsize = { 60 60 }\n"
+        "\t\t\t\t\t\t\ttexture = \"[Technology.GetTexture]\"\n"
+        "\t\t\t\t\t\t}\n"
+        "\t\t\t\t\t}\n"
+        "\t\t\t\t}\n"
+        "\t\t\t}\n"
+        "\t\t}\n"
+    )
+    return body.replace(anchor, anchor + drag, 1)
 
 
-def top_item(n: int) -> str:
+def controller(n: int) -> str:
+    ind = "\t\t\t\t\t\t"
+    gos = []
+    for d, f in moves(n):
+        gos.append(f"{ind}state = {{ name = rq_go_{d}_{f}  duration = 0  alpha = 1\n"
+                   f"{ind}\ton_start = \"[GetScriptedGui('rq_probe_drop_{d}_{f}').Execute({ROOT_ONLY})]\"\n"
+                   f"{ind}\ton_start = \"[GetVariableSystem.Set(Concatenate('rq_isx_', {XNAME}), 'y')]\"\n"
+                   f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_dump')]\"\n"
+                   f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_edges')]\"\n"
+                   f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_mv_{d}_{f}')]\"\n"
+                   f"{ind}\tnext = rq_after\n{ind}}}\n")
+    for name in ("noop", "badx"):
+        gos.append(f"{ind}state = {{ name = rq_{name}  duration = 0  alpha = 1\n"
+                   f"{ind}\ton_start = \"[GetScriptedGui('rq_probe_drop_{name}').Execute({ROOT_ONLY})]\"\n{ind}}}\n")
+    lines = [f"{ind}\t\ton_start = \"[GetVariableSystem.Set(Concatenate3(GetTechnology('{p}').GetNameNoFormatting, '>', "
+             f"GetTechnology('{t}').GetNameNoFormatting), 'y')]\"\n" for p, t in ancestor_pairs()]
+    return (
+        "# RQ: the controller, BEFORE the queue row in the widget tree, so the\n"
+        "\t\t\t\t\t# states it triggers on the row and on the overflow list (after the\n"
+        "\t\t\t\t\t# row) run in that order. Outside every datamodel, so it fires once.\n"
+        "\t\t\t\t\twidget = {\n"
+        "\t\t\t\t\t\tname = \"rq_controller\"\n"
+        "\t\t\t\t\t\tsize = { 1 1 }\n"
+        + "".join(gos) +
+        f"{ind}# A second later, after the commands ran: dump the queue again.\n"
+        f"{ind}state = {{ name = rq_after  duration = 1  alpha = 1\n"
+        f"{ind}\ton_finish = \"[GetScriptedGui('rq_probe_after').Execute({ROOT_ONLY})]\"\n"
+        f"{ind}\ton_finish = \"[PdxGuiTriggerAllAnimations('rq_dump')]\"\n"
+        f"{ind}\ton_finish = \"[GetVariableSystem.Clear(Concatenate('rq_isx_', {XNAME}))]\"\n"
+        f"{ind}\ton_finish = \"[GetVariableSystem.Clear('rq_xname')]\"\n"
+        f"{ind}}}\n\n"
+        f"{ind}# Every direct or indirect prerequisite pair, \"prerequisite>dependent\"\n"
+        f"{ind}# by tech name, from the game's common/technology/technologies at\n"
+        f"{ind}# generation time. Built when the panel is created and on every drop.\n"
+        f"{ind}widget = {{\n{ind}\tsize = {{ 1 1 }}\n"
+        f"{ind}\tstate = {{ name = rq_edges  trigger_on_create = yes  duration = 0  alpha = 1\n"
+        + "".join(lines) +
+        f"{ind}\t}}\n{ind}}}\n"
+        "\t\t\t\t\t}\n\n\t\t\t\t\t"
+    )
+
+
+def row(n: int) -> str:
     ind = "\t\t\t\t\t\t\t\t\t"
-    pairs = [(x, f) for x in range(1, n + 1) for f in targets(x, n)]
-    icon_drop = ladder([(f"And(EqualTo_int32({DRAGGED_POS}, {i32(x)}), EqualTo_int32({POS}, {i32(k)}))", f"rq_go_{x}_{k}")
-                        for x in range(1, n + 1) for k in range(1, n + 1) if x != k], "rq_noop")
-    gap_cases = []
-    for x in range(1, n + 1):
-        for k in range(1, n + 1):
-            f = gap_target(x, k)
-            if f is not None:
-                gap_cases.append((f"And(EqualTo_int32({DRAGGED_POS}, {i32(x)}), EqualTo_int32({POS}, {i32(k)}))",
-                                  f"rq_go_{x}_{f}"))
-    gap_drop = ladder(gap_cases, "rq_noop")
-    names = ladder([(f"EqualTo_int32({POS}, {i32(p)})", f"rq_n_{p}") for p in range(1, n + 1)], "rq_n_x")
-
-    chain = []
-    for x, f in pairs:
-        cond = any_of([f"EqualTo_int32({POS}, {i32(p)})" for p in members(x, f, n)])
-        chain.append(f"{ind}state = {{ name = rq_top_{x}_{f}  duration = 0  alpha = 1\n"
-                     f"{ind}\ton_start = \"[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation("
-                     f"Select_CString({cond}, 'rq_do', 'rq_skip'))]\"\n{ind}}}\n")
-        up = f != "end" and f < x
-        key = f"Concatenate3({NAME}, '>', {XNAME})" if up else f"Concatenate3({XNAME}, '>', {NAME})"
-        chain.append(f"{ind}state = {{ name = rq_chk_{x}_{f}  duration = 0  alpha = 1\n"
-                     f"{ind}\ton_start = \"[PdxGuiWidget.FindChild('rq_chkgate').TriggerAnimation("
-                     f"Select_CString(And({crossed(x, f)}, GetVariableSystem.Exists({key})), "
-                     f"'{'rq_blk_up' if up else 'rq_blk_down'}', 'rq_skip'))]\"\n{ind}}}\n")
-    chain.append(f"{ind}state = {{ name = rq_names  duration = 0  alpha = 1\n"
-                 f"{ind}\ton_start = \"[GetVariableSystem.Set({names}, {NAME})]\"\n{ind}}}\n")
-
+    member = {(d, f): row_member(d, f) for d, f in moves(n)}
     return (
         "hbox = {\n"
         "\t\t\t\t\t\tdatamodel = \"[AccessPlayer.GetResearchQueueTop]\"\n"
@@ -232,38 +335,14 @@ def top_item(n: int) -> str:
         "\t\t\t\t\t\t\t\twidget = {\n"
         f"\t\t\t\t\t\t\t\t\tsize = {{ {GAP} {ICON} }}\n"
         "\t\t\t\t\t\t\t\t\talwaystransparent = no\n"
-        + drop_target("\t\t\t\t\t\t\t\t\t", gap_drop) +
+        + drop_target("\t\t\t\t\t\t\t\t\t", gap_drop(n)) +
         "\t\t\t\t\t\t\t\t}\n\n"
         "\t\t\t\t\t\t\t\tqueued_technology = {\n"
         f"\t\t\t\t\t\t\t\t\tposition = {{ {GAP} 0 }}\n"
         "\t\t\t\t\t\t\t\t\talwaystransparent = no\n\n"
-        "\t\t\t\t\t\t\t\t\t# RQ: drag a shown tech (vanilla pattern: construction_queue.gui:354).\n"
-        "\t\t\t\t\t\t\t\t\t# Dropped on this icon: moving left lands before it, moving right after it.\n"
-        "\t\t\t\t\t\t\t\t\tdraggable_behavior = {\n"
-        "\t\t\t\t\t\t\t\t\t\tdraggable_id = \"rq_tech\"\n"
-        "\t\t\t\t\t\t\t\t\t\tdrag_widget = {\n"
-        "\t\t\t\t\t\t\t\t\t\t\twidget = {\n"
-        "\t\t\t\t\t\t\t\t\t\t\t\tsize = { 1 1 }\n"
-        "\t\t\t\t\t\t\t\t\t\t\t\tqueued_technology = {\n"
-        "\t\t\t\t\t\t\t\t\t\t\t\t\tposition = \"[GuiCurrentDrag.CurrentPosition]\"\n"
-        "\t\t\t\t\t\t\t\t\t\t\t\t\twidgetanchor = center\n"
-        "\t\t\t\t\t\t\t\t\t\t\t\t\talpha = 0.7\n"
-        "\t\t\t\t\t\t\t\t\t\t\t\t}\n"
-        "\t\t\t\t\t\t\t\t\t\t\t}\n"
-        "\t\t\t\t\t\t\t\t\t\t}\n"
-        "\t\t\t\t\t\t\t\t\t}\n"
-        + drop_target(ind, icon_drop) + "\n"
-        + "".join(chain) +
-        f"{ind}widget = {{\n{ind}\tname = \"rq_gate\"\n{ind}\tsize = {{ 1 1 }}\n"
-        f"{ind}\tstate = {{ name = rq_skip  duration = 0  alpha = 1 }}\n"
-        f"{ind}\tstate = {{ name = rq_do  duration = 0  alpha = 1\n"
-        + send_back(ind + "\t\t", "rq_probe_fire_top") +
-        f"{ind}\t}}\n{ind}}}\n"
-        f"{ind}widget = {{\n{ind}\tname = \"rq_chkgate\"\n{ind}\tsize = {{ 1 1 }}\n"
-        f"{ind}\tstate = {{ name = rq_skip  duration = 0  alpha = 1 }}\n"
-        + blk_state(ind + "\t", "rq_blk_up", f"Concatenate4({XNAME}, ' needs ', {NAME}, ' first')")
-        + blk_state(ind + "\t", "rq_blk_down", f"Concatenate4({NAME}, ' needs ', {XNAME}, ' first')") +
-        f"{ind}}}\n\n"
+        "\t\t\t\t\t\t\t\t\t# RQ: dropped on this icon, moving left lands before it, moving right after it.\n"
+        + drop_target(ind, icon_drop(n)) + "\n"
+        + mover_parts(ind, "rq_probe_fire_top", member) + "\n"
         + dump_parts(ind, "pos") +
         "\n"
         f"{ind}# Probe readout: research progress, so a move that loses it shows.\n"
@@ -274,83 +353,26 @@ def top_item(n: int) -> str:
         "\t\t\t\t\t\t\t}\n"
         "\t\t\t\t\t\t}\n"
         "\t\t\t\t\t}\n\n"
-        + controller_and_tail(n)
     )
 
 
-def edges_state(ind: str) -> str:
-    lines = [f"{ind}\ton_start = \"[GetVariableSystem.Set(Concatenate3(GetTechnology('{p}').GetNameNoFormatting, '>', "
-             f"GetTechnology('{t}').GetNameNoFormatting), 'y')]\"\n" for p, t in prereq_edges()]
-    return (f"{ind}# Prerequisite pairs, \"prerequisite>dependent\" by tech name, from the\n"
-            f"{ind}# game's common/technology/technologies at generation time.\n"
-            f"{ind}state = {{ name = rq_edges  duration = 0  alpha = 1\n" + "".join(lines) + f"{ind}}}\n")
-
-
-def controller_and_tail(n: int) -> str:
+def end_zone_and_tail(n: int) -> str:
     ind = "\t\t\t\t\t\t"
-    gos, execs = [], []
-    for x in range(1, n + 1):
-        for f in targets(x, n):
-            gos.append(f"{ind}\tstate = {{ name = rq_go_{x}_{f}  duration = 0  alpha = 1\n"
-                       f"{ind}\t\ton_start = \"[GetScriptedGui('rq_probe_drop_{x}_{f}').Execute({ROOT_ONLY})]\"\n"
-                       f"{ind}\t\ton_start = \"[PdxGuiTriggerAllAnimations('rq_dump')]\"\n"
-                       f"{ind}\t\ton_start = \"[GetVariableSystem.Clear('rq_block')]\"\n"
-                       f"{ind}\t\ton_start = \"[GetVariableSystem.Clear('rq_msg')]\"\n"
-                       f"{ind}\t\ton_start = \"[PdxGuiTriggerAllAnimations('rq_edges')]\"\n"
-                       f"{ind}\t\ton_start = \"[PdxGuiTriggerAllAnimations('rq_names')]\"\n"
-                       f"{ind}\t\ton_start = \"[GetVariableSystem.Set('rq_xname', GetVariableSystem.Get('rq_n_{x}'))]\"\n"
-                       f"{ind}\t\ton_start = \"[PdxGuiTriggerAllAnimations('rq_chk_{x}_{f}')]\"\n"
-                       f"{ind}\t\ton_start = \"[PdxGuiWidget.FindChild('rq_execgate').TriggerAnimation("
-                       f"Select_CString(GetVariableSystem.Exists('rq_block'), 'rq_blocked', 'rq_exec_{x}_{f}'))]\"\n"
-                       f"{ind}\t\tnext = rq_after\n{ind}\t}}\n")
-            execs.append(f"{ind}\t\tstate = {{ name = rq_exec_{x}_{f}  duration = 0  alpha = 1\n"
-                         f"{ind}\t\t\ton_start = \"[PdxGuiTriggerAllAnimations('rq_top_{x}_{f}')]\"\n"
-                         f"{ind}\t\t\ton_start = \"[PdxGuiTriggerAllAnimations('rq_tail')]\"\n"
-                         f"{ind}\t\t}}\n")
-    end_drop = ladder([(f"EqualTo_int32({DRAGGED_POS}, {i32(x)})", f"rq_go_{x}_end") for x in range(1, n + 1)], "rq_noop")
-    tail_ind = ind + "\t\t\t\t"
+    tail_ind = ind + "\t\t\t"
+    member = {(d, f): tail_member(d, f) for d, f in moves(n)}
     return (
         "\t\t\t\t\t# RQ: the zone right of the last shown tech (\"after the last shown\"),\n"
-        "\t\t\t\t\t# the controller (outside every datamodel, so it fires once), the\n"
-        "\t\t\t\t\t# blocked-move message, and a hidden copy of the overflow list so\n"
-        "\t\t\t\t\t# the techs beyond the shown ones exist as widgets and can be re-queued.\n"
+        "\t\t\t\t\t# holding a hidden copy of the overflow list, AFTER the row in the\n"
+        "\t\t\t\t\t# tree, so the techs beyond the shown ones exist as widgets and are\n"
+        "\t\t\t\t\t# re-queued after the shown ones.\n"
         "\t\t\t\t\twidget = {\n"
         f"\t\t\t\t\t\tsize = {{ {END_W} {ICON} }}\n"
         "\t\t\t\t\t\talwaystransparent = no\n"
-        + drop_target(ind, end_drop) + "\n"
-        f"{ind}textbox = {{\n"
-        f"{ind}\tvisible = \"[GetVariableSystem.Exists('rq_msg')]\"\n"
-        f"{ind}\tposition = {{ {END_W + 90} 0 }}\n"
-        f"{ind}\tsize = {{ 220 {ICON} }}\n"
-        f"{ind}\tmultiline = yes\n"
-        f"{ind}\talign = vcenter|nobaseline\n"
-        f"{ind}\traw_text = \"#R [GetVariableSystem.Get('rq_msg')]#!\"\n"
-        f"{ind}}}\n\n"
-        f"{ind}widget = {{\n{ind}\tname = \"rq_controller\"\n{ind}\tsize = {{ 1 1 }}\n"
-        f"{ind}\tstate = {{ name = rq_noop  duration = 0  alpha = 1\n"
-        f"{ind}\t\ton_start = \"[GetScriptedGui('rq_probe_drop_noop').Execute({ROOT_ONLY})]\"\n{ind}\t}}\n"
-        + "".join(gos) +
-        f"{ind}\t# A second later, after the commands ran: dump the queue again.\n"
-        f"{ind}\tstate = {{ name = rq_after  duration = 1  alpha = 1\n"
-        f"{ind}\t\ton_finish = \"[GetScriptedGui('rq_probe_after').Execute({ROOT_ONLY})]\"\n"
-        f"{ind}\t\ton_finish = \"[PdxGuiTriggerAllAnimations('rq_dump')]\"\n"
-        f"{ind}\t\tnext = rq_msgclear\n{ind}\t}}\n"
-        f"{ind}\tstate = {{ name = rq_msgclear  duration = 5  alpha = 1\n"
-        f"{ind}\t\ton_finish = \"[GetVariableSystem.Clear('rq_msg')]\"\n{ind}\t}}\n\n"
-        f"{ind}\twidget = {{\n{ind}\t\tname = \"rq_execgate\"\n{ind}\t\tsize = {{ 1 1 }}\n"
-        f"{ind}\t\tstate = {{ name = rq_blocked  duration = 0  alpha = 1 }}\n"
-        + "".join(execs) +
-        f"{ind}\t}}\n\n"
-        f"{ind}\twidget = {{\n{ind}\t\tsize = {{ 1 1 }}\n"
-        + edges_state(ind + "\t\t") +
-        f"{ind}\t}}\n"
-        f"{ind}}}\n\n"
+        + drop_target(ind, end_drop(n)) + "\n"
         f"{ind}flowcontainer = {{\n{ind}\tdirection = vertical\n"
         f"{ind}\tdatamodel = \"[AccessPlayer.GetResearchQueueBottom]\"\n\n"
         f"{ind}\titem = {{\n{ind}\t\twidget = {{\n{ind}\t\t\tsize = {{ 1 1 }}\n"
-        f"{tail_ind}state = {{ name = rq_tail  duration = 0  alpha = 1\n"
-        + send_back(tail_ind + "\t", "rq_probe_fire_tail") +
-        f"{tail_ind}}}\n"
+        + mover_parts(tail_ind, "rq_probe_fire_tail", member)
         + dump_parts(tail_ind, "tpos") +
         f"{ind}\t\t}}\n{ind}\t}}\n{ind}}}\n"
         "\t\t\t\t\t}"
@@ -367,18 +389,18 @@ def build_gui() -> str:
     a = panel.index(anchor)
     hb = panel.rindex("hbox = {", 0, a)
     end = block_at(panel, hb)
-    vanilla_item = panel[hb:end]
-    if "queued_technology" not in vanilla_item:
+    if "queued_technology" not in panel[hb:end]:
         sys.exit("FAIL: the research queue hbox no longer instantiates queued_technology; re-read vanilla")
-    panel = panel[:hb] + top_item(top_count()) + panel[end:]
+    n = shown_count()
+    panel = panel[:hb] + controller(n) + row(n) + end_zone_and_tail(n) + panel[end:]
     return (BOM +
             "# GENERATED by tools/gen_research_queue_probe.py from the installed game's\n"
             "# gui/tech_tree.gui and common/technology/technologies. Do not edit by hand:\n"
             "# change the generator and re-run.\n"
-            "# Redefines the single vanilla type tech_tree_panel; the 00_ prefix makes\n"
-            "# this file load before tech_tree.gui, so this definition wins\n"
+            "# Redefines the vanilla types tech_tree_panel and queued_technology; the 00_\n"
+            "# prefix makes this file load before tech_tree.gui, so these definitions win\n"
             "# (docs/engine-notes.md, \"A partial .gui override works\").\n"
-            "types research_queue_types\n{\n" + panel + "\n}\n")
+            "types research_queue_types\n{\n" + panel + "\n\n" + queued_technology_type() + "\n}\n")
 
 
 def sgui(name: str, line: str, saved: bool) -> str:
@@ -389,7 +411,6 @@ def sgui(name: str, line: str, saved: bool) -> str:
 
 
 def build_sgui() -> str:
-    n = top_count()
     out = [BOM, "# GENERATED by tools/gen_research_queue_probe.py. Probe logging only:\n"
                 "# every entry writes one RQ_PROBE| line to debug.log and changes nothing.\n\n"]
     name = "[SCOPE.sT('t').GetName]"
@@ -397,12 +418,12 @@ def build_sgui() -> str:
         for p in range(1, DUMP_MAX + 1):
             out.append(sgui(f"rq_probe_{tag}_{p}", f"RQ_PROBE|{tag}|{p}|{name}", True))
         out.append(sgui(f"rq_probe_{tag}_over", f"RQ_PROBE|{tag}|over|{name}", True))
-    for x in range(1, n + 1):
-        for f in targets(x, n):
-            out.append(sgui(f"rq_probe_drop_{x}_{f}", f"RQ_PROBE|drop|{x}|{f}", False))
-    out.append(sgui("rq_probe_drop_noop", "RQ_PROBE|drop|noop", False))
+    for d, f in moves(shown_count()):
+        out.append(sgui(f"rq_probe_drop_{d}_{f}", f"RQ_PROBE|drop|{d}|{f}", False))
+    for ev in ("noop", "badx"):
+        out.append(sgui(f"rq_probe_drop_{ev}", f"RQ_PROBE|drop|{ev}", False))
     out.append(sgui("rq_probe_after", "RQ_PROBE|after", False))
-    for ev in ("fire_top", "fire_tail", "blocked"):
+    for ev in ("fire_top", "fire_tail", "x"):
         out.append(sgui(f"rq_probe_{ev}", f"RQ_PROBE|{ev}|{name}", True))
     return "".join(out)
 

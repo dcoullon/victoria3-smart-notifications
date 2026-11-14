@@ -1,20 +1,29 @@
 """Read the Research Queue probe's RQ_PROBE| lines from debug.log and print
-a verdict per operation (docs/research-queue-investigation.md).
+a verdict per drop (docs/research-queue-investigation.md, run 3 criteria).
 
-Each operation the probe logs looks like:
+Each drop the probe logs looks like:
 
-    drop|x|f            the action: tech at x moved to final position f (or "end")
-    pos|<p>|<tech> ...  queue BEFORE: shown techs (pos) and overflow (tpos)
-    blocked|<tech>      the prerequisite check stopped the move; <tech> is
-                        the shown tech it conflicts with
-    fire_top|<tech> / fire_tail|<tech> ...   what was re-queued
-    after               one second later
-    pos|<p>|<tech> ...  queue AFTER
+    drop|up|f or drop|down|f   the move: the dragged tech to slot f
+    drop|noop / drop|badx      no move (badx: the name recorded at drag start
+                               did not match the dropped tech)
+    x|<tech>                   the dragged tech
+    pos|<p>|<tech> ...         queue BEFORE: shown techs (pos), overflow (tpos)
+    fire_top|<tech> / fire_tail|<tech> ...   techs sent to the back, in order
+    after                      one second later
+    pos|<p>|<tech> ...         queue AFTER
 
-The expected AFTER order is computed here, independently of the GUI: f
-moves the tech to that position (the construction queue's MoveToIndex
-semantics), "end" moves it after the last shown tech, and a blocked drop
-must leave the queue unchanged.
+The expected result is computed here from the before-order and the game's
+prerequisite data, independently of the GUI:
+
+    up to f   : the dragged tech X and its prerequisites (direct or indirect)
+                stay; every other tech at position >= f goes to the back
+    down to f : X, every tech at position > f, and every dependent of X go
+                to the back
+
+Expected order = the techs that stay, then the sent-back ones, each in their
+original order. A drop passes when the after-order matches, the techs sent
+back are exactly that set in that order, and no shown tech was sent back
+after an overflow one.
 
 Usage: python tools/rq_probe_report.py [--logs-dir PATH]
 """
@@ -24,18 +33,42 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from vic3_paths import VIC3_USER_DIR  # noqa: E402
+from gen_research_queue_probe import VANILLA_ROOT, ancestor_pairs  # noqa: E402
 
 LINE = re.compile(r"RQ_PROBE\|(.*)$")
-
-
 # GetName in script dynamic text wraps the name in tooltip markup:
 # "\x15tooltippable_name \x15tooltip:...,TechnologyTooltip Psychiatry\x15!\x15!"
 MARKUP = re.compile(r"TechnologyTooltip ([^\x15!]+)")
+LOC_LINE = re.compile(r'^\s+([\w\-]+):\d*\s+"(.*)"\s*(?:#.*)?$')  # vanilla has trailing comments
 
 
 def clean(text: str) -> str:
     m = MARKUP.search(text)
     return m.group(1).strip() if m else text
+
+
+def english_loc() -> dict[str, str]:
+    loc: dict[str, str] = {}
+    for f in (VANILLA_ROOT / "localization" / "english").rglob("*.yml"):
+        for line in f.read_text(encoding="utf-8-sig", errors="replace").splitlines():
+            m = LOC_LINE.match(line)
+            if m:
+                loc.setdefault(m.group(1), m.group(2))
+
+    def resolve(text: str, depth: int = 0) -> str:
+        if depth > 5:
+            return text
+        return re.sub(r"\$([\w\-]+)\$", lambda m: resolve(loc.get(m.group(1), m.group(0)), depth + 1), text)
+
+    return {k: resolve(v) for k, v in loc.items()}
+
+
+def ancestors_by_name() -> dict[str, set[str]]:
+    loc = english_loc()
+    out: dict[str, set[str]] = {}
+    for p, t in ancestor_pairs():
+        out.setdefault(loc.get(t, t), set()).add(loc.get(p, p))
+    return out
 
 
 def read_events(log: Path) -> list[list[str]]:
@@ -54,7 +87,7 @@ def ordered(dump: list[list[str]], kinds=("pos", "tpos")) -> list[str]:
 
 
 def first_pos(dump: list[list[str]]) -> int:
-    nums = [int(e[1]) for e in dump if len(e) > 1 and e[1].isdigit()]
+    nums = [int(e[1]) for e in dump if e[0] in ("pos", "tpos") and len(e) > 1 and e[1].isdigit()]
     return min(nums) if nums else 1
 
 
@@ -64,9 +97,8 @@ def main() -> int:
         logs = Path(sys.argv[sys.argv.index("--logs-dir") + 1])
     # The game rotates debug.log into debug.1.log .. debug.5.log at each launch
     # (and at some save loads), so take the newest one that has probe lines.
-    candidates = [logs / "debug.log"] + [logs / f"debug.{i}.log" for i in range(1, 6)]
     ev, log = [], None
-    for c in candidates:
+    for c in [logs / "debug.log"] + [logs / f"debug.{i}.log" for i in range(1, 6)]:
         if c.exists():
             ev = read_events(c)
             if ev:
@@ -77,86 +109,82 @@ def main() -> int:
               "or no drop ever landed.")
         return 1
     print(f"reading {log.name}")
+    anc = ancestors_by_name()
 
-    starts = [i for i, e in enumerate(ev) if e[0] in ("drop", "back", "now")]
+    starts = [i for i, e in enumerate(ev) if e[0] == "drop"]
     passed = failed = 0
     for n, i in enumerate(starts):
         end = starts[n + 1] if n + 1 < len(starts) else len(ev)
         op = ev[i:end]
-        kinds = [e[0] for e in op]
-        after = kinds.index("after") if "after" in kinds else None
         head = "|".join(op[0])
         print(f"\n== {head}")
-        if op[0][:2] == ["drop", "noop"]:
-            print("  drop landed on a position pair the probe does not cover (no action taken)")
+        if len(op[0]) < 3:
+            print("  no move: " + {"noop": "the drop landed where nothing changes",
+                                   "badx": "FAIL: the drag-start name did not match the dropped tech"}.get(op[0][1], op[0][1]))
+            if op[0][1] == "badx":
+                failed += 1
             continue
+        d, f = op[0][1], op[0][2]
+        if d not in ("up", "down"):
+            print("  older probe build's line, not judged")
+            continue
+        f = int(f)
+        kinds = [e[0] for e in op]
+        after = kinds.index("after") if "after" in kinds else None
         pre_part = op[1:after] if after else op[1:]
         pre = [e for e in pre_part if e[0] in ("pos", "tpos")]
         fires = [e for e in pre_part if e[0].startswith("fire_")]
-        blocks = [e for e in pre_part if e[0] == "blocked"]
+        xs = [e[1] for e in pre_part if e[0] == "x"]
         post = [e for e in op[after + 1:] if e[0] in ("pos", "tpos")] if after else []
         before, got = ordered(pre), ordered(post)
         shown = ordered(pre, ("pos",))
         base = first_pos(pre)
-        print(f"  before ({len(shown)} shown + {len(before) - len(shown)} overflow, "
-              f"first position {base}): {before}")
-        for f in fires:
-            print(f"  {f[0]}: {f[1]}")
-        for b in blocks:
-            print(f"  BLOCKED by: {b[1]}")
+        print(f"  before ({len(shown)} shown + {len(before) - len(shown)} overflow): {before}")
+        print(f"  dragged: {xs}")
+        for e in fires:
+            print(f"  {e[0]}: {e[1]}")
         print(f"  after  ({len(got)}): {got}")
-        if any(len(e) > 1 and e[1] == "over" for e in pre + post):
-            print("  NOTE: some techs sit beyond the dump's position range; order check is partial")
         if after is None:
             if n == len(starts) - 1:
-                print("  INCOMPLETE: the log ends inside this operation (game still running, or closed mid-drop)")
+                print("  INCOMPLETE: the log ends inside this drop (game still running, or closed mid-drop)")
             else:
-                print("  INCOMPLETE: no 'after' line (the delayed dump never ran)")
+                print("  FAIL: no 'after' line (the delayed dump never ran)")
                 failed += 1
             continue
-        if op[0][0] == "now":
-            print("  (now: recorded only, see where the tech and the old first entry went)")
+        if len(xs) != 1 or xs[0] not in before:
+            print(f"  FAIL: expected exactly one x| line naming a queued tech, got {xs}")
+            failed += 1
             continue
-        expected = list(before)
-        if blocks:
-            if fires:
-                print("  FAIL: blocked, yet techs were re-queued")
-                failed += 1
-                continue
-        elif op[0][0] == "drop" and op[0][2] == "end":
-            x = int(op[0][1])
-            if not 0 <= x - base < len(shown):
-                print(f"  CANNOT JUDGE: position {x} outside the shown techs")
-                failed += 1
-                continue
-            tech = shown[x - base]
-            expected = [t for t in shown if t != tech] + [tech] + before[len(shown):]
-        elif op[0][0] == "drop":
-            x, k = int(op[0][1]), int(op[0][2])
-            if not (0 <= x - base < len(before) and 0 <= k - base < len(before)):
-                print(f"  CANNOT JUDGE: positions {x}->{k} outside the dumped range")
-                failed += 1
-                continue
-            tech = expected.pop(x - base)
-            expected.insert(k - base, tech)
+        x = xs[0]
+        if any(e[1] == "over" for e in pre + post):
+            print("  NOTE: some techs sit beyond the dump's position range; order check is partial")
+        if d == "up":
+            members = [t for p, t in enumerate(before, base)
+                       if p >= f and t != x and t not in anc.get(x, set())]
         else:
-            tech = op[0][1]
-            if tech not in expected:
-                print(f"  CANNOT JUDGE: {tech} not in the before-dump")
-                failed += 1
-                continue
-            expected.remove(tech)
-            expected.append(tech)
-        if got == expected:
-            print("  PASS: " + ("blocked and unchanged" if blocks else "after-order matches the expected order"))
-            passed += 1
-        else:
-            print(f"  FAIL: expected {expected}")
+            members = [t for p, t in enumerate(before, base)
+                       if t == x or p > f or x in anc.get(t, set())]
+        expected = [t for t in before if t not in members] + members
+        fired = [e[1] for e in fires]
+        problems = []
+        if got != expected:
+            problems.append(f"after-order differs, expected {expected}")
             lost = set(before) - set(got)
             if lost:
-                print(f"  LOST from the queue: {sorted(lost)}")
+                problems.append(f"LOST from the queue: {sorted(lost)}")
+        if fired != members:
+            problems.append(f"sent back {fired}, expected {members}")
+        kinds_fired = [e[0] for e in fires]
+        if "fire_tail" in kinds_fired and "fire_top" in kinds_fired[kinds_fired.index("fire_tail"):]:
+            problems.append("a shown tech was sent back after an overflow one")
+        if problems:
+            for p in problems:
+                print(f"  FAIL: {p}")
             failed += 1
-    print(f"\n{passed} pass, {failed} fail, {len(starts)} operations")
+        else:
+            print("  PASS")
+            passed += 1
+    print(f"\n{passed} pass, {failed} fail, {len(starts)} drops")
     return 0 if failed == 0 else 1
 
 

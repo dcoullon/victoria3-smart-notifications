@@ -821,325 +821,82 @@ rq_probe_tpos_over = {
 	ai_chance = { base = 0 }
 }
 
-rq_probe_drop_1_2 = {
+rq_probe_drop_up_1 = {
 	scope = country
 	effect = {
-		debug_log = "RQ_PROBE|drop|1|2"
+		debug_log = "RQ_PROBE|drop|up|1"
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
 
-rq_probe_drop_1_3 = {
+rq_probe_drop_up_2 = {
 	scope = country
 	effect = {
-		debug_log = "RQ_PROBE|drop|1|3"
+		debug_log = "RQ_PROBE|drop|up|2"
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
 
-rq_probe_drop_1_4 = {
+rq_probe_drop_up_3 = {
 	scope = country
 	effect = {
-		debug_log = "RQ_PROBE|drop|1|4"
+		debug_log = "RQ_PROBE|drop|up|3"
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
 
-rq_probe_drop_1_5 = {
+rq_probe_drop_up_4 = {
 	scope = country
 	effect = {
-		debug_log = "RQ_PROBE|drop|1|5"
+		debug_log = "RQ_PROBE|drop|up|4"
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
 
-rq_probe_drop_1_6 = {
+rq_probe_drop_up_5 = {
 	scope = country
 	effect = {
-		debug_log = "RQ_PROBE|drop|1|6"
+		debug_log = "RQ_PROBE|drop|up|5"
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
 
-rq_probe_drop_1_end = {
+rq_probe_drop_down_2 = {
 	scope = country
 	effect = {
-		debug_log = "RQ_PROBE|drop|1|end"
+		debug_log = "RQ_PROBE|drop|down|2"
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
 
-rq_probe_drop_2_1 = {
+rq_probe_drop_down_3 = {
 	scope = country
 	effect = {
-		debug_log = "RQ_PROBE|drop|2|1"
+		debug_log = "RQ_PROBE|drop|down|3"
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
 
-rq_probe_drop_2_3 = {
+rq_probe_drop_down_4 = {
 	scope = country
 	effect = {
-		debug_log = "RQ_PROBE|drop|2|3"
+		debug_log = "RQ_PROBE|drop|down|4"
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
 }
 
-rq_probe_drop_2_4 = {
+rq_probe_drop_down_5 = {
 	scope = country
 	effect = {
-		debug_log = "RQ_PROBE|drop|2|4"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_2_5 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|2|5"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_2_6 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|2|6"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_2_end = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|2|end"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_3_1 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|3|1"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_3_2 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|3|2"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_3_4 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|3|4"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_3_5 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|3|5"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_3_6 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|3|6"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_3_end = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|3|end"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_4_1 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|4|1"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_4_2 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|4|2"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_4_3 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|4|3"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_4_5 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|4|5"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_4_6 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|4|6"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_4_end = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|4|end"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_5_1 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|5|1"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_5_2 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|5|2"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_5_3 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|5|3"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_5_4 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|5|4"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_5_6 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|5|6"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_5_end = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|5|end"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_6_1 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|6|1"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_6_2 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|6|2"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_6_3 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|6|3"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_6_4 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|6|4"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_6_5 = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|6|5"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-
-rq_probe_drop_6_end = {
-	scope = country
-	effect = {
-		debug_log = "RQ_PROBE|drop|6|end"
+		debug_log = "RQ_PROBE|drop|down|5"
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
@@ -1149,6 +906,15 @@ rq_probe_drop_noop = {
 	scope = country
 	effect = {
 		debug_log = "RQ_PROBE|drop|noop"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+
+rq_probe_drop_badx = {
+	scope = country
+	effect = {
+		debug_log = "RQ_PROBE|drop|badx"
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }
@@ -1183,11 +949,11 @@ rq_probe_fire_tail = {
 	ai_chance = { base = 0 }
 }
 
-rq_probe_blocked = {
+rq_probe_x = {
 	scope = country
 	saved_scopes = { t }
 	effect = {
-		debug_log = "RQ_PROBE|blocked|[SCOPE.sT('t').GetName]"
+		debug_log = "RQ_PROBE|x|[SCOPE.sT('t').GetName]"
 	}
 	ai_is_valid = { always = no }
 	ai_chance = { base = 0 }

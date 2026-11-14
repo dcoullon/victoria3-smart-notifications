@@ -30,17 +30,16 @@ it in the queue).
 
 ## The workaround being probed
 
-Move X (old position x) to final position k. Send to the back, in queue
-order:
+Move X to slot k. Send to the back, in queue order (run 3 rule; runs 1
+and 2 used the same rule without the travelling prerequisites/dependents):
 
-- up (x > k): every tech at position >= k except X
-- down (x < k): X, then every tech at position > k
-- after the last shown tech (run 2): X only
+- up: every tech at position >= k except X and its prerequisites
+- down: X, every tech at position > k, and every dependent of X
 
-Every overflow tech is always re-queued too, so it stays behind. Built by
-`tools/gen_research_queue_probe.py` into `research_queue/` (dev only).
+Built by `tools/gen_research_queue_probe.py` into `research_queue/` (dev
+only); checked offline by `tools/rq_simulate.py`.
 
-## Acceptance criteria (written before the run)
+## Acceptance criteria for run 1 (written before the run)
 
 Verdicts come from `python tools/rq_probe_report.py` unless marked "look".
 
@@ -56,31 +55,28 @@ Verdicts come from `python tools/rq_probe_report.py` unless marked "look".
 | H8 | What the engine does with a tech queued ahead of its own prerequisite | recorded from the after-dump of the dependency step in the recipe | (informational: decides how much the prerequisite check must do) |
 | H9 | Tech names render in debug_log via `SCOPE.sT('t').GetName` | `pos` lines carry readable names | blank or error.log line: switch to another accessor |
 
-## Recipe for run 2
+## Recipe for run 3
 
-(Run 1's recipe is in git history, commit e10d71f.) Use a throwaway save;
-the probe really moves your queue. The game must be relaunched to pick up
-the new build.
+(Earlier recipes are in git history.) Use a throwaway save; the probe really
+moves your queue. Relaunch the game to load the new build.
 
 1. Load the save, pause, open the Technology panel.
-2. For R6, first: click a tech to research it, unpause for a few weeks so it
-   gains progress, then click a different tech (A stops). Do this before
-   building the queue, since a plain click empties it.
-3. Shift-click techs until the "..." overflow button appears (7 or more).
-   Include one tech whose prerequisite you have not researched, so the game
-   queues the prerequisite right before it. Shift-click the tech from step 2
-   back in too.
-4. Drag, one at a time:
-   a. a tech leftwards, released in the gap just left of an earlier tech;
-   b. a tech rightwards, released just right of a later tech;
-   c. a tech into the empty space right of the last shown tech;
-   d. the dependent from step 3 ahead of its prerequisite (should refuse,
-      with "X needs Y first" in red right of the row);
-   e. the prerequisite behind its dependent (should refuse);
-   f. the tech from step 2, anywhere.
-5. F12 while the red message shows, and once at the end.
-6. Tell me when done. (A relaunch is safe: the game keeps the previous five
-   logs as debug.1.log to debug.5.log, and the report reads them.)
+2. For S7, first: click a tech to research it, unpause a few weeks so it
+   gains progress, then click a different tech. Do this before building the
+   queue, since a plain click empties it.
+3. Shift-click techs until the "+N" button appears (8 or more). Include two
+   chains, e.g. Socialism (queues Labor Movement) and Film (queues Realism
+   and Camera). Shift-click the tech from step 2 back in too.
+4. Drag, one at a time, about a second apart:
+   a. a dependent ahead of its prerequisite (its prerequisite should come
+      along and land just before it);
+   b. a prerequisite behind its dependent (the dependent should come along);
+   c. a tech into a gap, and one into the space after the last tech;
+   d. open the "+N" pop-up and drag one of its techs onto the row;
+   e. the tech from step 2, anywhere.
+5. F12 once at the end (S7's progress numbers).
+6. Tell me when done. A relaunch is safe: the game keeps the previous five
+   logs, and the report reads them.
 
 Then I run `python tools/rq_probe_report.py` and `python tools/scan_logs.py`.
 
@@ -91,13 +87,6 @@ Then I run `python tools/rq_probe_report.py` and `python tools/scan_logs.py`.
 Read from `rq_probe_report.py`; the raw lines are in debug.5.log as of
 2026-11-14 (the game rotates its logs, keeping five). Only 3 techs were
 queued, so nothing sat in the overflow pop-up.
-
-### Run 2 attempt (2026-11-13, launch at 18:21)
-
-The new build loaded cleanly (the panel override registered, nothing of ours
-in error.log), but the session logged no RQ_PROBE line at all and its
-screenshots show Smart Treaties, not the tech panel. Either no drag was made
-in that launch, or no drop landed on any target. Not counted as a run.
 
 | # | Verdict | Evidence |
 |---|---|---|
@@ -123,6 +112,13 @@ Engine facts found while designing the fix (data_types, no run needed):
   CString, `Concatenate3/4` and `GetVariableSystem.Set/Get/Exists/Clear`
   exist: a prerequisite table keyed by tech names can be built in the GUI.
   Vanilla English tech names are unique (178 techs, 220 prerequisite links).
+
+### Run 2 attempt (2026-11-13, launch at 18:21)
+
+The new build loaded cleanly (the panel override registered, nothing of ours
+in error.log), but the session logged no RQ_PROBE line at all and its
+screenshots show Smart Treaties, not the tech panel. Either no drag was made
+in that launch, or no drop landed on any target. Not counted as a run.
 
 ### Run 2 design
 
@@ -157,3 +153,81 @@ lets them through.
 | R6 | a queued tech with progress above 0 is moved | its progress number is unchanged | look (H5) |
 | R7 | the whole run | no line naming this mod's files in error.log | scan_logs |
 | H2 | 6+ techs queued | the number of `pos` lines says how many queued techs the row shows | report |
+
+### Run 2 (2026-11-14, launch at 14:55)
+
+19 drops: 3 pass, 15 fail, 1 cut off at the end of the log. User saw techs
+dropped from the queue, the "needs" message appear only sometimes, a warning
+on Socialism while it sat correctly behind Labor Movement, and the queue
+moving in unexpected ways. Every one traces to two engine facts:
+
+1. **Triggered GUI states run later, in widget-tree order, not call order.**
+   `PdxGuiTriggerAllAnimations` and `TriggerAnimation` only mark a state as
+   pending; its `on_start` runs when the widget is next visited, walking the
+   tree. `GetVariableSystem` calls and expression evaluation run at once.
+   Evidence: in `drop|3|2` the `blocked|Realism` line was logged before
+   `fire_top|Realism`, yet the move ran, because the go/blocked decision had
+   been evaluated before the check state ran. The names step was just as
+   late, so the check compared against the previous drop's names (the
+   Socialism warning). And the overflow list sits after the controller in the
+   tree, so `fire_tail` ran before `fire_top` (every drop with an overflow).
+2. **Removing a tech from the queue also removes its queued dependents.**
+   Film (needs Camera) vanished each time Camera was re-queued; Political
+   Agitation (needs Socialism, Corporatism, Anarchism) and Mass Propaganda
+   (needs Political Agitation, Film) the same. So vanilla's X button already
+   removes a tech's dependents with it.
+
+H2 answered: the row shows 5 queued techs (5 `pos` lines with 6+ queued);
+the current research is not one of them. Dragging works on the row; it does
+not from the "+N" pop-up, which the probe never made draggable.
+
+### Run 3 design: move together, one pass
+
+Moving a tech takes its queued prerequisites (up) or dependents (down) with
+it. Both reduce to one pass: some techs stay in place and every other tech
+from the drop point onward is sent to the back, in queue order.
+
+- up to slot f: the dragged tech X and its prerequisites (direct or
+  indirect) stay; every other tech at position >= f goes to the back.
+- down to slot f (the end zone is down to the last shown slot): X, every
+  tech at position > f, and every dependent of X go to the back; the rest
+  stays.
+
+The queue never leaves a valid order, and a cascade never loses a tech:
+every dependent of a tech sent back is itself sent back later in the pass.
+Nothing is blocked any more, so the message goes.
+
+Ordering fixes from run 2:
+- No step waits on another state's result. The dragged tech's name is
+  recorded when the drag starts (a `trigger_on_create` state in the drag
+  widget); the drop is refused if it does not match the dropped tech, so a
+  stale name can only cancel a move, never misdirect one. The pair table
+  (now 1,182 direct and indirect pairs) is built when the panel is created
+  and again on each drop, from a widget that sits before the row in the tree.
+- The controller sits before the row and the overflow list after it, so the
+  pass visits the shown techs before the overflow ones.
+- Dropping a tech from the "+N" pop-up onto the row: the pop-up reuses the
+  vanilla type `queued_technology`, so the drag moves into that type.
+
+### Run 3 acceptance criteria (written before the code)
+
+| # | When | Pass | Read from |
+|---|---|---|---|
+| S1 | any drop | the after-order equals the expected order computed by the report from the before-order and the game's prerequisite data; no tech is lost | report PASS per drop |
+| S2 | a dependent is dropped ahead of its queued prerequisite | the prerequisite moves with it and lands right before it | report PASS + `x|` line |
+| S3 | a prerequisite is dropped behind its queued dependent | the dependent moves with it and lands right after it | report PASS |
+| S4 | 6+ techs queued, any drop | overflow techs keep their order behind the row (`fire_top` lines all before `fire_tail`) | report |
+| S5 | a tech in the "+N" pop-up is dragged onto the row | it lands at that slot, its queued prerequisites with it | report PASS |
+| S6 | every drop | a `x|<name>` line names the dragged tech; no `drop|badx` | report |
+| S7 | a queued tech with progress above 0 is moved | its progress number is unchanged | look (H5) |
+| S8 | the whole run | nothing naming this mod's files in error.log | scan_logs |
+
+The move rule was checked offline before the run: `python tools/rq_simulate.py`
+simulates it against the engine behaviour above (cascade on remove, add with
+prerequisites) over random valid queues from the real tech data: 215,029
+drops, 0 fail. That covers the rule, not the GUI wiring, which only a launch
+tests.
+
+Known edge: a drag started within a second of the previous drop can be
+refused (`drop|badx`), because the previous drop's cleanup clears the
+recorded name. Refused, never misdirected.
