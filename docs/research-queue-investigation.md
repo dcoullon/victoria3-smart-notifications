@@ -218,7 +218,7 @@ Ordering fixes from run 2:
 | S3 | a prerequisite is dropped behind its queued dependent | the dependent moves with it and lands right after it | report PASS |
 | S4 | 6+ techs queued, any drop | overflow techs keep their order behind the row (`fire_top` lines all before `fire_tail`) | report |
 | S5 | a tech in the "+N" pop-up is dragged onto the row | it lands at that slot, its queued prerequisites with it | report PASS |
-| S6 | every drop | a `x|<name>` line names the dragged tech; no `drop|badx` | report |
+| S6 | every drop | a `x|<name>` line names the dragged tech; no `drop|badx`; about one `dragstart` line per drag (a burst at panel open would mean the name is recorded at the wrong time) | report |
 | S7 | a queued tech with progress above 0 is moved | its progress number is unchanged | look (H5) |
 | S8 | the whole run | nothing naming this mod's files in error.log | scan_logs |
 

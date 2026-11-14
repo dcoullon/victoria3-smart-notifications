@@ -1469,7 +1469,7 @@ types research_queue_types
 
 					hbox = {
 						datamodel = "[AccessPlayer.GetResearchQueueTop]"
-						margin_left = 6
+						margin_left = 0
 
 						item = {
 							widget = {
@@ -2365,6 +2365,9 @@ types research_queue_types
 						alpha = 0.7
 						state = { name = rq_dragstart  trigger_on_create = yes  duration = 0  alpha = 0.7
 							on_start = "[GetVariableSystem.Set('rq_xname', Technology.GetNameNoFormatting)]"
+							# Probe: when does this fire? Once per drag is the assumption; once per
+							# tech at panel load would mean the name is stale (drops log badx).
+							on_start = "[GetScriptedGui('rq_probe_dragstart').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('t', Technology.MakeScope).End)]"
 						}
 						icon = {
 							texture = "gfx/interface/backgrounds/round_frame_dec.dds"

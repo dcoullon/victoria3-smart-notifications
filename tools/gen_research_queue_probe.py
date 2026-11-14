@@ -260,6 +260,9 @@ def queued_technology_type() -> str:
         "\t\t\t\t\t\talpha = 0.7\n"
         "\t\t\t\t\t\tstate = { name = rq_dragstart  trigger_on_create = yes  duration = 0  alpha = 0.7\n"
         f"\t\t\t\t\t\t\ton_start = \"[GetVariableSystem.Set('rq_xname', {NAME})]\"\n"
+        "\t\t\t\t\t\t\t# Probe: when does this fire? Once per drag is the assumption; once per\n"
+        "\t\t\t\t\t\t\t# tech at panel load would mean the name is stale (drops log badx).\n"
+        f"\t\t\t\t\t\t\ton_start = \"[GetScriptedGui('rq_probe_dragstart').Execute({ROOT_TECH})]\"\n"
         "\t\t\t\t\t\t}\n"
         "\t\t\t\t\t\ticon = {\n"
         "\t\t\t\t\t\t\ttexture = \"gfx/interface/backgrounds/round_frame_dec.dds\"\n"
@@ -324,7 +327,10 @@ def row(n: int) -> str:
     return (
         "hbox = {\n"
         "\t\t\t\t\t\tdatamodel = \"[AccessPlayer.GetResearchQueueTop]\"\n"
-        f"\t\t\t\t\t\tmargin_left = {20 - GAP}\n\n"
+        # Vanilla: margin 20, then the first icon. The controller before the row
+        # adds 1px plus the parent hbox's spacing of 10 (tech_tree.gui:90), and
+        # the gap 14, so 0 here puts the first icon 5px right of vanilla's.
+        "\t\t\t\t\t\tmargin_left = 0\n\n"
         "\t\t\t\t\t\titem = {\n"
         "\t\t\t\t\t\t\twidget = {\n"
         "\t\t\t\t\t\t\t\tvisible = \"[Not(Technology.IsResearching(GetPlayer.Self))]\"\n"
@@ -421,7 +427,7 @@ def build_sgui() -> str:
     for ev in ("noop", "badx"):
         out.append(sgui(f"rq_probe_drop_{ev}", f"RQ_PROBE|drop|{ev}", False))
     out.append(sgui("rq_probe_after", "RQ_PROBE|after", False))
-    for ev in ("fire_top", "fire_tail", "x"):
+    for ev in ("fire_top", "fire_tail", "x", "dragstart"):
         out.append(sgui(f"rq_probe_{ev}", f"RQ_PROBE|{ev}|{name}", True))
     return "".join(out)
 

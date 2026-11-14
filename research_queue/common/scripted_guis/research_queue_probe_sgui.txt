@@ -959,3 +959,13 @@ rq_probe_x = {
 	ai_chance = { base = 0 }
 }
 
+rq_probe_dragstart = {
+	scope = country
+	saved_scopes = { t }
+	effect = {
+		debug_log = "RQ_PROBE|dragstart|[SCOPE.sT('t').GetName]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+

@@ -183,7 +183,11 @@ def main() -> int:
         else:
             print("  PASS")
             passed += 1
-    print(f"\n{passed} pass, {failed} fail, {len(starts)} drops")
+    drags = sum(1 for e in ev if e[0] == "dragstart")
+    print(f"\ndragstart lines: {drags} for {len(starts)} drops "
+          "(about one per drag means the name is recorded at drag start; a burst "
+          "when the panel opens means it is not, and drops refuse as badx)")
+    print(f"{passed} pass, {failed} fail, {len(starts)} drops")
     return 0 if failed == 0 else 1
 
 
