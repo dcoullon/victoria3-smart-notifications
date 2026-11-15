@@ -1,4 +1,4 @@
-Store assets: Research Queue Reorder
+Store assets: Reorder Research Queue
 ====================================
 
 **Not shipped.** `package_release.py` copies only `.metadata/`, `common/`,
@@ -6,19 +6,25 @@ Store assets: Research Queue Reorder
 
 ## Title
 
-**Research Queue Reorder: drag and drop techs** (42 characters).
+**Reorder Research Queue: Drag & Drop** (35 characters). Mod name
+"Reorder Research Queue": verb first, plain English, the same words as the
+thumbnail (user's call, 2026-11-15; it replaced "Research Queue Reorder").
+The in-game tag stays "(Reorder)".
 
 The "In the past week" carousel cuts titles at about 24 to 26 characters
 (counted on 2026-11-15 screenshots: "Construction Queue: Multi...",
-"Dynamic Political Moveme..."), so the carousel shows "Research Queue
-Reorder" whole; the popular list and the item page show the rest, which
-carries the search words (drag, drop, techs). The two best-converting
-listings use the same "Name: plain benefit" shape.
+"Dynamic Political Moveme..."), so it shows "Reorder Research Queue" (22)
+whole. The popular list cuts at about 400 px: measured with Arial and Segoe
+UI at 20px (Steam's Motiva Sans is not installed here), "Oops! Victoria
+Reincarnated in Another World" fits at 401 to 405 px and "[BETA
+1.13.11]The New Order..." is cut at 387 to 410 px. "Reorder Research Queue:
+drag and drop techs" measures 400 to 420 px, on the edge; "...: Drag & Drop"
+measures 337 to 352 px, about 15% inside. "drag and drop" stays in the
+description's first sentence for search.
 
-Keyword research (Gemini, unverified; claims about Reddit scores and search
-behaviour were not checked) suggested "Research Queue: Drag & Drop". Its
-words are all in the description's first two sentences instead, which
-Steam search also covers.
+The two best-converting listings use the same "Name: plain benefit" shape.
+Keyword research (Gemini, unverified; its Reddit scores and search claims
+were not checked) suggested "Research Queue: Drag & Drop".
 
 ## Thumbnail: five options
 

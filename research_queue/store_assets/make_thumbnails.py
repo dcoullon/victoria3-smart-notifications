@@ -1,4 +1,4 @@
-"""Draw the five Workshop thumbnail options for Research Queue Reorder, and
+"""Draw the five Workshop thumbnail options for Reorder Research Queue, and
 preview each one where it will be seen: the "In the past week" carousel
 (~244px tiles, the priority) and the "most popular" list (~136px).
 
@@ -241,7 +241,39 @@ def option_e() -> Image.Image:
     return c
 
 
-OPTIONS = {"A": option_a, "B": option_b, "C": option_c, "D": option_d, "E": option_e}
+def option_b_full(bg, glow, line1, line2, stroke, arrow_fill, arrow_edge) -> Image.Image:
+    """B with the whole mod name: REORDER / RESEARCH QUEUE, one big arrow."""
+    c = Image.new("RGBA", (S, S), bg)
+    g = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+    ImageDraw.Draw(g).ellipse((-180, 200, S + 180, S + 520), fill=glow)
+    c.alpha_composite(g.filter(ImageFilter.GaussianBlur(40)))
+    d = ImageDraw.Draw(c)
+    sw = 4 if stroke else 0
+    text_center(d, 76, "REORDER", fit("REORDER", VICT, 450, 150), line1, sw, stroke)
+    text_center(d, 172, "RESEARCH QUEUE", fit("RESEARCH QUEUE", VICT, 470, 90), line2, sw, stroke)
+    ts, y = 112, 338
+    xs = [24 + i * 118 for i in range(4)]
+    c.alpha_composite(tile(HERO, ts, ghost=True), (xs[0], y))
+    for i, n in enumerate(OTHERS[:2]):
+        c.alpha_composite(tile(n, ts, i + 2), (xs[i + 1], y))
+    c.alpha_composite(tile(OTHERS[2], ts, 4), (xs[3], y))
+    arrow(c, (xs[3] + 20, y - 8), (xs[0] + 90, y - 22), -80, arrow_fill, 16, arrow_edge)
+    paste_lifted(c, tile(HERO, 132, 1), (xs[0] - 16, y - 60), angle=-8)
+    cursor(c, (xs[0] + 80, y + 20))
+    return c
+
+
+AMBER, AMBER_GLOW = (236, 170, 40, 255), (200, 130, 20, 255)
+OPTIONS = {
+    "A": option_a, "B": option_b, "C": option_c, "D": option_d, "E": option_e,
+    # 2026-11-15: B preferred; the whole name, in teal and in E's amber.
+    "B_teal_full": lambda: option_b_full((22, 128, 140, 255), (14, 92, 104, 255), (255, 255, 255),
+                                         (255, 230, 140), (8, 50, 58), (255, 214, 64, 255), (8, 50, 58, 255)),
+    "B_amber_dark": lambda: option_b_full(AMBER, AMBER_GLOW, (30, 20, 10), (120, 30, 20), None,
+                                          (255, 255, 255, 255), (60, 30, 10, 255)),
+    "B_amber_white": lambda: option_b_full(AMBER, AMBER_GLOW, (255, 255, 255), (255, 248, 225),
+                                           (70, 36, 8), (120, 30, 20, 255), (255, 240, 200, 255)),
+}
 
 
 def previews(thumbs: dict, carousel: Path | None, popular: Path | None):

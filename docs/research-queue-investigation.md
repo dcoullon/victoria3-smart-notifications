@@ -1,4 +1,4 @@
-# Research Queue Reorder: investigation and probe
+# Reorder Research Queue: investigation and probe
 
 Started 2026-11-13. Goal: drag and drop to reorder the research queue,
 limited to the techs shown in the tech panel (not the overflow pop-up), with
