@@ -1,2 +1,2 @@
 ﻿l_english:
- RQ_MOVE_TO_ROW_TOOLTIP:0 "(Reorder) Move [Technology.GetName] to the last visible slot of the research queue, together with any queued technologies it requires."
+ RQ_MOVE_TO_ROW_TOOLTIP:0 "(Reorder) Move [Technology.GetName] to the front of the research queue, together with any queued technologies it requires."

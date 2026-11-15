@@ -1,2 +1,2 @@
 ﻿l_german:
- RQ_MOVE_TO_ROW_TOOLTIP:0 "(Reorder) „[Technology.GetName]“ auf den letzten sichtbaren Platz der Forschungsreihe verschieben, zusammen mit den dafür benötigten Techniken in der Reihe."
+ RQ_MOVE_TO_ROW_TOOLTIP:0 "(Reorder) „[Technology.GetName]“ an den Anfang der Forschungsreihe verschieben, zusammen mit den dafür benötigten Techniken in der Reihe."

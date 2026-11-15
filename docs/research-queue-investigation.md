@@ -253,6 +253,7 @@ User feedback:
   nothing in error.log, so the release never reached a drop target. The
   pop-up's techs now get a button instead (vanilla's move-left icon,
   bottom-left, pop-up only) that moves the tech into the row's last slot
+  (later changed to the front of the queue, cf the final test's F2)
   with its queued prerequisites; the drag is back on the row only.
 
 ### Code review before the final test (2026-11-15)
@@ -310,11 +311,27 @@ Final test, judged by eye plus `scan_logs.py` (no RQ_PROBE lines exist now):
 | # | Do | Pass |
 |---|---|---|
 | F1 | queue 8+ techs, open "+N", hover a tech's bottom-left arrow | a tooltip in the game's language, starting "(Reorder)", no raw key |
-| F2 | click that arrow | the tech appears in the row's last slot (or just after its queued prerequisites) and leaves the pop-up |
+| F2 | click that arrow, on a tech whose prerequisite is also in the pop-up (shift-click a tech two steps down an unresearched chain, last) | the tech moves to the front of the queue, its queued prerequisites just ahead of it, and leaves the pop-up (changed from "the row's last slot" after the review found the tech could stay hidden) |
 | F3 | drag a prerequisite behind a tech that needs it (e.g. Labor Movement behind Socialism) | the dependent comes along, right after it |
 | F4 | drag a dependent ahead of its prerequisite (e.g. Socialism ahead of Labor Movement) | the prerequisite stays in front of it |
 | F5 | drop in a gap, and after the last tech | lands there |
 | F6 | look under the techs | no number |
 | F7 | after the session | `scan_logs.py`: nothing naming this mod's files |
+| F8 | research a tech for a few weeks, switch to another, shift-click the first back in, note its progress in its tooltip, drag it | the same progress in its tooltip after the move (never tested so far; the Workshop page makes no claim about it until this passes) |
 
 If any of F2 to F5 fails, the next run is with `--probe` and the report.
+
+## Roadmap
+
+- **Optional, if players ask for compatibility with tech mods (e.g.
+  Morgenröte, which the user recalls adds techs; not checked): read the
+  prerequisite links live instead of from the game files at generation
+  time.** `TechTreeLine.GetSourceTech` and `GetTargetTech` return both ends
+  of every line the tech tree draws, and `TechTreePanel` has one line list
+  per tab (vanilla 1.15.1 has no link across tabs). That would cover techs
+  added by other mods and mods that change vanilla prerequisites. The hard
+  part: the move rule needs indirect prerequisites, and GUI expressions have
+  no loops, so chains would be built by a repeated pass over the queue, one
+  frame per link (vanilla's longest chain is 10 links). Frame-ordered work
+  is what broke run 2, so budget one or two probe runs. Until then the
+  Workshop page says other mods' techs move down but not up.

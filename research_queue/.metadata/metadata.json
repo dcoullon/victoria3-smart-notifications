@@ -3,7 +3,7 @@
 	"id": "research_queue",
 	"version": "0.01",
 	"supported_game_version": "1.15.*",
-	"short_description": "Drag and drop to reorder the research queue. A tech's queued prerequisites move with it, so the queue stays valid. Uses the game's own queue commands, no cheating.",
+	"short_description": "Drag and drop techs in your research queue to reorder them. A tech's queued prerequisites move with it, so the queue stays in a valid order. Uses the game's own queue commands, no cheating.",
 	"tags": [
 		"User Interface",
 		"Utilities"

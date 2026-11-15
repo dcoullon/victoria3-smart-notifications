@@ -325,15 +325,19 @@ def queued_technology_type(n: int) -> str:
     """Vanilla's type queued_technology plus a button shown only in the "+N"
     pop-up (position > n). Run 3: a drag out of the pop-up never reached a
     drop target (three drag starts, no drop line, nothing in error.log), so a
-    click brings the tech into the row's last slot instead, with its queued
-    prerequisites. Clicks work in the pop-up: vanilla's X does."""
+    click moves the tech to the front of the queue instead, its queued
+    prerequisites just ahead of it. Clicks work in the pop-up: vanilla's X
+    does. Not "to the row's last slot": a move up keeps the tech's queued
+    prerequisites in front of it, so with one of them also in the pop-up the
+    prerequisite took the slot and the tech stayed hidden (review,
+    2026-11-15)."""
     text = VANILLA_GUI.read_text(encoding="utf-8-sig")
     start = text.index("\ttype queued_technology = ")
     body = text[start:block_at(text, start)]
     if not body.startswith("\ttype queued_technology = widget {") or not body.endswith("\n\t}"):
         sys.exit("FAIL: vanilla type queued_technology changed shape; re-read tech_tree.gui")
     button = (
-        "\n\t\t# RQ: in the \"+N\" pop-up only, move this tech into the row's last slot.\n"
+        "\n\t\t# RQ: in the \"+N\" pop-up only, move this tech to the front of the queue.\n"
         "\t\tbutton_icon_move_left = {\n"
         f"\t\t\tvisible = \"[GreaterThan_int32({POS}, {i32(n)})]\"\n"
         "\t\t\tparentanchor = bottom|left\n"
@@ -341,7 +345,7 @@ def queued_technology_type(n: int) -> str:
         "\t\t\ttooltip = \"RQ_MOVE_TO_ROW_TOOLTIP\"\n"
         f"\t\t\tonclick = \"[GetVariableSystem.Set('rq_xname', {NAME})]\"\n"
         # Refused for a tech the prerequisite table does not know (see up_to).
-        f"\t\t\tonclick = \"[PdxGuiTriggerAllAnimations(Select_CString({KNOWN}, 'rq_go_up_{n}', 'rq_noop'))]\"\n"
+        f"\t\t\tonclick = \"[PdxGuiTriggerAllAnimations(Select_CString({KNOWN}, 'rq_go_up_1', 'rq_noop'))]\"\n"
         "\t\t}\n"
     )
     return body[:-2] + button + "\t}"

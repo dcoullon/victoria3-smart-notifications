@@ -1,2 +1,2 @@
 ﻿l_simp_chinese:
- RQ_MOVE_TO_ROW_TOOLTIP:0 "(Reorder) 将[Technology.GetName]移至研究队列中最后一个可见位置，队列中它所需的科技将一同移动。"
+ RQ_MOVE_TO_ROW_TOOLTIP:0 "(Reorder) 将[Technology.GetName]移至研究队列最前面，队列中它所需的科技将一同移动。"

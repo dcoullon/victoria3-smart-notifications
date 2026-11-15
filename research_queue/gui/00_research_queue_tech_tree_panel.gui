@@ -2364,14 +2364,14 @@ types research_queue_types
 			
 		}
 
-		# RQ: in the "+N" pop-up only, move this tech into the row's last slot.
+		# RQ: in the "+N" pop-up only, move this tech to the front of the queue.
 		button_icon_move_left = {
 			visible = "[GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5')]"
 			parentanchor = bottom|left
 			size = { 25 25 }
 			tooltip = "RQ_MOVE_TO_ROW_TOOLTIP"
 			onclick = "[GetVariableSystem.Set('rq_xname', Technology.GetNameNoFormatting)]"
-			onclick = "[PdxGuiTriggerAllAnimations(Select_CString(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting)), 'rq_go_up_5', 'rq_noop'))]"
+			onclick = "[PdxGuiTriggerAllAnimations(Select_CString(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting)), 'rq_go_up_1', 'rq_noop'))]"
 		}
 	}
 }
