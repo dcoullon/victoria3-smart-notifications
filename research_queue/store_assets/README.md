@@ -108,8 +108,10 @@ Railways, Telephone, Camera, then Socialism (which queues Labor Movement
 just before it, and Dialectics too if it is not researched), so the row
 reads Railways, Telephone, Camera, Labor Movement, Socialism.
 
-ScreenToGif, region over the queue row and the current research box (no
-map: animated map pixels do not compress), about 10 fps, then:
+ScreenToGif, region over the queue row only: from just left of the first
+queued tech to just right of the "+N" button, with a little margin above
+and below (about 620 x 140 at 1920 x 1080). No map: animated map pixels do
+not compress. 15 fps (a drag looks jerky at 10), cursor shown. Then:
 
 1. drag Camera into the gap before Railways (one tech moves);
 2. drag Socialism to the first slot: Labor Movement comes along, just in
