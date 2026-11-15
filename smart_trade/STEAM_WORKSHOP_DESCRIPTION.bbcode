@@ -1,4 +1,4 @@
-﻿See the total profit and cost of treaties before you sign them (including shipping lanes), and get smart default quantities with [b]Smart Treaties mod[/b].
+﻿See the total profit and cost of treaties before you sign them (including shipping lanes), get smart default quantities, and find the best deals to make with [b]Smart Treaties mod[/b].
 
 No more hidden bad deals where you lose thousands a week without realizing it, and no more clicking around to get the right quantity.
 
@@ -17,25 +17,35 @@ No more hidden bad deals where you lose thousands a week without realizing it, a
 [*][b]Net per treaty[/b] in the outliner, with the total on the Treaties header.
 [*][b]Net per good[/b] in the treaty panel. Hover for the full breakdown, shipping lane cost included.
 [*][b]Net treaty income[/b] in the treasury tooltip, next to the game's own revenue and expenses (no need to hover on 3 different areas to see if your treaties lose money).
+[*][b]A warning when a goods transfer loses more than £100 a week[/b] 6 months in a row, naming the good and the weekly loss. Once per losing streak; renegotiating the treaty resets it.
+[/list]
+
+[h2]Which deals to make[/h2]
+
+[list]
+[*][b]Top 5 goods transfers[/b] in your market's Trade tab: what to send, to whom, how much, and the weekly profit. Recomputed every month and when you open the tab.
+[*][b]Top 3 partners for each good[/b] in that good's panel (your market's tab).
+[*][b]Only partners likely to accept.[/b] Each row shows the partner's base acceptance in brackets (hover for the game's own breakdown). Countries below 0 are left out (I never managed to get them to accept).
+[*][b]One click to the treaty.[/b] The treaty button opens a draft with that country, and the good is already picked when you add a Goods Transfer.
 [/list]
 
 [h2]Where the numbers come from[/h2]
 
-Predicted prices use the game's own price rule, at first-week prices. Signed treaties use the real buying / selling / shipping lane costs. A draft has no route yet (the game only picks one when you sign), so drafts assume a medium-length route (we use the real costs once it's signed).
+Predicted prices use the game's own price rule, at first-week prices. Signed treaties use the real buying / selling / shipping lane costs. A draft has no route yet (the game only picks one when you sign), so drafts estimate it from whether your capitals are on the same continent (we use the real costs once it's signed). Suggestions use the same rule, at the best quantity your partner fully accepts.
 
 [h2]No cheating[/h2]
 
-Display only. The buttons set the slider, exactly as you would by hand. Nothing changes your economy, your treaties or the AI.
+Display only. The buttons set the slider or open a treaty draft, exactly as you would by hand. Nothing changes your economy, your treaties or the AI.
 
 [h2]Compatibility[/h2]
 
 [list]
 [*][b]Game version 1.15.[/b]
 [*][b]Achievement compatible.[/b]
-[*][b]Save-safe.[/b] Add or remove it mid-campaign; it stores nothing in your save.
-[*][b]Single-player.[/b] The treaty totals assume one human player.
+[*][b]Save-safe.[/b] Add or remove it mid-campaign; it keeps a few numbers in your save (the suggestions and each partner's acceptance), unused if you remove it.
+[*][b]Single-player.[/b] The treaty totals and suggestions assume one human player.
 [*][b]All eleven languages Victoria 3 ships:[/b] English, Français, Deutsch, Español, Português do Brasil, Polski, Русский, 简体中文, 日本語, 한국어, Türkçe. Terms come from the game's own text, but these are not native-speaker translations. Post a correction and it goes in.
-[*][b]Conflicts:[/b] it replaces the goods transfer picker, the treaty article and influence cells, the outliner's treaty rows, and two lines of the treasury tooltip. Another mod changing those same pieces will clash.
+[*][b]Conflicts:[/b] it replaces the goods transfer picker, the treaty article and influence cells, the outliner's treaty rows, two lines of the treasury tooltip, the market panel and the goods panel. Another mod changing those same pieces will clash.
 [/list]
 
 [h2]Feedback[/h2]
