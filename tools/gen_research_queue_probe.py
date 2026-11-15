@@ -31,13 +31,18 @@ of the "+N" pop-up never reaches a drop target (run 3), so the pop-up's
 techs get a button instead (in the vanilla type queued_technology,
 redefined here) that moves them into the row's last slot.
 
-This is a PROBE: it logs (RQ_PROBE|) what it fires and dumps the queue
-before and after, read back by tools/rq_probe_report.py
-(docs/research-queue-investigation.md).
+Two builds. The default is the release build: no logging, nothing extra on
+screen, and no scripted GUI file at all (packaging strips debug_log lines,
+which would leave empty scripted GUIs wired to every drop). --probe adds the
+instrumentation: RQ_PROBE| lines for every drop, a queue dump before and
+after, a progress readout under each tech, read back by
+tools/rq_probe_report.py (docs/research-queue-investigation.md). The
+committed files are always the release build; --check compares against it.
 
 Usage:
-    python tools/gen_research_queue_probe.py           write the files
-    python tools/gen_research_queue_probe.py --check   exit 1 if stale
+    python tools/gen_research_queue_probe.py            write the release build
+    python tools/gen_research_queue_probe.py --probe    write the probe build (dev only)
+    python tools/gen_research_queue_probe.py --check    exit 1 unless the release build is current
 """
 import re
 import sys
@@ -72,6 +77,7 @@ DEP_OF_X = f"GetVariableSystem.Exists(Concatenate3({XNAME}, '>', {NAME}))"
 ROOT_ONLY = "GuiScope.SetRoot(GetPlayer.MakeScope).End"
 ROOT_TECH = "GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('t', Technology.MakeScope).End"
 BOM = "﻿"
+PROBE = False  # set by --probe in main()
 
 
 def shown_count() -> int:
@@ -191,6 +197,11 @@ def dump_parts(ind: str, tag: str) -> str:
             + "".join(states) + f"{ind}}}\n")
 
 
+def log_line(ind: str, sgui_name: str, root: str = ROOT_TECH, event: str = "on_start") -> str:
+    """A probe logging call; nothing in a release build."""
+    return f"{ind}{event} = \"[GetScriptedGui('{sgui_name}').Execute({root})]\"\n" if PROBE else ""
+
+
 def mover_parts(ind: str, log: str, member: dict) -> str:
     """One rq_mv_<dir>_<f> state per move, each gating this tech into the
     send-back set, plus the gates. `member` maps (dir, f) to a condition, or
@@ -198,24 +209,26 @@ def mover_parts(ind: str, log: str, member: dict) -> str:
     states = []
     for (d, f), cond in member.items():
         pick = "'rq_do'" if cond is None else f"Select_CString({cond}, 'rq_do', 'rq_skip')"
+        xlog = (f"{ind}\ton_start = \"[PdxGuiWidget.FindChild('rq_xgate').TriggerAnimation("
+                f"Select_CString({IS_X}, 'rq_xlog', 'rq_skip'))]\"\n") if PROBE else ""
         states.append(f"{ind}state = {{ name = rq_mv_{d}_{f}  duration = 0  alpha = 1\n"
-                      f"{ind}\ton_start = \"[PdxGuiWidget.FindChild('rq_xgate').TriggerAnimation("
-                      f"Select_CString({IS_X}, 'rq_xlog', 'rq_skip'))]\"\n"
+                      + xlog +
                       f"{ind}\ton_start = \"[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation({pick})]\"\n"
                       f"{ind}}}\n")
+    xgate = (f"{ind}widget = {{\n{ind}\tname = \"rq_xgate\"\n{ind}\tsize = {{ 1 1 }}\n"
+             f"{ind}\tstate = {{ name = rq_skip  duration = 0  alpha = 1 }}\n"
+             f"{ind}\tstate = {{ name = rq_xlog  duration = 0  alpha = 1\n"
+             + log_line(ind + "\t\t", "rq_probe_x") +
+             f"{ind}\t}}\n{ind}}}\n") if PROBE else ""
     return ("".join(states) +
             f"{ind}widget = {{\n{ind}\tname = \"rq_gate\"\n{ind}\tsize = {{ 1 1 }}\n"
             f"{ind}\tstate = {{ name = rq_skip  duration = 0  alpha = 1 }}\n"
             f"{ind}\tstate = {{ name = rq_do  duration = 0  alpha = 1\n"
-            f"{ind}\t\ton_start = \"[GetScriptedGui('{log}').Execute({ROOT_TECH})]\"\n"
+            + log_line(ind + "\t\t", log) +
             f"{ind}\t\ton_start = \"[Execute(Technology.RemoveFromQueue({PLAYER}))]\"\n"
             f"{ind}\t\ton_start = \"[Execute(Technology.AddToQueueWithUnlocks({PLAYER}))]\"\n"
             f"{ind}\t}}\n{ind}}}\n"
-            f"{ind}widget = {{\n{ind}\tname = \"rq_xgate\"\n{ind}\tsize = {{ 1 1 }}\n"
-            f"{ind}\tstate = {{ name = rq_skip  duration = 0  alpha = 1 }}\n"
-            f"{ind}\tstate = {{ name = rq_xlog  duration = 0  alpha = 1\n"
-            f"{ind}\t\ton_start = \"[GetScriptedGui('rq_probe_x').Execute({ROOT_TECH})]\"\n"
-            f"{ind}\t}}\n{ind}}}\n")
+            + xgate)
 
 
 def row_member(d: str, f: int):
@@ -253,7 +266,8 @@ def drag_block(ind: str) -> str:
         "\t\t\t\talpha = 0.7",
         "\t\t\t\tstate = { name = rq_dragstart  trigger_on_create = yes  duration = 0  alpha = 0.7",
         f"\t\t\t\t\ton_start = \"[GetVariableSystem.Set('rq_xname', {NAME})]\"",
-        f"\t\t\t\t\ton_start = \"[GetScriptedGui('rq_probe_dragstart').Execute({ROOT_TECH})]\"",
+    ] + ([f"\t\t\t\t\ton_start = \"[GetScriptedGui('rq_probe_dragstart').Execute({ROOT_TECH})]\""]
+         if PROBE else []) + [
         "\t\t\t\t}",
         "\t\t\t\ticon = {",
         "\t\t\t\t\ttexture = \"gfx/interface/backgrounds/round_frame_dec.dds\"",
@@ -290,7 +304,7 @@ def queued_technology_type(n: int) -> str:
         f"\t\t\tvisible = \"[GreaterThan_int32({POS}, {i32(n)})]\"\n"
         "\t\t\tparentanchor = bottom|left\n"
         "\t\t\tsize = { 25 25 }\n"
-        "\t\t\traw_tooltip = \"Move into the queue row\"\n"
+        "\t\t\ttooltip = \"RQ_MOVE_TO_ROW_TOOLTIP\"\n"
         f"\t\t\tonclick = \"[GetVariableSystem.Set('rq_xname', {NAME})]\"\n"
         f"\t\t\tonclick = \"[PdxGuiTriggerAllAnimations('rq_go_up_{n}')]\"\n"
         "\t\t}\n"
@@ -303,16 +317,22 @@ def controller(n: int) -> str:
     gos = []
     for d, f in moves(n):
         gos.append(f"{ind}state = {{ name = rq_go_{d}_{f}  duration = 0  alpha = 1\n"
-                   f"{ind}\ton_start = \"[GetScriptedGui('rq_probe_drop_{d}_{f}').Execute({ROOT_ONLY})]\"\n"
-                   f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_dump')]\"\n"
+                   + log_line(ind + "\t", f"rq_probe_drop_{d}_{f}", ROOT_ONLY)
+                   + (f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_dump')]\"\n" if PROBE else "") +
                    f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_edges')]\"\n"
                    f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_mv_{d}_{f}')]\"\n"
-                   f"{ind}\tnext = rq_after\n{ind}}}\n")
-    for name in ("noop", "badx"):
-        gos.append(f"{ind}state = {{ name = rq_{name}  duration = 0  alpha = 1\n"
-                   f"{ind}\ton_start = \"[GetScriptedGui('rq_probe_drop_{name}').Execute({ROOT_ONLY})]\"\n{ind}}}\n")
+                   + (f"{ind}\tnext = rq_after\n" if PROBE else "") + f"{ind}}}\n")
+    if PROBE:  # a drop that changes nothing, or a refused one, only needs a log line
+        for name in ("noop", "badx"):
+            gos.append(f"{ind}state = {{ name = rq_{name}  duration = 0  alpha = 1\n"
+                       + log_line(ind + "\t", f"rq_probe_drop_{name}", ROOT_ONLY) + f"{ind}}}\n")
     lines = [f"{ind}\t\ton_start = \"[GetVariableSystem.Set(Concatenate3(GetTechnology('{p}').GetNameNoFormatting, '>', "
              f"GetTechnology('{t}').GetNameNoFormatting), 'y')]\"\n" for p, t in ancestor_pairs()]
+    after = (f"{ind}# A second later, after the commands ran: dump the queue again.\n"
+             f"{ind}state = {{ name = rq_after  duration = 1  alpha = 1\n"
+             + log_line(ind + "\t", "rq_probe_after", ROOT_ONLY, "on_finish") +
+             f"{ind}\ton_finish = \"[PdxGuiTriggerAllAnimations('rq_dump')]\"\n"
+             f"{ind}}}\n\n") if PROBE else ""
     return (
         "# RQ: the controller, BEFORE the queue row in the widget tree, so the\n"
         "\t\t\t\t\t# states it triggers on the row and on the overflow list (after the\n"
@@ -320,12 +340,7 @@ def controller(n: int) -> str:
         "\t\t\t\t\twidget = {\n"
         "\t\t\t\t\t\tname = \"rq_controller\"\n"
         "\t\t\t\t\t\tsize = { 1 1 }\n"
-        + "".join(gos) +
-        f"{ind}# A second later, after the commands ran: dump the queue again.\n"
-        f"{ind}state = {{ name = rq_after  duration = 1  alpha = 1\n"
-        f"{ind}\ton_finish = \"[GetScriptedGui('rq_probe_after').Execute({ROOT_ONLY})]\"\n"
-        f"{ind}\ton_finish = \"[PdxGuiTriggerAllAnimations('rq_dump')]\"\n"
-        f"{ind}}}\n\n"
+        + "".join(gos) + after +
         f"{ind}# Every direct or indirect prerequisite pair, \"prerequisite>dependent\"\n"
         f"{ind}# by tech name, from the game's common/technology/technologies at\n"
         f"{ind}# generation time. Built when the panel is created and on every drop.\n"
@@ -335,6 +350,17 @@ def controller(n: int) -> str:
         f"{ind}\t}}\n{ind}}}\n"
         "\t\t\t\t\t}\n\n\t\t\t\t\t"
     )
+
+
+def probe_row_extras(ind: str) -> str:
+    """Probe only: the queue dump, and the research progress readout, shown
+    only above 0 (the case that tells whether a move keeps it)."""
+    return ("\n" + dump_parts(ind, "pos") + "\n"
+            f"{ind}textbox = {{\n"
+            f"{ind}\tvisible = \"[GreaterThan_CFixedPoint(Technology.GetProgress(GetPlayer.Self), '(CFixedPoint)0')]\"\n"
+            f"{ind}\tparentanchor = bottom|left\n{ind}\tautoresize = yes\n"
+            f"{ind}\talign = nobaseline\n"
+            f"{ind}\traw_text = \"#v [Technology.GetProgress(GetPlayer.Self)|0]#!\"\n{ind}}}\n")
 
 
 def row(n: int) -> str:
@@ -363,16 +389,8 @@ def row(n: int) -> str:
         + drag_block(ind) +
         "\t\t\t\t\t\t\t\t\t# RQ: dropped on this icon, moving left lands before it, moving right after it.\n"
         + drop_target(ind, icon_drop(n)) + "\n"
-        + mover_parts(ind, "rq_probe_fire_top", member) + "\n"
-        + dump_parts(ind, "pos") +
-        "\n"
-        f"{ind}# Probe readout: research progress, shown only above 0 (the case that\n"
-        f"{ind}# tells whether a move keeps it).\n"
-        f"{ind}textbox = {{\n"
-        f"{ind}\tvisible = \"[GreaterThan_CFixedPoint(Technology.GetProgress(GetPlayer.Self), '(CFixedPoint)0')]\"\n"
-        f"{ind}\tparentanchor = bottom|left\n{ind}\tautoresize = yes\n"
-        f"{ind}\talign = nobaseline\n"
-        f"{ind}\traw_text = \"#v [Technology.GetProgress(GetPlayer.Self)|0]#!\"\n{ind}}}\n"
+        + mover_parts(ind, "rq_probe_fire_top", member)
+        + (probe_row_extras(ind) if PROBE else "") +
         "\t\t\t\t\t\t\t\t}\n"
         "\t\t\t\t\t\t\t}\n"
         "\t\t\t\t\t\t}\n"
@@ -397,7 +415,7 @@ def end_zone_and_tail(n: int) -> str:
         f"{ind}\tdatamodel = \"[AccessPlayer.GetResearchQueueBottom]\"\n\n"
         f"{ind}\titem = {{\n{ind}\t\twidget = {{\n{ind}\t\t\tsize = {{ 1 1 }}\n"
         + mover_parts(tail_ind, "rq_probe_fire_tail", member)
-        + dump_parts(tail_ind, "tpos") +
+        + (dump_parts(tail_ind, "tpos") if PROBE else "") +
         f"{ind}\t\t}}\n{ind}\t}}\n{ind}}}\n"
         "\t\t\t\t\t}"
     )
@@ -421,6 +439,9 @@ def build_gui() -> str:
             "# GENERATED by tools/gen_research_queue_probe.py from the installed game's\n"
             "# gui/tech_tree.gui and common/technology/technologies. Do not edit by hand:\n"
             "# change the generator and re-run.\n"
+            + ("# PROBE BUILD: logs RQ_PROBE| lines and shows a progress readout. Never ship;\n"
+               "# rerun the generator without --probe for the release build.\n"
+               if PROBE else "# Release build (no logging); --probe writes the instrumented one.\n") +
             "# Redefines the vanilla types tech_tree_panel and queued_technology; the 00_\n"
             "# prefix makes this file load before tech_tree.gui, so these definitions win\n"
             "# (docs/engine-notes.md, \"A partial .gui override works\").\n"
@@ -453,12 +474,23 @@ def build_sgui() -> str:
 
 
 def main() -> int:
+    global PROBE
     check = "--check" in sys.argv[1:]
+    PROBE = "--probe" in sys.argv[1:] and not check
     if not VANILLA_GUI.is_file():
         print(f"FAIL: {VANILLA_GUI} not found (game not installed?)")
         return 1
     stale = []
-    for path, content in ((OUT_GUI, build_gui()), (OUT_SGUI, build_sgui())):
+    if not PROBE and OUT_SGUI.exists():
+        # The release build has no logging file; a leftover one from a probe
+        # build would ship as scripted GUIs nothing calls, or worse.
+        if check:
+            stale.append(OUT_SGUI)
+        else:
+            OUT_SGUI.unlink()
+            print(f"removed {OUT_SGUI.relative_to(REPO)} (probe only)")
+    outputs = [(OUT_GUI, build_gui())] + ([(OUT_SGUI, build_sgui())] if PROBE else [])
+    for path, content in outputs:
         # Normalise line endings: git's autocrlf rewrites these files to CRLF
         # on checkout, which must not read as a stale generation.
         current = path.read_text(encoding="utf-8").replace("\r\n", "\n") if path.exists() else None

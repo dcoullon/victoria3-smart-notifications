@@ -255,11 +255,28 @@ User feedback:
   bottom-left, pop-up only) that moves the tech into the row's last slot
   with its queued prerequisites; the drag is back on the row only.
 
-### Run 4 acceptance criteria
+### Release build and final test (written before the run)
 
-| # | When | Pass | Read from |
-|---|---|---|---|
-| T1 | the pop-up button is clicked on a tech | a `drop|up|5` with `x|` naming it; it lands at slot 5, or right after its prerequisites in the pop-up | report PASS |
-| T2 | a prerequisite is dragged behind its queued dependent (S3) | the dependent comes along, right after it | report PASS |
-| T3 | a tech with progress above 0 is moved (S7) | its number shows and is unchanged after the move | look |
-| T4 | no progress anywhere | no number under any tech | look |
+From here the committed build is the release build: no logging, nothing
+extra on screen, no scripted GUI file. `gen_research_queue_probe.py
+--probe` writes the instrumented build back for diagnosis; it fails
+validation on purpose (it is not the committed build), so it cannot be
+packaged by accident. Same move logic as run 3's 10 of 10.
+
+The pop-up button's tooltip is the mod's only text: key
+`RQ_MOVE_TO_ROW_TOOLTIP`, tagged "(Reorder)", in all 11 languages, with
+vanilla's own terms (RESEARCH_QUEUE, concept_technology; German "Technik").
+
+Final test, judged by eye plus `scan_logs.py` (no RQ_PROBE lines exist now):
+
+| # | Do | Pass |
+|---|---|---|
+| F1 | queue 8+ techs, open "+N", hover a tech's bottom-left arrow | a tooltip in the game's language, starting "(Reorder)", no raw key |
+| F2 | click that arrow | the tech appears in the row's last slot (or just after its queued prerequisites) and leaves the pop-up |
+| F3 | drag a prerequisite behind a tech that needs it (e.g. Labor Movement behind Socialism) | the dependent comes along, right after it |
+| F4 | drag a dependent ahead of its prerequisite (e.g. Socialism ahead of Labor Movement) | the prerequisite stays in front of it |
+| F5 | drop in a gap, and after the last tech | lands there |
+| F6 | look under the techs | no number |
+| F7 | after the session | `scan_logs.py`: nothing naming this mod's files |
+
+If any of F2 to F5 fails, the next run is with `--probe` and the report.

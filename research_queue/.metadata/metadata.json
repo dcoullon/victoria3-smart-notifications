@@ -1,9 +1,9 @@
 {
-	"name": "Research Queue Reorder - Dev (probe)",
+	"name": "Research Queue Reorder - Dev",
 	"id": "research_queue",
 	"version": "0.01",
 	"supported_game_version": "1.15.*",
-	"short_description": "Dev-only probe: drag and drop to reorder the research queue. Logs RQ_PROBE lines. Never upload.",
+	"short_description": "Drag and drop to reorder the research queue. A tech's queued prerequisites move with it, so the queue stays valid. Uses the game's own queue commands, no cheating.",
 	"tags": [
 		"User Interface",
 		"Utilities"
