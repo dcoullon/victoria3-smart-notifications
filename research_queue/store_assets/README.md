@@ -6,7 +6,11 @@ Store assets: Reorder Research Queue
 
 ## Title
 
-**Reorder Research Queue: Drag & Drop** (35 characters). Mod name
+**Reorder Research Queue: drag&drop techs** (39 characters; user's call,
+2026-11-15). Measured 373 to 388 px against the ~400 px cut below, so it
+fits with a thinner margin than "Drag & Drop" (337 to 352). Steam search
+may not split "drag&drop", so the description's first sentence keeps
+"drag and drop". Mod name
 "Reorder Research Queue": verb first, plain English, the same words as the
 thumbnail (user's call, 2026-11-15; it replaced "Research Queue Reorder").
 The in-game tag stays "(Reorder)".
@@ -26,7 +30,13 @@ The two best-converting listings use the same "Name: plain benefit" shape.
 Keyword research (Gemini, unverified; its Reddit scores and search claims
 were not checked) suggested "Research Queue: Drag & Drop".
 
-## Thumbnail: five options
+## Thumbnail
+
+**Chosen: `thumb_B_amber_dark.png`** (copied to `../thumbnail.png`, user's
+call 2026-11-15): option B's layout with the whole name, on E's amber.
+Teal B nearly merged with the dark green Construction Queue tile beside it
+in the carousel; amber is the brightest tile in the row, and dark text read
+more easily than white with an outline (`previews/b_variants_carousel.png`).
 
 `make_thumbnails.py` draws them from the game's own art (tech icons, the
 queue's round frame and badge, the pointer cursor; Playfair Display and EB
