@@ -17,8 +17,9 @@ prerequisite data, independently of the GUI:
 
     up to f   : the dragged tech X and its prerequisites (direct or indirect)
                 stay; every other tech at position >= f goes to the back
-    down to f : X, every tech at position > f, and every dependent of X go
-                to the back
+    down to f : X, every tech at position > f, and every tech after X that
+                depends on it or is another mod's (unknown to the game's
+                files) go to the back
 
 Expected order = the techs that stay, then the sent-back ones, each in their
 original order. A drop passes when the after-order matches, the techs sent
@@ -33,7 +34,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from vic3_paths import VIC3_USER_DIR  # noqa: E402
-from gen_research_queue_probe import VANILLA_ROOT, ancestor_pairs  # noqa: E402
+from gen_research_queue_probe import VANILLA_ROOT, ancestor_pairs, known_techs  # noqa: E402
 
 LINE = re.compile(r"RQ_PROBE\|(.*)$")
 # GetName in script dynamic text wraps the name in tooltip markup:
@@ -70,16 +71,19 @@ def game_loc(language: str) -> dict[str, str]:
     return {k: resolve(v) for k, v in loc.items()}
 
 
-def ancestors_by_name() -> dict[str, set[str]]:
-    """Tech name -> names of its direct and indirect prerequisites, in every
-    game language (the log carries names in the player's language; run 3 was
-    played in French)."""
+def ancestors_by_name() -> tuple[dict[str, set[str]], set[str]]:
+    """Tech name -> names of its direct and indirect prerequisites, and the
+    names of every tech the game's files define, in every game language (the
+    log carries names in the player's language; run 3 was played in French).
+    A name outside the second set is another mod's tech."""
     out: dict[str, set[str]] = {}
+    known: set[str] = set()
     for language in LANGUAGES:
         loc = game_loc(language)
         for p, t in ancestor_pairs():
             out.setdefault(loc.get(t, t), set()).add(loc.get(p, p))
-    return out
+        known |= {loc.get(k, k) for k in known_techs()}
+    return out, known
 
 
 def read_events(log: Path) -> list[list[str]]:
@@ -120,7 +124,7 @@ def main() -> int:
               "or no drop ever landed.")
         return 1
     print(f"reading {log.name}")
-    anc = ancestors_by_name()
+    anc, known = ancestors_by_name()
 
     starts = [i for i, e in enumerate(ev) if e[0] == "drop"]
     passed = failed = 0
@@ -172,8 +176,9 @@ def main() -> int:
             members = [t for p, t in enumerate(before, base)
                        if p >= f and t != x and t not in anc.get(x, set())]
         else:
+            xpos = before.index(x) + base
             members = [t for p, t in enumerate(before, base)
-                       if t == x or p > f or x in anc.get(t, set())]
+                       if t == x or p > f or (p > xpos and (x in anc.get(t, set()) or t not in known))]
         expected = [t for t in before if t not in members] + members
         fired = [e[1] for e in fires]
         problems = []

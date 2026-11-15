@@ -255,6 +255,44 @@ User feedback:
   bottom-left, pop-up only) that moves the tech into the row's last slot
   with its queued prerequisites; the drag is back on the row only.
 
+### Code review before the final test (2026-11-15)
+
+Fixed:
+- **Pan-nationalism was missing from the prerequisite table.** Its key has a
+  hyphen and the reader matched `\w+` only, so its link to Nationalism and
+  every indirect pair through it (26) were absent: dragging Pan-nationalism
+  ahead of a queued Nationalism would have sent Nationalism back and the
+  cascade would have dropped Pan-nationalism from the queue. Now 179 techs,
+  221 direct links, 1,208 pairs.
+- **Techs added by other mods could be dropped from the queue.** The table
+  only knows the game's own techs. Simulated with 40 synthetic modded techs
+  (each requiring one or two vanilla techs, sometimes another modded one):
+  the run 3 rule lost a queued tech in 17,322 of 205,325 drops. Now an
+  unknown tech cannot be moved up (its unseen prerequisites would be sent
+  behind it), and on a down move unknown techs between the two slots travel
+  with the dragged tech. Down moves are keyed by (from, to) for that.
+  `rq_simulate.py` (now with the synthetic techs by default): 270,800
+  drops, 0 fail, 35,342 refused; 239,962 without them, 0 fail.
+- New static check `check_rq_tech_names_unique`: the table is keyed by
+  display name, so every game tech must have a name, unique, without the
+  `>` separator, in all 11 languages (true for 1.15.1; a patch could break
+  it). Proven to fire on an injected duplicate.
+
+Checked, no change needed:
+- Re-issuing remove for a tech the cascade already removed: run 3 did this
+  (Steam Donkey, then Pumpjacks) and the session's error.log has nothing.
+- The "Animation triggered has no valid state properties" warnings (64 per
+  burst) come from a 15:38 to 15:41 session with no queue drop; the session
+  with run 3's drops has none.
+
+Known limits, for the Workshop description:
+- Mods that change the game's own techs (their prerequisites, or removing
+  one) make the table wrong; not supported.
+- Mods that redefine the tech panel or `queued_technology`: this mod's
+  definitions load first and win, so the other mod's changes to those two
+  types would not show.
+- A tech added by another mod can be dragged down but not up.
+
 ### Release build and final test (written before the run)
 
 From here the committed build is the release build: no logging, nothing

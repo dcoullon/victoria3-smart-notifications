@@ -1355,6 +1355,40 @@ def check_rq_generated_files_current(root: Path) -> list[str]:
     return []
 
 
+def check_rq_tech_names_unique(root: Path) -> list[str]:
+    """Research Queue keys its prerequisite table by tech display name
+    (GetNameNoFormatting: the GUI has no tech key accessor). Two techs sharing
+    a name in any language would merge their prerequisites in that language,
+    and a move could then send a real prerequisite behind its dependent; the
+    cascade on removal would drop the dependent from the queue. Verified
+    unique in all 11 languages on 2026-11-15 (1.15.1); a patch can change it."""
+    if not VANILLA_ROOT.is_dir():
+        _skip("research queue tech names", "Victoria 3 not installed on this machine")
+        return []
+    sys.path.insert(0, str(REPO_ROOT / "tools"))
+    from gen_research_queue_probe import known_techs
+    from rq_probe_report import LANGUAGES, game_loc
+    errs = []
+    keys = known_techs()
+    for language in LANGUAGES:
+        loc = game_loc(language)
+        seen: dict[str, str] = {}
+        for k in keys:
+            name = loc.get(k)
+            if name is None:
+                errs.append(f"research queue: tech '{k}' has no {language} name; the table "
+                            f"would key it by the raw key while the game shows something else")
+            elif name in seen:
+                errs.append(f"research queue: techs '{seen[name]}' and '{k}' share the {language} "
+                            f"name \"{name}\"; the prerequisite table cannot tell them apart")
+            elif ">" in name:
+                errs.append(f"research queue: tech '{k}' {language} name contains '>', the "
+                            f"table's separator")
+            else:
+                seen[name] = k
+    return errs
+
+
 def check_no_nested_int_to_fixed_point(root: Path) -> list[str]:
     """`IntToFixedPoint(...)` used as an argument of another call fails at
     fetch time and blanks the widget (or silently does nothing in an
@@ -2333,6 +2367,7 @@ def run_all(root: Path) -> list[str]:
     if read_mod_id(root) == RESEARCH_QUEUE_ID:
         errs += check_no_cheat_verbs(root)
         errs += check_rq_generated_files_current(root)
+        errs += check_rq_tech_names_unique(root)
 
     return errs
 

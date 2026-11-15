@@ -74,6 +74,10 @@ XNAME = "GetVariableSystem.Get('rq_xname')"
 IS_X = f"EqualTo_string({NAME}, {XNAME})"
 PRE_OF_X = f"GetVariableSystem.Exists(Concatenate3({NAME}, '>', {XNAME}))"
 DEP_OF_X = f"GetVariableSystem.Exists(Concatenate3({XNAME}, '>', {NAME}))"
+# In the prerequisite table, i.e. a tech of the game's own files at generation
+# time. Techs added by other mods are not, and are handled conservatively.
+KNOWN = f"GetVariableSystem.Exists(Concatenate('rq_known_', {NAME}))"
+KNOWN_DRAGGED = f"GetVariableSystem.Exists(Concatenate('rq_known_', {DRAGGED}.GetNameNoFormatting))"
 ROOT_ONLY = "GuiScope.SetRoot(GetPlayer.MakeScope).End"
 ROOT_TECH = "GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('t', Technology.MakeScope).End"
 BOM = "﻿"
@@ -108,7 +112,7 @@ def prereq_edges() -> list[tuple[str, str]]:
     edges = []
     for f in sorted(TECH_DIR.glob("*.txt")):
         text = re.sub(r"#[^\n]*", "", f.read_text(encoding="utf-8-sig"))
-        for m in re.finditer(r"^(\w+)\s*=\s*\{", text, re.M):
+        for m in re.finditer(r"^([\w\-]+)\s*=\s*\{", text, re.M):  # vanilla has pan-nationalism
             body = text[m.start():block_at(text, m.start())]
             u = re.search(r"unlocking_technologies\s*=\s*\{([^}]*)\}", body)
             if u:
@@ -135,6 +139,15 @@ def ancestor_pairs() -> list[tuple[str, str]]:
     return sorted((p, t) for t in direct for p in anc(t))
 
 
+def known_techs() -> list[str]:
+    """Every tech the game's own files define, with or without prerequisites."""
+    keys = set()
+    for f in sorted(TECH_DIR.glob("*.txt")):
+        text = re.sub(r"#[^\n]*", "", f.read_text(encoding="utf-8-sig"))
+        keys |= set(re.findall(r"^([\w\-]+)\s*=\s*\{", text, re.M))
+    return sorted(keys)
+
+
 def i32(n: int) -> str:
     return f"'(int32){n}'"
 
@@ -146,8 +159,16 @@ def ladder(cases: list[tuple[str, str]], default: str) -> str:
     return expr
 
 
-def moves(n: int) -> list[tuple[str, int]]:
-    return [("up", f) for f in range(1, n + 1)] + [("down", f) for f in range(2, n + 1)]
+def moves(n: int) -> list[tuple[str, int | None, int]]:
+    """Every move as (direction, from, to). An up move does not depend on
+    where the tech came from, so `from` is None; a down move does (unknown
+    techs between the two slots travel with it)."""
+    return ([("up", None, f) for f in range(1, n + 1)]
+            + [("down", x, f) for f in range(2, n + 1) for x in range(1, f)])
+
+
+def mkey(d: str, x: int | None, f: int) -> str:
+    return f"up_{f}" if d == "up" else f"down_{x}_{f}"
 
 
 def guarded(cases: list[tuple[str, str]]) -> str:
@@ -160,26 +181,35 @@ def at(k: int, cond: str) -> str:
     return f"And(EqualTo_int32({POS}, {i32(k)}), {cond})"
 
 
+def up_to(k: int) -> str:
+    """Moving up needs the dragged tech in the prerequisite table: an unknown
+    tech's prerequisites would be sent behind it, and the cascade on removal
+    would take the tech out of the queue (simulated with modded techs)."""
+    return f"And(GreaterThan_int32({DRAGGED_POS}, {i32(k)}), {KNOWN_DRAGGED})"
+
+
+def down_from(x: int) -> str:
+    return f"EqualTo_int32({DRAGGED_POS}, {i32(x)})"
+
+
 def icon_drop(n: int) -> str:
     cases = []
     for k in range(1, n + 1):
-        cases.append((at(k, f"GreaterThan_int32({DRAGGED_POS}, {i32(k)})"), f"rq_go_up_{k}"))
-        if k >= 2:
-            cases.append((at(k, f"LessThan_int32({DRAGGED_POS}, {i32(k)})"), f"rq_go_down_{k}"))
+        cases.append((at(k, up_to(k)), f"rq_go_up_{k}"))
+        cases += [(at(k, down_from(x)), f"rq_go_down_{x}_{k}") for x in range(1, k)]
     return guarded(cases)
 
 
 def gap_drop(n: int) -> str:
     cases = []
     for k in range(1, n + 1):
-        cases.append((at(k, f"GreaterThan_int32({DRAGGED_POS}, {i32(k)})"), f"rq_go_up_{k}"))
-        if k >= 3:
-            cases.append((at(k, f"LessThan_int32({DRAGGED_POS}, {i32(k - 1)})"), f"rq_go_down_{k - 1}"))
+        cases.append((at(k, up_to(k)), f"rq_go_up_{k}"))
+        cases += [(at(k, down_from(x)), f"rq_go_down_{x}_{k - 1}") for x in range(1, k - 1)]
     return guarded(cases)
 
 
 def end_drop(n: int) -> str:
-    return guarded([(f"LessThan_int32({DRAGGED_POS}, {i32(n)})", f"rq_go_down_{n}")])
+    return guarded([(down_from(x), f"rq_go_down_{x}_{n}") for x in range(1, n)])
 
 
 def dump_parts(ind: str, tag: str) -> str:
@@ -203,15 +233,15 @@ def log_line(ind: str, sgui_name: str, root: str = ROOT_TECH, event: str = "on_s
 
 
 def mover_parts(ind: str, log: str, member: dict) -> str:
-    """One rq_mv_<dir>_<f> state per move, each gating this tech into the
-    send-back set, plus the gates. `member` maps (dir, f) to a condition, or
-    to None for "always"."""
+    """One rq_mv_<move> state per move, each gating this tech into the
+    send-back set, plus the gates. `member` maps a move key (mkey) to a
+    condition, or to None for "always"."""
     states = []
-    for (d, f), cond in member.items():
+    for key, cond in member.items():
         pick = "'rq_do'" if cond is None else f"Select_CString({cond}, 'rq_do', 'rq_skip')"
         xlog = (f"{ind}\ton_start = \"[PdxGuiWidget.FindChild('rq_xgate').TriggerAnimation("
                 f"Select_CString({IS_X}, 'rq_xlog', 'rq_skip'))]\"\n") if PROBE else ""
-        states.append(f"{ind}state = {{ name = rq_mv_{d}_{f}  duration = 0  alpha = 1\n"
+        states.append(f"{ind}state = {{ name = rq_mv_{key}  duration = 0  alpha = 1\n"
                       + xlog +
                       f"{ind}\ton_start = \"[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation({pick})]\"\n"
                       f"{ind}}}\n")
@@ -231,13 +261,17 @@ def mover_parts(ind: str, log: str, member: dict) -> str:
             + xgate)
 
 
-def row_member(d: str, f: int):
+def row_member(d: str, x: int | None, f: int):
     if d == "up":
         return f"And(GreaterThan_int32({POS}, {i32(f - 1)}), Not(Or({IS_X}, {PRE_OF_X})))"
-    return f"Or({IS_X}, Or(GreaterThan_int32({POS}, {i32(f)}), {DEP_OF_X}))"
+    # Down: a tech between the two slots goes with X if it depends on X, or if
+    # the table does not know it (another mod's tech, possibly requiring X;
+    # left behind, the cascade on X's removal would take it out of the queue).
+    between = f"And(GreaterThan_int32({POS}, {i32(x)}), Or({DEP_OF_X}, Not({KNOWN})))"
+    return f"Or({IS_X}, Or(GreaterThan_int32({POS}, {i32(f)}), {between}))"
 
 
-def tail_member(d: str, f: int):
+def tail_member(d: str, x: int | None, f: int):
     # Overflow techs sit beyond every slot f; on a down move all of them go.
     return f"Not(Or({IS_X}, {PRE_OF_X}))" if d == "up" else None
 
@@ -306,7 +340,8 @@ def queued_technology_type(n: int) -> str:
         "\t\t\tsize = { 25 25 }\n"
         "\t\t\ttooltip = \"RQ_MOVE_TO_ROW_TOOLTIP\"\n"
         f"\t\t\tonclick = \"[GetVariableSystem.Set('rq_xname', {NAME})]\"\n"
-        f"\t\t\tonclick = \"[PdxGuiTriggerAllAnimations('rq_go_up_{n}')]\"\n"
+        # Refused for a tech the prerequisite table does not know (see up_to).
+        f"\t\t\tonclick = \"[PdxGuiTriggerAllAnimations(Select_CString({KNOWN}, 'rq_go_up_{n}', 'rq_noop'))]\"\n"
         "\t\t}\n"
     )
     return body[:-2] + button + "\t}"
@@ -315,12 +350,13 @@ def queued_technology_type(n: int) -> str:
 def controller(n: int) -> str:
     ind = "\t\t\t\t\t\t"
     gos = []
-    for d, f in moves(n):
-        gos.append(f"{ind}state = {{ name = rq_go_{d}_{f}  duration = 0  alpha = 1\n"
-                   + log_line(ind + "\t", f"rq_probe_drop_{d}_{f}", ROOT_ONLY)
+    for d, x, f in moves(n):
+        key = mkey(d, x, f)
+        gos.append(f"{ind}state = {{ name = rq_go_{key}  duration = 0  alpha = 1\n"
+                   + log_line(ind + "\t", f"rq_probe_drop_{key}", ROOT_ONLY)
                    + (f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_dump')]\"\n" if PROBE else "") +
                    f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_edges')]\"\n"
-                   f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_mv_{d}_{f}')]\"\n"
+                   f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_mv_{key}')]\"\n"
                    + (f"{ind}\tnext = rq_after\n" if PROBE else "") + f"{ind}}}\n")
     if PROBE:  # a drop that changes nothing, or a refused one, only needs a log line
         for name in ("noop", "badx"):
@@ -328,6 +364,8 @@ def controller(n: int) -> str:
                        + log_line(ind + "\t", f"rq_probe_drop_{name}", ROOT_ONLY) + f"{ind}}}\n")
     lines = [f"{ind}\t\ton_start = \"[GetVariableSystem.Set(Concatenate3(GetTechnology('{p}').GetNameNoFormatting, '>', "
              f"GetTechnology('{t}').GetNameNoFormatting), 'y')]\"\n" for p, t in ancestor_pairs()]
+    lines += [f"{ind}\t\ton_start = \"[GetVariableSystem.Set(Concatenate('rq_known_', "
+              f"GetTechnology('{k}').GetNameNoFormatting), 'y')]\"\n" for k in known_techs()]
     after = (f"{ind}# A second later, after the commands ran: dump the queue again.\n"
              f"{ind}state = {{ name = rq_after  duration = 1  alpha = 1\n"
              + log_line(ind + "\t", "rq_probe_after", ROOT_ONLY, "on_finish") +
@@ -365,7 +403,7 @@ def probe_row_extras(ind: str) -> str:
 
 def row(n: int) -> str:
     ind = "\t\t\t\t\t\t\t\t\t"
-    member = {(d, f): row_member(d, f) for d, f in moves(n)}
+    member = {mkey(d, x, f): row_member(d, x, f) for d, x, f in moves(n)}
     return (
         "hbox = {\n"
         "\t\t\t\t\t\tdatamodel = \"[AccessPlayer.GetResearchQueueTop]\"\n"
@@ -401,7 +439,7 @@ def row(n: int) -> str:
 def end_zone_and_tail(n: int) -> str:
     ind = "\t\t\t\t\t\t"
     tail_ind = ind + "\t\t\t"
-    member = {(d, f): tail_member(d, f) for d, f in moves(n)}
+    member = {mkey(d, x, f): tail_member(d, x, f) for d, x, f in moves(n)}
     return (
         "\t\t\t\t\t# RQ: the zone right of the last shown tech (\"after the last shown\"),\n"
         "\t\t\t\t\t# holding a hidden copy of the overflow list, AFTER the row in the\n"
@@ -463,8 +501,8 @@ def build_sgui() -> str:
         for p in range(1, DUMP_MAX + 1):
             out.append(sgui(f"rq_probe_{tag}_{p}", f"RQ_PROBE|{tag}|{p}|{name}", True))
         out.append(sgui(f"rq_probe_{tag}_over", f"RQ_PROBE|{tag}|over|{name}", True))
-    for d, f in moves(shown_count()):
-        out.append(sgui(f"rq_probe_drop_{d}_{f}", f"RQ_PROBE|drop|{d}|{f}", False))
+    for d, x, f in moves(shown_count()):
+        out.append(sgui(f"rq_probe_drop_{mkey(d, x, f)}", f"RQ_PROBE|drop|{d}|{f}", False))
     for ev in ("noop", "badx"):
         out.append(sgui(f"rq_probe_drop_{ev}", f"RQ_PROBE|drop|{ev}", False))
     out.append(sgui("rq_probe_after", "RQ_PROBE|after", False))

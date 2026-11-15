@@ -221,21 +221,45 @@ types research_queue_types
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_up_5')]"
 						}
-						state = { name = rq_go_down_2  duration = 0  alpha = 1
+						state = { name = rq_go_down_1_2  duration = 0  alpha = 1
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
-							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_2')]"
+							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_1_2')]"
 						}
-						state = { name = rq_go_down_3  duration = 0  alpha = 1
+						state = { name = rq_go_down_1_3  duration = 0  alpha = 1
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
-							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_3')]"
+							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_1_3')]"
 						}
-						state = { name = rq_go_down_4  duration = 0  alpha = 1
+						state = { name = rq_go_down_2_3  duration = 0  alpha = 1
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
-							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_4')]"
+							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_2_3')]"
 						}
-						state = { name = rq_go_down_5  duration = 0  alpha = 1
+						state = { name = rq_go_down_1_4  duration = 0  alpha = 1
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
-							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_5')]"
+							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_1_4')]"
+						}
+						state = { name = rq_go_down_2_4  duration = 0  alpha = 1
+							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
+							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_2_4')]"
+						}
+						state = { name = rq_go_down_3_4  duration = 0  alpha = 1
+							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
+							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_3_4')]"
+						}
+						state = { name = rq_go_down_1_5  duration = 0  alpha = 1
+							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
+							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_1_5')]"
+						}
+						state = { name = rq_go_down_2_5  duration = 0  alpha = 1
+							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
+							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_2_5')]"
+						}
+						state = { name = rq_go_down_3_5  duration = 0  alpha = 1
+							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
+							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_3_5')]"
+						}
+						state = { name = rq_go_down_4_5  duration = 0  alpha = 1
+							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
+							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_4_5')]"
 						}
 						# Every direct or indirect prerequisite pair, "prerequisite>dependent"
 						# by tech name, from the game's common/technology/technologies at
@@ -499,8 +523,10 @@ types research_queue_types
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('democracy').GetNameNoFormatting, '>', GetTechnology('malaria_prevention').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('democracy').GetNameNoFormatting, '>', GetTechnology('mass_communication').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('democracy').GetNameNoFormatting, '>', GetTechnology('mass_propaganda').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('democracy').GetNameNoFormatting, '>', GetTechnology('multilateral_alliances').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('democracy').GetNameNoFormatting, '>', GetTechnology('nationalism').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('democracy').GetNameNoFormatting, '>', GetTechnology('organized_sports').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('democracy').GetNameNoFormatting, '>', GetTechnology('pan-nationalism').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('democracy').GetNameNoFormatting, '>', GetTechnology('political_agitation').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('democracy').GetNameNoFormatting, '>', GetTechnology('socialism').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('dialectics').GetNameNoFormatting, '>', GetTechnology('mass_propaganda').GetNameNoFormatting), 'y')]"
@@ -709,9 +735,14 @@ types research_queue_types
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('international_relations').GetNameNoFormatting, '>', GetTechnology('antibiotics').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('international_relations').GetNameNoFormatting, '>', GetTechnology('civilizing_mission').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('international_relations').GetNameNoFormatting, '>', GetTechnology('colonization').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('international_relations').GetNameNoFormatting, '>', GetTechnology('corporatism').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('international_relations').GetNameNoFormatting, '>', GetTechnology('malaria_prevention').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('international_relations').GetNameNoFormatting, '>', GetTechnology('mass_propaganda').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('international_relations').GetNameNoFormatting, '>', GetTechnology('multilateral_alliances').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('international_relations').GetNameNoFormatting, '>', GetTechnology('nationalism').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('international_relations').GetNameNoFormatting, '>', GetTechnology('organized_sports').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('international_relations').GetNameNoFormatting, '>', GetTechnology('pan-nationalism').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('international_relations').GetNameNoFormatting, '>', GetTechnology('political_agitation').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('international_relations').GetNameNoFormatting, '>', GetTechnology('quinine').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('international_trade').GetNameNoFormatting, '>', GetTechnology('banking').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('international_trade').GetNameNoFormatting, '>', GetTechnology('central_banking').GetNameNoFormatting), 'y')]"
@@ -878,8 +909,10 @@ types research_queue_types
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('mass_communication').GetNameNoFormatting, '>', GetTechnology('labor_movement').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('mass_communication').GetNameNoFormatting, '>', GetTechnology('malaria_prevention').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('mass_communication').GetNameNoFormatting, '>', GetTechnology('mass_propaganda').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('mass_communication').GetNameNoFormatting, '>', GetTechnology('multilateral_alliances').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('mass_communication').GetNameNoFormatting, '>', GetTechnology('nationalism').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('mass_communication').GetNameNoFormatting, '>', GetTechnology('organized_sports').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('mass_communication').GetNameNoFormatting, '>', GetTechnology('pan-nationalism').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('mass_communication').GetNameNoFormatting, '>', GetTechnology('political_agitation').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('mass_communication').GetNameNoFormatting, '>', GetTechnology('socialism').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('mechanical_tools').GetNameNoFormatting, '>', GetTechnology('conveyors').GetNameNoFormatting), 'y')]"
@@ -964,8 +997,13 @@ types research_queue_types
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('napoleonic_warfare').GetNameNoFormatting, '>', GetTechnology('wargaming').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('nationalism').GetNameNoFormatting, '>', GetTechnology('antibiotics').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('nationalism').GetNameNoFormatting, '>', GetTechnology('civilizing_mission').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('nationalism').GetNameNoFormatting, '>', GetTechnology('corporatism').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('nationalism').GetNameNoFormatting, '>', GetTechnology('malaria_prevention').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('nationalism').GetNameNoFormatting, '>', GetTechnology('mass_propaganda').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('nationalism').GetNameNoFormatting, '>', GetTechnology('multilateral_alliances').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('nationalism').GetNameNoFormatting, '>', GetTechnology('organized_sports').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('nationalism').GetNameNoFormatting, '>', GetTechnology('pan-nationalism').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('nationalism').GetNameNoFormatting, '>', GetTechnology('political_agitation').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('navigation').GetNameNoFormatting, '>', GetTechnology('admiralty').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('navigation').GetNameNoFormatting, '>', GetTechnology('battlefleet_tactics').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('navigation').GetNameNoFormatting, '>', GetTechnology('battleship_tech').GetNameNoFormatting), 'y')]"
@@ -1092,8 +1130,10 @@ types research_queue_types
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('rationalism').GetNameNoFormatting, '>', GetTechnology('mass_communication').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('rationalism').GetNameNoFormatting, '>', GetTechnology('mass_propaganda').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('rationalism').GetNameNoFormatting, '>', GetTechnology('medical_degrees').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('rationalism').GetNameNoFormatting, '>', GetTechnology('multilateral_alliances').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('rationalism').GetNameNoFormatting, '>', GetTechnology('nationalism').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('rationalism').GetNameNoFormatting, '>', GetTechnology('organized_sports').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('rationalism').GetNameNoFormatting, '>', GetTechnology('pan-nationalism').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('rationalism').GetNameNoFormatting, '>', GetTechnology('pharmaceuticals').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('rationalism').GetNameNoFormatting, '>', GetTechnology('philosophical_pragmatism').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('rationalism').GetNameNoFormatting, '>', GetTechnology('political_agitation').GetNameNoFormatting), 'y')]"
@@ -1333,6 +1373,7 @@ types research_queue_types
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('colonization').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('corporate_charters').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('corporate_management').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('corporatism').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('currency_standards').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('identification_documents').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('international_exchange_standards').GetNameNoFormatting), 'y')]"
@@ -1343,11 +1384,15 @@ types research_queue_types
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('law_enforcement').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('macroeconomics').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('malaria_prevention').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('mass_propaganda').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('mass_surveillance').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('modern_financial_instruments').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('multilateral_alliances').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('mutual_funds').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('nationalism').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('organized_sports').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('pan-nationalism').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('political_agitation').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('postal_savings').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('quinine').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('tech_bureaucracy').GetNameNoFormatting, '>', GetTechnology('stock_exchange').GetNameNoFormatting), 'y')]"
@@ -1376,6 +1421,7 @@ types research_queue_types
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('colonization').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('corporate_charters').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('corporate_management').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('corporatism').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('currency_standards').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('elevator').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('identification_documents').GetNameNoFormatting), 'y')]"
@@ -1387,13 +1433,17 @@ types research_queue_types
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('law_enforcement').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('macroeconomics').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('malaria_prevention').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('mass_propaganda').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('mass_surveillance').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('modern_financial_instruments').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('modern_sewerage').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('multilateral_alliances').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('mutual_funds').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('nationalism').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('organized_sports').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('pan-nationalism').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('paved_roads').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('political_agitation').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('postal_savings').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('quinine').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('urbanization').GetNameNoFormatting, '>', GetTechnology('steel_frame_buildings').GetNameNoFormatting), 'y')]"
@@ -1425,6 +1475,185 @@ types research_queue_types
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('watertube_boiler').GetNameNoFormatting, '>', GetTechnology('rotary_valve_engine').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('watertube_boiler').GetNameNoFormatting, '>', GetTechnology('steam_turbine').GetNameNoFormatting), 'y')]"
 								on_start = "[GetVariableSystem.Set(Concatenate3(GetTechnology('watertube_boiler').GetNameNoFormatting, '>', GetTechnology('telephone').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('academia').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('admiralty').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('analytical_philosophy').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('anarchism').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('aniline').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('antibiotics').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('arc_welding').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('army_reserves').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('art_silk').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('artillery').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('atmospheric_engine').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('automatic_bottle_blowers').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('automatic_machine_guns').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('baking_powder').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('banking').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('battlefleet_tactics').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('battleship_tech').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('behaviorism').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('bessemer_process').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('bolt_action_rifles').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('breech_loading_artillery').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('camera').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('canneries').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('carrier_tech').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('central_archives').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('central_banking').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('central_planning').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('centralization').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('chemical_bleaching').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('chemical_warfare').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('civilizing_mission').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('colonization').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('combustion_engine').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('compression_ignition').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('concrete_dockyards').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('concrete_fortifications').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('conveyors').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('corporate_charters').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('corporate_management').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('corporatism').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('cotton_gin').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('crystal_glass').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('currency_standards').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('defense_in_depth').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('democracy').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('destroyer').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('dialectics').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('distillation').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('dough_rollers').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('dreadnought_tech').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('drydocks').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('dynamite').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('egalitarianism').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('electric_arc_process').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('electric_railway').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('electric_telegraph').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('electrical_capacitors').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('electrical_generation').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('elevator').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('empiricism').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('enclosure').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('enlistment_offices').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('feminism').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('field_works').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('film').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('flamethrowers').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('flash_freezing').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('floating_harbor').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('fractional_distillation').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('gantry_cranes').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('general_staff').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('gunsmithing').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('handcranked_machine_gun').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('human_rights').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('hydraulic_cranes').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('identification_documents').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('improved_fertilizer').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('intensive_agriculture').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('international_exchange_standards').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('international_relations').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('international_trade').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('investment_banks').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('ironclad_tech').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('jeune_ecole').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('joint_stock_companies').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('labor_movement').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('landing_craft').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('lathe').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('law_enforcement').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('line_infantry').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('logistics').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('macroeconomics').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('malaria_prevention').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('mandatory_service').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('manufacturies').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('mass_communication').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('mass_propaganda').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('mass_surveillance').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('mechanical_tools').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('mechanized_farming').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('mechanized_workshops').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('medical_degrees').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('military_aviation').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('military_drill').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('military_statistics').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('mobile_armor').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('modern_financial_instruments').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('modern_nursing').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('modern_sewerage').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('monitor_tech').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('multilateral_alliances').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('mutual_funds').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('napoleonic_warfare').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('nationalism').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('navigation').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('nco_training').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('nitrogen_fixation').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('nitroglycerin').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('oil_turbine').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('open_hearth_process').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('organized_sports').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('paddle_steamer').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('pan-nationalism').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('pasteurization').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('paved_roads').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('percussion_cap').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('pharmaceuticals').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('philosophical_pragmatism').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('plastics').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('pneumatic_tools').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('political_agitation').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('postal_savings').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('power_of_the_purse').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('pre_dreadnought_tech').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('prospecting').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('psychiatry').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('psychoanalysis').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('pumpjacks').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('quinine').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('radio').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('railways').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('rationalism').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('realism').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('reinforced_concrete').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('repeaters').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('rifling').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('romanticism').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('rotary_valve_engine').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('rubber_mastication').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('screw_frigate').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('sea_lane_strategies').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('self_propelled_torpedoes').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('sericulture').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('shaft_mining').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('shell_gun').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('shift_work').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('socialism').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('standing_army').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('steam_donkey').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('steam_turbine').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('steel_frame_buildings').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('steel_railway_cars').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('steelworking').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('stock_exchange').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('stormtroopers').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('submarine').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('tech_bureaucracy').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('telephone').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('threshing_machine').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('trench_works').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('triage').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('urban_planning').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('urbanization').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('vacuum_canning').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('vulcanization').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('war_propaganda').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('wargaming').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('watertube_boiler').GetNameNoFormatting), 'y')]"
+								on_start = "[GetVariableSystem.Set(Concatenate('rq_known_', GetTechnology('zeppelins').GetNameNoFormatting), 'y')]"
 							}
 						}
 					}
@@ -1444,7 +1673,7 @@ types research_queue_types
 									alwaystransparent = no
 									drop_target = {
 										accept_draggable_id = "rq_tech"
-										on_receive_drop = "[PdxGuiTriggerAllAnimations(Select_CString(EqualTo_string(GetDraggedDatacontext('Technology').GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), GreaterThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)1')), 'rq_go_up_1', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), GreaterThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)2')), 'rq_go_up_2', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), GreaterThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)3')), 'rq_go_up_3', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), LessThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)2')), 'rq_go_down_2', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), GreaterThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)4')), 'rq_go_up_4', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), LessThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)3')), 'rq_go_down_3', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), GreaterThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)5')), 'rq_go_up_5', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), LessThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)4')), 'rq_go_down_4', 'rq_noop')))))))), 'rq_badx'))]"
+										on_receive_drop = "[PdxGuiTriggerAllAnimations(Select_CString(EqualTo_string(GetDraggedDatacontext('Technology').GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), And(GreaterThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), GetVariableSystem.Exists(Concatenate('rq_known_', GetDraggedDatacontext('Technology').GetNameNoFormatting)))), 'rq_go_up_1', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), And(GreaterThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), GetVariableSystem.Exists(Concatenate('rq_known_', GetDraggedDatacontext('Technology').GetNameNoFormatting)))), 'rq_go_up_2', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), And(GreaterThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), GetVariableSystem.Exists(Concatenate('rq_known_', GetDraggedDatacontext('Technology').GetNameNoFormatting)))), 'rq_go_up_3', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), EqualTo_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)1')), 'rq_go_down_1_2', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), And(GreaterThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), GetVariableSystem.Exists(Concatenate('rq_known_', GetDraggedDatacontext('Technology').GetNameNoFormatting)))), 'rq_go_up_4', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), EqualTo_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)1')), 'rq_go_down_1_3', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), EqualTo_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)2')), 'rq_go_down_2_3', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), And(GreaterThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), GetVariableSystem.Exists(Concatenate('rq_known_', GetDraggedDatacontext('Technology').GetNameNoFormatting)))), 'rq_go_up_5', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), EqualTo_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)1')), 'rq_go_down_1_4', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), EqualTo_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)2')), 'rq_go_down_2_4', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), EqualTo_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)3')), 'rq_go_down_3_4', 'rq_noop'))))))))))), 'rq_badx'))]"
 									}
 								}
 
@@ -1482,7 +1711,7 @@ types research_queue_types
 									# RQ: dropped on this icon, moving left lands before it, moving right after it.
 									drop_target = {
 										accept_draggable_id = "rq_tech"
-										on_receive_drop = "[PdxGuiTriggerAllAnimations(Select_CString(EqualTo_string(GetDraggedDatacontext('Technology').GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), GreaterThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)1')), 'rq_go_up_1', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), GreaterThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)2')), 'rq_go_up_2', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), LessThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)2')), 'rq_go_down_2', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), GreaterThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)3')), 'rq_go_up_3', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), LessThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)3')), 'rq_go_down_3', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), GreaterThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)4')), 'rq_go_up_4', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), LessThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)4')), 'rq_go_down_4', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), GreaterThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)5')), 'rq_go_up_5', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), LessThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)5')), 'rq_go_down_5', 'rq_noop'))))))))), 'rq_badx'))]"
+										on_receive_drop = "[PdxGuiTriggerAllAnimations(Select_CString(EqualTo_string(GetDraggedDatacontext('Technology').GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), And(GreaterThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), GetVariableSystem.Exists(Concatenate('rq_known_', GetDraggedDatacontext('Technology').GetNameNoFormatting)))), 'rq_go_up_1', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), And(GreaterThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), GetVariableSystem.Exists(Concatenate('rq_known_', GetDraggedDatacontext('Technology').GetNameNoFormatting)))), 'rq_go_up_2', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), EqualTo_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)1')), 'rq_go_down_1_2', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), And(GreaterThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), GetVariableSystem.Exists(Concatenate('rq_known_', GetDraggedDatacontext('Technology').GetNameNoFormatting)))), 'rq_go_up_3', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), EqualTo_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)1')), 'rq_go_down_1_3', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), EqualTo_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)2')), 'rq_go_down_2_3', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), And(GreaterThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), GetVariableSystem.Exists(Concatenate('rq_known_', GetDraggedDatacontext('Technology').GetNameNoFormatting)))), 'rq_go_up_4', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), EqualTo_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)1')), 'rq_go_down_1_4', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), EqualTo_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)2')), 'rq_go_down_2_4', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), EqualTo_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)3')), 'rq_go_down_3_4', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), And(GreaterThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), GetVariableSystem.Exists(Concatenate('rq_known_', GetDraggedDatacontext('Technology').GetNameNoFormatting)))), 'rq_go_up_5', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), EqualTo_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)1')), 'rq_go_down_1_5', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), EqualTo_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)2')), 'rq_go_down_2_5', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), EqualTo_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)3')), 'rq_go_down_3_5', Select_CString(And(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), EqualTo_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)4')), 'rq_go_down_4_5', 'rq_noop'))))))))))))))), 'rq_badx'))]"
 									}
 
 									state = { name = rq_mv_up_1  duration = 0  alpha = 1
@@ -1500,17 +1729,35 @@ types research_queue_types
 									state = { name = rq_mv_up_5  duration = 0  alpha = 1
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), Not(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname')))))), 'rq_do', 'rq_skip'))]"
 									}
-									state = { name = rq_mv_down_2  duration = 0  alpha = 1
-										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)))), 'rq_do', 'rq_skip'))]"
+									state = { name = rq_mv_down_1_2  duration = 0  alpha = 1
+										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))))), 'rq_do', 'rq_skip'))]"
 									}
-									state = { name = rq_mv_down_3  duration = 0  alpha = 1
-										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)))), 'rq_do', 'rq_skip'))]"
+									state = { name = rq_mv_down_1_3  duration = 0  alpha = 1
+										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))))), 'rq_do', 'rq_skip'))]"
 									}
-									state = { name = rq_mv_down_4  duration = 0  alpha = 1
-										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)))), 'rq_do', 'rq_skip'))]"
+									state = { name = rq_mv_down_2_3  duration = 0  alpha = 1
+										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))))), 'rq_do', 'rq_skip'))]"
 									}
-									state = { name = rq_mv_down_5  duration = 0  alpha = 1
-										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)))), 'rq_do', 'rq_skip'))]"
+									state = { name = rq_mv_down_1_4  duration = 0  alpha = 1
+										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))))), 'rq_do', 'rq_skip'))]"
+									}
+									state = { name = rq_mv_down_2_4  duration = 0  alpha = 1
+										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))))), 'rq_do', 'rq_skip'))]"
+									}
+									state = { name = rq_mv_down_3_4  duration = 0  alpha = 1
+										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))))), 'rq_do', 'rq_skip'))]"
+									}
+									state = { name = rq_mv_down_1_5  duration = 0  alpha = 1
+										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))))), 'rq_do', 'rq_skip'))]"
+									}
+									state = { name = rq_mv_down_2_5  duration = 0  alpha = 1
+										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))))), 'rq_do', 'rq_skip'))]"
+									}
+									state = { name = rq_mv_down_3_5  duration = 0  alpha = 1
+										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))))), 'rq_do', 'rq_skip'))]"
+									}
+									state = { name = rq_mv_down_4_5  duration = 0  alpha = 1
+										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))))), 'rq_do', 'rq_skip'))]"
 									}
 									widget = {
 										name = "rq_gate"
@@ -1535,7 +1782,7 @@ types research_queue_types
 						alwaystransparent = no
 						drop_target = {
 							accept_draggable_id = "rq_tech"
-							on_receive_drop = "[PdxGuiTriggerAllAnimations(Select_CString(EqualTo_string(GetDraggedDatacontext('Technology').GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Select_CString(LessThan_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), 'rq_go_down_5', 'rq_noop'), 'rq_badx'))]"
+							on_receive_drop = "[PdxGuiTriggerAllAnimations(Select_CString(EqualTo_string(GetDraggedDatacontext('Technology').GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Select_CString(EqualTo_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), 'rq_go_down_1_5', Select_CString(EqualTo_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), 'rq_go_down_2_5', Select_CString(EqualTo_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), 'rq_go_down_3_5', Select_CString(EqualTo_int32(GetDraggedDatacontext('Technology').GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), 'rq_go_down_4_5', 'rq_noop')))), 'rq_badx'))]"
 						}
 
 						flowcontainer = {
@@ -1560,16 +1807,34 @@ types research_queue_types
 									state = { name = rq_mv_up_5  duration = 0  alpha = 1
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Not(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname'))))), 'rq_do', 'rq_skip'))]"
 									}
-									state = { name = rq_mv_down_2  duration = 0  alpha = 1
+									state = { name = rq_mv_down_1_2  duration = 0  alpha = 1
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation('rq_do')]"
 									}
-									state = { name = rq_mv_down_3  duration = 0  alpha = 1
+									state = { name = rq_mv_down_1_3  duration = 0  alpha = 1
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation('rq_do')]"
 									}
-									state = { name = rq_mv_down_4  duration = 0  alpha = 1
+									state = { name = rq_mv_down_2_3  duration = 0  alpha = 1
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation('rq_do')]"
 									}
-									state = { name = rq_mv_down_5  duration = 0  alpha = 1
+									state = { name = rq_mv_down_1_4  duration = 0  alpha = 1
+										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation('rq_do')]"
+									}
+									state = { name = rq_mv_down_2_4  duration = 0  alpha = 1
+										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation('rq_do')]"
+									}
+									state = { name = rq_mv_down_3_4  duration = 0  alpha = 1
+										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation('rq_do')]"
+									}
+									state = { name = rq_mv_down_1_5  duration = 0  alpha = 1
+										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation('rq_do')]"
+									}
+									state = { name = rq_mv_down_2_5  duration = 0  alpha = 1
+										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation('rq_do')]"
+									}
+									state = { name = rq_mv_down_3_5  duration = 0  alpha = 1
+										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation('rq_do')]"
+									}
+									state = { name = rq_mv_down_4_5  duration = 0  alpha = 1
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation('rq_do')]"
 									}
 									widget = {
@@ -2106,7 +2371,7 @@ types research_queue_types
 			size = { 25 25 }
 			tooltip = "RQ_MOVE_TO_ROW_TOOLTIP"
 			onclick = "[GetVariableSystem.Set('rq_xname', Technology.GetNameNoFormatting)]"
-			onclick = "[PdxGuiTriggerAllAnimations('rq_go_up_5')]"
+			onclick = "[PdxGuiTriggerAllAnimations(Select_CString(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting)), 'rq_go_up_5', 'rq_noop'))]"
 		}
 	}
 }
