@@ -26,9 +26,10 @@ list after it, so one pass sends the shown techs back before the overflow.
 
 Drop zones: each shown tech has a gap on its left ("insert before me"), its
 icon means "before it" when moving left and "after it" when moving right,
-and a zone right of the row means "after the last shown tech". The drag
-itself lives in the vanilla type queued_technology (redefined here), so the
-techs in the "+N" pop-up can be dragged onto the row too.
+and a zone right of the row means "after the last shown tech". A drag out
+of the "+N" pop-up never reaches a drop target (run 3), so the pop-up's
+techs get a button instead (in the vanilla type queued_technology,
+redefined here) that moves them into the row's last slot.
 
 This is a PROBE: it logs (RQ_PROBE|) what it fires and dumps the queue
 before and after, read back by tools/rq_probe_report.py
@@ -235,51 +236,66 @@ def drop_target(ind: str, expr: str) -> str:
             f"{ind}}}\n")
 
 
-def queued_technology_type() -> str:
-    """Vanilla's type queued_technology plus the drag. The row and the "+N"
-    pop-up both instantiate it, so both become draggable."""
+def drag_block(ind: str) -> str:
+    """The drag (vanilla pattern: construction_queue.gui:354). The drag widget
+    records the dragged tech's name when it is created (run 3: one line per
+    drag); the drop refuses the move unless the name matches the dropped tech."""
+    lines = [
+        "draggable_behavior = {",
+        "\tdraggable_id = \"rq_tech\"",
+        "\tdrag_widget = {",
+        "\t\twidget = {",
+        "\t\t\tsize = { 1 1 }",
+        "\t\t\twidget = {",
+        "\t\t\t\tposition = \"[GuiCurrentDrag.CurrentPosition]\"",
+        "\t\t\t\twidgetanchor = center",
+        f"\t\t\t\tsize = {{ {ICON} {ICON} }}",
+        "\t\t\t\talpha = 0.7",
+        "\t\t\t\tstate = { name = rq_dragstart  trigger_on_create = yes  duration = 0  alpha = 0.7",
+        f"\t\t\t\t\ton_start = \"[GetVariableSystem.Set('rq_xname', {NAME})]\"",
+        f"\t\t\t\t\ton_start = \"[GetScriptedGui('rq_probe_dragstart').Execute({ROOT_TECH})]\"",
+        "\t\t\t\t}",
+        "\t\t\t\ticon = {",
+        "\t\t\t\t\ttexture = \"gfx/interface/backgrounds/round_frame_dec.dds\"",
+        "\t\t\t\t\tparentanchor = center",
+        f"\t\t\t\t\tsize = {{ {ICON} {ICON} }}",
+        "\t\t\t\t}",
+        "\t\t\t\ticon = {",
+        "\t\t\t\t\tparentanchor = center",
+        "\t\t\t\t\tsize = { 60 60 }",
+        "\t\t\t\t\ttexture = \"[Technology.GetTexture]\"",
+        "\t\t\t\t}",
+        "\t\t\t}",
+        "\t\t}",
+        "\t}",
+        "}",
+    ]
+    return "".join(f"{ind}{line}\n" for line in lines)
+
+
+def queued_technology_type(n: int) -> str:
+    """Vanilla's type queued_technology plus a button shown only in the "+N"
+    pop-up (position > n). Run 3: a drag out of the pop-up never reached a
+    drop target (three drag starts, no drop line, nothing in error.log), so a
+    click brings the tech into the row's last slot instead, with its queued
+    prerequisites. Clicks work in the pop-up: vanilla's X does."""
     text = VANILLA_GUI.read_text(encoding="utf-8-sig")
     start = text.index("\ttype queued_technology = ")
     body = text[start:block_at(text, start)]
-    anchor = "\t\tsize = { 80 80 }\n"
-    if body.count(anchor) < 1 or not body.startswith("\ttype queued_technology = widget {"):
+    if not body.startswith("\ttype queued_technology = widget {") or not body.endswith("\n\t}"):
         sys.exit("FAIL: vanilla type queued_technology changed shape; re-read tech_tree.gui")
-    drag = (
-        "\n\t\t# RQ: drag this tech (vanilla pattern: construction_queue.gui:354). The\n"
-        "\t\t# drag widget records the dragged tech's name when it is created; the\n"
-        "\t\t# drop refuses the move unless the name matches the dropped tech.\n"
-        "\t\tdraggable_behavior = {\n"
-        "\t\t\tdraggable_id = \"rq_tech\"\n"
-        "\t\t\tdrag_widget = {\n"
-        "\t\t\t\twidget = {\n"
-        "\t\t\t\t\tsize = { 1 1 }\n"
-        "\t\t\t\t\twidget = {\n"
-        "\t\t\t\t\t\tposition = \"[GuiCurrentDrag.CurrentPosition]\"\n"
-        "\t\t\t\t\t\twidgetanchor = center\n"
-        f"\t\t\t\t\t\tsize = {{ {ICON} {ICON} }}\n"
-        "\t\t\t\t\t\talpha = 0.7\n"
-        "\t\t\t\t\t\tstate = { name = rq_dragstart  trigger_on_create = yes  duration = 0  alpha = 0.7\n"
-        f"\t\t\t\t\t\t\ton_start = \"[GetVariableSystem.Set('rq_xname', {NAME})]\"\n"
-        "\t\t\t\t\t\t\t# Probe: when does this fire? Once per drag is the assumption; once per\n"
-        "\t\t\t\t\t\t\t# tech at panel load would mean the name is stale (drops log badx).\n"
-        f"\t\t\t\t\t\t\ton_start = \"[GetScriptedGui('rq_probe_dragstart').Execute({ROOT_TECH})]\"\n"
-        "\t\t\t\t\t\t}\n"
-        "\t\t\t\t\t\ticon = {\n"
-        "\t\t\t\t\t\t\ttexture = \"gfx/interface/backgrounds/round_frame_dec.dds\"\n"
-        "\t\t\t\t\t\t\tparentanchor = center\n"
-        f"\t\t\t\t\t\t\tsize = {{ {ICON} {ICON} }}\n"
-        "\t\t\t\t\t\t}\n"
-        "\t\t\t\t\t\ticon = {\n"
-        "\t\t\t\t\t\t\tparentanchor = center\n"
-        "\t\t\t\t\t\t\tsize = { 60 60 }\n"
-        "\t\t\t\t\t\t\ttexture = \"[Technology.GetTexture]\"\n"
-        "\t\t\t\t\t\t}\n"
-        "\t\t\t\t\t}\n"
-        "\t\t\t\t}\n"
-        "\t\t\t}\n"
+    button = (
+        "\n\t\t# RQ: in the \"+N\" pop-up only, move this tech into the row's last slot.\n"
+        "\t\tbutton_icon_move_left = {\n"
+        f"\t\t\tvisible = \"[GreaterThan_int32({POS}, {i32(n)})]\"\n"
+        "\t\t\tparentanchor = bottom|left\n"
+        "\t\t\tsize = { 25 25 }\n"
+        "\t\t\traw_tooltip = \"Move into the queue row\"\n"
+        f"\t\t\tonclick = \"[GetVariableSystem.Set('rq_xname', {NAME})]\"\n"
+        f"\t\t\tonclick = \"[PdxGuiTriggerAllAnimations('rq_go_up_{n}')]\"\n"
         "\t\t}\n"
     )
-    return body.replace(anchor, anchor + drag, 1)
+    return body[:-2] + button + "\t}"
 
 
 def controller(n: int) -> str:
@@ -344,13 +360,17 @@ def row(n: int) -> str:
         "\t\t\t\t\t\t\t\tqueued_technology = {\n"
         f"\t\t\t\t\t\t\t\t\tposition = {{ {GAP} 0 }}\n"
         "\t\t\t\t\t\t\t\t\talwaystransparent = no\n\n"
+        + drag_block(ind) +
         "\t\t\t\t\t\t\t\t\t# RQ: dropped on this icon, moving left lands before it, moving right after it.\n"
         + drop_target(ind, icon_drop(n)) + "\n"
         + mover_parts(ind, "rq_probe_fire_top", member) + "\n"
         + dump_parts(ind, "pos") +
         "\n"
-        f"{ind}# Probe readout: research progress, so a move that loses it shows.\n"
-        f"{ind}textbox = {{\n{ind}\tparentanchor = bottom|left\n{ind}\tautoresize = yes\n"
+        f"{ind}# Probe readout: research progress, shown only above 0 (the case that\n"
+        f"{ind}# tells whether a move keeps it).\n"
+        f"{ind}textbox = {{\n"
+        f"{ind}\tvisible = \"[GreaterThan_CFixedPoint(Technology.GetProgress(GetPlayer.Self), '(CFixedPoint)0')]\"\n"
+        f"{ind}\tparentanchor = bottom|left\n{ind}\tautoresize = yes\n"
         f"{ind}\talign = nobaseline\n"
         f"{ind}\traw_text = \"#v [Technology.GetProgress(GetPlayer.Self)|0]#!\"\n{ind}}}\n"
         "\t\t\t\t\t\t\t\t}\n"
@@ -404,7 +424,7 @@ def build_gui() -> str:
             "# Redefines the vanilla types tech_tree_panel and queued_technology; the 00_\n"
             "# prefix makes this file load before tech_tree.gui, so these definitions win\n"
             "# (docs/engine-notes.md, \"A partial .gui override works\").\n"
-            "types research_queue_types\n{\n" + panel + "\n\n" + queued_technology_type() + "\n}\n")
+            "types research_queue_types\n{\n" + panel + "\n\n" + queued_technology_type(n) + "\n}\n")
 
 
 def sgui(name: str, line: str, saved: bool) -> str:

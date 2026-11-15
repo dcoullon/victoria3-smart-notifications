@@ -231,3 +231,35 @@ tests.
 The recorded name is overwritten by every drag and never cleared (a first
 build cleared it a second after each drop, which refused a drag started
 inside that second).
+
+### Run 3 (2026-11-14, about 15:40 to 15:56, played in French)
+
+10 of 10 complete drops PASS (one more cut off by the log's end while the
+game ran). The first drop was the dependency case: Pumpjacks dragged ahead
+of Steam Donkey, its prerequisite, which correctly stayed in front of it.
+The report first marked it FAIL because it only knew English names; it now
+reads every game language. `dragstart`: 14 lines for 11 drops plus 3 drags
+that ended nowhere, so the name is recorded at drag start (S6 PASS, no
+`badx`). Nothing of ours in error.log (S8 PASS).
+
+Not covered: S3 (a prerequisite dragged behind its dependent) and S7
+(progress) never came up in game; S3 is covered by `rq_simulate.py` only.
+
+User feedback:
+- a "0" under each tech: the probe's progress readout, not vanilla. Now shown
+  only when progress is above 0.
+- dragging from the "+N" pop-up does nothing. Log: three `dragstart` lines
+  for the pop-up tech, no drop line of any kind (not even `noop` or `badx`),
+  nothing in error.log, so the release never reached a drop target. The
+  pop-up's techs now get a button instead (vanilla's move-left icon,
+  bottom-left, pop-up only) that moves the tech into the row's last slot
+  with its queued prerequisites; the drag is back on the row only.
+
+### Run 4 acceptance criteria
+
+| # | When | Pass | Read from |
+|---|---|---|---|
+| T1 | the pop-up button is clicked on a tech | a `drop|up|5` with `x|` naming it; it lands at slot 5, or right after its prerequisites in the pop-up | report PASS |
+| T2 | a prerequisite is dragged behind its queued dependent (S3) | the dependent comes along, right after it | report PASS |
+| T3 | a tech with progress above 0 is moved (S7) | its number shows and is unchanged after the move | look |
+| T4 | no progress anywhere | no number under any tech | look |

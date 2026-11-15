@@ -47,9 +47,16 @@ def clean(text: str) -> str:
     return m.group(1).strip() if m else text
 
 
-def english_loc() -> dict[str, str]:
+LANGUAGES = ("english", "french", "german", "spanish", "braz_por", "polish",
+             "russian", "turkish", "japanese", "korean", "simp_chinese")
+
+
+def game_loc(language: str) -> dict[str, str]:
     loc: dict[str, str] = {}
-    for f in (VANILLA_ROOT / "localization" / "english").rglob("*.yml"):
+    folder = VANILLA_ROOT / "localization" / language
+    if not folder.is_dir():
+        return loc
+    for f in folder.rglob("*.yml"):
         for line in f.read_text(encoding="utf-8-sig", errors="replace").splitlines():
             m = LOC_LINE.match(line)
             if m:
@@ -64,10 +71,14 @@ def english_loc() -> dict[str, str]:
 
 
 def ancestors_by_name() -> dict[str, set[str]]:
-    loc = english_loc()
+    """Tech name -> names of its direct and indirect prerequisites, in every
+    game language (the log carries names in the player's language; run 3 was
+    played in French)."""
     out: dict[str, set[str]] = {}
-    for p, t in ancestor_pairs():
-        out.setdefault(loc.get(t, t), set()).add(loc.get(p, p))
+    for language in LANGUAGES:
+        loc = game_loc(language)
+        for p, t in ancestor_pairs():
+            out.setdefault(loc.get(t, t), set()).add(loc.get(p, p))
     return out
 
 

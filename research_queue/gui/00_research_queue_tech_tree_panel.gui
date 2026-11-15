@@ -1490,6 +1490,34 @@ types research_queue_types
 									position = { 14 0 }
 									alwaystransparent = no
 
+									draggable_behavior = {
+										draggable_id = "rq_tech"
+										drag_widget = {
+											widget = {
+												size = { 1 1 }
+												widget = {
+													position = "[GuiCurrentDrag.CurrentPosition]"
+													widgetanchor = center
+													size = { 80 80 }
+													alpha = 0.7
+													state = { name = rq_dragstart  trigger_on_create = yes  duration = 0  alpha = 0.7
+														on_start = "[GetVariableSystem.Set('rq_xname', Technology.GetNameNoFormatting)]"
+														on_start = "[GetScriptedGui('rq_probe_dragstart').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('t', Technology.MakeScope).End)]"
+													}
+													icon = {
+														texture = "gfx/interface/backgrounds/round_frame_dec.dds"
+														parentanchor = center
+														size = { 80 80 }
+													}
+													icon = {
+														parentanchor = center
+														size = { 60 60 }
+														texture = "[Technology.GetTexture]"
+													}
+												}
+											}
+										}
+									}
 									# RQ: dropped on this icon, moving left lands before it, moving right after it.
 									drop_target = {
 										accept_draggable_id = "rq_tech"
@@ -1682,8 +1710,10 @@ types research_queue_types
 										}
 									}
 
-									# Probe readout: research progress, so a move that loses it shows.
+									# Probe readout: research progress, shown only above 0 (the case that
+									# tells whether a move keeps it).
 									textbox = {
+										visible = "[GreaterThan_CFixedPoint(Technology.GetProgress(GetPlayer.Self), '(CFixedPoint)0')]"
 										parentanchor = bottom|left
 										autoresize = yes
 										align = nobaseline
@@ -2350,40 +2380,6 @@ types research_queue_types
 		
 		size = { 80 80 }
 
-		# RQ: drag this tech (vanilla pattern: construction_queue.gui:354). The
-		# drag widget records the dragged tech's name when it is created; the
-		# drop refuses the move unless the name matches the dropped tech.
-		draggable_behavior = {
-			draggable_id = "rq_tech"
-			drag_widget = {
-				widget = {
-					size = { 1 1 }
-					widget = {
-						position = "[GuiCurrentDrag.CurrentPosition]"
-						widgetanchor = center
-						size = { 80 80 }
-						alpha = 0.7
-						state = { name = rq_dragstart  trigger_on_create = yes  duration = 0  alpha = 0.7
-							on_start = "[GetVariableSystem.Set('rq_xname', Technology.GetNameNoFormatting)]"
-							# Probe: when does this fire? Once per drag is the assumption; once per
-							# tech at panel load would mean the name is stale (drops log badx).
-							on_start = "[GetScriptedGui('rq_probe_dragstart').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('t', Technology.MakeScope).End)]"
-						}
-						icon = {
-							texture = "gfx/interface/backgrounds/round_frame_dec.dds"
-							parentanchor = center
-							size = { 80 80 }
-						}
-						icon = {
-							parentanchor = center
-							size = { 60 60 }
-							texture = "[Technology.GetTexture]"
-						}
-					}
-				}
-			}
-		}
-
 		icon = {
 			texture = "gfx/interface/backgrounds/round_frame_dec.dds"
 			parentanchor = center
@@ -2447,6 +2443,16 @@ types research_queue_types
 				parentanchor = center
 			}
 			
+		}
+
+		# RQ: in the "+N" pop-up only, move this tech into the row's last slot.
+		button_icon_move_left = {
+			visible = "[GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5')]"
+			parentanchor = bottom|left
+			size = { 25 25 }
+			raw_tooltip = "Move into the queue row"
+			onclick = "[GetVariableSystem.Set('rq_xname', Technology.GetNameNoFormatting)]"
+			onclick = "[PdxGuiTriggerAllAnimations('rq_go_up_5')]"
 		}
 	}
 }
