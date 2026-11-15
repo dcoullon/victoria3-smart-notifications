@@ -6,11 +6,12 @@ Store assets: Reorder Research Queue
 
 ## Title
 
-**Reorder Research Queue: drag&drop techs** (39 characters; user's call,
-2026-11-15). Measured 373 to 388 px against the ~400 px cut below, so it
-fits with a thinner margin than "Drag & Drop" (337 to 352). Steam search
-may not split "drag&drop", so the description's first sentence keeps
-"drag and drop". Mod name
+**Reorder Research Queue: drag & drop techs** (41 characters; user's call,
+2026-11-15: spaces around the & so "drag" and "drop" are separate search
+words). Measured 400 px (Arial) and 383 px (Segoe UI), against 405 and
+401 px for the longest title seen to fit whole: inside, by 5 to 18 px. If
+Steam's font runs wider, the list shows "drag & drop te..."; check the
+real list after upload and drop "techs" if so. Mod name
 "Reorder Research Queue": verb first, plain English, the same words as the
 thumbnail (user's call, 2026-11-15; it replaced "Research Queue Reorder").
 The in-game tag stays "(Reorder)".
