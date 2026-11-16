@@ -1,51 +1,52 @@
-[b]Less notification noise, a watchlist for the countries you actually care about, and new alerts vanilla is missing.[/b]
+[b]Flag the countries you care about, just like EU IV, and only get interrupted for them. Plus how many people each event choice affects, and the alerts vanilla is missing.[/b]
 
-Vanilla drowns you in notifications about random countries. This mod lets you flag the countries you actually care about, tunes some notification defaults, and adds a few alerts the base game should have had.
+Example: a revolution starts in a country on the other side of the world, and vanilla stops you with a toast. During a diplomatic play, you hear about every country picking a side. And an event says "+10.0% of Czech Pops become more Radical": is that 2,000 people or 2 million ?
 
+With Smart Notifications, that revolution goes to your feed, you only hear about the countries on your watchlist, and the event reads "+10.0% of Czech Pops (3.83M nationwide) become more Radical".
 
-[h1]Key Features[/h1]
-
-[b]Country watchlist[/b] controlling notifications just like EU IV
+[h1]Country watchlist[/h1]
 [list]
-[*] Flag any country in the world (smart defaults: great powers, neighbors, rivals).
-[*] Diplomatic plays, wars, and countries joining a side only pop up when a watchlisted country (or you) is actually involved.
-[*] Everything else goes to the feed instead of interrupting you.
+[*]Flag any country in the world. It starts with the great powers, your neighbors and your rivals.
+[*]Diplomatic plays, wars, revolutions and countries joining a side only pop up when you or a watched country is involved. Everything else goes to the feed.
 [/list]
 
-[b]Show population in events [/b] (new in v0.40)
+[h1]Population in events[/h1]
 [list]
-[*] Show the population count in events when possible (+10% of what ?)
+[*]Every event, journal entry and decision that moves pops says how many people: cultures, religions, interest groups, professions and strata.
+[*]Choices about a state show its size: "in Bohemia (2.1M inhabitants)".
+[*]The number is nationwide. For an effect on a single state it is an upper bound, because the game does not give mods the size of a group inside a state.
+[*]English game language only for now.
 [/list]
 
-[b]Retuned notification defaults and new alerts[/b]
+[h1]Alerts vanilla is missing[/h1]
 [list]
-[*] Low-value vanilla notifications demoted from popup/toast to feed or mute.
-[*] [b]Truce expired[/b]: get a toast when a truce you had with a country expired.
-[*] [b]Taxation Deficit[/b]: alert plus a one-time toast naming the specific state with a taxation capacity deficit
-[*] [b]Agitator Invite Available[/b]: fires when you have an open agitator slot and an exiled character eligible to fill it.
-[*] [b]Mobilized army without general[/b]: fires an alert when missing a general (new in 0.41)
-[*] [b]Law Ready to Enact[/b]: flag a law you're working toward from its detail panel; get an alert plus a one-time toast the moment it has better odds of passing than stalling.
+[*][b]Mobilized army without general[/b]: the army won't move and its front stalls, and vanilla never tells you.
+[*][b]Law ready to enact[/b]: flag the law you're working toward from its panel. You get an alert and one toast the moment it has better odds of passing than stalling.
+[*][b]Taxation deficit[/b]: names the state that is short on tax capacity.
+[*][b]Truce expired[/b]: a toast when your truce with a country ends.
+[*][b]Agitator invite available[/b]: you have a free agitator slot and an exiled character who can fill it.
 [/list]
+
+Low-value vanilla toasts and popups also go to the feed or get muted, like an interest group joining a lobby (nearly always something you just did). Losing an actual subject still tells you.
 
 [hr][/hr]
 
-[h1]Already played Victoria 3 before?[/h1]
+[h1]Already played Victoria 3 ?[/h1]
 
-[b]Open Message Settings (the bell icon) and press "Reset to Default Settings" once.[/b] Victoria 3 remembers every notification setting you have ever changed by hand, and those saved choices override any mod. Without that one reset, parts of this mod will silently do nothing. A fresh install needs no reset.
+Open Message Settings (the bell icon) and press [b]Reset to Default Settings[/b] once. The game keeps every notification setting you ever changed by hand, and those override any mod. Fresh install: nothing to do.
 
 [hr][/hr]
 
 [h1]Compatibility[/h1]
 
 [list]
-[*] [b]Game version:[/b] 1.15.* (current patch)
-[*] [b]Save games:[/b] safe to add or remove mid-campaign.
-[*] [b]Achievements:[/b] unaffected
-[*] [b]Multiplayer:[/b] single-player only
-[*] [b]File overrides:[/b] this mod fully overrides three vanilla files — [i]common/messages/00_messages.txt[/i] (the notification retuning), [i]gui/message_settings.gui[/i] (the Watchlist tab) and [i]gui/politics_panel_change_law.gui[/i] (flagging a law from its detail panel). Everything else it adds sits in its own files: [i]common/alert_types/[/i], [i]common/alert_groups/[/i] and its own message and localization files are additive, with no vanilla file touched.
+[*][b]Game version 1.15.[/b]
+[*][b]Achievement compatible.[/b]
+[*][b]Save-safe.[/b] Add or remove it mid-campaign.
+[*][b]Single-player only.[/b]
+[*][b]All 11 game languages[/b] (population numbers: English only for now).
+[*][b]Conflicts:[/b] it replaces 3 vanilla files: the notification list ([i]common/messages/00_messages.txt[/i]), the Message Settings screen and the law panel. Another notification mod, or a UI mod that reworks those screens, will clash. Whichever loads last wins.
 [/list]
-
-[b]Known conflicts:[/b] any other mod that fully overrides one of those same three files. Whichever loads later in your playset wins for that entire file (they do not merge). In practice that means another notification-tuning mod (for [i]00_messages.txt[/i]) or a UI overhaul that reworks the message settings or politics screens (for the two [i].gui[/i] files). If you run one, the load order decides which one you get.
 
 [hr][/hr]
 
