@@ -15,6 +15,7 @@ daily", and Steam's item stats pages.
 - **Stars come from rating count, not only sentiment.** Steam's star score
   appears to be (up + 50) / (up + down + 100), 4 stars from 0.60, 5 from
   0.80 (an unofficial Steam guide; it matches all three of our mods).
+  Build All: 32 up / 1 down, 0.617, 4 stars; Smart Treaties 64 / 0, 0.695.
   Smart Notifications is at 3 stars with 26 up / 2 down (score 0.594): two
   more positive ratings would make it 4 stars. Smart Treaties needs 150
   positive ratings (no negatives) for 5 stars.
@@ -47,6 +48,13 @@ Later:
       observer runs are in (`docs/reddit_treaty_charts/`).
 - [ ] Optional: one short message each to Generalist Gaming (ModCon Show) and
       Andy's Paradox (mod lists), linking the Reddit post. Unverified reach.
+- [ ] Discord: post once in the mod-showcase channel of each Victoria 3 server
+      Damien is in (find out which exist and allow it), on the day of each
+      Reddit post. Not measurable (no referrer data); keep it to that.
+- [ ] PDX ModCon: community-run showcase of Paradox mods (CK3, Imperator,
+      Victoria 3), streamed on YouTube, with its own Discord. Last one found:
+      June 2025. Find the next edition's application date and apply with all
+      three mods.
 
 Dropped: wiki pages (only two converters have one on vic3.paradoxwikis.com),
 a shorter Smart Treaties title (Damien, 11/16), Paradox Mods cross-publishing,
