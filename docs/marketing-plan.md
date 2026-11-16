@@ -50,9 +50,15 @@ Due by Friday 2026-11-20 (checked by the scheduled task "marketing-plan-check"):
       failure can't cost a day of stats), rank read by curl. WebFetch is out:
       it needs a human approval every run. Test run 2:22 PM: stats fine, rank
       failed because the routine's environment (env_011111111111111111111117)
-      proxy refuses steamcommunity.com. Damien to add steamcommunity.com to
-      that environment's allowed domains. K70 filled by hand from a local
+      proxy refuses steamcommunity.com. K70 filled by hand from a local
       read at 2:20 PM (4 / 27 / 75).
+      Fixed 11/16: env_011111111111111111111117 is a built-in environment,
+      absent from the user's list and not editable. Routine moved to "Default"
+      (env_01DDc2w1p8arUs1cwkkgm1wZ, network access Full). Test run 2:34 PM
+      reached both api.steampowered.com and steamcommunity.com and wrote
+      ranks 4 / 27 / 75 to K70. Partial routine updates through the API
+      replace job_config.ccr whole: send events and session_context with
+      any environment change, or the prompt is wiped.
 - [ ] Answer at least one existing thread on each topic, with a link to the
       mod (saved searches below).
 - [ ] Draft the trade guide (below).
