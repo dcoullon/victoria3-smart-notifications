@@ -415,14 +415,20 @@ the game on).** Read from the code, nothing measured yet:
   Earlier tick-probe result: no measurable cost from the published mods
   (2026-10-07, see smart-trade-investigation.md).
 - Per frame (every binding of a visible widget reruns each frame, paused or
-  not): the outliner's treaty rows, always on screen, evaluate the
-  per-treaty script values (`st_treaty_margin`, `st_treaty_money`,
-  `st_treaty_has_lane`) about 15 times per row per frame, mostly because six
-  layout branches repeat the same "has a figure" test. Each value walks
-  the treaty's few articles. Estimate, from the picker's fitted 1 to 6 us
-  per step: about 1 to 4 ms per frame with 3 to 10 treaties. Fixable by
-  nesting the branches so the test runs once per row; not done before
-  measuring, since that layout took several runs to get right.
+  not): the outliner's treaty rows, on screen whenever the Treaties
+  group is expanded, evaluate the per-treaty script values
+  (`st_treaty_margin`, `st_treaty_money`, `st_treaty_has_lane`) 32 times
+  per row per frame, 42 if hidden widgets' text also evaluates (counted
+  2026-11-16 by script over `outliner_compact_treaty_item`: 12 `visible`
+  bindings carry 30 calls, 6 texts carry 2 each), where 3 would do. Cause:
+  12 widgets each repeat the "has a figure" test, and there is no
+  short-circuit. Each value walks the treaty's few articles. Cost range
+  over 3 to 20 rows, 5 to 30 steps per call (assumption) and the picker's
+  fitted 1 to 6 us per step: 0.48 to 151 ms per frame, too wide to call,
+  so it gets measured (perf run, below). The top of that range is
+  contradicted by play: nobody has reported low FPS with treaties open.
+  Fixable by nesting the branches so the test runs once per row, which
+  only helps if a hidden parent stops its children's bindings (untested).
 - Fixed: the suggestion rows showed acceptance through a live ScriptValue
   (vanilla's formula, 5 rows, every frame while the Trade tab is open); they
   now read the value the scan stores on each partner.
@@ -430,10 +436,19 @@ the game on).** Read from the code, nothing measured yet:
   creation-state code (run once), and its per-frame text runs only while a
   Goods Transfer draft is open.
 
-Measurement run before release: Steam's FPS counter (no debug mode), paused,
-same save, each screen with and without the three mods: the map with the
-outliner's treaties open and closed, the market panel's Trade tab. Then the
-tick probe at speed 5 for about 15 in-game months, with and without mods.
+Perf run (proposed 2026-11-16, not built). An FPS counter capped at 60 (or
+30) hides a few ms, which is likely why earlier with/without runs showed
+nothing. A dev-only copy of the mod, loaded instead of Smart Treaties,
+adds an overlay reading the engine's own `GetCurrentFps` (vanilla uses it
+in gui/error_deer.gui) and `PdxProfilerGetFrameTimeMs`, plus buttons that
+switch the treaty rows between modes through a GUI variable: rows off,
+as shipped, fixed (test once per row), and shipped with 10 extra hidden
+copies of the test. One launch answers: the shipped cost, the fix's
+saving, the cost per call (slope from the 10x mode), and whether hidden
+widgets still evaluate (10x hidden against 10x shown). Needs vsync and any
+frame cap off, a save with 10 or more treaties, the Treaties group open,
+paused. One more launch without the mod on the same save is the baseline
+if hidden widgets turn out to evaluate.
 
 ## 4. Opportunity alert
 
@@ -446,6 +461,25 @@ From the recommender's monthly result, no extra search. A toast in its own
 
 The AI run supports it with a caveat: predicted profits held in 69 of 71
 checks, but on 10-unit deals. The Spain run checks player-sized deals.
+
+**Frequency, simulated 2026-11-16** on the Spain campaign's recommender
+log (`treaty_obs_spain`, 376 monthly scans, January 1836 to August 1867,
+last scan of each month, top row only, never twice for one good and
+partner). Absolute thresholds stand in for "5% of weekly income", which
+the log does not carry. Fires per 10 game years:
+
+| Weekly gain at least | 6-month cooldown | 12-month cooldown |
+|---|---|---|
+| 250 | 12.0 | 8.5 |
+| 500 | 9.2 | 6.3 |
+| 750 | 7.6 | 5.4 |
+| 1000 | 5.4 | 3.8 |
+
+A 12-month cooldown meets "at most 10 in 10 years" at every threshold
+tried. Caveats: the log spans several code versions (the acceptance filter
+changed mid-campaign), and one simulated alert names "Swedish Radical
+Revolt" (1860, fabric), so revolt countries can be suggested partners:
+check whether they can sign a treaty at all.
 
 Accepted when: over 10 game years of the Spain campaign it fires at most 10
 times, never twice for one good and partner, and every alert matches a row
