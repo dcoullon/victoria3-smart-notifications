@@ -46,9 +46,13 @@ Due by Friday 2026-11-20 (checked by the scheduled task "marketing-plan-check"):
       past-three-months view to column K of its tab. Tick once a scheduled
       run has filled column K. Ranks read by hand on 11/16 at 10:53 PT:
       Smart Treaties 4, Build All 27, Smart Notifications 75.
-      11/16 noon run: stats written, rank failed for all three because the
-      cloud proxy refuses steamcommunity.com. Needs steamcommunity.com added
-      to allowed domains (claude.ai Settings > Capabilities).
+      11/16: routine reworked so stats are written before the rank (a rank
+      failure can't cost a day of stats), rank read by curl. WebFetch is out:
+      it needs a human approval every run. Test run 2:22 PM: stats fine, rank
+      failed because the routine's environment (env_011111111111111111111117)
+      proxy refuses steamcommunity.com. Damien to add steamcommunity.com to
+      that environment's allowed domains. K70 filled by hand from a local
+      read at 2:20 PM (4 / 27 / 75).
 - [ ] Answer at least one existing thread on each topic, with a link to the
       mod (saved searches below).
 - [ ] Draft the trade guide (below).
