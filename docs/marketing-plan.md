@@ -29,12 +29,17 @@ Due by Friday 2026-11-20 (checked by the scheduled task "marketing-plan-check"):
       alert), Monday 11/16, US morning (about 6 to 9 AM Pacific). Concrete
       benefit in the title, a Rule 5 comment that adds information, a rating
       ask at the end, an hour of replies. Log it in the sheet's Comment column.
+      Posted by Damien, 11/16. Sheet comment not logged yet.
 - [x] Paste `smart_trade/STEAM_WORKSHOP_DESCRIPTION.schinese.bbcode` into Steam's
       Simplified Chinese description slot (the English one is already live).
       Done by Damien, 11/16.
 - [ ] Smart Notifications to 4 stars: add a one-line rating ask and a link to
       Smart Treaties at the bottom of its description (and of Build All's),
       in English and Chinese.
+      11/16: English added to both repo copies (`smart_notifications/` and
+      `bulk_construction/STEAM_WORKSHOP_DESCRIPTION.bbcode`, "My other mods"
+      plus a thumbs-up line); not yet pasted into Steam. Neither mod has a
+      Chinese description on Steam yet (the schinese page shows English).
 - [ ] Track the Most Popular position of Smart Treaties daily in the sheet.
       Automated from 11/16: the noon routine "Daily Steam Workshop stats"
       (trig_01HmsZwyutmcLyjqzutshKwz) writes each mod's rank in the
