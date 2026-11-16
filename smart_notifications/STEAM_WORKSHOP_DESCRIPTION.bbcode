@@ -1,28 +1,29 @@
-[h1]Smart Notifications Mod for Victoria 3 [/h1]
 [b]Less notification noise, a watchlist for the countries you actually care about, and new alerts vanilla is missing.[/b]
 
-Vanilla drowns you in notifications about random countries. This mod retunes what pops up, lets you flag the countries you actually care about, and adds a few alerts the base game should have had.
+Vanilla drowns you in notifications about random countries. This mod lets you flag the countries you actually care about, tunes some notification defaults, and adds a few alerts the base game should have had.
 
 
 [h1]Key Features[/h1]
 
-[b]Country watchlist[/b] just like EU IV
+[b]Country watchlist[/b] controlling notifications just like EU IV
 [list]
 [*] Flag any country in the world (smart defaults: great powers, neighbors, rivals).
 [*] Diplomatic plays, wars, and countries joining a side only pop up when a watchlisted country (or you) is actually involved.
 [*] Everything else goes to the feed instead of interrupting you.
 [/list]
 
-[b]Retuned notification defaults[/b]
+[b]Show population in events [/b] (new in v0.40)
 [list]
-[*] Low-value vanilla notifications demoted from popup/toast to feed or mute.
+[*] Show the population count in events when possible (+10% of what ?)
 [/list]
 
-[b]New alerts[/b]
+[b]Retuned notification defaults and new alerts[/b]
 [list]
+[*] Low-value vanilla notifications demoted from popup/toast to feed or mute.
 [*] [b]Truce expired[/b]: get a toast when a truce you had with a country expired.
 [*] [b]Taxation Deficit[/b]: alert plus a one-time toast naming the specific state with a taxation capacity deficit
 [*] [b]Agitator Invite Available[/b]: fires when you have an open agitator slot and an exiled character eligible to fill it.
+[*] [b]Mobilized army without general[/b]: fires an alert when missing a general (new in 0.41)
 [*] [b]Law Ready to Enact[/b]: flag a law you're working toward from its detail panel; get an alert plus a one-time toast the moment it has better odds of passing than stalling.
 [/list]
 
@@ -38,14 +39,21 @@ Vanilla drowns you in notifications about random countries. This mod retunes wha
 
 [list]
 [*] [b]Game version:[/b] 1.15.* (current patch)
-[*] [b]Save games:[/b] safe to add or remove mid-campaign. Note that removing the mod does not restore vanilla notification behaviour on its own — the game keeps the settings as the mod left them until you press "Reset to Default Settings".
+[*] [b]Save games:[/b] safe to add or remove mid-campaign.
 [*] [b]Achievements:[/b] unaffected
 [*] [b]Multiplayer:[/b] single-player only
-[*] [b]Languages:[/b] all eleven Victoria 3 ships: English, Français, Deutsch, Español, Português do Brasil, Polski, Русский, 简体中文, 日本語, 한국어, Türkçe. Terms come from the game's own text, but these are not native-speaker translations. Post a correction and it goes in.
 [*] [b]File overrides:[/b] this mod fully overrides three vanilla files — [i]common/messages/00_messages.txt[/i] (the notification retuning), [i]gui/message_settings.gui[/i] (the Watchlist tab) and [i]gui/politics_panel_change_law.gui[/i] (flagging a law from its detail panel). Everything else it adds sits in its own files: [i]common/alert_types/[/i], [i]common/alert_groups/[/i] and its own message and localization files are additive, with no vanilla file touched.
 [/list]
 
-[b]Known conflicts:[/b] any other mod that fully overrides one of those same three files. Whichever loads later in your playset wins for that entire file — they do not merge. In practice that means another notification-tuning mod (for [i]00_messages.txt[/i]) or a UI overhaul that reworks the message settings or politics screens (for the two [i].gui[/i] files). If you run one, load order decides which you get. Nothing else known.
+[b]Known conflicts:[/b] any other mod that fully overrides one of those same three files. Whichever loads later in your playset wins for that entire file (they do not merge). In practice that means another notification-tuning mod (for [i]00_messages.txt[/i]) or a UI overhaul that reworks the message settings or politics screens (for the two [i].gui[/i] files). If you run one, the load order decides which one you get.
+
+[hr][/hr]
+
+[h1]My other mods[/h1]
+[list]
+[*][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3814823352][b][u]Smart Treaties[/u][/b][/url]: see what each goods transfer earns or costs you before you sign, and the 5 most profitable deals you could propose.
+[*][url=https://steamcommunity.com/sharedfiles/filedetails/?id=3803950977][b][u]Build All[/u][/b][/url]: one click to queue a building in every state that can take it. Life changing for electrification.
+[/list]
 
 [hr][/hr]
 
@@ -55,8 +63,10 @@ If something's off, include:
 [list]
 [*] What you expected vs. what happened.
 [*] Your Victoria 3 version and other mods enabled.
-[*] Whether you had pressed "Reset to Default Settings" — it explains a surprising number of reports.
+[*] Whether you had pressed "Reset to Default Settings" before playing
 [*] A screenshot if it is something you can see.
 [/list]
 
-Source and issue tracker: [url=https://github.com/dcoullon/victoria3-smart-notifications]github.com/dcoullon/victoria3-smart-notifications[/url]
+Source and issue tracker: [url=https://github.com/dcoullon/victoria3-smart-notifications]https://github.com/dcoullon/victoria3-smart-notifications[/url]
+
+If the mod helps you, a thumbs up below the screenshots lets other players find it too !
