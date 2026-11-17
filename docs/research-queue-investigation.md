@@ -321,6 +321,60 @@ Final test, judged by eye plus `scan_logs.py` (no RQ_PROBE lines exist now):
 
 If any of F2 to F5 fails, the next run is with `--probe` and the report.
 
+#### Final test results (2026-11-17, Spain 1860)
+
+`validate_syntax.py research_queue --strict` on the game machine: full PASS.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| F1 | PASS | screenshot 20261117153923: "(Reorder) Move Vacuum Canning to the front of the research queue, together with any queued technologies it requires." |
+| F2 | PASS | user's eye |
+| F3 | PASS, weak | queue was only Egalitarianism, Labor Movement, Socialism, so the designed result is the same order: nothing visibly moved. Move-together not seen on this build; run 3's probe covered the same logic 10 of 10 |
+| F4 | PASS, weak | same queue, same reason |
+| F5 | PASS | user's eye |
+| F6 | PASS | user's eye |
+| F7 | PASS | scan_logs.py and a grep of error.log/debug.log: nothing names research_queue, queued_technology or RQ_. gui.log's "already registered at gui/00_research_queue_tech_tree_panel.gui" for tech_tree_panel and queued_technology is the intended override. Smart Notifications was also loaded (its unused-variable warning) |
+| F8 | NOT TESTED | the user tried dropping a queued tech onto the ongoing research instead (not a drop target). Progress after a drag still unchecked; the Workshop page keeps making no claim |
+
+User requests from this run (not bugs):
+- A short message when a drop changes nothing because of prerequisites (F3/F4 looked like a failure).
+- Dropping a tech on the ongoing research makes it the ongoing research. H7: vanilla's research-now on a queued tech empties the queue, so this needs research-now then re-adding the rest in one click (H6: commands in one click run in order). Needs a probe run.
+
+A retest of F3/F4 needs an unrelated tech between the chain members (e.g. Egalitarianism, X, Labor Movement, Socialism, Y).
+
+### Run 4: drop on the current research, "not moved" message, F8 (written before the run)
+
+Two additions from the final test's requests, both in the generator:
+
+- Drop a queued tech on the current research's icon: the move "up to slot
+  0". The current research is the queue's head (vanilla's X on it is
+  RemoveFromQueue), so the dragged tech and its queued prerequisites stay
+  and everything else, the old current research first, goes to the back.
+  The old current research is sent back from a widget inside the controller
+  (the hbox's datacontext is the current research), not from the icon: the
+  icon is before the controller in the tree, where a triggered state would
+  run a pass late, after the row's commands.
+- A drop that leaves the dragged tech at its drag-start position changed
+  nothing. The position is stored as text at drag start (`rq_xpos`, a
+  `p0`..`p40` ladder: the GUI stores strings, not numbers), compared a
+  second after the drop (`rq_after`, now in the release build too), and an
+  equal one fades in `RQ_NOT_MOVED` under the current research's icon for
+  about 4 seconds.
+
+Run with the probe build. Criteria, judged by `rq_probe_report.py` unless noted:
+
+| # | Do | Pass |
+|---|---|---|
+| N1 | drop a queued tech (no queued prerequisites) on the current research | `drop|up|0` PASS: after-dump `pos|0` is that tech, the old current research is next |
+| N2 | drop a queued tech whose prerequisite is also queued on the current research | `drop|up|0` PASS: the prerequisite is `pos|0`, the tech right after it |
+| N3 | F3/F4 again on a queue with unrelated techs between the chain members | PASS for both drops |
+| N4 | drag a tech ahead of its own prerequisite when they are adjacent | `nomove` line, and the report finds the message shown exactly when nothing moved, for every drop |
+| N5 | screenshot while the message shows | the text is readable, under the current research icon (human look) |
+| F8 | the current research has progress when N1 sends it back | the probe's progress number under it in the row equals the progress it had (screenshot before and after) |
+
+If N1 fails with the old current research last instead of next, the
+controller-child ordering assumption is wrong for that widget.
+
 ## Roadmap
 
 - **Optional, if players ask for compatibility with tech mods (e.g.

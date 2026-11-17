@@ -3,7 +3,8 @@ a verdict per drop (docs/research-queue-investigation.md, run 3 criteria).
 
 Each drop the probe logs looks like:
 
-    drop|up|f or drop|down|f   the move: the dragged tech to slot f
+    drop|up|f or drop|down|f   the move: the dragged tech to slot f (up|0: dropped
+                               on the current research, which dumps as pos|0)
     drop|noop / drop|badx      no move (badx: the name recorded at drag start
                                did not match the dropped tech)
     x|<tech>                   the dragged tech
@@ -11,6 +12,7 @@ Each drop the probe logs looks like:
     fire_top|<tech> / fire_tail|<tech> ...   techs sent to the back, in order
     after                      one second later
     pos|<p>|<tech> ...         queue AFTER
+    nomove                     the "not moved" message was shown
 
 The expected result is computed here from the before-order and the game's
 prerequisite data, independently of the GUI:
@@ -23,8 +25,9 @@ prerequisite data, independently of the GUI:
 
 Expected order = the techs that stay, then the sent-back ones, each in their
 original order. A drop passes when the after-order matches, the techs sent
-back are exactly that set in that order, and no shown tech was sent back
-after an overflow one.
+back are exactly that set in that order, no shown tech was sent back
+after an overflow one, and the "not moved" message was shown exactly when
+the after-order equals the before-order.
 
 Usage: python tools/rq_probe_report.py [--logs-dir PATH]
 """
@@ -187,6 +190,11 @@ def main() -> int:
             lost = set(before) - set(got)
             if lost:
                 problems.append(f"LOST from the queue: {sorted(lost)}")
+        nomove = any(e[0] == "nomove" for e in op[after + 1:])
+        print(f"  'not moved' message: {'shown' if nomove else 'not shown'}")
+        if nomove != (got == before):
+            problems.append("the 'not moved' message was " + ("shown after a real move" if nomove
+                            else "not shown though nothing moved"))
         if fired != members:
             problems.append(f"sent back {fired}, expected {members}")
         kinds_fired = [e[0] for e in fires]

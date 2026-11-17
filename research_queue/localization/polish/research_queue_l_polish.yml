@@ -1,2 +1,3 @@
 ﻿l_polish:
  RQ_MOVE_TO_ROW_TOOLTIP:0 "(Reorder) [Technology.GetName] – przenieś na początek kolejki badań, razem z wymaganymi technologiami, które są już w kolejce."
+ RQ_NOT_MOVED:0 "(Reorder) Bez zmian: technologia zawsze pozostaje w kolejce za technologiami, których wymaga."
