@@ -321,6 +321,32 @@ Final test, judged by eye plus `scan_logs.py` (no RQ_PROBE lines exist now):
 
 If any of F2 to F5 fails, the next run is with `--probe` and the report.
 
+### Final test result (2026-11-17)
+
+Launch at 15:33 local, playing Spain, game date 1 Jan 1860, release build
+(`validate_syntax.py research_queue --strict`: full PASS beforehand).
+Smart Notifications was also loaded (its usual unused-variable warning is in
+error.log).
+
+| # | Result | Evidence |
+|---|---|---|
+| F1 | pass | screenshot 20261117153923_1: "(Reorder) Move Vacuum Canning to the front of the research queue, together with any queued technologies it requires." |
+| F2 | pass | user report |
+| F3 | pass as designed | queue was Egalitarianism, Labor Movement, Socialism, so the move resolves to the same order and nothing visibly moves. User wants a short message saying why |
+| F4 | pass as designed | same queue, same outcome, same request |
+| F5 | pass | user report |
+| F6 | pass | user report |
+| F7 | pass | no line in error.log or debug.log names `research_queue`, `queued_technology` or `RQ_`. gui.log lines 66-67 report vanilla's `tech_tree_panel` and `queued_technology` as "already registered at gui/00_research_queue_tech_tree_panel.gui": the intended 00_ override. ~20 `pdx_persistent_reader` "Failed to read key reference" errors at 15:33:31 name no file |
+| F8 | not tested | no before/after tooltip screenshot. The user tried dropping a queued tech onto the ongoing research to replace it; that is not supported |
+
+F8 still blocks any progress claim on the Workshop page.
+
+New requests from this run (not started):
+- When a drag resolves to the same order (F3, F4), show a short message saying
+  why nothing moved.
+- Dropping a queued tech onto the ongoing research replaces it. The user's
+  call: worth doing only if it does not add much complexity.
+
 ## Roadmap
 
 - **Optional, if players ask for compatibility with tech mods (e.g.
