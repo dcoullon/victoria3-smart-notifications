@@ -98,7 +98,10 @@ KNOWN = f"GetVariableSystem.Exists(Concatenate('rq_known_', {NAME}))"
 KNOWN_DRAGGED = f"GetVariableSystem.Exists(Concatenate('rq_known_', {DRAGGED}.GetNameNoFormatting))"
 XTARGET = "GetVariableSystem.Get('rq_xtarget')"
 BUSY = "GetVariableSystem.Exists('rq_busy')"
-CHECK_AFTER = 0.4  # s from a drop to the landing check; run 4 found 1 s felt slow
+CHECK_AFTER = 0.1  # s from a drop to the landing check; run 4 found 1 s felt slow, the user
+# asked for 0 or 0.1 (2026-11-18). Not 0: the queue commands are applied by the game after
+# the click's frame, so a same-frame check always sees the old queue. Run 5's probe dump
+# at 1 s tells whether 0.1 is late enough (a 'message shown though it landed' FAIL if not).
 ROOT_ONLY = "GuiScope.SetRoot(GetPlayer.MakeScope).End"
 ROOT_TECH = "GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('t', Technology.MakeScope).End"
 BOM = "﻿"
@@ -550,7 +553,7 @@ def current_research_parts() -> str:
         f"{ind}\talpha = 0\n"
         f"{ind}\talwaystransparent = yes\n"
         f"{ind}\ttext = \"RQ_PREREQUISITES_FIRST\"\n"
-        f"{ind}\tstate = {{ name = rq_nomove_show  duration = 0.15  alpha = 1  next = rq_nomove_hold\n"
+        f"{ind}\tstate = {{ name = rq_nomove_show  duration = 0.05  alpha = 1  next = rq_nomove_hold\n"
         + log_line(ind + "\t\t", "rq_probe_nomove", ROOT_ONLY) +
         f"{ind}\t}}\n"
         f"{ind}\tstate = {{ name = rq_nomove_hold  duration = 4  alpha = 1  next = rq_nomove_hide }}\n"

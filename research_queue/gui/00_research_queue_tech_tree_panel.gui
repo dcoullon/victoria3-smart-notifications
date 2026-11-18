@@ -111,7 +111,7 @@ types research_queue_types
 							alpha = 0
 							alwaystransparent = yes
 							text = "RQ_PREREQUISITES_FIRST"
-							state = { name = rq_nomove_show  duration = 0.15  alpha = 1  next = rq_nomove_hold
+							state = { name = rq_nomove_show  duration = 0.05  alpha = 1  next = rq_nomove_hold
 							}
 							state = { name = rq_nomove_hold  duration = 4  alpha = 1  next = rq_nomove_hide }
 							state = { name = rq_nomove_hide  duration = 0.5  alpha = 0 }
@@ -336,7 +336,7 @@ types research_queue_types
 							next = rq_check
 						}
 						# Once the commands ran: check where the tech landed, accept drops again.
-						state = { name = rq_check  duration = 0.4  alpha = 1
+						state = { name = rq_check  duration = 0.1  alpha = 1
 							on_finish = "[PdxGuiTriggerAllAnimations('rq_poscheck')]"
 							on_finish = "[GetVariableSystem.Clear('rq_busy')]"
 						}
