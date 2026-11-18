@@ -434,6 +434,21 @@ tech was dragged). `scan_logs.py`: nothing from this mod beyond RQ_PROBE and
 the intended "already registered" override lines. Release build restored,
 `--strict` full PASS.
 
+User check after run 5 (release build, by eye): dragging from the "+N" row
+onto the queue row works. Request: reorder inside the "+N" row too.
+- Drop slots now run to `last_slot(n)` = n + `OVF_DROP` (10): the "+N" row's
+  techs get the same icon drop as the row's (before it moving up, after it
+  moving down), and "after the last shown tech" also takes a "+N" tech (up
+  to n + 1). The hidden overflow copy uses the row's position rules
+  (`row_member`, `row_blocker`) instead of "everything goes" on a down move.
+- Cost: 136 moves instead of 21; the generated file grows from about 300 KB
+  to about 450 KB of states. Watch whether opening the panel feels slower.
+- A tech beyond position n + 10 can still be dragged up; dropping onto one
+  is refused.
+
+Run 6 (probe): drags inside the "+N" row, up and down, report PASS; the
+panel still opens without a visible hitch.
+
 ## Roadmap
 
 - **Optional, if players ask for compatibility with tech mods (e.g.

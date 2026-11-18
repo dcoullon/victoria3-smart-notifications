@@ -98,6 +98,7 @@ DEP_OF_X = f"GetVariableSystem.Exists(Concatenate3({XNAME}, '>', {NAME}))"
 KNOWN = f"GetVariableSystem.Exists(Concatenate('rq_known_', {NAME}))"
 KNOWN_DRAGGED = f"GetVariableSystem.Exists(Concatenate('rq_known_', {DRAGGED}.GetNameNoFormatting))"
 BUSY = "GetVariableSystem.Exists('rq_busy')"
+OVF_DROP = 10  # "+N" row slots that accept drops; the move table grows with the square of the last slot
 CHECK_AFTER = 0.4  # s during which further drops are refused after one (drop lock only)
 ROOT_ONLY = "GuiScope.SetRoot(GetPlayer.MakeScope).End"
 ROOT_TECH = "GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('t', Technology.MakeScope).End"
@@ -180,13 +181,21 @@ def ladder(cases: list[tuple[str, str]], default: str) -> str:
     return expr
 
 
+def last_slot(n: int) -> int:
+    """The last queue position a drop can target: the row's n slots plus
+    OVF_DROP in the "+N" row. A tech beyond it can still be dragged up."""
+    return n + OVF_DROP
+
+
 def moves(n: int) -> list[tuple[str, int | None, int]]:
     """Every move as (direction, from, to). An up move does not depend on
     where the tech came from, so `from` is None; a down move does (unknown
-    techs between the two slots travel with it)."""
-    return ([("up", None, f) for f in range(0, n + 1)]
+    techs between the two slots travel with it). Slots run to last_slot(n):
+    drops inside the "+N" row (run 5 request)."""
+    m = last_slot(n)
+    return ([("up", None, f) for f in range(0, m + 1)]
             # from 0: the current research's icon dragged into the queue (run 5 request)
-            + [("down", x, f) for f in range(1, n + 1) for x in range(0, f)])
+            + [("down", x, f) for f in range(1, m + 1) for x in range(0, f)])
 
 
 def mkey(d: str, x: int | None, f: int) -> str:
@@ -236,7 +245,19 @@ def gap_drop(n: int) -> str:
 
 
 def end_drop(n: int) -> str:
-    return guarded([(down_from(x), f"rq_go_down_{x}_{n}") for x in range(0, n)])
+    # After the last shown tech: a row tech moves down to n, a "+N" one up to n + 1.
+    return guarded([(down_from(x), f"rq_go_down_{x}_{n}") for x in range(0, n)]
+                   + [(up_to(n + 1), f"rq_go_up_{n + 1}")])
+
+
+def overflow_icon_drop(n: int) -> str:
+    """A drop on a "+N" row tech at position k: before it moving up, after it
+    moving down, as on the row's icons. Beyond last_slot(n): refused."""
+    cases = []
+    for k in range(n + 1, last_slot(n) + 1):
+        cases.append((at(k, up_to(k)), f"rq_go_up_{k}"))
+        cases += [(at(k, down_from(x)), f"rq_go_down_{x}_{k}") for x in range(0, k)]
+    return guarded(cases)
 
 
 def dump_parts(ind: str, tag: str) -> str:
@@ -316,11 +337,6 @@ def row_blocker(d: str, x: int | None, f: int):
         return f"And(GreaterThan_int32({POS}, {i32(f - 1)}), {PRE_OF_X})"
     return (f"And(And(GreaterThan_int32({POS}, {i32(x)}), Not(GreaterThan_int32({POS}, {i32(f)}))), "
             f"Or({DEP_OF_X}, Not({KNOWN})))")
-
-
-def tail_member(d: str, x: int | None, f: int):
-    # Overflow techs sit beyond every slot f; on a down move all of them go.
-    return f"Not(Or({IS_X}, {PRE_OF_X}))" if d == "up" else None
 
 
 def drop_target(ind: str, expr: str) -> str:
@@ -516,7 +532,9 @@ def row(n: int) -> str:
 def end_zone_and_tail(n: int) -> str:
     ind = "\t\t\t\t\t\t"
     tail_ind = ind + "\t\t\t"
-    member = {mkey(d, x, f): tail_member(d, x, f) for d, x, f in moves(n)}
+    # Slots now reach into the "+N" row, so the overflow copy uses the row's
+    # position-based rules too (they hold at any position).
+    member = {mkey(d, x, f): row_member(d, x, f) for d, x, f in moves(n)}
     return (
         "\t\t\t\t\t# RQ: the zone right of the last shown tech (\"after the last shown\"),\n"
         "\t\t\t\t\t# holding a hidden copy of the overflow list, AFTER the row in the\n"
@@ -530,7 +548,7 @@ def end_zone_and_tail(n: int) -> str:
         f"{ind}\tdatamodel = \"[AccessPlayer.GetResearchQueueBottom]\"\n\n"
         f"{ind}\titem = {{\n{ind}\t\twidget = {{\n{ind}\t\t\tsize = {{ 1 1 }}\n"
         + mover_parts(tail_ind, "rq_probe_fire_tail", member,
-                      {mkey(d, x, f): PRE_OF_X for d, x, f in moves(n) if d == "up"})
+                      {mkey(d, x, f): row_blocker(d, x, f) for d, x, f in moves(n)})
         + (dump_parts(tail_ind, "tpos") if PROBE else "") +
         f"{ind}\t\t}}\n{ind}\t}}\n{ind}}}\n"
         "\t\t\t\t\t}"
@@ -575,7 +593,7 @@ def current_research_parts() -> str:
 VANILLA_OVERFLOW_CLICK = "[RightClickMenuManager.ToggleResearchQueue(PdxGuiWidget.AccessSelf)]"
 
 
-def overflow_row() -> str:
+def overflow_row(n: int) -> str:
     """The "+N" techs as a second row under the queue, inside the panel, in
     place of vanilla's right-click menu. Runs 3 and 4: a drag out of that menu
     never reached a drop target (drag starts logged, no drop line, nothing in
@@ -583,10 +601,10 @@ def overflow_row() -> str:
     layer_rightclickmenu (right_click_menu.gui), and a drop target in the
     panel's window cannot receive a drag that started in another window. This
     row is in the panel's window and in the layout flow (fixed_top stacks its
-    children vertically), so nothing draws over it. Its techs only carry the
-    drag; every move is done by the existing row and overflow-copy members,
-    and the row's drops already handle a dragged tech beyond the row (up to f
-    is any position above f)."""
+    children vertically), so nothing draws over it (run 5: drags from it onto
+    the row work). Its techs carry the drag and, up to last_slot(n), a drop
+    target (run 5 request: reorder inside this row); every move is done by the
+    existing row and overflow-copy members."""
     ind = "\t\t\t\t\t\t\t\t\t"
     return (
         "\t\t\t# RQ: the techs beyond the row, shown by \"+N\" here instead of in vanilla's\n"
@@ -607,7 +625,8 @@ def overflow_row() -> str:
         "\t\t\t\t\t\t\tqueued_technology = {\n"
         "\t\t\t\t\t\t\t\tparentanchor = center\n"
         "\t\t\t\t\t\t\t\talwaystransparent = no\n"
-        + drag_block(ind[:-1]) +
+        + drag_block(ind[:-1])
+        + drop_target(ind[:-1], overflow_icon_drop(n)) +
         "\t\t\t\t\t\t\t}\n"
         "\t\t\t\t\t\t}\n"
         "\t\t\t\t\t}\n"
@@ -644,7 +663,7 @@ def build_gui() -> str:
     ft = panel.index('blockoverride "fixed_top" {')
     fh = panel.index("hbox = {", ft)
     fe = block_at(panel, fh)
-    panel = panel[:fe] + "\n\n" + overflow_row() + panel[fe:]
+    panel = panel[:fe] + "\n\n" + overflow_row(n) + panel[fe:]
     return (BOM +
             "# GENERATED by tools/gen_research_queue_probe.py from the installed game's\n"
             "# gui/tech_tree.gui and common/technology/technologies. Do not edit by hand:\n"
