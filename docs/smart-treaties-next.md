@@ -503,6 +503,37 @@ Accepted when: over 10 game years of the Spain campaign it fires at most 10
 times, never twice for one good and partner, and every alert matches a row
 the recommender showed that month.
 
+## Candidates from player demand (researched 2026-11-18, not decided)
+
+Sources: Steam discussions for app 529340 (20 queries) and all 16 comments on
+the Smart Treaties page. Reddit and the Paradox forum could not be read
+(403 / bot check), so this is Steam-only. Thread URLs are
+`steamcommunity.com/app/529340/discussions/0/<id>/`. The 16 comments hold two
+fixed bugs and praise, no feature request. No source asked for the
+opportunity alert (section 4).
+
+1. **Merchant marine view.** Merchant marine per treaty lane, the total
+   against supply, and a warning before signing if a draft would cause a
+   shortage. Threads 840629289175015722 (2026-05-25, 6 replies: one lane
+   needed 368 merchant marine) and 841753826211045524 (2026-05-12, 5 replies;
+   a reply asks for an overview after overdoing treaties). Today the mod shows
+   shipping in £ only.
+2. **Import finder: who will send me good X.** The suggestions cover goods
+   the player sends only (section 3). Threads 684112501454998485 (2025-11-23,
+   20 replies) and 841753396007528425 (2026-05-07, 13 replies).
+3. **Cheapest sweetener.** While drafting another treaty, the goods
+   transfers that buy the most acceptance for the least money. Replies in 3
+   threads advise doing this by hand; one 2025-07 reply asks for "a button to
+   ask the AI what it wants". Unverified: 1.12 capped goods-transfer
+   acceptance per article (seen only in a search snippet of Dev Diary #171).
+4. Lower: a renegotiation hint (the cap is the partner's shortage after the
+   current transfer; 1 thread), why acceptance moves when an article is added
+   (2 threads from 2025, engine-side), reopening a refused proposal (1 thread,
+   0 replies), tariff revenue (out of scope).
+
+Demand signal for trade information in the UI: "Trade Partners" (Workshop,
+13,611 subscribers on 2026-11-18, created 2026-05-26).
+
 ## Rejected (Damien, 2026-11-05)
 
 - Prediction on signed treaties: keeps the issue top of mind for little value.
