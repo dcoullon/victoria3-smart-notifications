@@ -449,6 +449,21 @@ onto the queue row works. Request: reorder inside the "+N" row too.
 Run 6 (probe): drags inside the "+N" row, up and down, report PASS; the
 panel still opens without a visible hitch.
 
+#### Run 6 results (2026-11-18, probe build 08dde7b)
+
+6 drops, 5 PASS; the sixth (`up|0`, Dynamite onto the current research,
+landing behind Nitroglycerin with the message) read as LOST only because the
+log was still being written: positions 0 to 5 matched the expected order.
+Covered: a drop inside the "+N" row (`up|6`), a "+N" tech onto the row, the
+expand/collapse arrow (user, by eye), no visible slowdown opening the panel
+(user). Logs: nothing from this mod beyond RQ_PROBE and the override lines.
+Release build: `--check` current, `--strict` full PASS, no RQ_PROBE or
+GetScriptedGui in it.
+
+Known behaviours shipped as is: a drop on a "+N" tech past slot n + 10 does
+nothing; the "+N" row remembers being open; the "+N" arrow button moves a
+tech to the front of the queue, not onto the current research (user: fine).
+
 ## Roadmap
 
 - **Optional, if players ask for compatibility with tech mods (e.g.
