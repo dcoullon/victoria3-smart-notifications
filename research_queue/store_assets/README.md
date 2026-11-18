@@ -80,7 +80,8 @@ preview, a short page (256 words against 434 and 629).
 ## Description
 
 `../STEAM_WORKSHOP_DESCRIPTION.bbcode`. The GIF goes inline after the
-opening paragraphs (`GIF_URL_HERE`, an Imgur direct `.gif` link under 5 MB:
+opening paragraphs (https://i.imgur.com/gr5cjiT.gif, 2,403,513 bytes, set
+2026-11-18; an Imgur direct `.gif` link under 5 MB:
 above that Imgur turns it into MP4 and the link stops animating on Steam,
 cf bulk_construction/store_assets/README.md). The opening is 280 characters
 before the URL, so the URL stays out of the hover preview. Check after any
