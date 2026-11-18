@@ -720,7 +720,16 @@ own separate mod. No version target until that's decided.
       treaty terms, so the phase closed with no new content needed and
       these tools have nothing left to scope.
 
-## UNVERIFIED — population figures in all 11 languages (built 2026-11-18, not released)
+## DONE (0.45) — population figures in all 11 languages (built and confirmed 2026-11-18)
+
+**Confirmed 2026-11-18** (Damien's French Spain 1860 save, dev junction
+mounted, screenshot 20261118115620_1.jpg): the "Ville d'abondance" event
+showed "Classe supérieure Groupes sociaux (177K dans tout le pays)" and
+"Classe moyenne Groupes sociaux (2.05M dans tout le pays)"; zero error.log
+lines from the mod. So `replace/<lang>/` works outside English. Criterion
+(2), the state line, was not seen on screen; it lives in the same loaded
+file, so it is covered by the same mechanism. The engine's "set but never
+used" note on the removed player-country global is gone in the same run.
 
 The 0.40 population-in-events feature was English-only: it predates the
 0.42 translation pass, which skipped `localization/replace/`. Now

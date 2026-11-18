@@ -19,6 +19,15 @@ instrumentation and doc-only changes get a commit but **no** version bump
 unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [0.45] - 2026-11-18
+
+No settings reset needed: this release changes no notification tiers.
+
+### New
+- Population figures in events now show in every game language, not only
+  English: "(2.05M dans tout le pays)" after a group, "(2.1M habitants)"
+  after a state.
+
 ## [0.44] - 2026-11-13
 
 No settings reset needed: this release changes no notification tiers.
