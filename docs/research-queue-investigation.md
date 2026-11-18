@@ -424,6 +424,16 @@ User requests before run 5 (2026-11-18):
 Run 5 adds: drag the current research into the row (report PASS for
 `drop|down|f` from position 0; the tech after it becomes current).
 
+#### Run 5 results (2026-11-18, probe build a3480f8)
+
+`rq_probe_report.py`: 20 drops, 20 PASS, 20 drag starts. Covered: drops on
+the current research (3), the current research dragged into the queue (1),
+the message shown exactly when a tech did not land on its drop slot (10
+shown, 10 not). Not covered: a drag out of the new "+N" row (no overflow
+tech was dragged). `scan_logs.py`: nothing from this mod beyond RQ_PROBE and
+the intended "already registered" override lines. Release build restored,
+`--strict` full PASS.
+
 ## Roadmap
 
 - **Optional, if players ask for compatibility with tech mods (e.g.
