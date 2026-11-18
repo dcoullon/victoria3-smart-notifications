@@ -375,6 +375,44 @@ Run with the probe build. Criteria, judged by `rq_probe_report.py` unless noted:
 If N1 fails with the old current research last instead of next, the
 controller-child ordering assumption is wrong for that widget.
 
+#### Run 4 results (2026-11-17, probe build, Spain)
+
+`rq_probe_report.py`: 29 drops, 25 PASS, 3 FAIL, 1 not judged.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| N1 | PASS | 5 `drop|up|0`, each with the dragged tech at `pos|0` after and the old current research next |
+| N2 | not exercised | no drop on the current research had a queued prerequisite |
+| N3 | PASS | the mixed-queue up and down drops passed |
+| N4 | PASS, too slow | six drops of Dynamite on Nitroglycerin (its prerequisite), message logged each time; the user: "firing too slow" (1 s plus the fade) |
+| N5 | not judged | no screenshot while it showed |
+| F8 | PASS | Nitroglycerin had 472 at 15:39; after ~20 moves, including being current and sent back by a drop on the current research, the 15:58 screenshot still shows 472 under it |
+
+Failures:
+- Drop 8 (up to 1): message shown after a real move. Unexplained; moot,
+  the rule changed (below).
+- Drops 10 and 11 came less than a second apart; after 11, Dynamite sat
+  ahead of its prerequisite Nitroglycerin. The second drop's send-back set
+  was computed on a queue still changing. Fix: drops are refused until the
+  previous move's check (0.4 s).
+- Drop 29 "LOST" two techs: the log ended mid-line (game still running);
+  re-read with the game closed.
+
+User requests from run 4:
+- Message also when a tech dropped on its own prerequisite lands just
+  behind it (a real move, so "position unchanged" missed it). New rule:
+  message whenever the tech does not land on the slot it was dropped on.
+  Key renamed to `RQ_PREREQUISITES_FIRST`, worded for both directions.
+- Faster message: the check runs 0.4 s after the drop instead of 1 s.
+- Dragging out of the "+N" pop-up: still not possible (run 3: the drop
+  never reaches a target); the user asked, told it is an open-ended
+  investigation; left for later.
+- The progress number under a tech is the probe's readout, not in the
+  release build.
+
+Run 5 (probe): report criteria as run 4, with the message judged as "shown
+iff the tech did not land on slot f"; plus N2 and N5.
+
 ## Roadmap
 
 - **Optional, if players ask for compatibility with tech mods (e.g.

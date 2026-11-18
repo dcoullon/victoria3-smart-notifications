@@ -1,3 +1,3 @@
 ﻿l_french:
  RQ_MOVE_TO_ROW_TOOLTIP:0 "(Reorder) Déplacer [Technology.GetName] en tête de la file d’attente pour la recherche, avec les technologies requises déjà présentes dans la file."
- RQ_NOT_MOVED:0 "(Reorder) Aucun déplacement : dans la file, une technologie reste toujours derrière celles qu’elle requiert."
+ RQ_PREREQUISITES_FIRST:0 "(Reorder) Une technologie reste toujours derrière les technologies requises présentes dans la file."

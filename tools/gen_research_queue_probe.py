@@ -40,10 +40,14 @@ widget inside the controller (whose datacontext is the current research,
 like the whole hbox): the icon sits BEFORE the controller in the tree, where
 a triggered state would run on the next pass, after the row's commands.
 
-A drop that leaves the dragged tech where it was changed nothing (every
-tech it had to pass was a prerequisite or a dependent of it): the tech's
-queue position is recorded at drag start as text, compared a second after
-the drop, and an equal one shows a short "not moved" message.
+A drop that does not land the dragged tech on the slot it was dropped on
+(a prerequisite kept it behind, or dependents kept it ahead; run 4: the
+user expected a word when a tech dropped on its own prerequisite lands just
+behind it) shows a short message. The drop records its target slot as text
+('p0'..; the GUI stores strings, not numbers), and 0.4 s later the dragged
+tech's position is compared with it. Until then further drops are refused:
+run 4's two drops less than a second apart left a tech ahead of its own
+prerequisite.
 
 Two builds. The default is the release build: no logging, nothing extra on
 screen, and no scripted GUI file at all (packaging strips debug_log lines,
@@ -92,7 +96,9 @@ DEP_OF_X = f"GetVariableSystem.Exists(Concatenate3({XNAME}, '>', {NAME}))"
 # time. Techs added by other mods are not, and are handled conservatively.
 KNOWN = f"GetVariableSystem.Exists(Concatenate('rq_known_', {NAME}))"
 KNOWN_DRAGGED = f"GetVariableSystem.Exists(Concatenate('rq_known_', {DRAGGED}.GetNameNoFormatting))"
-XPOS = "GetVariableSystem.Get('rq_xpos')"
+XTARGET = "GetVariableSystem.Get('rq_xtarget')"
+BUSY = "GetVariableSystem.Exists('rq_busy')"
+CHECK_AFTER = 0.4  # s from a drop to the landing check; run 4 found 1 s felt slow
 ROOT_ONLY = "GuiScope.SetRoot(GetPlayer.MakeScope).End"
 ROOT_TECH = "GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('t', Technology.MakeScope).End"
 BOM = "﻿"
@@ -193,9 +199,10 @@ def mkey(d: str, x: int | None, f: int) -> str:
 
 
 def guarded(cases: list[tuple[str, str]]) -> str:
-    """A drop expression: refuse unless the name recorded at drag start is the dropped tech's."""
+    """A drop expression: refuse while the previous move is settling, and
+    unless the name recorded at drag start is the dropped tech's."""
     match = f"EqualTo_string({DRAGGED}.GetNameNoFormatting, {XNAME})"
-    return f"Select_CString({match}, {ladder(cases, 'rq_noop')}, 'rq_badx')"
+    return f"Select_CString({BUSY}, 'rq_busyx', Select_CString({match}, {ladder(cases, 'rq_noop')}, 'rq_badx'))"
 
 
 def at(k: int, cond: str) -> str:
@@ -323,7 +330,6 @@ def drag_block(ind: str) -> str:
         "\t\t\t\talpha = 0.7",
         "\t\t\t\tstate = { name = rq_dragstart  trigger_on_create = yes  duration = 0  alpha = 0.7",
         f"\t\t\t\t\ton_start = \"[GetVariableSystem.Set('rq_xname', {NAME})]\"",
-        f"\t\t\t\t\ton_start = \"[GetVariableSystem.Set('rq_xpos', {pos_str()})]\"",
     ] + ([f"\t\t\t\t\ton_start = \"[GetScriptedGui('rq_probe_dragstart').Execute({ROOT_TECH})]\""]
          if PROBE else []) + [
         "\t\t\t\t}",
@@ -368,15 +374,15 @@ def queued_technology_type(n: int) -> str:
         "\t\t\tsize = { 25 25 }\n"
         "\t\t\ttooltip = \"RQ_MOVE_TO_ROW_TOOLTIP\"\n"
         f"\t\t\tonclick = \"[GetVariableSystem.Set('rq_xname', {NAME})]\"\n"
-        f"\t\t\tonclick = \"[GetVariableSystem.Set('rq_xpos', {pos_str()})]\"\n"
         # Refused for a tech the prerequisite table does not know (see up_to).
-        f"\t\t\tonclick = \"[PdxGuiTriggerAllAnimations(Select_CString({KNOWN}, 'rq_go_up_1', 'rq_noop'))]\"\n"
+        f"\t\t\tonclick = \"[PdxGuiTriggerAllAnimations(Select_CString({BUSY}, 'rq_busyx', "
+        f"Select_CString({KNOWN}, 'rq_go_up_1', 'rq_noop')))]\"\n"
         "\t\t}\n"
-        # A second after a move: the dragged tech still at its drag-start
-        # position means nothing changed, so show the "not moved" message.
-        "\n\t\t# RQ: a second after a move, the moved tech still where it was: say why.\n"
+        # Shortly after a move: the moved tech not on the slot it was dropped
+        # on means its prerequisites or dependents kept it off it; say why.
+        "\n\t\t# RQ: shortly after a move, the moved tech not where it was dropped: say why.\n"
         "\t\tstate = { name = rq_poscheck  duration = 0\n"
-        f"\t\t\ton_start = \"[PdxGuiTriggerAllAnimations(Select_CString(And({IS_X}, EqualTo_string({pos_str()}, {XPOS})), "
+        f"\t\t\ton_start = \"[PdxGuiTriggerAllAnimations(Select_CString(And({IS_X}, Not(EqualTo_string({pos_str()}, {XTARGET}))), "
         "'rq_nomove_show', 'rq_none'))]\"\n"
         "\t\t}\n"
     )
@@ -403,25 +409,35 @@ def controller(n: int) -> str:
         key = mkey(d, x, f)
         gos.append(f"{ind}state = {{ name = rq_go_{key}  duration = 0  alpha = 1\n"
                    + log_line(ind + "\t", f"rq_probe_drop_{key}", ROOT_ONLY)
+                   + f"{ind}\ton_start = \"[GetVariableSystem.Set('rq_busy', 'y')]\"\n"
+                   + f"{ind}\ton_start = \"[GetVariableSystem.Set('rq_xtarget', 'p{f}')]\"\n"
                    + (f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_dump')]\"\n" if PROBE else "") +
                    f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_edges')]\"\n"
                    f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_mv_{key}')]\"\n"
-                   + f"{ind}\tnext = rq_after\n" + f"{ind}}}\n")
+                   + f"{ind}\tnext = rq_check\n" + f"{ind}}}\n")
     if PROBE:  # a drop that changes nothing, or a refused one, only needs a log line
-        for name in ("noop", "badx"):
+        for name in ("noop", "badx", "busyx"):
             gos.append(f"{ind}state = {{ name = rq_{name}  duration = 0  alpha = 1\n"
                        + log_line(ind + "\t", f"rq_probe_drop_{name}", ROOT_ONLY) + f"{ind}}}\n")
     lines = [f"{ind}\t\ton_start = \"[GetVariableSystem.Set(Concatenate3(GetTechnology('{p}').GetNameNoFormatting, '>', "
              f"GetTechnology('{t}').GetNameNoFormatting), 'y')]\"\n" for p, t in ancestor_pairs()]
     lines += [f"{ind}\t\ton_start = \"[GetVariableSystem.Set(Concatenate('rq_known_', "
               f"GetTechnology('{k}').GetNameNoFormatting), 'y')]\"\n" for k in known_techs()]
-    after = (f"{ind}# A second later, after the commands ran: check whether the tech moved\n"
-             f"{ind}# (and, probe only, dump the queue again).\n"
-             f"{ind}state = {{ name = rq_after  duration = 1  alpha = 1\n"
-             + log_line(ind + "\t", "rq_probe_after", ROOT_ONLY, "on_finish")
-             + (f"{ind}\ton_finish = \"[PdxGuiTriggerAllAnimations('rq_dump')]\"\n" if PROBE else "") +
+    after = (f"{ind}# Once the commands ran: check where the tech landed, accept drops again.\n"
+             f"{ind}state = {{ name = rq_check  duration = {CHECK_AFTER}  alpha = 1\n"
              f"{ind}\ton_finish = \"[PdxGuiTriggerAllAnimations('rq_poscheck')]\"\n"
-             f"{ind}}}\n\n")
+             f"{ind}\ton_finish = \"[GetVariableSystem.Clear('rq_busy')]\"\n"
+             + (f"{ind}\tnext = rq_after\n" if PROBE else "") +
+             f"{ind}}}\n"
+             f"{ind}# Panel (re)opened: a move cut short by closing it must not block drops.\n"
+             f"{ind}state = {{ name = rq_init  trigger_on_create = yes  duration = 0  alpha = 1\n"
+             f"{ind}\ton_start = \"[GetVariableSystem.Clear('rq_busy')]\"\n"
+             f"{ind}}}\n\n"
+             + ((f"{ind}# Probe: a second after the drop, dump the queue again.\n"
+                 f"{ind}state = {{ name = rq_after  duration = {round(1 - CHECK_AFTER, 2)}  alpha = 1\n"
+                 + log_line(ind + "\t", "rq_probe_after", ROOT_ONLY, "on_finish") +
+                 f"{ind}\ton_finish = \"[PdxGuiTriggerAllAnimations('rq_dump')]\"\n"
+                 f"{ind}}}\n\n") if PROBE else ""))
     return (
         "# RQ: the controller, BEFORE the queue row in the widget tree, so the\n"
         "\t\t\t\t\t# states it triggers on the row and on the overflow list (after the\n"
@@ -525,7 +541,7 @@ def current_research_parts() -> str:
         f"{ind}# research (its queued prerequisites first); the old one comes right after.\n"
         f"{ind}alwaystransparent = no\n"
         + drop_target(ind, drop) +
-        f"{ind}# RQ: shown for a few seconds when a move changed nothing.\n"
+        f"{ind}# RQ: shown for a few seconds when a tech did not land where it was dropped.\n"
         f"{ind}textbox = {{\n"
         f"{ind}\tname = \"rq_nomove\"\n"
         f"{ind}\tposition = {{ 0 82 }}\n"
@@ -533,7 +549,7 @@ def current_research_parts() -> str:
         f"{ind}\talign = left|nobaseline\n"
         f"{ind}\talpha = 0\n"
         f"{ind}\talwaystransparent = yes\n"
-        f"{ind}\ttext = \"RQ_NOT_MOVED\"\n"
+        f"{ind}\ttext = \"RQ_PREREQUISITES_FIRST\"\n"
         f"{ind}\tstate = {{ name = rq_nomove_show  duration = 0.15  alpha = 1  next = rq_nomove_hold\n"
         + log_line(ind + "\t\t", "rq_probe_nomove", ROOT_ONLY) +
         f"{ind}\t}}\n"
@@ -592,7 +608,7 @@ def build_sgui() -> str:
         out.append(sgui(f"rq_probe_{tag}_over", f"RQ_PROBE|{tag}|over|{name}", True))
     for d, x, f in moves(shown_count()):
         out.append(sgui(f"rq_probe_drop_{mkey(d, x, f)}", f"RQ_PROBE|drop|{d}|{f}", False))
-    for ev in ("noop", "badx"):
+    for ev in ("noop", "badx", "busyx"):
         out.append(sgui(f"rq_probe_drop_{ev}", f"RQ_PROBE|drop|{ev}", False))
     out.append(sgui("rq_probe_after", "RQ_PROBE|after", False))
     out.append(sgui("rq_probe_nomove", "RQ_PROBE|nomove", False))
