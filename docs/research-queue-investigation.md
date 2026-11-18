@@ -403,7 +403,7 @@ User requests from run 4:
   behind it (a real move, so "position unchanged" missed it). New rule:
   message whenever the tech does not land on the slot it was dropped on.
   Key renamed to `RQ_PREREQUISITES_FIRST`, worded for both directions.
-- Faster message: the check runs 0.4 s after the drop instead of 1 s.
+- Faster message: first a check 0.4 s after the drop; then (user: "why any delay?") computed at drop time instead, from the queue before the move: each tech that will keep the dragged one off its slot (up: a prerequisite at position >= f; down: a dependent or unknown tech between the slots) fires the message in its own rq_mv_ state. No timing involved. The 0.4 s remains only as the drop lock.
 - Dragging out of the "+N" pop-up: still not possible (run 3: the drop
   never reaches a target); the user asked, told it is an open-ended
   investigation; left for later.

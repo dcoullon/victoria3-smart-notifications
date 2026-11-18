@@ -40,14 +40,15 @@ widget inside the controller (whose datacontext is the current research,
 like the whole hbox): the icon sits BEFORE the controller in the tree, where
 a triggered state would run on the next pass, after the row's commands.
 
-A drop that does not land the dragged tech on the slot it was dropped on
-(a prerequisite kept it behind, or dependents kept it ahead; run 4: the
-user expected a word when a tech dropped on its own prerequisite lands just
-behind it) shows a short message. The drop records its target slot as text
-('p0'..; the GUI stores strings, not numbers), and 0.4 s later the dragged
-tech's position is compared with it. Until then further drops are refused:
-run 4's two drops less than a second apart left a tech ahead of its own
-prerequisite.
+A drop that will not land the dragged tech on the slot it was dropped on
+shows a short message at once (run 4: the user expected a word when a tech
+dropped on its own prerequisite lands just behind it, and found a check
+after the move too slow). It is known at drop time, from the queue before
+the move: up to f, a prerequisite of the tech at position >= f stays ahead
+of it; down to f, a dependent (or another mod's tech) between the two slots
+travels with it. Each such tech, in its own rq_mv_ state, fires the message.
+Drops are refused for CHECK_AFTER seconds after one (run 4's two drops less
+than a second apart left a tech ahead of its own prerequisite).
 
 Two builds. The default is the release build: no logging, nothing extra on
 screen, and no scripted GUI file at all (packaging strips debug_log lines,
@@ -96,9 +97,8 @@ DEP_OF_X = f"GetVariableSystem.Exists(Concatenate3({XNAME}, '>', {NAME}))"
 # time. Techs added by other mods are not, and are handled conservatively.
 KNOWN = f"GetVariableSystem.Exists(Concatenate('rq_known_', {NAME}))"
 KNOWN_DRAGGED = f"GetVariableSystem.Exists(Concatenate('rq_known_', {DRAGGED}.GetNameNoFormatting))"
-XTARGET = "GetVariableSystem.Get('rq_xtarget')"
 BUSY = "GetVariableSystem.Exists('rq_busy')"
-CHECK_AFTER = 0.4  # s from a drop to the landing check; run 4 found 1 s felt slow
+CHECK_AFTER = 0.4  # s during which further drops are refused after one
 ROOT_ONLY = "GuiScope.SetRoot(GetPlayer.MakeScope).End"
 ROOT_TECH = "GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('t', Technology.MakeScope).End"
 BOM = "﻿"
@@ -180,12 +180,6 @@ def ladder(cases: list[tuple[str, str]], default: str) -> str:
     return expr
 
 
-def pos_str() -> str:
-    """This tech's queue position as text ('p0'..'pDUMP_MAX', else 'pover'):
-    the GUI cannot store a number, only a string (GetVariableSystem.Set)."""
-    return ladder([(f"EqualTo_int32({POS}, {i32(p)})", f"p{p}") for p in range(0, DUMP_MAX + 1)], "pover")
-
-
 def moves(n: int) -> list[tuple[str, int | None, int]]:
     """Every move as (direction, from, to). An up move does not depend on
     where the tech came from, so `from` is None; a down move does (unknown
@@ -260,17 +254,22 @@ def log_line(ind: str, sgui_name: str, root: str = ROOT_TECH, event: str = "on_s
     return f"{ind}{event} = \"[GetScriptedGui('{sgui_name}').Execute({root})]\"\n" if PROBE else ""
 
 
-def mover_parts(ind: str, log: str, member: dict) -> str:
+def mover_parts(ind: str, log: str, member: dict, blocker: dict | None = None) -> str:
     """One rq_mv_<move> state per move, each gating this tech into the
     send-back set, plus the gates. `member` maps a move key (mkey) to a
-    condition, or to None for "always"."""
+    condition, or to None for "always". `blocker` maps a move key to the
+    condition under which this tech keeps the dragged one off its slot, which
+    shows the message."""
     states = []
     for key, cond in member.items():
+        bc = (blocker or {}).get(key)
+        warn = (f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations(Select_CString({bc}, "
+                f"'rq_nomove_show', 'rq_none'))]\"\n") if bc else ""
         pick = "'rq_do'" if cond is None else f"Select_CString({cond}, 'rq_do', 'rq_skip')"
         xlog = (f"{ind}\ton_start = \"[PdxGuiWidget.FindChild('rq_xgate').TriggerAnimation("
                 f"Select_CString({IS_X}, 'rq_xlog', 'rq_skip'))]\"\n") if PROBE else ""
         states.append(f"{ind}state = {{ name = rq_mv_{key}  duration = 0  alpha = 1\n"
-                      + xlog +
+                      + xlog + warn +
                       f"{ind}\ton_start = \"[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation({pick})]\"\n"
                       f"{ind}}}\n")
     xgate = (f"{ind}widget = {{\n{ind}\tname = \"rq_xgate\"\n{ind}\tsize = {{ 1 1 }}\n"
@@ -299,6 +298,16 @@ def row_member(d: str, x: int | None, f: int):
     # left behind, the cascade on X's removal would take it out of the queue).
     between = f"And(GreaterThan_int32({POS}, {i32(x)}), Or({DEP_OF_X}, Not({KNOWN})))"
     return f"Or({IS_X}, Or(GreaterThan_int32({POS}, {i32(f)}), {between}))"
+
+
+def row_blocker(d: str, x: int | None, f: int):
+    """This tech keeps the dragged one off slot f: up, a prerequisite of it at
+    position >= f stays ahead of it; down, a tech between the two slots that
+    travels with it (row_member's `between`) lands behind it."""
+    if d == "up":
+        return f"And(GreaterThan_int32({POS}, {i32(f - 1)}), {PRE_OF_X})"
+    return (f"And(And(GreaterThan_int32({POS}, {i32(x)}), Not(GreaterThan_int32({POS}, {i32(f)}))), "
+            f"Or({DEP_OF_X}, Not({KNOWN})))")
 
 
 def tail_member(d: str, x: int | None, f: int):
@@ -378,13 +387,6 @@ def queued_technology_type(n: int) -> str:
         f"\t\t\tonclick = \"[PdxGuiTriggerAllAnimations(Select_CString({BUSY}, 'rq_busyx', "
         f"Select_CString({KNOWN}, 'rq_go_up_1', 'rq_noop')))]\"\n"
         "\t\t}\n"
-        # Shortly after a move: the moved tech not on the slot it was dropped
-        # on means its prerequisites or dependents kept it off it; say why.
-        "\n\t\t# RQ: shortly after a move, the moved tech not where it was dropped: say why.\n"
-        "\t\tstate = { name = rq_poscheck  duration = 0\n"
-        f"\t\t\ton_start = \"[PdxGuiTriggerAllAnimations(Select_CString(And({IS_X}, Not(EqualTo_string({pos_str()}, {XTARGET}))), "
-        "'rq_nomove_show', 'rq_none'))]\"\n"
-        "\t\t}\n"
     )
     return body[:-2] + button + "\t}"
 
@@ -398,7 +400,7 @@ def controller_current() -> str:
             + log_line(ind + "\t\t", "rq_probe_pos_0") + f"{ind}\t}}\n") if PROBE else ""
     return (f"{ind}# The current research, sent back first on a drop on it.\n"
             f"{ind}widget = {{\n{ind}\tsize = {{ 1 1 }}\n"
-            + mover_parts(ind + "\t", "rq_probe_fire_top", {"up_0": f"Not({PRE_OF_X})"})
+            + mover_parts(ind + "\t", "rq_probe_fire_top", {"up_0": f"Not({PRE_OF_X})"}, {"up_0": PRE_OF_X})
             + dump + f"{ind}}}\n")
 
 
@@ -410,7 +412,7 @@ def controller(n: int) -> str:
         gos.append(f"{ind}state = {{ name = rq_go_{key}  duration = 0  alpha = 1\n"
                    + log_line(ind + "\t", f"rq_probe_drop_{key}", ROOT_ONLY)
                    + f"{ind}\ton_start = \"[GetVariableSystem.Set('rq_busy', 'y')]\"\n"
-                   + f"{ind}\ton_start = \"[GetVariableSystem.Set('rq_xtarget', 'p{f}')]\"\n"
+
                    + (f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_dump')]\"\n" if PROBE else "") +
                    f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_edges')]\"\n"
                    f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_mv_{key}')]\"\n"
@@ -423,9 +425,8 @@ def controller(n: int) -> str:
              f"GetTechnology('{t}').GetNameNoFormatting), 'y')]\"\n" for p, t in ancestor_pairs()]
     lines += [f"{ind}\t\ton_start = \"[GetVariableSystem.Set(Concatenate('rq_known_', "
               f"GetTechnology('{k}').GetNameNoFormatting), 'y')]\"\n" for k in known_techs()]
-    after = (f"{ind}# Once the commands ran: check where the tech landed, accept drops again.\n"
+    after = (f"{ind}# Once the commands ran: accept drops again.\n"
              f"{ind}state = {{ name = rq_check  duration = {CHECK_AFTER}  alpha = 1\n"
-             f"{ind}\ton_finish = \"[PdxGuiTriggerAllAnimations('rq_poscheck')]\"\n"
              f"{ind}\ton_finish = \"[GetVariableSystem.Clear('rq_busy')]\"\n"
              + (f"{ind}\tnext = rq_after\n" if PROBE else "") +
              f"{ind}}}\n"
@@ -494,7 +495,8 @@ def row(n: int) -> str:
         + drag_block(ind) +
         "\t\t\t\t\t\t\t\t\t# RQ: dropped on this icon, moving left lands before it, moving right after it.\n"
         + drop_target(ind, icon_drop(n)) + "\n"
-        + mover_parts(ind, "rq_probe_fire_top", member)
+        + mover_parts(ind, "rq_probe_fire_top", member,
+                      {mkey(d, x, f): row_blocker(d, x, f) for d, x, f in moves(n)})
         + (probe_row_extras(ind) if PROBE else "") +
         "\t\t\t\t\t\t\t\t}\n"
         "\t\t\t\t\t\t\t}\n"
@@ -519,7 +521,8 @@ def end_zone_and_tail(n: int) -> str:
         f"{ind}flowcontainer = {{\n{ind}\tdirection = vertical\n"
         f"{ind}\tdatamodel = \"[AccessPlayer.GetResearchQueueBottom]\"\n\n"
         f"{ind}\titem = {{\n{ind}\t\twidget = {{\n{ind}\t\t\tsize = {{ 1 1 }}\n"
-        + mover_parts(tail_ind, "rq_probe_fire_tail", member)
+        + mover_parts(tail_ind, "rq_probe_fire_tail", member,
+                      {mkey(d, x, f): PRE_OF_X for d, x, f in moves(n) if d == "up"})
         + (dump_parts(tail_ind, "tpos") if PROBE else "") +
         f"{ind}\t\t}}\n{ind}\t}}\n{ind}}}\n"
         "\t\t\t\t\t}"
