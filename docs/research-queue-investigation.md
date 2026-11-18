@@ -413,6 +413,17 @@ User requests from run 4:
 Run 5 (probe): report criteria as run 4, with the message judged as "shown
 iff the tech did not land on slot f"; plus N2 and N5.
 
+User requests before run 5 (2026-11-18):
+- The current research's icon is draggable into the queue: the down move
+  from slot 0 (`down_0_f`). controller_current sends it back first; the row
+  item at position 0 (hidden by vanilla) never takes part. Dropping it on
+  itself does nothing.
+- Probe build: no progress readout any more (F8 passed; it distracted).
+- Translations of both texts checked in all 11 languages.
+
+Run 5 adds: drag the current research into the row (report PASS for
+`drop|down|f` from position 0; the tech after it becomes current).
+
 ## Roadmap
 
 - **Optional, if players ask for compatibility with tech mods (e.g.

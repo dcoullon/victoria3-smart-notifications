@@ -185,7 +185,8 @@ def moves(n: int) -> list[tuple[str, int | None, int]]:
     where the tech came from, so `from` is None; a down move does (unknown
     techs between the two slots travel with it)."""
     return ([("up", None, f) for f in range(0, n + 1)]
-            + [("down", x, f) for f in range(2, n + 1) for x in range(1, f)])
+            # from 0: the current research's icon dragged into the queue (run 5 request)
+            + [("down", x, f) for f in range(1, n + 1) for x in range(0, f)])
 
 
 def mkey(d: str, x: int | None, f: int) -> str:
@@ -197,6 +198,10 @@ def guarded(cases: list[tuple[str, str]]) -> str:
     unless the name recorded at drag start is the dropped tech's."""
     match = f"EqualTo_string({DRAGGED}.GetNameNoFormatting, {XNAME})"
     return f"Select_CString({BUSY}, 'rq_busyx', Select_CString({match}, {ladder(cases, 'rq_noop')}, 'rq_badx'))"
+
+
+def And_(a: str, b: str) -> str:
+    return f"And({a}, {b})"
 
 
 def at(k: int, cond: str) -> str:
@@ -218,7 +223,7 @@ def icon_drop(n: int) -> str:
     cases = []
     for k in range(1, n + 1):
         cases.append((at(k, up_to(k)), f"rq_go_up_{k}"))
-        cases += [(at(k, down_from(x)), f"rq_go_down_{x}_{k}") for x in range(1, k)]
+        cases += [(at(k, down_from(x)), f"rq_go_down_{x}_{k}") for x in range(0, k)]
     return guarded(cases)
 
 
@@ -226,12 +231,12 @@ def gap_drop(n: int) -> str:
     cases = []
     for k in range(1, n + 1):
         cases.append((at(k, up_to(k)), f"rq_go_up_{k}"))
-        cases += [(at(k, down_from(x)), f"rq_go_down_{x}_{k - 1}") for x in range(1, k - 1)]
+        cases += [(at(k, down_from(x)), f"rq_go_down_{x}_{k - 1}") for x in range(0, k - 1)]
     return guarded(cases)
 
 
 def end_drop(n: int) -> str:
-    return guarded([(down_from(x), f"rq_go_down_{x}_{n}") for x in range(1, n)])
+    return guarded([(down_from(x), f"rq_go_down_{x}_{n}") for x in range(0, n)])
 
 
 def dump_parts(ind: str, tag: str) -> str:
@@ -297,7 +302,10 @@ def row_member(d: str, x: int | None, f: int):
     # the table does not know it (another mod's tech, possibly requiring X;
     # left behind, the cascade on X's removal would take it out of the queue).
     between = f"And(GreaterThan_int32({POS}, {i32(x)}), Or({DEP_OF_X}, Not({KNOWN})))"
-    return f"Or({IS_X}, Or(GreaterThan_int32({POS}, {i32(f)}), {between}))"
+    # Position > 0: the current research (0) dragged down is sent back by
+    # controller_current, not by its row item, which vanilla hides.
+    return (f"And(GreaterThan_int32({POS}, {i32(0)}), "
+            f"Or({IS_X}, Or(GreaterThan_int32({POS}, {i32(f)}), {between})))")
 
 
 def row_blocker(d: str, x: int | None, f: int):
@@ -394,13 +402,18 @@ def queued_technology_type(n: int) -> str:
 def controller_current() -> str:
     """Inside the controller, so after it in the tree and before the row: the
     current research (the hbox's datacontext) is sent back on a drop on it,
-    unless the dragged tech needs it. Probe: dumps it as queue position 0."""
+    unless the dragged tech needs it, and when it is itself dragged into the
+    queue (a down move from 0). Probe: dumps it as queue position 0."""
     ind = "\t\t\t\t\t\t"
     dump = (f"{ind}\tstate = {{ name = rq_dump  duration = 0  alpha = 1\n"
             + log_line(ind + "\t\t", "rq_probe_pos_0") + f"{ind}\t}}\n") if PROBE else ""
     return (f"{ind}# The current research, sent back first on a drop on it.\n"
             f"{ind}widget = {{\n{ind}\tsize = {{ 1 1 }}\n"
-            + mover_parts(ind + "\t", "rq_probe_fire_top", {"up_0": f"Not({PRE_OF_X})"}, {"up_0": PRE_OF_X})
+            + mover_parts(ind + "\t", "rq_probe_fire_top",
+                          {"up_0": f"Not(Or({IS_X}, {PRE_OF_X}))",
+                           # the current research dragged into the queue: it is X, always sent back first
+                           **{mkey(d, x, f): None for d, x, f in moves(shown_count()) if d == "down" and x == 0}},
+                          {"up_0": PRE_OF_X})
             + dump + f"{ind}}}\n")
 
 
@@ -459,14 +472,9 @@ def controller(n: int) -> str:
 
 
 def probe_row_extras(ind: str) -> str:
-    """Probe only: the queue dump, and the research progress readout, shown
-    only above 0 (the case that tells whether a move keeps it)."""
-    return ("\n" + dump_parts(ind, "pos") + "\n"
-            f"{ind}textbox = {{\n"
-            f"{ind}\tvisible = \"[GreaterThan_CFixedPoint(Technology.GetProgress(GetPlayer.Self), '(CFixedPoint)0')]\"\n"
-            f"{ind}\tparentanchor = bottom|left\n{ind}\tautoresize = yes\n"
-            f"{ind}\talign = nobaseline\n"
-            f"{ind}\traw_text = \"#v [Technology.GetProgress(GetPlayer.Self)|0]#!\"\n{ind}}}\n")
+    """Probe only: the queue dump. (The progress readout under each tech is
+    gone: F8 passed in run 4, and the user found the number distracting.)"""
+    return "\n" + dump_parts(ind, "pos")
 
 
 def row(n: int) -> str:
@@ -538,12 +546,14 @@ def current_research_parts() -> str:
     current research back). Also holds the "not moved" message, under the
     icon and running right under the progress bar."""
     ind = "\t\t\t\t\t\t"
-    drop = guarded([(KNOWN_DRAGGED, "rq_go_up_0")])
+    drop = guarded([(And_(f"GreaterThan_int32({DRAGGED_POS}, {i32(0)})", KNOWN_DRAGGED), "rq_go_up_0")])
     return (
         f"{ind}# RQ: dropping a queued tech on the current research makes it the current\n"
         f"{ind}# research (its queued prerequisites first); the old one comes right after.\n"
         f"{ind}alwaystransparent = no\n"
         + drop_target(ind, drop) +
+        f"{ind}# RQ: the current research can be dragged into the queue (a down move from 0).\n"
+        + drag_block(ind) +
         f"{ind}# RQ: shown for a few seconds when a tech did not land where it was dropped.\n"
         f"{ind}textbox = {{\n"
         f"{ind}\tname = \"rq_nomove\"\n"
