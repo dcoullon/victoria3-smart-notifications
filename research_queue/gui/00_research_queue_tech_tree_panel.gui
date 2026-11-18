@@ -225,119 +225,102 @@ types research_queue_types
 						size = { 1 1 }
 						state = { name = rq_go_up_0  duration = 0  alpha = 1
 							on_start = "[GetVariableSystem.Set('rq_busy', 'y')]"
-							on_start = "[GetVariableSystem.Set('rq_xtarget', 'p0')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_up_0')]"
 							next = rq_check
 						}
 						state = { name = rq_go_up_1  duration = 0  alpha = 1
 							on_start = "[GetVariableSystem.Set('rq_busy', 'y')]"
-							on_start = "[GetVariableSystem.Set('rq_xtarget', 'p1')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_up_1')]"
 							next = rq_check
 						}
 						state = { name = rq_go_up_2  duration = 0  alpha = 1
 							on_start = "[GetVariableSystem.Set('rq_busy', 'y')]"
-							on_start = "[GetVariableSystem.Set('rq_xtarget', 'p2')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_up_2')]"
 							next = rq_check
 						}
 						state = { name = rq_go_up_3  duration = 0  alpha = 1
 							on_start = "[GetVariableSystem.Set('rq_busy', 'y')]"
-							on_start = "[GetVariableSystem.Set('rq_xtarget', 'p3')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_up_3')]"
 							next = rq_check
 						}
 						state = { name = rq_go_up_4  duration = 0  alpha = 1
 							on_start = "[GetVariableSystem.Set('rq_busy', 'y')]"
-							on_start = "[GetVariableSystem.Set('rq_xtarget', 'p4')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_up_4')]"
 							next = rq_check
 						}
 						state = { name = rq_go_up_5  duration = 0  alpha = 1
 							on_start = "[GetVariableSystem.Set('rq_busy', 'y')]"
-							on_start = "[GetVariableSystem.Set('rq_xtarget', 'p5')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_up_5')]"
 							next = rq_check
 						}
 						state = { name = rq_go_down_1_2  duration = 0  alpha = 1
 							on_start = "[GetVariableSystem.Set('rq_busy', 'y')]"
-							on_start = "[GetVariableSystem.Set('rq_xtarget', 'p2')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_1_2')]"
 							next = rq_check
 						}
 						state = { name = rq_go_down_1_3  duration = 0  alpha = 1
 							on_start = "[GetVariableSystem.Set('rq_busy', 'y')]"
-							on_start = "[GetVariableSystem.Set('rq_xtarget', 'p3')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_1_3')]"
 							next = rq_check
 						}
 						state = { name = rq_go_down_2_3  duration = 0  alpha = 1
 							on_start = "[GetVariableSystem.Set('rq_busy', 'y')]"
-							on_start = "[GetVariableSystem.Set('rq_xtarget', 'p3')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_2_3')]"
 							next = rq_check
 						}
 						state = { name = rq_go_down_1_4  duration = 0  alpha = 1
 							on_start = "[GetVariableSystem.Set('rq_busy', 'y')]"
-							on_start = "[GetVariableSystem.Set('rq_xtarget', 'p4')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_1_4')]"
 							next = rq_check
 						}
 						state = { name = rq_go_down_2_4  duration = 0  alpha = 1
 							on_start = "[GetVariableSystem.Set('rq_busy', 'y')]"
-							on_start = "[GetVariableSystem.Set('rq_xtarget', 'p4')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_2_4')]"
 							next = rq_check
 						}
 						state = { name = rq_go_down_3_4  duration = 0  alpha = 1
 							on_start = "[GetVariableSystem.Set('rq_busy', 'y')]"
-							on_start = "[GetVariableSystem.Set('rq_xtarget', 'p4')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_3_4')]"
 							next = rq_check
 						}
 						state = { name = rq_go_down_1_5  duration = 0  alpha = 1
 							on_start = "[GetVariableSystem.Set('rq_busy', 'y')]"
-							on_start = "[GetVariableSystem.Set('rq_xtarget', 'p5')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_1_5')]"
 							next = rq_check
 						}
 						state = { name = rq_go_down_2_5  duration = 0  alpha = 1
 							on_start = "[GetVariableSystem.Set('rq_busy', 'y')]"
-							on_start = "[GetVariableSystem.Set('rq_xtarget', 'p5')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_2_5')]"
 							next = rq_check
 						}
 						state = { name = rq_go_down_3_5  duration = 0  alpha = 1
 							on_start = "[GetVariableSystem.Set('rq_busy', 'y')]"
-							on_start = "[GetVariableSystem.Set('rq_xtarget', 'p5')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_3_5')]"
 							next = rq_check
 						}
 						state = { name = rq_go_down_4_5  duration = 0  alpha = 1
 							on_start = "[GetVariableSystem.Set('rq_busy', 'y')]"
-							on_start = "[GetVariableSystem.Set('rq_xtarget', 'p5')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_edges')]"
 							on_start = "[PdxGuiTriggerAllAnimations('rq_mv_down_4_5')]"
 							next = rq_check
 						}
-						# Once the commands ran: check where the tech landed, accept drops again.
-						state = { name = rq_check  duration = 0.1  alpha = 1
-							on_finish = "[PdxGuiTriggerAllAnimations('rq_poscheck')]"
+						# Once the commands ran: accept drops again.
+						state = { name = rq_check  duration = 0.4  alpha = 1
 							on_finish = "[GetVariableSystem.Clear('rq_busy')]"
 						}
 						# Panel (re)opened: a move cut short by closing it must not block drops.
@@ -349,6 +332,7 @@ types research_queue_types
 						widget = {
 							size = { 1 1 }
 							state = { name = rq_mv_up_0  duration = 0  alpha = 1
+								on_start = "[PdxGuiTriggerAllAnimations(Select_CString(GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname'))), 'rq_nomove_show', 'rq_none'))]"
 								on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Not(GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname')))), 'rq_do', 'rq_skip'))]"
 							}
 							widget = {
@@ -1815,51 +1799,67 @@ types research_queue_types
 									}
 
 									state = { name = rq_mv_up_0  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)-1'), GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname')))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)0'), Not(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname')))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_up_1  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)0'), GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname')))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)0'), Not(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname')))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_up_2  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname')))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), Not(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname')))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_up_3  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname')))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), Not(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname')))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_up_4  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname')))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), Not(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname')))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_up_5  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname')))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), Not(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname')))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_down_1_2  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(And(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), Not(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'))), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_down_1_3  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(And(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), Not(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'))), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_down_2_3  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(And(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), Not(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'))), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_down_1_4  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(And(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), Not(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'))), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_down_2_4  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(And(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), Not(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'))), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_down_3_4  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(And(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), Not(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'))), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_down_1_5  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(And(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), Not(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'))), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_down_2_5  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(And(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), Not(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'))), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_down_3_5  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(And(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), Not(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'))), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_down_4_5  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(And(And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), Not(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'))), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Or(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), And(GreaterThan_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), Or(GetVariableSystem.Exists(Concatenate3(GetVariableSystem.Get('rq_xname'), '>', Technology.GetNameNoFormatting)), Not(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting))))))), 'rq_do', 'rq_skip'))]"
 									}
 									widget = {
@@ -1896,21 +1896,27 @@ types research_queue_types
 								widget = {
 									size = { 1 1 }
 									state = { name = rq_mv_up_0  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname'))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Not(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname'))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_up_1  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname'))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Not(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname'))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_up_2  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname'))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Not(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname'))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_up_3  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname'))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Not(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname'))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_up_4  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname'))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Not(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname'))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_up_5  duration = 0  alpha = 1
+										on_start = "[PdxGuiTriggerAllAnimations(Select_CString(GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname'))), 'rq_nomove_show', 'rq_none'))]"
 										on_start = "[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation(Select_CString(Not(Or(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), GetVariableSystem.Exists(Concatenate3(Technology.GetNameNoFormatting, '>', GetVariableSystem.Get('rq_xname'))))), 'rq_do', 'rq_skip'))]"
 									}
 									state = { name = rq_mv_down_1_2  duration = 0  alpha = 1
@@ -2533,11 +2539,6 @@ types research_queue_types
 			tooltip = "RQ_MOVE_TO_ROW_TOOLTIP"
 			onclick = "[GetVariableSystem.Set('rq_xname', Technology.GetNameNoFormatting)]"
 			onclick = "[PdxGuiTriggerAllAnimations(Select_CString(GetVariableSystem.Exists('rq_busy'), 'rq_busyx', Select_CString(GetVariableSystem.Exists(Concatenate('rq_known_', Technology.GetNameNoFormatting)), 'rq_go_up_1', 'rq_noop')))]"
-		}
-
-		# RQ: shortly after a move, the moved tech not where it was dropped: say why.
-		state = { name = rq_poscheck  duration = 0
-			on_start = "[PdxGuiTriggerAllAnimations(Select_CString(And(EqualTo_string(Technology.GetNameNoFormatting, GetVariableSystem.Get('rq_xname')), Not(EqualTo_string(Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)0'), 'p0', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)1'), 'p1', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)2'), 'p2', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)3'), 'p3', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)4'), 'p4', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)5'), 'p5', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)6'), 'p6', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)7'), 'p7', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)8'), 'p8', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)9'), 'p9', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)10'), 'p10', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)11'), 'p11', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)12'), 'p12', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)13'), 'p13', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)14'), 'p14', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)15'), 'p15', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)16'), 'p16', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)17'), 'p17', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)18'), 'p18', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)19'), 'p19', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)20'), 'p20', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)21'), 'p21', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)22'), 'p22', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)23'), 'p23', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)24'), 'p24', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)25'), 'p25', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)26'), 'p26', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)27'), 'p27', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)28'), 'p28', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)29'), 'p29', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)30'), 'p30', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)31'), 'p31', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)32'), 'p32', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)33'), 'p33', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)34'), 'p34', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)35'), 'p35', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)36'), 'p36', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)37'), 'p37', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)38'), 'p38', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)39'), 'p39', Select_CString(EqualTo_int32(Technology.GetResearchQueuePosition(GetPlayer.Self), '(int32)40'), 'p40', 'pover'))))))))))))))))))))))))))))))))))))))))), GetVariableSystem.Get('rq_xtarget')))), 'rq_nomove_show', 'rq_none'))]"
 		}
 	}
 }
