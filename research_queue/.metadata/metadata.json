@@ -1,7 +1,7 @@
 {
 	"name": "Reorder Research Queue: drag & drop techs - Dev",
 	"id": "research_queue",
-	"version": "0.01",
+	"version": "0.10",
 	"supported_game_version": "1.15.*",
 	"short_description": "Drag and drop techs in your research queue to reorder them. A tech's queued prerequisites move with it, so the queue stays in a valid order. Uses the game's own queue commands, no cheating.",
 	"tags": [
