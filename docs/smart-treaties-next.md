@@ -436,7 +436,13 @@ the game on).** Read from the code, nothing measured yet:
   creation-state code (run once), and its per-frame text runs only while a
   Goods Transfer draft is open.
 
-Perf run (proposed 2026-11-16, not built). An FPS counter capped at 60 (or
+**Decided 2026-11-18 (Damien): a plain A/B first.** One run with no mods,
+one with all of his mods, same save, same screens, fps uncapped. Only if
+they differ: find which mod, then why. The perf build below stays shelved
+until then. Reading the outliner with the Treaties group expanded and
+collapsed in both runs isolates the treaty rows at no extra cost.
+
+Perf run (proposed 2026-11-16, shelved 2026-11-18). An FPS counter capped at 60 (or
 30) hides a few ms, which is likely why earlier with/without runs showed
 nothing. A dev-only copy of the mod, loaded instead of Smart Treaties,
 adds an overlay reading the engine's own `GetCurrentFps` (vanilla uses it
