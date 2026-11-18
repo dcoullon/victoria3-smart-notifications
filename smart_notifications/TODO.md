@@ -744,6 +744,14 @@ logic in every language, so one language confirms it. Russian is the one
 worth a second glance if a session is in Russian anyway: its state name is
 a tooltip block, so the insertion point differs.
 
+**Test recipe (2026-11-18).** Game language French, playset with "Smart
+Notifications - Dev" (the junction) instead of the Workshop copy,
+`-debug_mode`, any save. Console: `event russian_central_asia.3`, hover the
+only option: the Turkmen radicals line ends in "(N dans tout le pays)"
+(N may be 0). Console: `event 1848.5`, hover the third option ("neither"):
+"en <capital> (N habitants) deviennent plus radicaux". F12 on each hover;
+do not save afterwards (the options change laws and modifiers).
+
 **Not confirmed:** that `replace/<lang>/` works outside English (only
 English has ever been tested in this repo). Until it is, the Workshop
 descriptions keep saying population figures are English only (the Chinese
