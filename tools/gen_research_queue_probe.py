@@ -593,6 +593,27 @@ def current_research_parts() -> str:
 VANILLA_OVERFLOW_CLICK = "[RightClickMenuManager.ToggleResearchQueue(PdxGuiWidget.AccessSelf)]"
 
 
+def overflow_arrows() -> str:
+    """Vanilla's expand/collapse arrow pair (templates expand_arrow and
+    expand_arrow_expanded, gui/shared/buttons.gui:249 and :260; used as a
+    pair with the EXPAND/COLLAPSE tooltips in outliner_framework.gui:337-354),
+    bottom-right of the "+N" button: down while the overflow row is closed,
+    up while open. Both toggle the row, like "+N" itself."""
+    ind = "\t\t\t\t\t\t"
+    out = ""
+    for tmpl, tip, vis in (("expand_arrow", "EXPAND", "Not(GetVariableSystem.Exists('rq_ovf'))"),
+                           ("expand_arrow_expanded", "COLLAPSE", "GetVariableSystem.Exists('rq_ovf')")):
+        out += (f"{ind}button = {{\n"
+                f"{ind}\tusing = {tmpl}\n"
+                f"{ind}\tvisible = \"[{vis}]\"\n"
+                f"{ind}\tparentanchor = bottom|right\n"
+                f"{ind}\tsize = {{ 22 22 }}\n"
+                f"{ind}\ttooltip = \"{tip}\"\n"
+                f"{ind}\tonclick = \"[GetVariableSystem.Toggle('rq_ovf')]\"\n"
+                f"{ind}}}\n")
+    return out
+
+
 def overflow_row(n: int) -> str:
     """The "+N" techs as a second row under the queue, inside the panel, in
     place of vanilla's right-click menu. Runs 3 and 4: a drag out of that menu
@@ -660,6 +681,11 @@ def build_gui() -> str:
     if panel.count(VANILLA_OVERFLOW_CLICK) != 1:
         sys.exit("FAIL: the \"+N\" button's onclick changed; re-read tech_tree.gui")
     panel = panel.replace(VANILLA_OVERFLOW_CLICK, "[GetVariableSystem.Toggle('rq_ovf')]")
+    # The game's expand/collapse arrow next to "+N" (after its round button,
+    # inside the same 80x80 widget), so the row visibly opens and closes.
+    rb = panel.rindex("button_icon_round = {", 0, panel.index('text = "REMAINING_RESEARCH_QUEUE"'))
+    re_ = block_at(panel, rb)
+    panel = panel[:re_] + "\n" + overflow_arrows() + panel[re_:]
     ft = panel.index('blockoverride "fixed_top" {')
     fh = panel.index("hbox = {", ft)
     fe = block_at(panel, fh)

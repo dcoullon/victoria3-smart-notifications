@@ -3743,6 +3743,23 @@ types research_queue_types
 								text = "REMAINING_RESEARCH_QUEUE"
 							}
 						}
+						button = {
+							using = expand_arrow
+							visible = "[Not(GetVariableSystem.Exists('rq_ovf'))]"
+							parentanchor = bottom|right
+							size = { 22 22 }
+							tooltip = "EXPAND"
+							onclick = "[GetVariableSystem.Toggle('rq_ovf')]"
+						}
+						button = {
+							using = expand_arrow_expanded
+							visible = "[GetVariableSystem.Exists('rq_ovf')]"
+							parentanchor = bottom|right
+							size = { 22 22 }
+							tooltip = "COLLAPSE"
+							onclick = "[GetVariableSystem.Toggle('rq_ovf')]"
+						}
+
 					}
 
 					expand = {
