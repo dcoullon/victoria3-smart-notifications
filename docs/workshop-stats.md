@@ -35,6 +35,11 @@ Build All (3803950977):
 
 The 2026-09-12..14 Smart Notifications readings exist in the sheet.
 
+Reorder Research Queue (3841721873), published 2026-11-18 (17 Nov 5:49pm PT):
+tab "Reorder research" (sheetId 2143389703), added to the noon routine
+"Daily Steam Workshop stats" (trig_01HmsZwyutmcLyjqzutshKwz) on 2026-11-18;
+its first scheduled reading is 2026-11-18 noon PT.
+
 Item created 2026-09-10 for the first public release. An earlier closed-beta
 listing (ID `3798687130`, v0.35) was deleted and carried its own counts; they
 are not continuous with these.
