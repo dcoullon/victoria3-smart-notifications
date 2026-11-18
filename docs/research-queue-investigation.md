@@ -321,6 +321,149 @@ Final test, judged by eye plus `scan_logs.py` (no RQ_PROBE lines exist now):
 
 If any of F2 to F5 fails, the next run is with `--probe` and the report.
 
+#### Final test results (2026-11-17, Spain 1860)
+
+`validate_syntax.py research_queue --strict` on the game machine: full PASS.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| F1 | PASS | screenshot 20261117153923: "(Reorder) Move Vacuum Canning to the front of the research queue, together with any queued technologies it requires." |
+| F2 | PASS | user's eye |
+| F3 | PASS, weak | queue was only Egalitarianism, Labor Movement, Socialism, so the designed result is the same order: nothing visibly moved. Move-together not seen on this build; run 3's probe covered the same logic 10 of 10 |
+| F4 | PASS, weak | same queue, same reason |
+| F5 | PASS | user's eye |
+| F6 | PASS | user's eye |
+| F7 | PASS | scan_logs.py and a grep of error.log/debug.log: nothing names research_queue, queued_technology or RQ_. gui.log's "already registered at gui/00_research_queue_tech_tree_panel.gui" for tech_tree_panel and queued_technology is the intended override. Smart Notifications was also loaded (its unused-variable warning) |
+| F8 | NOT TESTED | the user tried dropping a queued tech onto the ongoing research instead (not a drop target). Progress after a drag still unchecked; the Workshop page keeps making no claim |
+
+User requests from this run (not bugs):
+- A short message when a drop changes nothing because of prerequisites (F3/F4 looked like a failure).
+- Dropping a tech on the ongoing research makes it the ongoing research. H7: vanilla's research-now on a queued tech empties the queue, so this needs research-now then re-adding the rest in one click (H6: commands in one click run in order). Needs a probe run.
+
+A retest of F3/F4 needs an unrelated tech between the chain members (e.g. Egalitarianism, X, Labor Movement, Socialism, Y).
+
+### Run 4: drop on the current research, "not moved" message, F8 (written before the run)
+
+Two additions from the final test's requests, both in the generator:
+
+- Drop a queued tech on the current research's icon: the move "up to slot
+  0". The current research is the queue's head (vanilla's X on it is
+  RemoveFromQueue), so the dragged tech and its queued prerequisites stay
+  and everything else, the old current research first, goes to the back.
+  The old current research is sent back from a widget inside the controller
+  (the hbox's datacontext is the current research), not from the icon: the
+  icon is before the controller in the tree, where a triggered state would
+  run a pass late, after the row's commands.
+- A drop that leaves the dragged tech at its drag-start position changed
+  nothing. The position is stored as text at drag start (`rq_xpos`, a
+  `p0`..`p40` ladder: the GUI stores strings, not numbers), compared a
+  second after the drop (`rq_after`, now in the release build too), and an
+  equal one fades in `RQ_NOT_MOVED` under the current research's icon for
+  about 4 seconds.
+
+Run with the probe build. Criteria, judged by `rq_probe_report.py` unless noted:
+
+| # | Do | Pass |
+|---|---|---|
+| N1 | drop a queued tech (no queued prerequisites) on the current research | `drop|up|0` PASS: after-dump `pos|0` is that tech, the old current research is next |
+| N2 | drop a queued tech whose prerequisite is also queued on the current research | `drop|up|0` PASS: the prerequisite is `pos|0`, the tech right after it |
+| N3 | F3/F4 again on a queue with unrelated techs between the chain members | PASS for both drops |
+| N4 | drag a tech ahead of its own prerequisite when they are adjacent | `nomove` line, and the report finds the message shown exactly when nothing moved, for every drop |
+| N5 | screenshot while the message shows | the text is readable, under the current research icon (human look) |
+| F8 | the current research has progress when N1 sends it back | the probe's progress number under it in the row equals the progress it had (screenshot before and after) |
+
+If N1 fails with the old current research last instead of next, the
+controller-child ordering assumption is wrong for that widget.
+
+#### Run 4 results (2026-11-17, probe build, Spain)
+
+`rq_probe_report.py`: 29 drops, 25 PASS, 3 FAIL, 1 not judged.
+
+| # | Verdict | Evidence |
+|---|---|---|
+| N1 | PASS | 5 `drop|up|0`, each with the dragged tech at `pos|0` after and the old current research next |
+| N2 | not exercised | no drop on the current research had a queued prerequisite |
+| N3 | PASS | the mixed-queue up and down drops passed |
+| N4 | PASS, too slow | six drops of Dynamite on Nitroglycerin (its prerequisite), message logged each time; the user: "firing too slow" (1 s plus the fade) |
+| N5 | not judged | no screenshot while it showed |
+| F8 | PASS | Nitroglycerin had 472 at 15:39; after ~20 moves, including being current and sent back by a drop on the current research, the 15:58 screenshot still shows 472 under it |
+
+Failures:
+- Drop 8 (up to 1): message shown after a real move. Unexplained; moot,
+  the rule changed (below).
+- Drops 10 and 11 came less than a second apart; after 11, Dynamite sat
+  ahead of its prerequisite Nitroglycerin. The second drop's send-back set
+  was computed on a queue still changing. Fix: drops are refused until the
+  previous move's check (0.4 s).
+- Drop 29 "LOST" two techs: the log ended mid-line (game still running);
+  re-read with the game closed.
+
+User requests from run 4:
+- Message also when a tech dropped on its own prerequisite lands just
+  behind it (a real move, so "position unchanged" missed it). New rule:
+  message whenever the tech does not land on the slot it was dropped on.
+  Key renamed to `RQ_PREREQUISITES_FIRST`, worded for both directions.
+- Faster message: first a check 0.4 s after the drop; then (user: "why any delay?") computed at drop time instead, from the queue before the move: each tech that will keep the dragged one off its slot (up: a prerequisite at position >= f; down: a dependent or unknown tech between the slots) fires the message in its own rq_mv_ state. No timing involved. The 0.4 s remains only as the drop lock.
+- Dragging out of the "+N" pop-up: still not possible (run 3: the drop
+  never reaches a target); the user asked, told it is an open-ended
+  investigation; left for later.
+- The progress number under a tech is the probe's readout, not in the
+  release build.
+
+Run 5 (probe): report criteria as run 4, with the message judged as "shown
+iff the tech did not land on slot f"; plus N2 and N5.
+
+User requests before run 5 (2026-11-18):
+- The current research's icon is draggable into the queue: the down move
+  from slot 0 (`down_0_f`). controller_current sends it back first; the row
+  item at position 0 (hidden by vanilla) never takes part. Dropping it on
+  itself does nothing.
+- Probe build: no progress readout any more (F8 passed; it distracted).
+- Translations of both texts checked in all 11 languages.
+
+Run 5 adds: drag the current research into the row (report PASS for
+`drop|down|f` from position 0; the tech after it becomes current).
+
+#### Run 5 results (2026-11-18, probe build a3480f8)
+
+`rq_probe_report.py`: 20 drops, 20 PASS, 20 drag starts. Covered: drops on
+the current research (3), the current research dragged into the queue (1),
+the message shown exactly when a tech did not land on its drop slot (10
+shown, 10 not). Not covered: a drag out of the new "+N" row (no overflow
+tech was dragged). `scan_logs.py`: nothing from this mod beyond RQ_PROBE and
+the intended "already registered" override lines. Release build restored,
+`--strict` full PASS.
+
+User check after run 5 (release build, by eye): dragging from the "+N" row
+onto the queue row works. Request: reorder inside the "+N" row too.
+- Drop slots now run to `last_slot(n)` = n + `OVF_DROP` (10): the "+N" row's
+  techs get the same icon drop as the row's (before it moving up, after it
+  moving down), and "after the last shown tech" also takes a "+N" tech (up
+  to n + 1). The hidden overflow copy uses the row's position rules
+  (`row_member`, `row_blocker`) instead of "everything goes" on a down move.
+- Cost: 136 moves instead of 21; the generated file grows from about 300 KB
+  to about 450 KB of states. Watch whether opening the panel feels slower.
+- A tech beyond position n + 10 can still be dragged up; dropping onto one
+  is refused.
+
+Run 6 (probe): drags inside the "+N" row, up and down, report PASS; the
+panel still opens without a visible hitch.
+
+#### Run 6 results (2026-11-18, probe build 08dde7b)
+
+6 drops, 5 PASS; the sixth (`up|0`, Dynamite onto the current research,
+landing behind Nitroglycerin with the message) read as LOST only because the
+log was still being written: positions 0 to 5 matched the expected order.
+Covered: a drop inside the "+N" row (`up|6`), a "+N" tech onto the row, the
+expand/collapse arrow (user, by eye), no visible slowdown opening the panel
+(user). Logs: nothing from this mod beyond RQ_PROBE and the override lines.
+Release build: `--check` current, `--strict` full PASS, no RQ_PROBE or
+GetScriptedGui in it.
+
+Known behaviours shipped as is: a drop on a "+N" tech past slot n + 10 does
+nothing; the "+N" row remembers being open; the "+N" arrow button moves a
+tech to the front of the queue, not onto the current research (user: fine).
+
 ## Roadmap
 
 - **Optional, if players ask for compatibility with tech mods (e.g.

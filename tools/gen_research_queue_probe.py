@@ -29,7 +29,26 @@ icon means "before it" when moving left and "after it" when moving right,
 and a zone right of the row means "after the last shown tech". A drag out
 of the "+N" pop-up never reaches a drop target (run 3), so the pop-up's
 techs get a button instead (in the vanilla type queued_technology,
-redefined here) that moves them into the row's last slot.
+redefined here) that moves them to the front of the queue.
+
+Dropping on the current research's icon is the move "up to slot 0": the
+current research is the queue's head (vanilla's X on it is RemoveFromQueue),
+so the dragged tech and its queued prerequisites stay and everything else,
+the old current research first, goes to the back. The drop target is the
+current research's icon, but the old current research is sent back from a
+widget inside the controller (whose datacontext is the current research,
+like the whole hbox): the icon sits BEFORE the controller in the tree, where
+a triggered state would run on the next pass, after the row's commands.
+
+A drop that will not land the dragged tech on the slot it was dropped on
+shows a short message at once (run 4: the user expected a word when a tech
+dropped on its own prerequisite lands just behind it, and found a check
+after the move too slow). It is known at drop time, from the queue before
+the move: up to f, a prerequisite of the tech at position >= f stays ahead
+of it; down to f, a dependent (or another mod's tech) between the two slots
+travels with it. Each such tech, in its own rq_mv_ state, fires the message.
+Drops are refused for CHECK_AFTER seconds after one (run 4's two drops less
+than a second apart left a tech ahead of its own prerequisite).
 
 Two builds. The default is the release build: no logging, nothing extra on
 screen, and no scripted GUI file at all (packaging strips debug_log lines,
@@ -78,6 +97,9 @@ DEP_OF_X = f"GetVariableSystem.Exists(Concatenate3({XNAME}, '>', {NAME}))"
 # time. Techs added by other mods are not, and are handled conservatively.
 KNOWN = f"GetVariableSystem.Exists(Concatenate('rq_known_', {NAME}))"
 KNOWN_DRAGGED = f"GetVariableSystem.Exists(Concatenate('rq_known_', {DRAGGED}.GetNameNoFormatting))"
+BUSY = "GetVariableSystem.Exists('rq_busy')"
+OVF_DROP = 10  # "+N" row slots that accept drops; the move table grows with the square of the last slot
+CHECK_AFTER = 0.4  # s during which further drops are refused after one (drop lock only)
 ROOT_ONLY = "GuiScope.SetRoot(GetPlayer.MakeScope).End"
 ROOT_TECH = "GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('t', Technology.MakeScope).End"
 BOM = "﻿"
@@ -159,12 +181,21 @@ def ladder(cases: list[tuple[str, str]], default: str) -> str:
     return expr
 
 
+def last_slot(n: int) -> int:
+    """The last queue position a drop can target: the row's n slots plus
+    OVF_DROP in the "+N" row. A tech beyond it can still be dragged up."""
+    return n + OVF_DROP
+
+
 def moves(n: int) -> list[tuple[str, int | None, int]]:
     """Every move as (direction, from, to). An up move does not depend on
     where the tech came from, so `from` is None; a down move does (unknown
-    techs between the two slots travel with it)."""
-    return ([("up", None, f) for f in range(1, n + 1)]
-            + [("down", x, f) for f in range(2, n + 1) for x in range(1, f)])
+    techs between the two slots travel with it). Slots run to last_slot(n):
+    drops inside the "+N" row (run 5 request)."""
+    m = last_slot(n)
+    return ([("up", None, f) for f in range(0, m + 1)]
+            # from 0: the current research's icon dragged into the queue (run 5 request)
+            + [("down", x, f) for f in range(1, m + 1) for x in range(0, f)])
 
 
 def mkey(d: str, x: int | None, f: int) -> str:
@@ -172,9 +203,14 @@ def mkey(d: str, x: int | None, f: int) -> str:
 
 
 def guarded(cases: list[tuple[str, str]]) -> str:
-    """A drop expression: refuse unless the name recorded at drag start is the dropped tech's."""
+    """A drop expression: refuse while the previous move is settling, and
+    unless the name recorded at drag start is the dropped tech's."""
     match = f"EqualTo_string({DRAGGED}.GetNameNoFormatting, {XNAME})"
-    return f"Select_CString({match}, {ladder(cases, 'rq_noop')}, 'rq_badx')"
+    return f"Select_CString({BUSY}, 'rq_busyx', Select_CString({match}, {ladder(cases, 'rq_noop')}, 'rq_badx'))"
+
+
+def And_(a: str, b: str) -> str:
+    return f"And({a}, {b})"
 
 
 def at(k: int, cond: str) -> str:
@@ -196,7 +232,7 @@ def icon_drop(n: int) -> str:
     cases = []
     for k in range(1, n + 1):
         cases.append((at(k, up_to(k)), f"rq_go_up_{k}"))
-        cases += [(at(k, down_from(x)), f"rq_go_down_{x}_{k}") for x in range(1, k)]
+        cases += [(at(k, down_from(x)), f"rq_go_down_{x}_{k}") for x in range(0, k)]
     return guarded(cases)
 
 
@@ -204,12 +240,24 @@ def gap_drop(n: int) -> str:
     cases = []
     for k in range(1, n + 1):
         cases.append((at(k, up_to(k)), f"rq_go_up_{k}"))
-        cases += [(at(k, down_from(x)), f"rq_go_down_{x}_{k - 1}") for x in range(1, k - 1)]
+        cases += [(at(k, down_from(x)), f"rq_go_down_{x}_{k - 1}") for x in range(0, k - 1)]
     return guarded(cases)
 
 
 def end_drop(n: int) -> str:
-    return guarded([(down_from(x), f"rq_go_down_{x}_{n}") for x in range(1, n)])
+    # After the last shown tech: a row tech moves down to n, a "+N" one up to n + 1.
+    return guarded([(down_from(x), f"rq_go_down_{x}_{n}") for x in range(0, n)]
+                   + [(up_to(n + 1), f"rq_go_up_{n + 1}")])
+
+
+def overflow_icon_drop(n: int) -> str:
+    """A drop on a "+N" row tech at position k: before it moving up, after it
+    moving down, as on the row's icons. Beyond last_slot(n): refused."""
+    cases = []
+    for k in range(n + 1, last_slot(n) + 1):
+        cases.append((at(k, up_to(k)), f"rq_go_up_{k}"))
+        cases += [(at(k, down_from(x)), f"rq_go_down_{x}_{k}") for x in range(0, k)]
+    return guarded(cases)
 
 
 def dump_parts(ind: str, tag: str) -> str:
@@ -232,17 +280,22 @@ def log_line(ind: str, sgui_name: str, root: str = ROOT_TECH, event: str = "on_s
     return f"{ind}{event} = \"[GetScriptedGui('{sgui_name}').Execute({root})]\"\n" if PROBE else ""
 
 
-def mover_parts(ind: str, log: str, member: dict) -> str:
+def mover_parts(ind: str, log: str, member: dict, blocker: dict | None = None) -> str:
     """One rq_mv_<move> state per move, each gating this tech into the
     send-back set, plus the gates. `member` maps a move key (mkey) to a
-    condition, or to None for "always"."""
+    condition, or to None for "always". `blocker` maps a move key to the
+    condition under which this tech keeps the dragged one off its slot, which
+    shows the message."""
     states = []
     for key, cond in member.items():
+        bc = (blocker or {}).get(key)
+        warn = (f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations(Select_CString({bc}, "
+                f"'rq_nomove_show', 'rq_none'))]\"\n") if bc else ""
         pick = "'rq_do'" if cond is None else f"Select_CString({cond}, 'rq_do', 'rq_skip')"
         xlog = (f"{ind}\ton_start = \"[PdxGuiWidget.FindChild('rq_xgate').TriggerAnimation("
                 f"Select_CString({IS_X}, 'rq_xlog', 'rq_skip'))]\"\n") if PROBE else ""
         states.append(f"{ind}state = {{ name = rq_mv_{key}  duration = 0  alpha = 1\n"
-                      + xlog +
+                      + xlog + warn +
                       f"{ind}\ton_start = \"[PdxGuiWidget.FindChild('rq_gate').TriggerAnimation({pick})]\"\n"
                       f"{ind}}}\n")
     xgate = (f"{ind}widget = {{\n{ind}\tname = \"rq_xgate\"\n{ind}\tsize = {{ 1 1 }}\n"
@@ -263,17 +316,27 @@ def mover_parts(ind: str, log: str, member: dict) -> str:
 
 def row_member(d: str, x: int | None, f: int):
     if d == "up":
-        return f"And(GreaterThan_int32({POS}, {i32(f - 1)}), Not(Or({IS_X}, {PRE_OF_X})))"
+        # Slot 0 is the current research, whose row item vanilla hides; the
+        # current research's own icon sends it back (current_research_parts).
+        return f"And(GreaterThan_int32({POS}, {i32(max(f, 1) - 1)}), Not(Or({IS_X}, {PRE_OF_X})))"
     # Down: a tech between the two slots goes with X if it depends on X, or if
     # the table does not know it (another mod's tech, possibly requiring X;
     # left behind, the cascade on X's removal would take it out of the queue).
     between = f"And(GreaterThan_int32({POS}, {i32(x)}), Or({DEP_OF_X}, Not({KNOWN})))"
-    return f"Or({IS_X}, Or(GreaterThan_int32({POS}, {i32(f)}), {between}))"
+    # Position > 0: the current research (0) dragged down is sent back by
+    # controller_current, not by its row item, which vanilla hides.
+    return (f"And(GreaterThan_int32({POS}, {i32(0)}), "
+            f"Or({IS_X}, Or(GreaterThan_int32({POS}, {i32(f)}), {between})))")
 
 
-def tail_member(d: str, x: int | None, f: int):
-    # Overflow techs sit beyond every slot f; on a down move all of them go.
-    return f"Not(Or({IS_X}, {PRE_OF_X}))" if d == "up" else None
+def row_blocker(d: str, x: int | None, f: int):
+    """This tech keeps the dragged one off slot f: up, a prerequisite of it at
+    position >= f stays ahead of it; down, a tech between the two slots that
+    travels with it (row_member's `between`) lands behind it."""
+    if d == "up":
+        return f"And(GreaterThan_int32({POS}, {i32(f - 1)}), {PRE_OF_X})"
+    return (f"And(And(GreaterThan_int32({POS}, {i32(x)}), Not(GreaterThan_int32({POS}, {i32(f)}))), "
+            f"Or({DEP_OF_X}, Not({KNOWN})))")
 
 
 def drop_target(ind: str, expr: str) -> str:
@@ -345,10 +408,29 @@ def queued_technology_type(n: int) -> str:
         "\t\t\ttooltip = \"RQ_MOVE_TO_ROW_TOOLTIP\"\n"
         f"\t\t\tonclick = \"[GetVariableSystem.Set('rq_xname', {NAME})]\"\n"
         # Refused for a tech the prerequisite table does not know (see up_to).
-        f"\t\t\tonclick = \"[PdxGuiTriggerAllAnimations(Select_CString({KNOWN}, 'rq_go_up_1', 'rq_noop'))]\"\n"
+        f"\t\t\tonclick = \"[PdxGuiTriggerAllAnimations(Select_CString({BUSY}, 'rq_busyx', "
+        f"Select_CString({KNOWN}, 'rq_go_up_1', 'rq_noop')))]\"\n"
         "\t\t}\n"
     )
     return body[:-2] + button + "\t}"
+
+
+def controller_current() -> str:
+    """Inside the controller, so after it in the tree and before the row: the
+    current research (the hbox's datacontext) is sent back on a drop on it,
+    unless the dragged tech needs it, and when it is itself dragged into the
+    queue (a down move from 0). Probe: dumps it as queue position 0."""
+    ind = "\t\t\t\t\t\t"
+    dump = (f"{ind}\tstate = {{ name = rq_dump  duration = 0  alpha = 1\n"
+            + log_line(ind + "\t\t", "rq_probe_pos_0") + f"{ind}\t}}\n") if PROBE else ""
+    return (f"{ind}# The current research, sent back first on a drop on it.\n"
+            f"{ind}widget = {{\n{ind}\tsize = {{ 1 1 }}\n"
+            + mover_parts(ind + "\t", "rq_probe_fire_top",
+                          {"up_0": f"Not(Or({IS_X}, {PRE_OF_X}))",
+                           # the current research dragged into the queue: it is X, always sent back first
+                           **{mkey(d, x, f): None for d, x, f in moves(shown_count()) if d == "down" and x == 0}},
+                          {"up_0": PRE_OF_X})
+            + dump + f"{ind}}}\n")
 
 
 def controller(n: int) -> str:
@@ -358,23 +440,34 @@ def controller(n: int) -> str:
         key = mkey(d, x, f)
         gos.append(f"{ind}state = {{ name = rq_go_{key}  duration = 0  alpha = 1\n"
                    + log_line(ind + "\t", f"rq_probe_drop_{key}", ROOT_ONLY)
+                   + f"{ind}\ton_start = \"[GetVariableSystem.Set('rq_busy', 'y')]\"\n"
+
                    + (f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_dump')]\"\n" if PROBE else "") +
                    f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_edges')]\"\n"
                    f"{ind}\ton_start = \"[PdxGuiTriggerAllAnimations('rq_mv_{key}')]\"\n"
-                   + (f"{ind}\tnext = rq_after\n" if PROBE else "") + f"{ind}}}\n")
+                   + f"{ind}\tnext = rq_check\n" + f"{ind}}}\n")
     if PROBE:  # a drop that changes nothing, or a refused one, only needs a log line
-        for name in ("noop", "badx"):
+        for name in ("noop", "badx", "busyx"):
             gos.append(f"{ind}state = {{ name = rq_{name}  duration = 0  alpha = 1\n"
                        + log_line(ind + "\t", f"rq_probe_drop_{name}", ROOT_ONLY) + f"{ind}}}\n")
     lines = [f"{ind}\t\ton_start = \"[GetVariableSystem.Set(Concatenate3(GetTechnology('{p}').GetNameNoFormatting, '>', "
              f"GetTechnology('{t}').GetNameNoFormatting), 'y')]\"\n" for p, t in ancestor_pairs()]
     lines += [f"{ind}\t\ton_start = \"[GetVariableSystem.Set(Concatenate('rq_known_', "
               f"GetTechnology('{k}').GetNameNoFormatting), 'y')]\"\n" for k in known_techs()]
-    after = (f"{ind}# A second later, after the commands ran: dump the queue again.\n"
-             f"{ind}state = {{ name = rq_after  duration = 1  alpha = 1\n"
-             + log_line(ind + "\t", "rq_probe_after", ROOT_ONLY, "on_finish") +
-             f"{ind}\ton_finish = \"[PdxGuiTriggerAllAnimations('rq_dump')]\"\n"
-             f"{ind}}}\n\n") if PROBE else ""
+    after = (f"{ind}# Once the commands ran: accept drops again.\n"
+             f"{ind}state = {{ name = rq_check  duration = {CHECK_AFTER}  alpha = 1\n"
+             f"{ind}\ton_finish = \"[GetVariableSystem.Clear('rq_busy')]\"\n"
+             + (f"{ind}\tnext = rq_after\n" if PROBE else "") +
+             f"{ind}}}\n"
+             f"{ind}# Panel (re)opened: a move cut short by closing it must not block drops.\n"
+             f"{ind}state = {{ name = rq_init  trigger_on_create = yes  duration = 0  alpha = 1\n"
+             f"{ind}\ton_start = \"[GetVariableSystem.Clear('rq_busy')]\"\n"
+             f"{ind}}}\n\n"
+             + ((f"{ind}# Probe: a second after the drop, dump the queue again.\n"
+                 f"{ind}state = {{ name = rq_after  duration = {round(1 - CHECK_AFTER, 2)}  alpha = 1\n"
+                 + log_line(ind + "\t", "rq_probe_after", ROOT_ONLY, "on_finish") +
+                 f"{ind}\ton_finish = \"[PdxGuiTriggerAllAnimations('rq_dump')]\"\n"
+                 f"{ind}}}\n\n") if PROBE else ""))
     return (
         "# RQ: the controller, BEFORE the queue row in the widget tree, so the\n"
         "\t\t\t\t\t# states it triggers on the row and on the overflow list (after the\n"
@@ -382,7 +475,7 @@ def controller(n: int) -> str:
         "\t\t\t\t\twidget = {\n"
         "\t\t\t\t\t\tname = \"rq_controller\"\n"
         "\t\t\t\t\t\tsize = { 1 1 }\n"
-        + "".join(gos) + after +
+        + "".join(gos) + after + controller_current() +
         f"{ind}# Every direct or indirect prerequisite pair, \"prerequisite>dependent\"\n"
         f"{ind}# by tech name, from the game's common/technology/technologies at\n"
         f"{ind}# generation time. Built when the panel is created and on every drop.\n"
@@ -395,14 +488,9 @@ def controller(n: int) -> str:
 
 
 def probe_row_extras(ind: str) -> str:
-    """Probe only: the queue dump, and the research progress readout, shown
-    only above 0 (the case that tells whether a move keeps it)."""
-    return ("\n" + dump_parts(ind, "pos") + "\n"
-            f"{ind}textbox = {{\n"
-            f"{ind}\tvisible = \"[GreaterThan_CFixedPoint(Technology.GetProgress(GetPlayer.Self), '(CFixedPoint)0')]\"\n"
-            f"{ind}\tparentanchor = bottom|left\n{ind}\tautoresize = yes\n"
-            f"{ind}\talign = nobaseline\n"
-            f"{ind}\traw_text = \"#v [Technology.GetProgress(GetPlayer.Self)|0]#!\"\n{ind}}}\n")
+    """Probe only: the queue dump. (The progress readout under each tech is
+    gone: F8 passed in run 4, and the user found the number distracting.)"""
+    return "\n" + dump_parts(ind, "pos")
 
 
 def row(n: int) -> str:
@@ -431,7 +519,8 @@ def row(n: int) -> str:
         + drag_block(ind) +
         "\t\t\t\t\t\t\t\t\t# RQ: dropped on this icon, moving left lands before it, moving right after it.\n"
         + drop_target(ind, icon_drop(n)) + "\n"
-        + mover_parts(ind, "rq_probe_fire_top", member)
+        + mover_parts(ind, "rq_probe_fire_top", member,
+                      {mkey(d, x, f): row_blocker(d, x, f) for d, x, f in moves(n)})
         + (probe_row_extras(ind) if PROBE else "") +
         "\t\t\t\t\t\t\t\t}\n"
         "\t\t\t\t\t\t\t}\n"
@@ -443,7 +532,9 @@ def row(n: int) -> str:
 def end_zone_and_tail(n: int) -> str:
     ind = "\t\t\t\t\t\t"
     tail_ind = ind + "\t\t\t"
-    member = {mkey(d, x, f): tail_member(d, x, f) for d, x, f in moves(n)}
+    # Slots now reach into the "+N" row, so the overflow copy uses the row's
+    # position-based rules too (they hold at any position).
+    member = {mkey(d, x, f): row_member(d, x, f) for d, x, f in moves(n)}
     return (
         "\t\t\t\t\t# RQ: the zone right of the last shown tech (\"after the last shown\"),\n"
         "\t\t\t\t\t# holding a hidden copy of the overflow list, AFTER the row in the\n"
@@ -456,10 +547,113 @@ def end_zone_and_tail(n: int) -> str:
         f"{ind}flowcontainer = {{\n{ind}\tdirection = vertical\n"
         f"{ind}\tdatamodel = \"[AccessPlayer.GetResearchQueueBottom]\"\n\n"
         f"{ind}\titem = {{\n{ind}\t\twidget = {{\n{ind}\t\t\tsize = {{ 1 1 }}\n"
-        + mover_parts(tail_ind, "rq_probe_fire_tail", member)
+        + mover_parts(tail_ind, "rq_probe_fire_tail", member,
+                      {mkey(d, x, f): row_blocker(d, x, f) for d, x, f in moves(n)})
         + (dump_parts(tail_ind, "tpos") if PROBE else "") +
         f"{ind}\t\t}}\n{ind}\t}}\n{ind}}}\n"
         "\t\t\t\t\t}"
+    )
+
+
+CUR_ANCHOR = "\t\t\t\t\twidget = {\n\t\t\t\t\t\tsize = { 80 80 }\n"
+
+
+def current_research_parts() -> str:
+    """Inside the current research's icon widget (vanilla's 80x80 one): a
+    drop here is the move up to slot 0 (controller_current sends the old
+    current research back). Also holds the "not moved" message, under the
+    icon and running right under the progress bar."""
+    ind = "\t\t\t\t\t\t"
+    drop = guarded([(And_(f"GreaterThan_int32({DRAGGED_POS}, {i32(0)})", KNOWN_DRAGGED), "rq_go_up_0")])
+    return (
+        f"{ind}# RQ: dropping a queued tech on the current research makes it the current\n"
+        f"{ind}# research (its queued prerequisites first); the old one comes right after.\n"
+        f"{ind}alwaystransparent = no\n"
+        + drop_target(ind, drop) +
+        f"{ind}# RQ: the current research can be dragged into the queue (a down move from 0).\n"
+        + drag_block(ind) +
+        f"{ind}# RQ: shown for a few seconds when a tech did not land where it was dropped.\n"
+        f"{ind}textbox = {{\n"
+        f"{ind}\tname = \"rq_nomove\"\n"
+        f"{ind}\tposition = {{ 0 82 }}\n"
+        f"{ind}\tautoresize = yes\n"
+        f"{ind}\talign = left|nobaseline\n"
+        f"{ind}\talpha = 0\n"
+        f"{ind}\talwaystransparent = yes\n"
+        f"{ind}\ttext = \"RQ_PREREQUISITES_FIRST\"\n"
+        f"{ind}\tstate = {{ name = rq_nomove_show  duration = 0.05  alpha = 1  next = rq_nomove_hold\n"
+        + log_line(ind + "\t\t", "rq_probe_nomove", ROOT_ONLY) +
+        f"{ind}\t}}\n"
+        f"{ind}\tstate = {{ name = rq_nomove_hold  duration = 4  alpha = 1  next = rq_nomove_hide }}\n"
+        f"{ind}\tstate = {{ name = rq_nomove_hide  duration = 0.5  alpha = 0 }}\n"
+        f"{ind}}}\n\n"
+    )
+
+
+VANILLA_OVERFLOW_CLICK = "[RightClickMenuManager.ToggleResearchQueue(PdxGuiWidget.AccessSelf)]"
+
+
+def overflow_arrows() -> str:
+    """Vanilla's expand/collapse arrow pair (templates expand_arrow and
+    expand_arrow_expanded, gui/shared/buttons.gui:249 and :260; used as a
+    pair with the EXPAND/COLLAPSE tooltips in outliner_framework.gui:337-354),
+    bottom-right of the "+N" button: down while the overflow row is closed,
+    up while open. Both toggle the row, like "+N" itself."""
+    ind = "\t\t\t\t\t\t"
+    out = ""
+    for tmpl, tip, vis in (("expand_arrow", "EXPAND", "Not(GetVariableSystem.Exists('rq_ovf'))"),
+                           ("expand_arrow_expanded", "COLLAPSE", "GetVariableSystem.Exists('rq_ovf')")):
+        out += (f"{ind}button = {{\n"
+                f"{ind}\tusing = {tmpl}\n"
+                f"{ind}\tvisible = \"[{vis}]\"\n"
+                f"{ind}\tparentanchor = bottom|right\n"
+                f"{ind}\tsize = {{ 22 22 }}\n"
+                f"{ind}\ttooltip = \"{tip}\"\n"
+                f"{ind}\tonclick = \"[GetVariableSystem.Toggle('rq_ovf')]\"\n"
+                f"{ind}}}\n")
+    return out
+
+
+def overflow_row(n: int) -> str:
+    """The "+N" techs as a second row under the queue, inside the panel, in
+    place of vanilla's right-click menu. Runs 3 and 4: a drag out of that menu
+    never reached a drop target (drag starts logged, no drop line, nothing in
+    error.log). Hypothesis: the menu is its own window on layer
+    layer_rightclickmenu (right_click_menu.gui), and a drop target in the
+    panel's window cannot receive a drag that started in another window. This
+    row is in the panel's window and in the layout flow (fixed_top stacks its
+    children vertically), so nothing draws over it (run 5: drags from it onto
+    the row work). Its techs carry the drag and, up to last_slot(n), a drop
+    target (run 5 request: reorder inside this row); every move is done by the
+    existing row and overflow-copy members."""
+    ind = "\t\t\t\t\t\t\t\t\t"
+    return (
+        "\t\t\t# RQ: the techs beyond the row, shown by \"+N\" here instead of in vanilla's\n"
+        "\t\t\t# right-click menu, so they can be dragged onto the row.\n"
+        "\t\t\thbox = {\n"
+        "\t\t\t\tvisible = \"[And(GetVariableSystem.Exists('rq_ovf'), "
+        "Not(IsDataModelEmpty(AccessPlayer.GetResearchQueueBottom)))]\"\n"
+        "\t\t\t\tlayoutpolicy_horizontal = growing\n"
+        "\t\t\t\tmargin = { 28 0 }\n"
+        "\t\t\t\tmargin_bottom = 10\n\n"
+        "\t\t\t\tdynamicgridbox = {\n"
+        "\t\t\t\t\tdatamodel = \"[AccessPlayer.GetResearchQueueBottom]\"\n"
+        "\t\t\t\t\tdatamodel_wrap = 14\n"
+        "\t\t\t\t\tflipdirection = yes\n\n"
+        "\t\t\t\t\titem = {\n"
+        "\t\t\t\t\t\twidget = {\n"
+        "\t\t\t\t\t\t\tsize = { 90 90 }\n"
+        "\t\t\t\t\t\t\tqueued_technology = {\n"
+        "\t\t\t\t\t\t\t\tparentanchor = center\n"
+        "\t\t\t\t\t\t\t\talwaystransparent = no\n"
+        + drag_block(ind[:-1])
+        + drop_target(ind[:-1], overflow_icon_drop(n)) +
+        "\t\t\t\t\t\t\t}\n"
+        "\t\t\t\t\t\t}\n"
+        "\t\t\t\t\t}\n"
+        "\t\t\t\t}\n\n"
+        "\t\t\t\texpand = {}\n"
+        "\t\t\t}\n"
     )
 
 
@@ -477,6 +671,25 @@ def build_gui() -> str:
         sys.exit("FAIL: the research queue hbox no longer instantiates queued_technology; re-read vanilla")
     n = shown_count()
     panel = panel[:hb] + controller(n) + row(n) + end_zone_and_tail(n) + panel[end:]
+    cur = panel.index("### CURRENT RESEARCH")
+    if panel.count(CUR_ANCHOR, cur, panel.index("rq_controller")) != 1:
+        sys.exit("FAIL: the current research's 80x80 icon widget changed shape; re-read tech_tree.gui")
+    c = panel.index(CUR_ANCHOR, cur) + len(CUR_ANCHOR)
+    panel = panel[:c] + current_research_parts() + panel[c:]
+    # "+N" opens our own overflow row inside the panel instead of vanilla's
+    # right-click menu (see overflow_row).
+    if panel.count(VANILLA_OVERFLOW_CLICK) != 1:
+        sys.exit("FAIL: the \"+N\" button's onclick changed; re-read tech_tree.gui")
+    panel = panel.replace(VANILLA_OVERFLOW_CLICK, "[GetVariableSystem.Toggle('rq_ovf')]")
+    # The game's expand/collapse arrow next to "+N" (after its round button,
+    # inside the same 80x80 widget), so the row visibly opens and closes.
+    rb = panel.rindex("button_icon_round = {", 0, panel.index('text = "REMAINING_RESEARCH_QUEUE"'))
+    re_ = block_at(panel, rb)
+    panel = panel[:re_] + "\n" + overflow_arrows() + panel[re_:]
+    ft = panel.index('blockoverride "fixed_top" {')
+    fh = panel.index("hbox = {", ft)
+    fe = block_at(panel, fh)
+    panel = panel[:fe] + "\n\n" + overflow_row(n) + panel[fe:]
     return (BOM +
             "# GENERATED by tools/gen_research_queue_probe.py from the installed game's\n"
             "# gui/tech_tree.gui and common/technology/technologies. Do not edit by hand:\n"
@@ -502,14 +715,15 @@ def build_sgui() -> str:
                 "# every entry writes one RQ_PROBE| line to debug.log and changes nothing.\n\n"]
     name = "[SCOPE.sT('t').GetName]"
     for tag in ("pos", "tpos"):  # pos = a shown tech, tpos = one in the overflow pop-up
-        for p in range(1, DUMP_MAX + 1):
+        for p in range(0 if tag == "pos" else 1, DUMP_MAX + 1):  # pos 0: the current research
             out.append(sgui(f"rq_probe_{tag}_{p}", f"RQ_PROBE|{tag}|{p}|{name}", True))
         out.append(sgui(f"rq_probe_{tag}_over", f"RQ_PROBE|{tag}|over|{name}", True))
     for d, x, f in moves(shown_count()):
         out.append(sgui(f"rq_probe_drop_{mkey(d, x, f)}", f"RQ_PROBE|drop|{d}|{f}", False))
-    for ev in ("noop", "badx"):
+    for ev in ("noop", "badx", "busyx"):
         out.append(sgui(f"rq_probe_drop_{ev}", f"RQ_PROBE|drop|{ev}", False))
     out.append(sgui("rq_probe_after", "RQ_PROBE|after", False))
+    out.append(sgui("rq_probe_nomove", "RQ_PROBE|nomove", False))
     for ev in ("fire_top", "fire_tail", "x", "dragstart"):
         out.append(sgui(f"rq_probe_{ev}", f"RQ_PROBE|{ev}|{name}", True))
     return "".join(out)

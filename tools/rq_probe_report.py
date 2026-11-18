@@ -3,7 +3,8 @@ a verdict per drop (docs/research-queue-investigation.md, run 3 criteria).
 
 Each drop the probe logs looks like:
 
-    drop|up|f or drop|down|f   the move: the dragged tech to slot f
+    drop|up|f or drop|down|f   the move: the dragged tech to slot f (up|0: dropped
+                               on the current research, which dumps as pos|0)
     drop|noop / drop|badx      no move (badx: the name recorded at drag start
                                did not match the dropped tech)
     x|<tech>                   the dragged tech
@@ -11,6 +12,8 @@ Each drop the probe logs looks like:
     fire_top|<tech> / fire_tail|<tech> ...   techs sent to the back, in order
     after                      one second later
     pos|<p>|<tech> ...         queue AFTER
+    nomove                     the "stays behind its prerequisites" message was
+                               shown (0.4 s after the drop, so before `after`)
 
 The expected result is computed here from the before-order and the game's
 prerequisite data, independently of the GUI:
@@ -23,8 +26,9 @@ prerequisite data, independently of the GUI:
 
 Expected order = the techs that stay, then the sent-back ones, each in their
 original order. A drop passes when the after-order matches, the techs sent
-back are exactly that set in that order, and no shown tech was sent back
-after an overflow one.
+back are exactly that set in that order, no shown tech was sent back
+after an overflow one, and the message was shown exactly when the dragged
+tech did not land on slot f.
 
 Usage: python tools/rq_probe_report.py [--logs-dir PATH]
 """
@@ -135,6 +139,7 @@ def main() -> int:
         print(f"\n== {head}")
         if len(op[0]) < 3:
             print("  no move: " + {"noop": "the drop landed where nothing changes",
+                                   "busyx": "refused: the previous move was still settling",
                                    "badx": "FAIL: the drag-start name did not match the dropped tech"}.get(op[0][1], op[0][1]))
             if op[0][1] == "badx":
                 failed += 1
@@ -187,6 +192,12 @@ def main() -> int:
             lost = set(before) - set(got)
             if lost:
                 problems.append(f"LOST from the queue: {sorted(lost)}")
+        nomove = any(e[0] == "nomove" for e in op)
+        landed = got.index(x) + first_pos(post) if x in got else None
+        print(f"  landed on {landed} (dropped on {f}); message {'shown' if nomove else 'not shown'}")
+        if nomove != (landed != f):
+            problems.append("the message was " + ("shown though the tech landed where dropped" if nomove
+                            else "not shown though the tech landed elsewhere"))
         if fired != members:
             problems.append(f"sent back {fired}, expected {members}")
         kinds_fired = [e[0] for e in fires]
