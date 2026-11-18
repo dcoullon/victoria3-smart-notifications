@@ -40,7 +40,9 @@ Due by Friday 2026-11-20 (checked by the scheduled task "marketing-plan-check"):
       `bulk_construction/STEAM_WORKSHOP_DESCRIPTION.bbcode`, "My other mods"
       plus a thumbs-up line); not yet pasted into Steam. Neither mod has a
       Chinese description on Steam yet (the schinese page shows English).
-- [ ] Track the Most Popular position of Smart Treaties daily in the sheet.
+- [x] Track the Most Popular position of Smart Treaties daily in the sheet.
+      Done: the 11/17 noon run wrote column K by itself (Smart Treaties 3,
+      Build All 26, Smart Notifications 77).
       Automated from 11/16: the noon routine "Daily Steam Workshop stats"
       (trig_01HmsZwyutmcLyjqzutshKwz) writes each mod's rank in the
       past-three-months view to column K of its tab. Tick once a scheduled
