@@ -98,7 +98,7 @@ DEP_OF_X = f"GetVariableSystem.Exists(Concatenate3({XNAME}, '>', {NAME}))"
 KNOWN = f"GetVariableSystem.Exists(Concatenate('rq_known_', {NAME}))"
 KNOWN_DRAGGED = f"GetVariableSystem.Exists(Concatenate('rq_known_', {DRAGGED}.GetNameNoFormatting))"
 BUSY = "GetVariableSystem.Exists('rq_busy')"
-CHECK_AFTER = 0.4  # s during which further drops are refused after one
+CHECK_AFTER = 0.4  # s during which further drops are refused after one (drop lock only)
 ROOT_ONLY = "GuiScope.SetRoot(GetPlayer.MakeScope).End"
 ROOT_TECH = "GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('t', Technology.MakeScope).End"
 BOM = "﻿"
@@ -553,7 +553,7 @@ def current_research_parts() -> str:
         f"{ind}\talpha = 0\n"
         f"{ind}\talwaystransparent = yes\n"
         f"{ind}\ttext = \"RQ_PREREQUISITES_FIRST\"\n"
-        f"{ind}\tstate = {{ name = rq_nomove_show  duration = 0.15  alpha = 1  next = rq_nomove_hold\n"
+        f"{ind}\tstate = {{ name = rq_nomove_show  duration = 0.05  alpha = 1  next = rq_nomove_hold\n"
         + log_line(ind + "\t\t", "rq_probe_nomove", ROOT_ONLY) +
         f"{ind}\t}}\n"
         f"{ind}\tstate = {{ name = rq_nomove_hold  duration = 4  alpha = 1  next = rq_nomove_hide }}\n"
