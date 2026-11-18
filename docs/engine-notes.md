@@ -756,6 +756,12 @@ had to be inverted to a world scan (`every_country = { limit = {
 any_rivaling_country = { this ?= global_var:... } } }`) since it iterates
 relative to the current scope rather than taking a target.
 
+**Superseded:** the bulk effects later saved the player as a temporary
+scope instead (`scope:snw_bulk_player`, `watchlist_sgui.txt`), and the
+global went unread. The engine flagged it at load ("Variable
+'smart_notifications_player_country' is set but is never used"), and its
+two setters were removed on 2026-11-18. The pattern above still works.
+
 **What is NOT true, recorded because it was written down as fact here for
 one commit:** an earlier version of this note claimed
 `any_country = { is_player = yes ... }` misbehaves inside a scripted_gui
