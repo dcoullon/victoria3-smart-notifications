@@ -446,7 +446,12 @@ collapsed in both runs isolates the treaty rows at no extra cost.
 13 s per game year with and without his mods: no measurable difference.
 This times the simulation, not the frame rate on a given screen, and one
 year per side cannot rule out a cost under about 5% (identical mod-free
-sessions differed by 5.4% on 2026-10-07). Closed: no fix to the outliner
+sessions differed by 5.4% on 2026-10-07). Logs checked: both mod sessions
+(11:34, 11:40) mounted the Workshop copies of all four published mods,
+each at the repo's version (Build All 0.06, Smart Notifications 0.44,
+Reorder Research Queue 0.10, Smart Treaties 0.13); the 11:38 session
+mounted none. No mod error beyond Smart Notifications' load-time "set but
+never used" note on `smart_notifications_player_country`. Closed: no fix to the outliner
 rows unless a player reports low FPS with treaties open.
 
 Perf run (proposed 2026-11-16, shelved 2026-11-18). An FPS counter capped at 60 (or
