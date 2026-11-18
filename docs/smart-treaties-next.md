@@ -442,6 +442,13 @@ they differ: find which mod, then why. The perf build below stays shelved
 until then. Reading the outliner with the Treaties group expanded and
 collapsed in both runs isolates the treaty rows at no extra cost.
 
+**Result 2026-11-18 (Damien):** Spain 1960 save, fps uncapped, about 1 min
+13 s per game year with and without his mods: no measurable difference.
+This times the simulation, not the frame rate on a given screen, and one
+year per side cannot rule out a cost under about 5% (identical mod-free
+sessions differed by 5.4% on 2026-10-07). Closed: no fix to the outliner
+rows unless a player reports low FPS with treaties open.
+
 Perf run (proposed 2026-11-16, shelved 2026-11-18). An FPS counter capped at 60 (or
 30) hides a few ms, which is likely why earlier with/without runs showed
 nothing. A dev-only copy of the mod, loaded instead of Smart Treaties,
