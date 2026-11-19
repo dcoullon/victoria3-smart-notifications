@@ -109,6 +109,10 @@ ROUTE_NEAR = 1.0
 ROUTE_FAR = 1.6
 ROUTE_HI = 1.7
 
+# The price model's 4/3 (Market.ph1/pp1; tools/gen_st_recommender.py uses
+# this same constant for the suggestions).
+FOUR_THIRDS = 1.33333
+
 # Best-quantity search shapes (see Market.chain / Market.register).
 CHAIN_DECADES = 5          # 10 to 1,000,000 units
 # Points per decade: 10 -> worst 1.31% low, 8 -> 2.04%. 8 since 2026-10-16
@@ -175,7 +179,18 @@ class Market:
         self.q_max_recv = mx(fx(10), mn(self.q_accept_recv, add(sub(self.bp, self.sp), fx(10))))
         self.q_ai = self.q_accept_send
         self.cap = self.q_accept_send
-        self.k = mul(self.base, fx(0.75))
+        # THE PRICE MODEL (one for every prediction; the Python mirror and its
+        # rationale: sides() in tools/gen_st_recommender.py). A side's price
+        # after q units is K x (4/3 + c(q)), K = real price today / (4/3 +
+        # c(0)). Before 2026-11-19 the cards, Best and the suggestions used
+        # k = 0.75 x base for both sides, i.e. the price rebuilt from orders.
+        self.kh = div(self.ph, add(clamp1(ratio(self.bh, self.sh)), fx(FOUR_THIRDS)))
+        self.kp = div(self.pp, add(clamp1(ratio(self.bp, self.sp)), fx(FOUR_THIRDS)))
+        # Where the climb stops: our own price reaches the rule's ceiling at
+        # 2 sh - bh (home_ceiling in the mirror); only above 10, never above the
+        # cap, floor 10.
+        self.hc = sub(mul(self.sh, fx(2)), self.bh)
+        self.lim = mx(fx(10), sel(gt(self.hc, fx(10)), mn(self.cap, self.hc), self.cap))
         # Where the marginal gain JUMPS down: the partner's price leaves its
         # ceiling (supply passes half its demand) or ours leaves its floor
         # (demand passes half our supply). The best quantity often sits
@@ -207,37 +222,41 @@ class Market:
         return ratio(self.bp, add(self.sp, q))
 
     def spread(self, q):
-        """Partner price minus home price after q units move (price rule)."""
-        return mul(self.k, sub(clamp1(self.rp(q)), clamp1(self.rh(q))))
+        """Partner price minus home price after q units move (the price model)."""
+        return sub(self.pp1(q), self.ph1(q))
 
     def gain(self, q):
         return mul(q, sub(self.spread(q), self.ship_unit))
 
     def marginal(self, q):
         """d gain / d q: spread - shipping - q x (price slopes). A slope is
-        zero while that price sits at its cap. k first, then divide, so
+        zero while that price sits at its cap. K first, then divide, so
         small slopes keep their precision."""
         b, s = add(self.bh, q), add(self.sp, q)
         free = lambda r: lt(f"Abs_CFixedPoint({r})", fx(1))
-        slope_h = sel(free(self.rh(q)), mx(div(self.k, safe(self.sh)),
-                                          div(div(mul(self.k, self.sh), safe(b)), safe(b))), fx(0))
-        slope_p = sel(free(self.rp(q)), mx(div(div(mul(self.k, self.bp), safe(s)), safe(s)),
-                                          div(self.k, safe(self.bp))), fx(0))
+        slope_h = sel(free(self.rh(q)), mx(div(self.kh, safe(self.sh)),
+                                          div(div(mul(self.kh, self.sh), safe(b)), safe(b))), fx(0))
+        slope_p = sel(free(self.rp(q)), mx(div(div(mul(self.kp, self.bp), safe(s)), safe(s)),
+                                          div(self.kp, safe(self.bp))), fx(0))
         return sub(sub(self.spread(q), self.ship_unit), mul(q, add(slope_h, slope_p)))
 
     def best_gain_leaf(self, lo, hi):
         """Max gain over one decade [lo, hi]: points + 1 points, the kinks and the
-        cap clamped into it. Points past the cap do not count."""
+        cap clamped into it. Points past the climb's limit (the home ceiling
+        or the cap) do not count."""
         cands = []
         for i in range(self.points + 1):
             p = fx(round(lo * 10 ** (i / self.points), 3))
             g = self.gain(p)
-            cands.append(g if i == 0 else sel(gt(p, self.cap), fx(-10000000), g))
-        # The kinks and the cap are tried wherever they fall: any quantity
-        # from 10 to the cap is a real option, inside this decade or not.
+            cands.append(g if i == 0 else sel(gt(p, self.lim), fx(-10000000), g))
+        # The kinks, the limit, the cap and the 10-unit start are tried
+        # wherever they fall: each is a quantity port() in the mirror compares.
         for x in self.kinks:
             cands.append(sel(gt(x, self.cap), fx(-10000000), self.gain(mx(x, fx(10)))))
+        cands.append(self.gain(self.lim))
         cands.append(self.gain(self.cap))
+        if lo > 10:
+            cands.append(self.gain(fx(10)))
         best = cands[0]
         for c in cands[1:]:
             best = mx(best, c)
@@ -248,7 +267,7 @@ class Market:
         the marginal gain is still positive at its start (and the cap allows
         it); the deepest one entered shows its leaf."""
         def enter(lo):
-            return f"And({lt(fx(lo), self.cap)}, {gt(self.marginal(fx(lo)), fx(0))})"
+            return f"And({lt(fx(lo), self.lim)}, {gt(self.marginal(fx(lo)), fx(0))})"
         out = ""
         for d in reversed(range(CHAIN_DECADES)):
             lo, hi = 10 * 10 ** d, 10 * 10 ** (d + 1)
@@ -267,7 +286,7 @@ class Market:
         marginal gain is still positive at the start of every decade up to
         d and not at the next one."""
         def enter(lo):
-            return f"And({lt(fx(lo), self.cap)}, {gt(self.marginal(fx(lo)), fx(0))})"
+            return f"And({lt(fx(lo), self.lim)}, {gt(self.marginal(fx(lo)), fx(0))})"
         name = f"'st_{tag}{CHAIN_DECADES - 1}'"
         for d in reversed(range(CHAIN_DECADES - 1)):
             name = f"Select_CString({enter(10 * 10 ** (d + 1))}, {name}, 'st_{tag}{d}')"
@@ -295,9 +314,10 @@ class Market:
             out.append(f"ArticleDraft.SetQuantity({sel(guard, fx(10), q) if guard else fx(10)})")
         for f in REGISTER_FACTORS:
             t = mx(add(q, fx(1)), mul(q, fx(round(f, 5))))
-            ok = f"And(Not({gt(t, self.cap)}), {gt(self.marginal(t), fx(0))})"
+            ok = f"And(Not({gt(t, self.lim)}), {gt(self.marginal(t), fx(0))})"
             out.append(f"ArticleDraft.SetQuantity({sel(g(ok), t, q)})")
-        out.append(f"ArticleDraft.SetQuantity({sel(g(gt(self.marginal(self.cap), fx(0))), self.cap, q)})")
+        # Where the climb stopped (home ceiling or cap), by gain.
+        out.append(f"ArticleDraft.SetQuantity({sel(g(gt(self.gain(self.lim), self.gain(q))), self.lim, q)})")
         for kk in self.kinks:
             near = f"And({gt(kk, q)}, Not({gt(kk, mn(self.cap, add(mul(q, fx(1.2)), fx(2))))}))"
             ok = f"And({near}, {gt(self.gain(kk), self.gain(q))})"
@@ -307,6 +327,9 @@ class Market:
         up = add(q, fx(1))
         ok = f"And(Not({gt(up, self.cap)}), {gt(self.gain(up), self.gain(q))})"
         out.append(f"ArticleDraft.SetQuantity({sel(g(ok), up, q)})")
+        # The cap, then the 10-unit start, by gain (port() in the mirror).
+        out.append(f"ArticleDraft.SetQuantity({sel(g(gt(self.gain(self.cap), self.gain(q))), self.cap, q)})")
+        out.append(f"ArticleDraft.SetQuantity({sel(g(gt(self.gain(fx(10)), self.gain(q))), fx(10), q)})")
         return out
 
     def past_cap(self, guard=None):
@@ -322,10 +345,13 @@ class Market:
         g = (lambda c: f"And({guard}, {c})") if guard else (lambda c: c)
         above = gt(q, add(self.cap, fx(0.5)))
         out = []
+        # Not past our own price ceiling either (the climb's limit, see
+        # home_ceiling in the mirror), unless that ceiling is at 10 or below.
+        in_range = lambda up: f"Or(Not({gt(self.hc, fx(10))}), Not({gt(up, self.hc)}))"
         for e in range(ACCEPT_STEPS - 1, -1, -1):
             d = fx(2 ** e)
             up = add(q, d)
-            out.append(f"ArticleDraft.SetQuantity({sel(g(gt(self.marginal(up), fx(0))), up, q)})")
+            out.append(f"ArticleDraft.SetQuantity({sel(g(f'And({in_range(up)}, {gt(self.marginal(up), fx(0))})'), up, q)})")
             out.append(f"ArticleDraft.SetQuantity({sel(g(f'And(Not(GreaterThan_int32({acc}, {chr(39)}(int32)0{chr(39)})), {above})'), sub(q, d), q)})")
         return out
 
@@ -372,10 +398,12 @@ class Market:
         return out + self.register(reset=False)
 
     def ph1(self, q):
-        return add(self.ph, mul(self.base, sub(f_imb(add(self.bh, q), self.sh), f_imb(self.bh, self.sh))))
+        """Our first-week price after q units (the price model)."""
+        return mul(self.kh, add(clamp1(self.rh(q)), fx(FOUR_THIRDS)))
 
     def pp1(self, q):
-        return add(self.pp, mul(self.base, sub(f_imb(self.bp, add(self.sp, q)), f_imb(self.bp, self.sp))))
+        """The partner's first-week price after q units (the price model)."""
+        return mul(self.kp, add(clamp1(self.rp(q)), fx(FOUR_THIRDS)))
 
     def margin(self, q):
         return mul(q, sub(self.pp1(q), self.ph1(q)))

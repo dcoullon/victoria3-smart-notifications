@@ -4,9 +4,13 @@
 # tools/gen_smart_trade_gui.py (Market.rh/rp/spread/gain/marginal), evaluated
 # in the player's scope against variables the effect loads per (good,
 # partner):
-#   st_rec_bh st_rec_sh  home buy / sell orders      st_rec_k     0.75 x base price
-#   st_rec_bp st_rec_sp  partner buy / sell orders   st_rec_ship  shipping per unit
-#   st_rec_t             the trial quantity          st_rec_q     the current best
+#   st_rec_bh st_rec_sh  home buy / sell orders      st_rec_ph st_rec_pp  real prices today
+#   st_rec_bp st_rec_sp  partner buy / sell orders   st_rec_kh st_rec_kp  price scale per side
+#   st_rec_t             the trial quantity          st_rec_ship  shipping per unit
+#   st_rec_q             the current best            st_rec_lim   where the climb stops
+# The price model is the one in this generator's Python mirror (sides(): a
+# side's price after t units is its real price today x (4/3 + c(t)) /
+# (4/3 + c(0)), i.e. K x (4/3 + c(t)) with K = price / (4/3 + c(0))).
 # Clamps: `max = X` caps at X (so value, max = X is min(value, X)) and
 # `min = X` floors at X (max(value, X)), applied in the order written.
 
@@ -17,7 +21,30 @@ st_rec_in_bh = { value = 0 scope:st_rec_h = { add = market_goods_buy_orders } }
 st_rec_in_sh = { value = 0 scope:st_rec_h = { add = market_goods_sell_orders } }
 st_rec_in_bp = { value = 0 scope:st_rec_p = { add = market_goods_buy_orders } }
 st_rec_in_sp = { value = 0 scope:st_rec_p = { add = market_goods_sell_orders } }
-st_rec_in_k = { value = 0 scope:st_rec_h = { add = goods.base_price } multiply = 0.75 }
+# Real prices today: st_price (smart_trade_values.txt), the same figure the
+# signed-treaty margins and the losing-transfer alert use.
+st_rec_in_ph = { value = 0 scope:st_rec_h = { add = st_price } }
+st_rec_in_pp = { value = 0 scope:st_rec_p = { add = st_price } }
+# Each side's scale K = real price / (4/3 + c(0)); with no deviation from the
+# rule it equals 0.75 x base, the old st_rec_k.
+st_rec_den0h = { value = var:st_rec_bh max = var:st_rec_sh min = 0.01 }
+st_rec_den0p = { value = var:st_rec_bp max = var:st_rec_sp min = 0.01 }
+st_rec_kh_den = { value = var:st_rec_bh subtract = var:st_rec_sh divide = st_rec_den0h min = -1 max = 1 add = 1.33333 }
+st_rec_kp_den = { value = var:st_rec_bp subtract = var:st_rec_sp divide = st_rec_den0p min = -1 max = 1 add = 1.33333 }
+st_rec_in_kh = { value = var:st_rec_ph divide = st_rec_kh_den }
+st_rec_in_kp = { value = var:st_rec_pp divide = st_rec_kp_den }
+# Where the climb stops (home_ceiling in the mirror): our own price reaches
+# the rule's ceiling at 2 sh - bh; past it a marginal-sign climb can overshoot.
+# Only when that point is above 10; never above the cap; floor 10.
+st_rec_in_hc = { value = var:st_rec_sh multiply = 2 subtract = var:st_rec_bh }
+st_rec_in_lim = {
+	value = var:st_rec_cap
+	if = {
+		limit = { var:st_rec_hc > 10 }
+		max = var:st_rec_hc
+	}
+	min = 10
+}
 st_rec_in_surplus = { value = 0 scope:st_rec_h = { add = market_goods_sell_orders subtract = market_goods_buy_orders } }
 # Shipping per unit: zero when the markets touch, else the merchant marine
 # the draft assumes (traded_quantity units per merchant marine) x a route
@@ -72,16 +99,19 @@ st_rec_rp_den = { value = var:st_rec_bp max = st_rec_s min = 0.01 }
 st_rec_rh = { value = st_rec_b subtract = var:st_rec_sh divide = st_rec_rh_den }
 st_rec_rp = { value = var:st_rec_bp subtract = st_rec_s divide = st_rec_rp_den }
 st_rec_rh_c = { value = st_rec_rh min = -1 max = 1 }
-st_rec_spread = { value = st_rec_rp min = -1 max = 1 subtract = st_rec_rh_c multiply = var:st_rec_k }
+# First-week prices after t units, then their difference.
+st_rec_ph_t = { value = st_rec_rh_c add = 1.33333 multiply = var:st_rec_kh }
+st_rec_pp_t = { value = st_rec_rp min = -1 max = 1 add = 1.33333 multiply = var:st_rec_kp }
+st_rec_spread = { value = st_rec_pp_t subtract = st_rec_ph_t }
 st_rec_gain = { value = st_rec_spread subtract = var:st_rec_ship multiply = var:st_rec_t }
 
 # Price slopes, zero while that price sits at its cap (Market.marginal).
 # save_temporary_value_as then scope:x in a limit: vanilla
 # 00_diplomacy_values.txt (pre_scaling_value).
-st_rec_slope_h_a = { value = var:st_rec_k divide = st_rec_sh_safe }
-st_rec_slope_h_b = { value = var:st_rec_k multiply = var:st_rec_sh divide = st_rec_b_safe divide = st_rec_b_safe }
-st_rec_slope_p_a = { value = var:st_rec_k multiply = var:st_rec_bp divide = st_rec_s_safe divide = st_rec_s_safe }
-st_rec_slope_p_b = { value = var:st_rec_k divide = st_rec_bp_safe }
+st_rec_slope_h_a = { value = var:st_rec_kh divide = st_rec_sh_safe }
+st_rec_slope_h_b = { value = var:st_rec_kh multiply = var:st_rec_sh divide = st_rec_b_safe divide = st_rec_b_safe }
+st_rec_slope_p_a = { value = var:st_rec_kp multiply = var:st_rec_bp divide = st_rec_s_safe divide = st_rec_s_safe }
+st_rec_slope_p_b = { value = var:st_rec_kp divide = st_rec_bp_safe }
 st_rec_slope_h = {
 	value = st_rec_rh
 	save_temporary_value_as = st_rec_rh_v
@@ -108,6 +138,7 @@ st_rec_marginal = { value = st_rec_spread subtract = var:st_rec_ship subtract = 
 # --- search helpers ---------------------------------------------------------
 st_rec_q_plus1 = { value = var:st_rec_q add = 1 }
 st_rec_room = { value = var:st_rec_cap subtract = var:st_rec_t }
+st_rec_lim_room = { value = var:st_rec_lim subtract = var:st_rec_t }
 st_rec_t_minus_q = { value = var:st_rec_t subtract = var:st_rec_q }
 # The kinks (Market.kinks): partner price leaves its ceiling, ours its floor.
 st_rec_kink_p = { value = var:st_rec_bp divide = 2 subtract = var:st_rec_sp min = 10 }
