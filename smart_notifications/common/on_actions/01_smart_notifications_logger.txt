@@ -166,20 +166,6 @@ smart_notifications_log_diplo_play_war_start = {
 	}
 }
 
-on_diplo_play_subject_released = {
-	on_actions = { smart_notifications_log_diplo_play_subject_released }
-}
-smart_notifications_log_diplo_play_subject_released = {
-	effect = { debug_log = "SNW_LOG|diplo_play_subject_released_notification" }
-}
-
-on_diplo_play_subject_released_overlord = {
-	on_actions = { smart_notifications_log_diplo_play_subject_released_overlord }
-}
-smart_notifications_log_diplo_play_subject_released_overlord = {
-	effect = { debug_log = "SNW_LOG|diplo_play_subject_released_overlord_notification" }
-}
-
 on_diplo_play_declare_neutrality = {
 	on_actions = { smart_notifications_log_diplo_play_declare_neutrality }
 }

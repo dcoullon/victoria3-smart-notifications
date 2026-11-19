@@ -16,7 +16,9 @@
 # TODO.md's "Third-party notification filtering" inventory that also root
 # on Diplomatic Play: diplo_play_start_third_party_notification,
 # diplo_play_subject_released_notification, and
-# diplo_play_war_start_third_party_notification. The remaining ~15
+# diplo_play_war_start_third_party_notification. (Game 1.15.2 deleted
+# on_diplo_play_subject_released and its messages; its handler here was
+# removed 2026-11-19.) The remaining ~15
 # third-party keys stay blocked/unbuilt per that inventory -- Country-rooted
 # ones need the other side of the relationship, Diplomatic-Action/Pact-rooted
 # ones have no documented scope link out at all.
@@ -134,12 +136,6 @@ on_diplo_play_join_side = {
 on_diplo_play_war_start = {
 	on_actions = {
 		smart_notifications_diplo_play_war_start
-	}
-}
-
-on_diplo_play_subject_released = {
-	on_actions = {
-		smart_notifications_diplo_play_subject_released
 	}
 }
 
@@ -512,62 +508,6 @@ smart_notifications_diplo_play_war_start = {
 		}
 		else = {
 			debug_log = "SNW_FILTER|war_start|DUPLICATE_SUPPRESSED"
-		}
-
-	}
-}
-
-# Root = Diplomatic Play
-smart_notifications_diplo_play_subject_released = {
-	effect = {
-		# DEDUP GUARD (2026-09-08) -- see smart_notifications_diplo_play_start's
-		# copy of this guard above for the full writeup.
-		if = {
-			limit = { NOT = { has_variable = smart_notifications_subject_released_notified_recently } }
-			set_variable = { name = smart_notifications_subject_released_notified_recently value = yes days = 1 }
-			if = {
-				limit = {
-					# A decentralized ACTOR does not earn a toast when the
-					# player is not involved. Added 2026-09-10 per the user:
-					# native uprisings fire constantly against colonial powers,
-					# and two in a row against Great Britain (Tswana, then
-					# Ndebele) read as one duplicated notification rather than
-					# two real events -- which is how the user reported it.
-					#
-					# Deliberately the actor only, NOT the target. A watched
-					# country attacking a decentralized one is still worth
-					# knowing about, and the user confirmed that case is
-					# wanted: the German Empire opening on Kazembe toasted and
-					# they called it correct.
-					#
-					# Note smart_notifications_is_watched already excludes
-					# decentralized countries from ever being watched -- that
-					# is not enough here, because the watched country is the
-					# one being ATTACKED, so the check passes on them while the
-					# actor is the decentralized one.
-					#
-					# The player is unaffected: an uprising against YOU is
-					# handled by the at_player channel, which never reaches
-					# this branch.
-					scope:actor ?= { NOT = { is_country_type = decentralized } }
-					any_scope_play_involved = {
-						is_diplomatic_play_participant_with = scope:actor
-						smart_notifications_is_watched = yes
-					}
-				}
-				post_notification = smart_notifications_diplo_play_subject_released_watched
-				debug_log = "SNW_FILTER|subject_released|posted_key=smart_notifications_diplo_play_subject_released_watched|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|ELEVATED"
-			}
-			else = {
-				# No notification at all. The muted `_quiet` key this used to
-				# post was removed 2026-09-10 -- it was silent by default and
-				# only cost a row in Message Settings. The log line stays, so
-				# the decision is still visible when diagnosing.
-				debug_log = "SNW_FILTER|subject_released|posted_key=NONE|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|QUIET"
-			}
-		}
-		else = {
-			debug_log = "SNW_FILTER|subject_released|DUPLICATE_SUPPRESSED"
 		}
 
 	}

@@ -19,6 +19,13 @@ instrumentation and doc-only changes get a commit but **no** version bump
 unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## [Unreleased]
+
+### Removed
+- "(SN) Subject Released, Watched": game 1.15.2 removed this notification
+  and the event that sent it, so it could no longer appear. Its row is gone
+  from Message Settings.
+
 ## [0.45] - 2026-11-18
 
 No settings reset needed: this release changes no notification tiers.
