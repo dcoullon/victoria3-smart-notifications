@@ -43,11 +43,15 @@ GAME = cr.VANILLA_ROOT
 INSTALL = GAME.parent
 SNAPSHOTS = Path(r"C:\Users\damie\v3_snapshots")
 SNAPSHOT_DIRS = ("common", "events", "gui", "localization")
-MODS = ("smart_notifications", "bulk_construction", "smart_trade")
+MODS = ("smart_notifications", "bulk_construction", "smart_trade", "research_queue")
 SN = REPO / "smart_notifications"
 CONFLICTS = Path(tempfile.gettempdir()) / "v3-patch-day-conflicts"
+# Every generator that copies vanilla text. gen_st_recommender.py (market and
+# goods panels) and gen_research_queue_probe.py (tech panel; no flag = the
+# release build) were missing until game 1.15.2 (2026-11-19).
 GENERATORS = ("gen_law_flag_clear.py", "gen_law_cooldown.py", "gen_sn_translations.py",
-              "gen_smart_trade_values.py", "gen_smart_trade_gui.py")
+              "gen_smart_trade_values.py", "gen_smart_trade_gui.py", "gen_st_recommender.py",
+              "gen_research_queue_probe.py")
 
 
 def installed_version() -> str:
@@ -197,7 +201,9 @@ def snapshot(version: str):
 VERSION_EDITS = [
     *[(f"{m}/.metadata/metadata.json", rb'("supported_game_version": ")[^"]*"', rb'\g<1>%s.*"') for m in MODS],
     *[(f"{m}/STEAM_WORKSHOP_DESCRIPTION.bbcode", rb"(\[b\]Game version:?(?:\[/b\])? )1\.\d+(\.\*)?",
-       rb"\g<1>%s\g<2>") for m in MODS],
+       rb"\g<1>%s\g<2>") for m in MODS if m != "research_queue"],
+    ("research_queue/STEAM_WORKSHOP_DESCRIPTION.bbcode", rb"(\[b\]Tested with )1\.\d+(\.)",
+     rb"\g<1>%s\g<2>"),
     ("smart_notifications/README.md", rb"(targeting game `)[^`]*`", rb"\g<1>%s.*`"),
     ("tools/build_census_mod.py", rb'("supported_game_version": ")[^"]*"', rb'\g<1>%s.*"'),
     ("tools/build_tick_probe.py", rb'("supported_game_version": ")[^"]*"', rb'\g<1>%s.*"'),

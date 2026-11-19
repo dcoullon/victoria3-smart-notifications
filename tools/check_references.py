@@ -560,6 +560,22 @@ def check_full_overrides_match_installed_vanilla(root: Path) -> list[str]:
                 f"are missing from our override -- likely a game patch changed it since this was last "
                 f"synced (see reference/vanilla/README.md). Sample: {sample}"
             )
+        # The reverse direction, for top-level blocks only: a block vanilla
+        # DELETED but our override still defines. Game 1.15.2 removed both
+        # diplo_play_subject_released messages and the check above stayed
+        # green, because it only looks for vanilla lines we lack.
+        def top_keys(text: str) -> set[str]:
+            return set(re.findall(r"(?m)^([A-Za-z_][\w.]*)\s*=\s*\{", text))
+
+        if our_rel.endswith(".txt"):
+            gone = (top_keys(our_path.read_text(encoding="utf-8-sig", errors="ignore"))
+                    - top_keys(installed.read_text(encoding="utf-8-sig", errors="ignore")))
+            if gone:
+                errs.append(
+                    f"{our_rel}: {len(gone)} top-level block(s) our override defines are gone from the "
+                    f"installed vanilla file -- a game patch removed them; drop them and anything that "
+                    f"posts or hooks them: {sorted(gone)}"
+                )
     return errs
 
 
@@ -637,9 +653,7 @@ WATCHLIST_SPEC_CELLS = {
     "smart_notifications_diplo_play_join_side_quiet": "feed",
     "smart_notifications_diplo_play_war_start_watched": "toast",
     "smart_notifications_diplo_play_war_start_quiet": "feed",
-    # F7 -- subject released, unchanged by the spec but pinned so it cannot
-    # drift silently.
-    "smart_notifications_diplo_play_subject_released_watched": "toast",
+    # F7 (subject released) removed 2026-11-19: game 1.15.2 deleted the event.
 }
 
 # Cells that deliberately SHARE a group, and the group they share. D11 wants
@@ -1326,8 +1340,12 @@ def check_st_generated_files_current(root: Path) -> list[str]:
     errs = []
     # Both read the installed game: the GUI generator copies vanilla's goods
     # picker list, so a patch that changes it shows up here as STALE.
+    # gen_st_recommender.py copies vanilla's market_panel and goods_panel the
+    # same way; it was missing here, so game 1.15.2's market panel changes
+    # passed validation unported (found 2026-11-19).
     gens = [("tools/gen_smart_trade_gui.py", True),
-            ("tools/gen_smart_trade_values.py", True)]
+            ("tools/gen_smart_trade_values.py", True),
+            ("tools/gen_st_recommender.py", True)]
     for script, needs_game in gens:
         if needs_game and not VANILLA_ROOT.is_dir():
             _skip(script, "Victoria 3 not installed on this machine")
