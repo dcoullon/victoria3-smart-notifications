@@ -520,7 +520,12 @@ opportunity alert (section 4).
    shipping in £ only.
 2. **Import finder: who will send me good X.** The suggestions cover goods
    the player sends only (section 3). Threads 684112501454998485 (2025-11-23,
-   20 replies) and 841753396007528425 (2026-05-07, 13 replies).
+   20 replies) and 841753396007528425 (2026-05-07, 13 replies). Read
+   2026-11-18: only two posters actually ask (the first OP, both directions;
+   one reply in the second complaining about clicking through treaty menus
+   to buy a good). Most replies answer "trade centers import automatically,
+   use goods transfers for military goods or as a sweetener", which argues
+   against this one.
 3. **Cheapest sweetener.** While drafting another treaty, the goods
    transfers that buy the most acceptance for the least money. Replies in 3
    threads advise doing this by hand; one 2025-07 reply asks for "a button to
