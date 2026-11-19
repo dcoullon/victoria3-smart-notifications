@@ -5,6 +5,13 @@ written so they can be pasted into Steam Workshop update notes. Versions follow
 `.metadata/metadata.json`'s `version`, same convention as Bulk Construction:
 `+0.01` only when something genuinely new ships and is confirmed working.
 
+## [Unreleased]
+
+### Changed
+- The market panel keeps game 1.15.2's own changes: the recentred trade
+  capacity box, "None" in empty import and export charts, and the two-row
+  sort buttons on the world market tab.
+
 ## [0.13] - which deals to make
 
 ### Added
