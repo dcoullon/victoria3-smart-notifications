@@ -21,6 +21,13 @@ mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
 ## [Unreleased]
 
+### Fixed
+- "(SN) Law Ready to Enact" no longer fires while you are already enacting a
+  law. Mid-enactment, the bonuses from that enactment's events were counted
+  towards every law you had flagged, so a law could show as ready and then
+  stop being ready the day the enactment ended. It now waits for the
+  enactment to end and tells you then.
+
 ### Removed
 - "(SN) Subject Released, Watched": game 1.15.2 removed this notification
   and the event that sent it, so it could no longer appear. Its row is gone

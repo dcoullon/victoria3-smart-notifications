@@ -2318,6 +2318,31 @@ def check_sn_section_labels_fit(root: Path) -> list[str]:
     return errs
 
 
+def check_sn_law_ready_guards(root: Path) -> list[str]:
+    """smart_notifications_law_ready_to_enact feeds the Law Ready alert, its
+    toast and its tooltip list. It must keep its three guards: not in force,
+    not on the post-failure cooldown, and no enactment already running (game
+    1.15.2 run, 2026-11-19: without the last one, the current enactment's
+    modifiers made other wanted laws read as ready until it ended)."""
+    path = root / "common" / "scripted_triggers" / "01_smart_notifications_law_wanted_trigger.txt"
+    if not path.is_file():
+        return []
+    text = _read(path)
+    m = re.search(r"(?m)^smart_notifications_law_ready_to_enact\s*=\s*\{(.*?)\n\t\tOR\s*=", text, re.S)
+    if not m:
+        return [f"{path.name}: smart_notifications_law_ready_to_enact not found, or its guard block "
+                f"no longer precedes the chance sweep"]
+    head = re.sub(r"#[^\n]*", "", m.group(1))
+    needed = {
+        "NOT = { enacting_any_law = yes }": "an enactment already running",
+        "NOT = { has_law = prev.type }": "the law already in force",
+        "NOT = { smart_notifications_law_on_cooldown = yes }": "the post-failure cooldown",
+    }
+    norm = re.sub(r"\s+", " ", head)
+    return [f"{path.name}: smart_notifications_law_ready_to_enact lost its guard for {why} ({g})"
+            for g, why in needed.items() if g not in norm]
+
+
 _VANILLA_EN_KEYS: set = set()
 
 
@@ -2410,6 +2435,7 @@ def run_all(root: Path) -> list[str]:
         errs += check_watchlist_spec_group_isolation(root)
         errs += check_mod_group_labels_are_tagged(root)
         errs += check_sn_section_labels_fit(root)
+        errs += check_sn_law_ready_guards(root)
         errs += check_census_build_not_stale(root)
         errs += check_dev_only_files_are_consistent(root)
         errs += check_sn_event_context_is_current(root)

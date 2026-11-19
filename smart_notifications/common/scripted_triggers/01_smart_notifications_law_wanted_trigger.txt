@@ -216,9 +216,24 @@ smart_notifications_law_matches_wanted_flag = {
 #   common/on_actions/17_smart_notifications_law_cooldown.txt.
 # Both guards are cheap variable/law lookups, so they run before the
 # 99-step sweep.
+#
+# REVISED 2026-11-19, the user's own run: the alert and toast fired while
+# another law was mid-enactment, then the law they named turned out not to be
+# ready once that enactment ended. Two causes, one guard:
+# - A country enacting a law cannot start another, so nothing is "ready to
+#   enact" until it ends. can_be_enacted does not check this either.
+# - enactment_chance_for_law / stall_chance_for_law include "values from
+#   enactment modifier" (script_docs triggers.log), and those modifiers belong
+#   to the law being enacted (add_enactment_modifier, 57 vanilla event files).
+#   Mid-enactment, every wanted law read the current enactment's boosts and
+#   lost them the day it ended.
+# enacting_any_law is vanilla's own check for this
+# (scripted_buttons/04_law_imposition_buttons.txt). check_references asserts
+# the guard stays here.
 smart_notifications_law_ready_to_enact = {
 	NOT = { smart_notifications_law_on_cooldown = yes }
 	THIS.owner = {
+		NOT = { enacting_any_law = yes }
 		NOT = { has_law = prev.type }
 		OR = {
 			AND = {
