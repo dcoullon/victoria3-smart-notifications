@@ -406,6 +406,53 @@ def insert_block(prefix="st_rec_", slots=SLOTS, indent=0):
     return "\n".join("\t" * indent + l for l in level(1).splitlines())
 
 
+# DIAGNOSTIC PROBE (2026-11-19, dev only): coffee to the North German
+# Federation earned +634 a week once signed but never appeared in the
+# suggestions, and hardwood to it was suggested at ~340 a week but earns 58.5.
+# For these goods the monthly scan logs, per partner, which st_rec_pair_ok
+# condition fails, and for a passing pair the search's inputs and result.
+# Every line is a debug_log, so package_release strips them; set PROBE_GOODS to
+# () once the cause is found. Read with:
+#   grep "ST_REC|PROBE" debug.log
+PROBE_GOODS = ("coffee", "hardwood")
+
+# st_rec_pair_ok's conditions one by one (keep in step with scripted_triggers()).
+PROBE_CONDITIONS = [
+    ("war", "NOT = { has_war_with = scope:st_rec_c }"),
+    ("junior", "scope:st_rec_c = { is_junior_in_customs_union = no }"),
+    ("reach", "is_market_reachable_for_trade = scope:st_rec_c.market"),
+    ("port", "OR = { var:st_rec_adj > 0 AND = { any_scope_state = { has_port_state = yes } "
+             "scope:st_rec_c = { any_scope_state = { has_port_state = yes } } } }"),
+    ("supply", "OR = { supply_network_strength >= 0.75 is_adjacent_to_country = scope:st_rec_c }"),
+    ("treaty", "NOT = { any_scope_treaty = { binds = scope:st_rec_c any_scope_article = { "
+               "has_type = goods_transfer input_goods = scope:st_rec_g } } }"),
+    ("pcap", "scope:st_rec_p = { treaty_imports < market_import_cap }"),
+    ("hcap", "scope:st_rec_h = { treaty_exports < market_export_cap }"),
+    ("acc", "scope:st_rec_c = { OR = { NOT = { has_variable = st_rec_acc } var:st_rec_acc >= "
+            + str(MIN_ACCEPTANCE) + " } }"),
+]
+
+
+def probe_pair(key):
+    """Root = the player, scopes saved as in st_rec_try_partner. Before it."""
+    who = "[SCOPE.sC('st_rec_c').GetNameNoFormatting]"
+    fails = "".join(
+        f"\t\t\t\t\t\tif = {{ limit = {{ NOT = {{ {cond} }} }} "
+        f"debug_log = \"ST_REC|PROBE_FAIL|{key}|{who}|{name}\" }}\n"
+        for name, cond in PROBE_CONDITIONS)
+    return fails
+
+
+def probe_after(key):
+    """Root = the player, right after st_rec_try_partner: the inputs it set."""
+    v = lambda n, d=2: f"[THIS.Var('{n}').GetValue|{d}]"
+    who = "[SCOPE.sC('st_rec_c').GetNameNoFormatting]"
+    return (f"\t\t\t\t\t\tif = {{ limit = {{ st_rec_pair_ok = yes }} debug_log = \"ST_REC|PROBE_PAIR|{key}|{who}"
+            f"|adj={v('st_rec_adj', 0)}|bh={v('st_rec_bh', 0)}|sh={v('st_rec_sh', 0)}|bp={v('st_rec_bp', 0)}"
+            f"|sp={v('st_rec_sp', 0)}|k={v('st_rec_k')}|ship={v('st_rec_ship')}|cap={v('st_rec_cap', 0)}"
+            f"|q={v('st_rec_q')}|gain={v('st_rec_gq')}\" }}\n")
+
+
 def per_good_blocks(goods, one=False):
     """The scan's per-good loop. one=True: st_rec_scan_one's version, which
     runs only the block of the good saved as scope:st_rec_one and puts each
@@ -416,12 +463,21 @@ def per_good_blocks(goods, one=False):
         try_ = "st_rec_try_partner_x" if one else "st_rec_try_partner"
         start = "" if one else "\t\t\tst_rec_good_start = yes\n"
         end = "" if one else "\t\t\tst_rec_good_end = yes\n"
+        probe = key in PROBE_GOODS and not one
+        p_good = (f"\t\tdebug_log = \"ST_REC|PROBE_GOOD|{key}|sur=[THIS.Var('st_rec_sur').GetValue|0]\"\n"
+                  f"\t\tif = {{ limit = {{ scope:st_rec_h = {{ is_tradeable = no }} }} "
+                  f"debug_log = \"ST_REC|PROBE_GOOD|{key}|not_tradeable\" }}\n") if probe else ""
+        p_try = (f"\t\t\t\troot = {{\n{probe_pair(key)}\t\t\t\t\t\t{try_} = yes\n{probe_after(key)}\t\t\t\t}}"
+                 if probe else f"\t\t\t\troot = {{ {try_} = yes }}")
+        p_end = ("\t\t\tif = { limit = { has_variable = st_rec_bc } debug_log = \"ST_REC|PROBE_BEST|"
+                 + key + "|[THIS.Var('st_rec_bc').GetCountry.GetNameNoFormatting]|best=[THIS.Var('st_rec_best').GetValue|2]"
+                 "|min=[THIS.Var('st_rec_min').GetValue|2]\" }\n") if probe else ""
         out.append(f"""\t# {key}
 \tif = {{
 \t\tlimit = {{{only} scope:st_rec_home = {{ exists = mg:{key} }} }}
 \t\tscope:st_rec_home = {{ mg:{key} = {{ save_scope_as = st_rec_h goods = {{ save_scope_as = st_rec_g }} }} }}
 \t\tset_variable = {{ name = st_rec_sur value = st_rec_in_surplus }}
-\t\tif = {{
+{p_good}\t\tif = {{
 \t\t\tlimit = {{ var:st_rec_sur >= {MIN_SURPLUS} scope:st_rec_h = {{ is_tradeable = yes }} }}
 \t\t\tset_variable = {{ name = st_rec_tq value = {fnum(tq)} }}
 {start}\t\t\tevery_market = {{
@@ -439,9 +495,9 @@ def per_good_blocks(goods, one=False):
 \t\t\t\telse = {{
 \t\t\t\t\troot = {{ set_variable = {{ name = st_rec_adj value = 0 }} }}
 \t\t\t\t}}
-\t\t\t\troot = {{ {try_} = yes }}
+{p_try}
 \t\t\t}}
-{end}\t\t}}
+{p_end}{end}\t\t}}
 \t}}""")
     body = "\n".join(out)
     return "\n".join("\t" + l for l in body.splitlines()) if one else body
@@ -1286,6 +1342,13 @@ def main():
     if a.selftest:
         sys.exit(0 if selftest() else 1)
     goods = goods_table()
+    # The probe's copy of st_rec_pair_ok must match the real rule, or it
+    # reports the wrong failure.
+    flat = lambda s: re.sub(r"\s+", " ", re.sub(r"#[^\n]*", "", s))
+    m = re.search(r"st_rec_pair_ok = \{(.*?)\n\}", scripted_triggers(), re.S)
+    rule = flat(m[1])
+    drift = [n for n, c in PROBE_CONDITIONS if flat(c) not in rule]
+    assert not drift, f"PROBE_CONDITIONS out of step with st_rec_pair_ok: {drift}"
     stale = []
     for rel, fn in OUTPUTS.items():
         text = fn(goods).replace("\r\n", "\n")
