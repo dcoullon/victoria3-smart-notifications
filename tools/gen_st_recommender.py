@@ -32,9 +32,10 @@ list and each good's traded_quantity come from the installed game.
 Every construct here has vanilla or shipped precedent; see the comments in
 the generated files. Partner rules mirror vanilla's goods_transfer article
 (common/treaty_articles/13_goods_transfer.txt: visible, possible,
-can_ratify, goods_valid_trigger, quantity_max_value) plus "not at war" and
-"not a good already moving between the two" (Damien, 2026-11-10: relations
-are ignored for now).
+can_ratify, goods_valid_trigger, quantity_max_value) plus "not at war"
+(Damien, 2026-11-10: relations are ignored for now). A good the player
+already sends that partner is still suggested, for a new treaty (Damien,
+2026-11-19): vanilla only refuses one the partner already sends the player.
 """
 import argparse
 import random
@@ -270,8 +271,16 @@ def scripted_triggers():
 # Root and this = the player. Saved scopes: st_rec_c (partner country),
 # st_rec_g (goods), st_rec_h / st_rec_p (home / partner market goods).
 # Mirrors vanilla's goods_transfer article (13_goods_transfer.txt), plus
-# "not at war" and "not already moving this good between us" (spec). The
-# partner's base acceptance is checked once known (Damien, 2026-11-13).
+# "not at war". The partner's base acceptance is checked once known (Damien,
+# 2026-11-13).
+#
+# The treaty rule is vanilla's DUPLICATE_ARTICLE_SAME_INPUTS_TREATY: refused
+# only when the partner already sends us this good. Until 2026-11-19 this
+# refused any treaty with the partner moving the good either way, which hid
+# Damien's best deal: coffee to the North German Federation, +654 a week for
+# 66 more on top of a coffee treaty already signed (probe, 17 Nov 1861). The
+# estimate needs no change for a good already sent: the market orders and
+# treaty_imports it reads already include the existing transfer.
 st_rec_pair_ok = {
 	NOT = { this = scope:st_rec_c }
 	NOT = { has_war_with = scope:st_rec_c }
@@ -294,6 +303,7 @@ st_rec_pair_ok = {
 			any_scope_article = {
 				has_type = goods_transfer
 				input_goods = scope:st_rec_g
+				source_country = scope:st_rec_c
 			}
 		}
 	}
@@ -414,7 +424,7 @@ def insert_block(prefix="st_rec_", slots=SLOTS, indent=0):
 # Every line is a debug_log, so package_release strips them; set PROBE_GOODS to
 # () once the cause is found. Read with:
 #   grep "ST_REC|PROBE" debug.log
-PROBE_GOODS = ("coffee", "hardwood")
+PROBE_GOODS = ()  # was ("coffee", "hardwood"); answered 2026-11-19, see st_rec_pair_ok
 
 # st_rec_pair_ok's conditions one by one (keep in step with scripted_triggers()).
 PROBE_CONDITIONS = [
@@ -425,7 +435,8 @@ PROBE_CONDITIONS = [
              "scope:st_rec_c = { any_scope_state = { has_port_state = yes } } } }"),
     ("supply", "OR = { supply_network_strength >= 0.75 is_adjacent_to_country = scope:st_rec_c }"),
     ("treaty", "NOT = { any_scope_treaty = { binds = scope:st_rec_c any_scope_article = { "
-               "has_type = goods_transfer input_goods = scope:st_rec_g } } }"),
+               "has_type = goods_transfer input_goods = scope:st_rec_g "
+               "source_country = scope:st_rec_c } } }"),
     ("pcap", "scope:st_rec_p = { treaty_imports < market_import_cap }"),
     ("hcap", "scope:st_rec_h = { treaty_exports < market_export_cap }"),
     ("acc", "scope:st_rec_c = { OR = { NOT = { has_variable = st_rec_acc } var:st_rec_acc >= "

@@ -843,8 +843,6 @@ st_rec_scan_goods = {
 		limit = { scope:st_rec_home = { exists = mg:hardwood } }
 		scope:st_rec_home = { mg:hardwood = { save_scope_as = st_rec_h goods = { save_scope_as = st_rec_g } } }
 		set_variable = { name = st_rec_sur value = st_rec_in_surplus }
-		debug_log = "ST_REC|PROBE_GOOD|hardwood|sur=[THIS.Var('st_rec_sur').GetValue|0]"
-		if = { limit = { scope:st_rec_h = { is_tradeable = no } } debug_log = "ST_REC|PROBE_GOOD|hardwood|not_tradeable" }
 		if = {
 			limit = { var:st_rec_sur >= 10 scope:st_rec_h = { is_tradeable = yes } }
 			set_variable = { name = st_rec_tq value = 5 }
@@ -864,21 +862,8 @@ st_rec_scan_goods = {
 				else = {
 					root = { set_variable = { name = st_rec_adj value = 0 } }
 				}
-				root = {
-						if = { limit = { NOT = { NOT = { has_war_with = scope:st_rec_c } } } debug_log = "ST_REC|PROBE_FAIL|hardwood|[SCOPE.sC('st_rec_c').GetNameNoFormatting]|war" }
-						if = { limit = { NOT = { scope:st_rec_c = { is_junior_in_customs_union = no } } } debug_log = "ST_REC|PROBE_FAIL|hardwood|[SCOPE.sC('st_rec_c').GetNameNoFormatting]|junior" }
-						if = { limit = { NOT = { is_market_reachable_for_trade = scope:st_rec_c.market } } debug_log = "ST_REC|PROBE_FAIL|hardwood|[SCOPE.sC('st_rec_c').GetNameNoFormatting]|reach" }
-						if = { limit = { NOT = { OR = { var:st_rec_adj > 0 AND = { any_scope_state = { has_port_state = yes } scope:st_rec_c = { any_scope_state = { has_port_state = yes } } } } } } debug_log = "ST_REC|PROBE_FAIL|hardwood|[SCOPE.sC('st_rec_c').GetNameNoFormatting]|port" }
-						if = { limit = { NOT = { OR = { supply_network_strength >= 0.75 is_adjacent_to_country = scope:st_rec_c } } } debug_log = "ST_REC|PROBE_FAIL|hardwood|[SCOPE.sC('st_rec_c').GetNameNoFormatting]|supply" }
-						if = { limit = { NOT = { NOT = { any_scope_treaty = { binds = scope:st_rec_c any_scope_article = { has_type = goods_transfer input_goods = scope:st_rec_g } } } } } debug_log = "ST_REC|PROBE_FAIL|hardwood|[SCOPE.sC('st_rec_c').GetNameNoFormatting]|treaty" }
-						if = { limit = { NOT = { scope:st_rec_p = { treaty_imports < market_import_cap } } } debug_log = "ST_REC|PROBE_FAIL|hardwood|[SCOPE.sC('st_rec_c').GetNameNoFormatting]|pcap" }
-						if = { limit = { NOT = { scope:st_rec_h = { treaty_exports < market_export_cap } } } debug_log = "ST_REC|PROBE_FAIL|hardwood|[SCOPE.sC('st_rec_c').GetNameNoFormatting]|hcap" }
-						if = { limit = { NOT = { scope:st_rec_c = { OR = { NOT = { has_variable = st_rec_acc } var:st_rec_acc >= 0 } } } } debug_log = "ST_REC|PROBE_FAIL|hardwood|[SCOPE.sC('st_rec_c').GetNameNoFormatting]|acc" }
-						st_rec_try_partner = yes
-						if = { limit = { st_rec_pair_ok = yes } debug_log = "ST_REC|PROBE_PAIR|hardwood|[SCOPE.sC('st_rec_c').GetNameNoFormatting]|adj=[THIS.Var('st_rec_adj').GetValue|0]|bh=[THIS.Var('st_rec_bh').GetValue|0]|sh=[THIS.Var('st_rec_sh').GetValue|0]|bp=[THIS.Var('st_rec_bp').GetValue|0]|sp=[THIS.Var('st_rec_sp').GetValue|0]|k=[THIS.Var('st_rec_k').GetValue|2]|ship=[THIS.Var('st_rec_ship').GetValue|2]|cap=[THIS.Var('st_rec_cap').GetValue|0]|q=[THIS.Var('st_rec_q').GetValue|2]|gain=[THIS.Var('st_rec_gq').GetValue|2]" }
-				}
+				root = { st_rec_try_partner = yes }
 			}
-			if = { limit = { has_variable = st_rec_bc } debug_log = "ST_REC|PROBE_BEST|hardwood|[THIS.Var('st_rec_bc').GetCountry.GetNameNoFormatting]|best=[THIS.Var('st_rec_best').GetValue|2]|min=[THIS.Var('st_rec_min').GetValue|2]" }
 			st_rec_good_end = yes
 		}
 	}
@@ -1293,8 +1278,6 @@ st_rec_scan_goods = {
 		limit = { scope:st_rec_home = { exists = mg:coffee } }
 		scope:st_rec_home = { mg:coffee = { save_scope_as = st_rec_h goods = { save_scope_as = st_rec_g } } }
 		set_variable = { name = st_rec_sur value = st_rec_in_surplus }
-		debug_log = "ST_REC|PROBE_GOOD|coffee|sur=[THIS.Var('st_rec_sur').GetValue|0]"
-		if = { limit = { scope:st_rec_h = { is_tradeable = no } } debug_log = "ST_REC|PROBE_GOOD|coffee|not_tradeable" }
 		if = {
 			limit = { var:st_rec_sur >= 10 scope:st_rec_h = { is_tradeable = yes } }
 			set_variable = { name = st_rec_tq value = 5 }
@@ -1314,21 +1297,8 @@ st_rec_scan_goods = {
 				else = {
 					root = { set_variable = { name = st_rec_adj value = 0 } }
 				}
-				root = {
-						if = { limit = { NOT = { NOT = { has_war_with = scope:st_rec_c } } } debug_log = "ST_REC|PROBE_FAIL|coffee|[SCOPE.sC('st_rec_c').GetNameNoFormatting]|war" }
-						if = { limit = { NOT = { scope:st_rec_c = { is_junior_in_customs_union = no } } } debug_log = "ST_REC|PROBE_FAIL|coffee|[SCOPE.sC('st_rec_c').GetNameNoFormatting]|junior" }
-						if = { limit = { NOT = { is_market_reachable_for_trade = scope:st_rec_c.market } } debug_log = "ST_REC|PROBE_FAIL|coffee|[SCOPE.sC('st_rec_c').GetNameNoFormatting]|reach" }
-						if = { limit = { NOT = { OR = { var:st_rec_adj > 0 AND = { any_scope_state = { has_port_state = yes } scope:st_rec_c = { any_scope_state = { has_port_state = yes } } } } } } debug_log = "ST_REC|PROBE_FAIL|coffee|[SCOPE.sC('st_rec_c').GetNameNoFormatting]|port" }
-						if = { limit = { NOT = { OR = { supply_network_strength >= 0.75 is_adjacent_to_country = scope:st_rec_c } } } debug_log = "ST_REC|PROBE_FAIL|coffee|[SCOPE.sC('st_rec_c').GetNameNoFormatting]|supply" }
-						if = { limit = { NOT = { NOT = { any_scope_treaty = { binds = scope:st_rec_c any_scope_article = { has_type = goods_transfer input_goods = scope:st_rec_g } } } } } debug_log = "ST_REC|PROBE_FAIL|coffee|[SCOPE.sC('st_rec_c').GetNameNoFormatting]|treaty" }
-						if = { limit = { NOT = { scope:st_rec_p = { treaty_imports < market_import_cap } } } debug_log = "ST_REC|PROBE_FAIL|coffee|[SCOPE.sC('st_rec_c').GetNameNoFormatting]|pcap" }
-						if = { limit = { NOT = { scope:st_rec_h = { treaty_exports < market_export_cap } } } debug_log = "ST_REC|PROBE_FAIL|coffee|[SCOPE.sC('st_rec_c').GetNameNoFormatting]|hcap" }
-						if = { limit = { NOT = { scope:st_rec_c = { OR = { NOT = { has_variable = st_rec_acc } var:st_rec_acc >= 0 } } } } debug_log = "ST_REC|PROBE_FAIL|coffee|[SCOPE.sC('st_rec_c').GetNameNoFormatting]|acc" }
-						st_rec_try_partner = yes
-						if = { limit = { st_rec_pair_ok = yes } debug_log = "ST_REC|PROBE_PAIR|coffee|[SCOPE.sC('st_rec_c').GetNameNoFormatting]|adj=[THIS.Var('st_rec_adj').GetValue|0]|bh=[THIS.Var('st_rec_bh').GetValue|0]|sh=[THIS.Var('st_rec_sh').GetValue|0]|bp=[THIS.Var('st_rec_bp').GetValue|0]|sp=[THIS.Var('st_rec_sp').GetValue|0]|k=[THIS.Var('st_rec_k').GetValue|2]|ship=[THIS.Var('st_rec_ship').GetValue|2]|cap=[THIS.Var('st_rec_cap').GetValue|0]|q=[THIS.Var('st_rec_q').GetValue|2]|gain=[THIS.Var('st_rec_gq').GetValue|2]" }
-				}
+				root = { st_rec_try_partner = yes }
 			}
-			if = { limit = { has_variable = st_rec_bc } debug_log = "ST_REC|PROBE_BEST|coffee|[THIS.Var('st_rec_bc').GetCountry.GetNameNoFormatting]|best=[THIS.Var('st_rec_best').GetValue|2]|min=[THIS.Var('st_rec_min').GetValue|2]" }
 			st_rec_good_end = yes
 		}
 	}

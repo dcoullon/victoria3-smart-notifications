@@ -3,8 +3,16 @@
 # Root and this = the player. Saved scopes: st_rec_c (partner country),
 # st_rec_g (goods), st_rec_h / st_rec_p (home / partner market goods).
 # Mirrors vanilla's goods_transfer article (13_goods_transfer.txt), plus
-# "not at war" and "not already moving this good between us" (spec). The
-# partner's base acceptance is checked once known (Damien, 2026-11-13).
+# "not at war". The partner's base acceptance is checked once known (Damien,
+# 2026-11-13).
+#
+# The treaty rule is vanilla's DUPLICATE_ARTICLE_SAME_INPUTS_TREATY: refused
+# only when the partner already sends us this good. Until 2026-11-19 this
+# refused any treaty with the partner moving the good either way, which hid
+# Damien's best deal: coffee to the North German Federation, +654 a week for
+# 66 more on top of a coffee treaty already signed (probe, 17 Nov 1861). The
+# estimate needs no change for a good already sent: the market orders and
+# treaty_imports it reads already include the existing transfer.
 st_rec_pair_ok = {
 	NOT = { this = scope:st_rec_c }
 	NOT = { has_war_with = scope:st_rec_c }
@@ -27,6 +35,7 @@ st_rec_pair_ok = {
 			any_scope_article = {
 				has_type = goods_transfer
 				input_goods = scope:st_rec_g
+				source_country = scope:st_rec_c
 			}
 		}
 	}

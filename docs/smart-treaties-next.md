@@ -19,19 +19,21 @@ goods cards' frame rate.
 
 ## Open (2026-11-19)
 
-- **Coffee to the North German Federation missing from the suggestions**
-  (Damien's Spain run, 17 Nov 1861). Picker: +665 a week at 71; signed: +634.
-  The suggestion maths on the screenshot's numbers gives +654 at 66, first
-  place, so a rule or an input drops it. Hardwood to the same partner was
-  suggested at ~340 and earns 58.5. Diagnostic: `PROBE_GOODS` in
-  tools/gen_st_recommender.py logs `ST_REC|PROBE_*` for coffee and hardwood.
-  Damien does not think coffee was in a draft at the first look, which
-  weakens the "drafts count as treaties" guess (the observer's own note says
-  `every_treaty` covers drafts). **Once the cause is found, set `PROBE_GOODS =
-  ()` and regenerate** (Damien, 2026-11-19: remove the debug lines).
-- **Losing-transfer toast opens its treaty** (type = treaty, posted from the
-  treaty). The observer v0.04 posts it once as a test (`ST_OBS|TEST_TOAST`);
-  remove that hook once the click is confirmed.
+- **Solved: coffee to the North German Federation missing from the
+  suggestions** (Damien's Spain run, 17 Nov 1861). Spain already sent it 22
+  coffee a week (treaty of 26 Aug 1859), and `st_rec_pair_ok` refused any
+  treaty moving the good either way. Vanilla only refuses one where the
+  partner sends us the good, so the rule now matches vanilla. The probe
+  (`PROBE_GOODS`, now empty) read Spain's coffee as 748 buy / 1041 sell orders,
+  the same figures the screenshot's tooltip implied.
+- **Open: hardwood to the federation suggested at ~334 a week, earning 58.5.**
+  Inputs from the probe: Spain buy 347 / sell 416, partner buy 1093 / sell
+  882, q = 54, no shipping. The price rule on those gives the 334; the gap is
+  likely the transfer displacing trade that already ran, which the model
+  ignores (the observer's question 3). Needs observer data on signed deals.
+- **Done: the losing-transfer toast opens its treaty** (type = treaty, posted
+  from the treaty), confirmed in game 2026-11-19 with the observer's one-time
+  test toast, since removed (observer v0.05).
 
 ## 1. Measurement build
 

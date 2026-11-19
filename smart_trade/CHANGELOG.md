@@ -7,6 +7,12 @@ written so they can be pasted into Steam Workshop update notes. Versions follow
 
 ## [Unreleased]
 
+### Fixed
+- Suggested goods transfers now include a good you already send to that
+  country, when sending more in a new treaty would pay. Before, one coffee
+  treaty with a partner hid every other coffee deal with them, even the most
+  profitable one on the list.
+
 ### Changed
 - Clicking the "goods transfer losing money" notification now opens that
   treaty.
