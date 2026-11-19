@@ -56,12 +56,52 @@ FUNCS = {
     "And": lambda a, b: a and b,
     "Or": lambda a, b: a or b,
     "Not": lambda a: not a,
+    "FixedPointToInt": lambda a: int(round(a)),
+    "ToString_int32": str,
+    "True": lambda: True,
+    "False": lambda: False,
 }
 
 
-def gui_eval(expr, env):
-    """Evaluate one generated expression. env: bh sh bp sp ph pp base tq mmp q."""
-    s = ACC.sub(lambda m: "@" + NAMES[(m[1], m[2])], expr)
+def card_chain(m, route):
+    """Walk the goods card's generated creation chain (lazy_widgets) state by
+    state, as the game would, for a card on `route` ('l' land, 's' near sea,
+    'f' far sea). Returns the stored figure (whole units) or None."""
+    text = G.lazy_widgets()
+    states = dict(re.findall(r'name = (st_\w+)\n\t*on_start = "\[(.*?)\]"', text))
+    mk = dict(G.LAZY_MARKETS)[route]
+    extra = [(G.C_MINE, "True()"), (G.ONCE_KEY, "'key'")]
+    env = gui_env(m)
+    env["mmp"] = m["ship"] / (G.ROUTE_FAR if route == "f" else G.ROUTE_NEAR)
+    step = G.LAZY_STEP1
+    step = step.replace(G.D_ADJ, "True()" if route == "l" else "False()")
+    step = step.replace(G.D_FAR, "True()" if route == "f" else "False()")
+    for _ in range(12):
+        t = re.fullmatch(r"PdxGuiWidget\.FindChild\('\w+'\)\.TriggerAnimation\((.*)\)", step)
+        if t:
+            name = gui_eval(t[1], env, mk, extra)
+            if name == "st_none":
+                return None
+            step = states[name]
+            continue
+        s = re.fullmatch(r"GetVariableSystem\.Set\('key', (.*)\)", step.replace(G.ONCE_KEY, "'key'"))
+        assert s, step[:120]
+        return float(gui_eval(s[1], env, mk, extra))
+    raise RuntimeError("chain did not end")
+
+
+def gui_eval(expr, env, market=None, extra=()):
+    """Evaluate one generated expression. env: bh sh bp sp ph pp base tq mmp q.
+    market: a Market built with other names than G/H/P (e.g. the cards'
+    LAZY_MARKETS), whose accessor strings are substituted; extra: further
+    (text, replacement) pairs, applied first."""
+    s = expr
+    for a, b in extra:
+        s = s.replace(a, b)
+    if market is not None:
+        for attr in ("bh", "sh", "bp", "sp", "ph", "pp", "base", "tq"):
+            s = s.replace(getattr(market, attr), "@" + attr)
+    s = ACC.sub(lambda m: "@" + NAMES[(m[1], m[2])], s)
     s = s.replace(G.MMP, "@mmp").replace("G.GetBasePrice", "@base").replace("G.GetTradedQuantity", "@tq")
     s = s.replace("ArticleDraft.GetQuantity", "@q")
     pos = 0
@@ -82,7 +122,7 @@ def gui_eval(expr, env):
             raise ValueError(f"cannot parse at {s[pos:pos + 80]!r}")
         pos += m.end()
         args = []
-        while True:
+        while s[pos] != ")":
             while s[pos] == " ":
                 pos += 1
             args.append(parse())
@@ -92,9 +132,9 @@ def gui_eval(expr, env):
                 pos += 1
                 continue
             if s[pos] == ")":
-                pos += 1
                 break
             raise ValueError(f"unexpected {s[pos:pos + 40]!r}")
+        pos += 1
         if m[1] not in FUNCS:
             raise ValueError(f"unknown function {m[1]}")
         return FUNCS[m[1]](*args)
@@ -311,7 +351,7 @@ def run(n):
         label = "real prices off the rule" if deviate else "real prices on the rule"
         rnd = random.Random(3)
         stats = {"Best button": [0, 0, 0.0], "card figure": [0, 0, 0.0], "suggestion scan": [0, 0, 0.0]}
-        same_q = 0
+        same_q = chain_same = chain_n = 0
         for _ in range(n):
             m = shape(rnd, deviate)
             mk = gui_market(m)
@@ -330,7 +370,13 @@ def run(n):
             env = gui_env(m)
             name = gui_eval(mk.lazy_pick("x"), env)
             d = int(name[len("st_x"):])
-            got["card figure"] = gui_eval(mk.best_gain_leaf(10 * 10 ** d, 100 * 10 ** d), env)
+            leaf = gui_eval(mk.best_gain_leaf(10 * 10 ** d, 100 * 10 ** d), env)
+            got["card figure"] = leaf
+            # The chain the generator writes, walked state by state, must store
+            # that same figure (rounded down to whole units).
+            fig = card_chain(m, "l" if m["ship"] == 0 else "s")
+            chain_same += fig is not None and int(fig) == int(round(leaf - 0.5))
+            chain_n += 1
             # Script: interpreted st_rec_search.
             qs = sc.search(m)
             got["suggestion scan"] = R.gain(m, qs) if qs is not None else 0.0
@@ -353,6 +399,10 @@ def run(n):
             ok &= not bad
             print(f"[{'FAIL' if bad else 'ok'}] {k}, {label}: {tested} shapes, {short} more than 2% "
                   f"below brute force, worst {100 * worst:.2f}%")
+        good = chain_same == chain_n
+        ok &= good
+        print(f"[{'ok' if good else 'FAIL'}] card creation chain as generated stores that figure, {label}: "
+              f"{chain_same} of {chain_n}")
         good = same_q == stats["suggestion scan"][0]
         ok &= good
         print(f"[{'ok' if good else 'FAIL'}] suggestion scan picks port()'s quantity, {label}: "

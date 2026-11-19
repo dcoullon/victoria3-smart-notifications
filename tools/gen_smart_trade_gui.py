@@ -255,19 +255,25 @@ class Market:
             cands.append(sel(gt(x, self.cap), fx(-10000000), self.gain(mx(x, fx(10)))))
         cands.append(self.gain(self.lim))
         cands.append(self.gain(self.cap))
-        if lo > 10:
-            cands.append(self.gain(fx(10)))
+        # Not the 10-unit start (port() compares it; the Best button and the
+        # suggestions do): it only matters when a tiny partner market hits its
+        # price floor within a few units, and here it costs every card one
+        # more gain. check_price_model holds the figure to 3% of brute force.
         best = cands[0]
         for c in cands[1:]:
             best = mx(best, c)
         return best
 
+    def enter(self, lo):
+        """Does the search go on into the decade starting at lo: below the
+        climb's limit, and the marginal gain still positive there."""
+        return f"And({lt(fx(lo), self.lim)}, {gt(self.marginal(fx(lo)), fx(0))})"
+
     def chain(self):
         """Nested containers, one per decade: decade d is entered only when
         the marginal gain is still positive at its start (and the cap allows
         it); the deepest one entered shows its leaf."""
-        def enter(lo):
-            return f"And({lt(fx(lo), self.lim)}, {gt(self.marginal(fx(lo)), fx(0))})"
+        enter = self.enter
         out = ""
         for d in reversed(range(CHAIN_DECADES)):
             lo, hi = 10 * 10 ** d, 10 * 10 ** (d + 1)
@@ -284,9 +290,10 @@ class Market:
         """Name of the state that computes the decade the optimum is in,
         picked the way chain() nests its containers: decade d when the
         marginal gain is still positive at the start of every decade up to
-        d and not at the next one."""
-        def enter(lo):
-            return f"And({lt(fx(lo), self.lim)}, {gt(self.marginal(fx(lo)), fx(0))})"
+        d and not at the next one. One expression, every test evaluated:
+        the goods cards use lazy_decades() instead, one test per step; this
+        stays as the reference tools/check_price_model.py compares with."""
+        enter = self.enter
         name = f"'st_{tag}{CHAIN_DECADES - 1}'"
         for d in reversed(range(CHAIN_DECADES - 1)):
             name = f"Select_CString({enter(10 * 10 ** (d + 1))}, {name}, 'st_{tag}{d}')"
@@ -466,13 +473,25 @@ ONCE_TEXT = f"@money!#P +[GetVariableSystem.Get({ONCE_KEY})]#!"
 # that does not pay stops here); 2. which decade; 3. that decade's figure,
 # with no border test inside. Vanilla's pattern: an item's trigger_on_create
 # state calling FindChild(...).TriggerAnimation(...) (gui/achievements/popup.gui).
-LAZY_STEP1 = (f"PdxGuiWidget.FindChild('st_pick').TriggerAnimation(Select_CString({D_ADJ}, "
-              f"Select_CString({C_SHOW_LAND}, 'st_pl', 'st_none'), "
-              f"Select_CString({D_FAR}, "
-              f"Select_CString({C_SHOW_FAR}, 'st_pf', 'st_none'), "
-              f"Select_CString({C_SHOW_SEA}, 'st_ps', 'st_none'))))")
-LAZY_MARKETS = (("l", Market("Goods", adj=True)), ("s", Market("Goods", adj=False, far=False)),
-                ("f", Market("Goods", adj=False, far=True)))
+#
+# Split further 2026-11-19 (the price model made each test dearer): a
+# Select_CString evaluates every argument, so step 1 used to run all three
+# routes' "does it pay" tests and the decade pick all four decade tests.
+# Now step 1 picks only the route (the two border tests), the route's state
+# runs its one "does it pay" test, and each decade's state runs one decade
+# test (lazy_widgets). Measured statically in the commit that did this.
+LAZY_STEP1 = (f"PdxGuiWidget.FindChild('st_route').TriggerAnimation(Select_CString({D_ADJ}, 'st_rl', "
+              f"Select_CString({D_FAR}, 'st_rf', 'st_rs')))")
+# The chain's outer widget carries datacontext = the partner's market (it adds
+# to the card's Goods context), so its formulas use the short names, as the
+# live fallback chain does (CHAIN_CTX): about 17% fewer steps. The player is
+# the sender in every branch (C_MINE in the route test), so the home market
+# is GetPlayer's.
+LAZY_MARKETS = (("l", Market("Goods", adj=True, **CHAIN_CTX)),
+                ("s", Market("Goods", adj=False, far=False, **CHAIN_CTX)),
+                ("f", Market("Goods", adj=False, far=True, **CHAIN_CTX)))
+LAZY_ROUTE = {tag: f"And({C_MINE}, {m.pays10})" for tag, m in LAZY_MARKETS}
+LAZY_CONTEXT = "ArticleDraft.GetSecondOrTarget.GetMarket"
 # Fallback, no stored figure (no hook ran): computed live every frame, one
 # border test per card picking the land or sea chain.
 C_CHAIN_LAND = Market("Goods", adj=True, **CHAIN_CTX).chain()
@@ -1303,15 +1322,41 @@ CARD_CHIP = '''blockoverride "entire_icon_button" {
 #     LAZY_STEP1). Each step triggers the next one's state on a child
 #     widget, as vanilla does; a state runs only its own on_start lines.
 def lazy_widgets():
-    pick, leaf = ["state = {\n\tname = st_none\n}"], []
+    """The card's creation chain, one widget per step, each nested in the one
+    before (a state triggers a child's state by name):
+      st_route  st_r<tag>: the route's "does it pay" -> st_p<tag> or st_none
+      st_pick   st_p<tag>: decade 1's test -> st_<tag>e1, or decade 0's figure
+      st_e<d>   st_<tag>l<d-1>: decade d-1's figure;
+                st_<tag>e<d>: decade d+1's test -> st_<tag>e<d+1>, or decade d's
+                figure (st_<tag>e<last> is the last decade's figure itself)
+    Same decade as Market.lazy_pick, one test per step."""
+    last = CHAIN_DECADES - 1
+    none = "state = {\n\tname = st_none\n}"
+    trig = lambda child, sel_: f"\ton_start = \"[PdxGuiWidget.FindChild('{child}').TriggerAnimation({sel_})]\"\n"
+    store = lambda m, d: f"\ton_start = \"[GetVariableSystem.Set({ONCE_KEY}, {m.leaf_text(d)})]\"\n"
+    levels = [[none] for _ in range(last + 2)]   # 0 st_route, 1 st_pick, 2.. st_e1..st_e<last>
     for tag, m in LAZY_MARKETS:
-        pick.append(f"state = {{\n\tname = st_p{tag}\n"
-                    f"\ton_start = \"[PdxGuiWidget.FindChild('st_leaf').TriggerAnimation({m.lazy_pick(tag)})]\"\n}}")
-        for d in range(CHAIN_DECADES):
-            leaf.append(f"state = {{\n\tname = st_{tag}{d}\n"
-                        f"\ton_start = \"[GetVariableSystem.Set({ONCE_KEY}, {m.leaf_text(d)})]\"\n}}")
-    return ("widget = {\n\tname = \"st_pick\"\n\tsize = { 0 0 }\n" + "\n".join(pick)
-            + "\n\twidget = {\n\t\tname = \"st_leaf\"\n\t\tsize = { 0 0 }\n" + "\n".join(leaf) + "\n\t}\n}")
+        levels[0].append(f"state = {{\n\tname = st_r{tag}\n"
+                         + trig("st_pick", f"Select_CString({LAZY_ROUTE[tag]}, 'st_p{tag}', 'st_none')") + "}")
+        levels[1].append(f"state = {{\n\tname = st_p{tag}\n"
+                         + trig("st_e1", f"Select_CString({m.enter(100)}, 'st_{tag}e1', 'st_{tag}l0')") + "}")
+        for d in range(1, last + 1):
+            lv = levels[d + 1]
+            lv.append(f"state = {{\n\tname = st_{tag}l{d - 1}\n" + store(m, d - 1) + "}")
+            if d < last:
+                lv.append(f"state = {{\n\tname = st_{tag}e{d}\n"
+                          + trig(f"st_e{d + 1}", f"Select_CString({m.enter(10 * 10 ** (d + 1))}, "
+                                                 f"'st_{tag}e{d + 1}', 'st_{tag}l{d}')") + "}")
+            else:
+                lv.append(f"state = {{\n\tname = st_{tag}e{d}\n" + store(m, d) + "}")
+    names = ["st_route", "st_pick"] + [f"st_e{d}" for d in range(1, last + 1)]
+    out = ""
+    for name, states in reversed(list(zip(names, levels))):
+        inner = "\n".join(states) + ("\n" + out if out else "")
+        ctx = f"\tdatacontext = \"[{LAZY_CONTEXT}]\"\n" if name == "st_route" else ""
+        out = (f"widget = {{\n\tname = \"{name}\"\n\tsize = {{ 0 0 }}\n{ctx}\t"
+               + inner.replace("\n", "\n\t").rstrip("\t") + "\n}")
+    return out
 
 
 # 1c. A good suggested in the market panel (gen_st_recommender.py, GUI_ROW):

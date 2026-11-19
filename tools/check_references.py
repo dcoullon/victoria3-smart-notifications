@@ -1371,6 +1371,21 @@ def check_st_generated_files_current(root: Path) -> list[str]:
     return errs
 
 
+def check_st_price_model(root: Path) -> list[str]:
+    """Smart Treaties' one price model (2026-11-19): the generated GUI
+    formulas, the card creation chain, the Best button and the suggestion
+    scan, evaluated against the Python mirror and brute force on random
+    market shapes (tools/check_price_model.py, quick mode, a few seconds)."""
+    import subprocess
+    r = subprocess.run([sys.executable, str(REPO_ROOT / "tools" / "check_price_model.py"), "--quick"],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        fails = [l for l in r.stdout.splitlines() if l.startswith("[FAIL]")]
+        return [f"tools/check_price_model.py: {f}" for f in fails] or [
+            f"tools/check_price_model.py: {(r.stdout + r.stderr).strip()[-400:]}"]
+    return []
+
+
 def check_rq_generated_files_current(root: Path) -> list[str]:
     """Research Queue's tech panel override is generated from the installed
     game's tech_tree.gui, so a game patch that changes that panel, or a hand
@@ -2470,6 +2485,7 @@ def run_all(root: Path) -> list[str]:
     if read_mod_id(root) == SMART_TRADE_ID:
         errs += check_no_cheat_verbs(root)
         errs += check_st_generated_files_current(root)
+        errs += check_st_price_model(root)
         errs += check_st_entry_width_matches_vanilla(root)
         errs += check_st_cards_skip_border_trigger(root)
         errs += check_st_rec_gui_variable_names(root)
