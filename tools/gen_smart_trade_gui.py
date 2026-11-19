@@ -1380,10 +1380,22 @@ REC_PICK_WIDGET = ("widget = {\n\tname = \"st_rec_pre\"\n\tsize = { 0 0 }\n"
                    + "}\n}")
 
 ITEM_ANCHOR = 'item = {\n\t\t\tcontainer = {'
+# --perf (dev only, never committed or released): every card creation also
+# logs ST_PERF|created|<date> through st_perf_sgui, so a run can count how
+# often the goods list is rebuilt (paused, and at each speed). Answers whether
+# the card's creation cost is paid once per opening or on every tick, which
+# decides how much the price model's dearer cards cost a player who does not
+# pause (Damien's baseline 2026-11-19: list open 140-150 fps paused, 110
+# unpaused). The normal build has neither the call nor the file, and
+# check_st_generated_files_current reports a --perf build as STALE.
+PERF = "--perf" in sys.argv
+PERF_SGUI = REPO / "smart_trade" / "common" / "scripted_guis" / "st_perf_sgui.txt"
+PERF_CALL = "\ton_start = \"[GetScriptedGui('st_perf_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]\"\n"
 ITEM_STATE = (ITEM_ANCHOR + "\n### SMART TRADE: the card's figure, computed once on creation\n"
               "state = {\n\tname = st_created\n\ttrigger_on_create = yes\n"
               f"\ton_start = \"[GetVariableSystem.Set({ONCE_KEY}, 'n')]\"\n"
               "\ton_start = \"[@@LAZY_STEP1@@]\"\n"
+              + (PERF_CALL if PERF else "") +
               f"\ton_start = \"[{REC_PICK_STEP}]\"\n}}\n" + lazy_widgets() + "\n" + REC_PICK_WIDGET)
 
 PICK_ANCHOR = 'onclick = "[ArticleDraft.SetGood(Goods.Self)]"'
@@ -1540,8 +1552,29 @@ def expand(text: str) -> str:
 
 OUTPUTS = {OUT_GUI: GUI + picker_block(), **loc_files()}
 
+PERF_SGUI_TEXT = """# DEV ONLY: written by tools/gen_smart_trade_gui.py --perf. Never commit,
+# never release: rerun the generator without --perf, which deletes this file.
+st_perf_sgui = {
+	scope = country
+	effect = {
+		debug_log = "ST_PERF|created|[TimeKeeper.GetCurrentDate.GetString]"
+	}
+	ai_is_valid = { always = no }
+	ai_chance = { base = 0 }
+}
+"""
+
 if __name__ == "__main__":
     stale = []
+    if "--check" in sys.argv:
+        if PERF_SGUI.is_file():
+            stale.append(PERF_SGUI.relative_to(REPO).as_posix() + " (a --perf build)")
+    elif PERF:
+        PERF_SGUI.write_text("﻿" + PERF_SGUI_TEXT, encoding="utf-8")
+        print(f"wrote {PERF_SGUI.relative_to(REPO)} (--perf: dev only)")
+    elif PERF_SGUI.is_file():
+        PERF_SGUI.unlink()
+        print(f"deleted {PERF_SGUI.relative_to(REPO)} (normal build)")
     for path, template in OUTPUTS.items():
         want = expand(template)
         if "--check" in sys.argv:

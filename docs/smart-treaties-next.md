@@ -26,11 +26,23 @@ goods cards' frame rate.
   partner sends us the good, so the rule now matches vanilla. The probe
   (`PROBE_GOODS`, now empty) read Spain's coffee as 748 buy / 1041 sell orders,
   the same figures the screenshot's tooltip implied.
-- **Open: hardwood to the federation suggested at ~334 a week, earning 58.5.**
-  Inputs from the probe: Spain buy 347 / sell 416, partner buy 1093 / sell
-  882, q = 54, no shipping. The price rule on those gives the 334; the gap is
-  likely the transfer displacing trade that already ran, which the model
-  ignores (the observer's question 3). Needs observer data on signed deals.
+- **Hardwood to the federation suggested at ~334 a week, earning 58.5: cause
+  found, fix on branch `st-price-ratio`** (rollback tag `st-before-price-ratio`).
+  Not displacement (an earlier guess). The cards and suggestions rebuilt each
+  price from orders with vanilla's rule; Spain's real hardwood price sits
+  12.7% above that rule (38.34 vs 34.03), the draft tooltip used the real
+  price. One model now: real price today x the rule's relative change. As a
+  ratio it predicts 1.10 a unit on the signed deal (real 1.08); a fixed gap
+  gave 1.67. Checked without the game by tools/check_price_model.py.
+- **Open: why real prices sit off the rule.** Leading hypothesis, unconfirmed:
+  monopolies. 00_defines.txt `MONOPOLY_PRICE_IMPACT = 0.2`, "the price of a
+  good is increased by this multiplier based on how much of its supply is
+  considered to be under a monopoly"; the GUI has
+  `Goods.GetMarketMonopolyPriceImpact`. Fits: multiplicative, capped at +20%
+  (seen: Spain hardwood 9-13%, Prussia artillery 16%, German Empire 14%),
+  switches on and off abruptly, sender side only (monopolies sit on
+  production). Confirm from the game's own price breakdown (hover the
+  price), and with a good that has no monopoly matching the rule.
 - **Done: the losing-transfer toast opens its treaty** (type = treaty, posted
   from the treaty), confirmed in game 2026-11-19 with the observer's one-time
   test toast, since removed (observer v0.05).

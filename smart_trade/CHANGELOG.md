@@ -14,6 +14,12 @@ written so they can be pasted into Steam Workshop update notes. Versions follow
   profitable one on the list.
 
 ### Changed
+- The goods cards, the Best button and the suggested transfers now start from
+  each market's real price, as the treaty's own figure already did. They used
+  to rebuild prices from supply and demand alone, which overstated deals out
+  of a market whose real price sits above that (for example hardwood under a
+  monopoly): one suggestion showed about +330 a week for a deal that earned
+  about 60.
 - Clicking the "goods transfer losing money" notification now opens that
   treaty.
 - The market panel keeps game 1.15.2's own changes: the recentred trade
