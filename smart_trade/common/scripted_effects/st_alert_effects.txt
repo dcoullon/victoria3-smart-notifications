@@ -48,6 +48,8 @@ st_tna_monthly = {
 	add_to_variable_list = { name = st_tna_fired target = this }
 	remove_list_variable = { name = st_tna_fired target = this }
 	every_scope_treaty = {
+		# the notification is posted from the treaty, so it opens it
+		save_scope_as = st_tna_treaty
 		every_scope_article = {
 			limit = {
 				has_type = goods_transfer
@@ -90,7 +92,9 @@ st_tna_losing = {
 			NOT = { is_target_in_variable_list = { name = st_tna_fired target = scope:st_tna_a } }
 		}
 		add_to_variable_list = { name = st_tna_fired target = scope:st_tna_a }
-		post_notification = st_treaty_article_losing
+		# type = treaty: posted from the treaty, as vanilla posts
+		# treaty_entered_into_force, so clicking it opens the treaty
+		scope:st_tna_treaty = { post_notification = st_treaty_article_losing }
 		debug_log = "ST_TNA|FIRE|[TimeKeeper.GetCurrentDate.GetString]|[SCOPE.sGoods('st_tna_goods').GetKey]|[SCOPE.sC('st_tna_partner').GetNameNoFormatting]"
 	}
 }

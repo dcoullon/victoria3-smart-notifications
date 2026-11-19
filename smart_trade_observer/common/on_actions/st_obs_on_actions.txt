@@ -9,7 +9,7 @@ on_game_started = {
 }
 st_obs_game_started = {
 	effect = {
-		debug_log = "ST_OBS|START|[TimeKeeper.GetCurrentDate.GetString]|observer v0.03"
+		debug_log = "ST_OBS|START|[TimeKeeper.GetCurrentDate.GetString]|observer v0.04"
 	}
 }
 
@@ -55,7 +55,39 @@ st_obs_treaty_dissolved = {
 # stays small; SIGN and END lines above still cover every country. In an
 # observer game (no player) this logs no monthly lines at all: use v0.02.
 on_monthly_pulse = {
-	on_actions = { st_obs_monthly }
+	on_actions = { st_obs_monthly st_obs_test_losing_toast }
+}
+
+# v0.04 (2026-11-19): a one-time test of Smart Treaties' "goods transfer losing
+# money" toast, which is now type = treaty and posted from the treaty so it
+# opens it. A real one needs six losing months. On the first monthly pulse
+# where the player sends a goods transfer, this posts that toast once, with a
+# made-up loss of 999, from the same scopes st_tna_losing saves. Once per
+# campaign (global variable).
+st_obs_test_losing_toast = {
+	effect = {
+		every_country = {
+			limit = { is_player = yes }
+			every_scope_treaty = {
+				save_scope_as = st_tna_treaty
+				every_scope_article = {
+					limit = {
+						has_type = goods_transfer
+						source_country = { is_player = yes }
+					}
+					if = {
+						limit = { NOT = { has_global_variable = st_obs_losing_toast_tested } }
+						set_global_variable = st_obs_losing_toast_tested
+						input_goods = { save_scope_as = st_tna_goods }
+						target_country = { save_scope_as = st_tna_partner }
+						save_scope_value_as = { name = st_tna_loss value = 999 }
+						scope:st_tna_treaty = { post_notification = st_treaty_article_losing }
+						debug_log = "ST_OBS|TEST_TOAST|[TimeKeeper.GetCurrentDate.GetString]|[SCOPE.sGoods('st_tna_goods').GetKey]|[SCOPE.sC('st_tna_partner').GetNameNoFormatting]"
+					}
+				}
+			}
+		}
+	}
 }
 st_obs_monthly = {
 	effect = {

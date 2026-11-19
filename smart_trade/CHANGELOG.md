@@ -8,6 +8,8 @@ written so they can be pasted into Steam Workshop update notes. Versions follow
 ## [Unreleased]
 
 ### Changed
+- Clicking the "goods transfer losing money" notification now opens that
+  treaty.
 - The market panel keeps game 1.15.2's own changes: the recentred trade
   capacity box, "None" in empty import and export charts, and the two-row
   sort buttons on the world market tab.

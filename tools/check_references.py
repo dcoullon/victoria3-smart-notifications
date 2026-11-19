@@ -323,6 +323,9 @@ def check_alert_group_registration(root: Path, defined_loc: set[str]) -> list[st
     return errs
 
 
+COMPANION_MODS = {"smart_trade_observer": "smart_trade"}
+
+
 def check_post_notification_targets(root: Path, defined_loc: set[str]) -> list[str]:
     """Every `post_notification = X` must resolve to a real message
     defined under common/messages/*.txt, and that message needs its
@@ -333,13 +336,24 @@ def check_post_notification_targets(root: Path, defined_loc: set[str]) -> list[s
     specifically so that generated set can't silently drift the same way
     the law_type dispatch files could."""
     errs = []
-    messages_dir = root / "common" / "messages"
     defined_messages = set()
-    if messages_dir.is_dir():
-        for path in messages_dir.glob("*.txt"):
-            text = _read(path)
-            for m in re.finditer(r"(?m)^([A-Za-z0-9_]+)\s*=\s*\{", text):
-                defined_messages.add(m.group(1))
+    # A dev-only companion mod is always loaded with its parent, so it may post
+    # the parent's messages (the observer's one-time test of Smart Treaties'
+    # losing-transfer toast, 2026-11-19). Messages and English loc both resolve
+    # from the parent too.
+    parent = COMPANION_MODS.get(root.name)
+    roots = [root] + ([root.parent / parent] if parent else [])
+    for r in roots:
+        messages_dir = r / "common" / "messages"
+        if messages_dir.is_dir():
+            for path in messages_dir.glob("*.txt"):
+                text = _read(path)
+                for m in re.finditer(r"(?m)^([A-Za-z0-9_]+)\s*=\s*\{", text):
+                    defined_messages.add(m.group(1))
+    if parent:
+        defined_loc = set(defined_loc)
+        for path in (root.parent / parent / "localization" / "english").glob("*.yml"):
+            defined_loc |= set(re.findall(r"(?m)^\s*([A-Za-z0-9_.]+):\d*\s", _read(path)))
 
     for path in _iter_mod_files(root):
         text = _read(path)

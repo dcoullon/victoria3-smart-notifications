@@ -17,6 +17,22 @@ Revised 2026-11-10 after the measurement run (Damien):
 The predictor stays as it is for now. Any change to it later must keep the
 goods cards' frame rate.
 
+## Open (2026-11-19)
+
+- **Coffee to the North German Federation missing from the suggestions**
+  (Damien's Spain run, 17 Nov 1861). Picker: +665 a week at 71; signed: +634.
+  The suggestion maths on the screenshot's numbers gives +654 at 66, first
+  place, so a rule or an input drops it. Hardwood to the same partner was
+  suggested at ~340 and earns 58.5. Diagnostic: `PROBE_GOODS` in
+  tools/gen_st_recommender.py logs `ST_REC|PROBE_*` for coffee and hardwood.
+  Damien does not think coffee was in a draft at the first look, which
+  weakens the "drafts count as treaties" guess (the observer's own note says
+  `every_treaty` covers drafts). **Once the cause is found, set `PROBE_GOODS =
+  ()` and regenerate** (Damien, 2026-11-19: remove the debug lines).
+- **Losing-transfer toast opens its treaty** (type = treaty, posted from the
+  treaty). The observer v0.04 posts it once as a test (`ST_OBS|TEST_TOAST`);
+  remove that hook once the click is confirmed.
+
 ## 1. Measurement build
 
 Replaces the Reddit idea and the manual Austria check. One deal proved little:
