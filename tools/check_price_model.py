@@ -63,30 +63,57 @@ FUNCS = {
 }
 
 
-def card_chain(m, route):
+_STATES = {}
+
+
+def chain_states():
+    """Every state of the generated creation chain: name -> its on_start lines."""
+    if not _STATES:
+        for name, body in re.findall(r"name = (st_\w+)\n((?:\t*on_start = \"\[.*?\]\"\n)*)", G.lazy_widgets()):
+            _STATES[name] = re.findall(r'on_start = "\[(.*?)\]"', body)
+    return _STATES
+
+
+def card_chain(m, route, mine=True, gui_vars=None, seen=None):
     """Walk the goods card's generated creation chain (lazy_widgets) state by
     state, as the game would, for a card on `route` ('l' land, 's' near sea,
-    'f' far sea). Returns the stored figure (whole units) or None."""
-    text = G.lazy_widgets()
-    states = dict(re.findall(r'name = (st_\w+)\n\t*on_start = "\[(.*?)\]"', text))
+    'f' far sea). Returns the stored figure (whole units) or None.
+    mine=False: the player receives the good. gui_vars: the GUI variables
+    other than the card's own (the stored route), shared between calls to
+    play several cards of one list; None starts empty. seen(line) is called
+    with every on_start line run, before it is evaluated."""
+    states = chain_states()
     mk = dict(G.LAZY_MARKETS)[route]
-    extra = [(G.C_MINE, "True()"), (G.ONCE_KEY, "'key'")]
+    extra = [(G.C_MINE, "True()" if mine else "False()"), (G.ONCE_KEY, "'key'"), (G.ROUTE_KEY, "'route'")]
     env = gui_env(m)
     env["mmp"] = m["ship"] / (G.ROUTE_FAR if route == "f" else G.ROUTE_NEAR)
-    step = G.LAZY_STEP1
-    step = step.replace(G.D_ADJ, "True()" if route == "l" else "False()")
-    step = step.replace(G.D_FAR, "True()" if route == "f" else "False()")
-    for _ in range(12):
+    gv = {} if gui_vars is None else gui_vars
+    todo = [G.LAZY_STEP1]
+    for _ in range(40):
+        step = todo.pop(0)
+        if seen:
+            seen(step)
+        step = step.replace(G.D_ADJ, "True()" if route == "l" else "False()")
+        step = step.replace(G.D_FAR, "True()" if route == "f" else "False()")
+        for a, b in extra:
+            step = step.replace(a, b)
+        step = re.sub(r"GetVariableSystem\.Exists\('(\w+)'\)",
+                      lambda x: "True()" if x[1] in gv else "False()", step)
+        step = re.sub(r"GetVariableSystem\.HasValue\('(\w+)', '(\w+)'\)",
+                      lambda x: "True()" if gv.get(x[1]) == x[2] else "False()", step)
         t = re.fullmatch(r"PdxGuiWidget\.FindChild\('\w+'\)\.TriggerAnimation\((.*)\)", step)
         if t:
-            name = gui_eval(t[1], env, mk, extra)
+            name = gui_eval(t[1], env, mk)
             if name == "st_none":
                 return None
-            step = states[name]
+            # A triggered state runs after the rest of the current one.
+            todo += states[name]
             continue
-        s = re.fullmatch(r"GetVariableSystem\.Set\('key', (.*)\)", step.replace(G.ONCE_KEY, "'key'"))
+        s = re.fullmatch(r"GetVariableSystem\.Set\('(\w+)', (.*)\)", step)
         assert s, step[:120]
-        return float(gui_eval(s[1], env, mk, extra))
+        if s[1] == "key":
+            return float(gui_eval(s[2], env, mk))
+        gv[s[1]] = gui_eval(s[2], env, mk)
     raise RuntimeError("chain did not end")
 
 
@@ -325,6 +352,31 @@ def run(n):
     ok &= good
     print(f"[{'ok' if good else 'FAIL'}] GUI prices, gain and marginal vs the mirror: worst gap {worst:.2e} of the price")
 
+    # 1a. The goods cards' two shortcuts (2026-11-20) equal their plain form:
+    # Market.rises(a, b) is gain(b) > gain(a), Market.over_lim(p) is p > lim.
+    # Shapes with the home ceiling at or below 10 included (sh small).
+    bad = tried = 0
+    rnd = random.Random(4)
+    for i in range(n):
+        m = shape(rnd, i % 2 == 1)
+        if i % 4 == 0:
+            m["sh"] = rnd.uniform(1, 12)
+        mk, env = gui_market(m), gui_env(m)
+        lim = gui_eval(mk.lim, env)
+        for _ in range(4):
+            a = round(10 ** rnd.uniform(1, 4), 3)
+            b = round(a * 10 ** (1 / G.CHAIN_POINTS), 3)
+            ga, gb = R.gain(m, a), R.gain(m, b)
+            if abs(gb - ga) > 1e-4 * max(abs(ga), abs(gb), 1.0):     # float noise decides ties
+                tried += 1
+                bad += gui_eval(mk.rises(a, b), env) != (gb > ga)
+            if abs(a - lim) > 1e-3:
+                tried += 1
+                bad += gui_eval(mk.over_lim(a), env) != (a > lim)
+    ok &= bad == 0
+    print(f"[{'ok' if bad == 0 else 'FAIL'}] card shortcuts (rises, over_lim) equal gain(b) > gain(a) and p > lim: "
+          f"{tried - bad} of {tried}")
+
     # 1b. Script formulas equal the mirror.
     worst = 0.0
     rnd = random.Random(2)
@@ -366,16 +418,21 @@ def run(n):
                 inner = stmt[len("ArticleDraft.SetQuantity("):-1]
                 q = gui_eval(inner, gui_env(m, q))
             got = {"Best button": R.gain(m, q)}
-            # Card: the decade lazy_pick names, then that decade's best figure.
+            # Card: the decade lazy_pick names, the half half_up picks, then
+            # that half's best figure.
             env = gui_env(m)
             name = gui_eval(mk.lazy_pick("x"), env)
             d = int(name[len("st_x"):])
-            leaf = gui_eval(mk.best_gain_leaf(10 * 10 ** d, 100 * 10 ** d), env)
+            half = "b" if gui_eval(mk.half_up(10 * 10 ** d), env) else "a"
+            leaf = gui_eval(mk.best_gain_leaf(10 * 10 ** d, 100 * 10 ** d, half), env)
             got["card figure"] = leaf
             # The chain the generator writes, walked state by state, must store
             # that same figure (rounded down to whole units).
-            fig = card_chain(m, "l" if m["ship"] == 0 else "s")
-            chain_same += fig is not None and int(fig) == int(round(leaf - 0.5))
+            # Twice with the same GUI variables: the first card of a list
+            # runs the border tests, the next reads the stored route.
+            route, gv = "l" if m["ship"] == 0 else "s", {}
+            fig, fig2 = card_chain(m, route, gui_vars=gv), card_chain(m, route, gui_vars=gv)
+            chain_same += fig is not None and fig == fig2 and int(fig) == int(round(leaf - 0.5))
             chain_n += 1
             # Script: interpreted st_rec_search.
             qs = sc.search(m)

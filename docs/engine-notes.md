@@ -1839,6 +1839,18 @@ noticeably faster; it was not timed.
 `check_st_cards_skip_border_trigger` asserts the creation hook exists and
 that no step after the first calls the border trigger.
 
+**Where the steps go (2026-11-20, `tools/st_card_cost.py` counts a card's
+chain).** Without number storage, repetition is the cost: every gain
+rebuilds both sides' price scale K (65 of its 138 steps), and a quantity
+that is itself an expression (the climb's limit, 49 steps) appears five
+times in one gain. What cut a paying card by 31-40% with the same figures:
+compare two gains as one difference, so each K is built once; test "past
+the limit" for a literal quantity without building the limit; split by
+state (decade, then half decade) so each step runs fewer gains; and keep a
+choice that is the same for every card of a list (the route) in a GUI
+variable, read with `HasValue`, so only the first card pays for it. Not
+confirmed in game yet (smart-treaties-next.md, the stall entry).
+
 ## Triggered GUI states run in widget-tree order, not call order
 
 Confirmed 2026-11-14 by the Research Queue probe's run 2

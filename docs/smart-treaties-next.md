@@ -43,18 +43,110 @@ goods cards' frame rate.
   switches on and off abruptly, sender side only (monopolies sit on
   production). Confirm from the game's own price breakdown (hover the
   price), and with a good that has no monopoly matching the rule.
-- **Open: ~0.3 s stall when opening the goods transfer list** (Damien, 0.14,
-  2026-11-19; shipped as is). The 40 goods cards each compute their figure
-  once on creation (st_perf counted 40 per opening, none while the game runs),
-  so the stall is a one-off per opening, not a frame-rate cost: FPS dipped to
-  71 on opening and came back to 140 paused, 110 unpaused (baseline 110). The
-  price model made a paying card's creation 20-67% dearer (static step count,
-  commit cb44277). Ideas, cheapest first: a cheaper decade test (compare two
-  gains instead of the marginal, ~25% less per test); fewer points per decade
-  (8 now, 2.04% worst error); compute only the cards on screen, or spread the
-  40 over several frames; skip goods with no partner shortage before any
-  maths. Measure first: the --perf build (tools/gen_smart_trade_gui.py) and a
-  timer around the opening.
+- **~0.3 s stall when opening the goods transfer list: cut on branch
+  `claude/goofy-yalow-84dc26` (2026-11-20), not run in game yet** (Damien,
+  0.14, 2026-11-19). The 40 goods cards each compute their figure once on
+  creation (st_perf counted 40 per opening, none while the game runs), so the
+  stall is a one-off per opening: FPS dipped to 71 on opening and came back to
+  140 paused, 110 unpaused (baseline 110).
+
+  What changed in a card's creation chain (tools/gen_smart_trade_gui.py,
+  `lazy_widgets`):
+  1. The decade test compares the gain at the decade's first two grid points,
+     written as one difference so each side's K is built once (`rises`): 244
+     steps against 441 for the marginal it replaced.
+  2. A decade's figure first picks its half (one more such test, `half_up`)
+     and runs 4 or 5 grid points instead of 9.
+  3. Dropped from the figure, provably without changing it: the cap (it is
+     the limit when within our ceiling; past it the gain is negative unless a
+     real price sits 1.75 times further off the rule than ours), and the
+     decade's first point above decade 0 (the decade test already shows the
+     second beats it). The kinks use their closed form (one side's ratio is
+     exactly +1 or -1 there). "Past the limit" for a literal quantity skips
+     building the limit (`over_lim`, 31 steps against 51).
+  4. Earlier exits: the player-sends test runs before the border tests (a list
+     the player receives from costs 5 steps a card), and a card whose first
+     unit already loses after shipping stops before the 10-unit test (exact:
+     the margin per unit only falls).
+  5. The route (land, near sea, far sea) is stored per partner and day
+     (`ROUTE_KEY`): only the list's first card runs the two IsValid border
+     tests (about 45 steps each, 2026-10-16 fit).
+
+  Data-function steps per card, static count (`python tools/st_card_cost.py`,
+  plumbing excluded, IsValid counted as 2), a card the player sends by sea:
+
+  | Card | 0.14 | Now, list's first card | Now, other cards |
+  |---|---|---|---|
+  | best quantity 10-100 | 3,367 | 2,132-2,308 (-31%) | 2,101-2,277 (-32%) |
+  | 100-1,000 | 3,808 | 2,376 (-38%) | 2,345 (-38%) |
+  | 1,000-10,000 | 4,249 | 2,620 (-38%) | 2,589 (-39%) |
+  | 10,000-100,000 and above | 4,690 | 2,864 (-39%) | 2,833 (-40%) |
+  | first unit loses | 170 | 80 | 49 |
+  | 10 units lose | 170 | 219 | 188 |
+  | player receives | 170 | 5 | 5 |
+
+  Every card also made 2 IsValid calls in 0.14; now only the list's first
+  does. The "10 units lose" card costs more steps (the first-unit test comes
+  first) but, after the list's first card, 28% less once its two IsValid
+  are counted at 45. Before the
+  price model a paying card cost 2,811 at best quantity 10-100.
+
+  Figures: `tools/check_price_model.py` unchanged at worst 2.03% (prices on
+  the rule) and 2.00% (off) below brute force, and on 2,786 random paying
+  shapes every card stores the same whole-unit figure as 0.14 (compared
+  directly against the 0.14 generator). The GUI file shrank from 3.64 to
+  3.45 MB.
+
+  Measured and not done: 7 points per decade leaves the dearest path
+  unchanged and the worst figure 2.60% low; 6 points fails the 3% bound
+  (3.56%). Skipping goods with no partner shortage would hide goods that pay
+  because our own price is lower; the first-unit test is the exact form of
+  that idea. Trying the kinks and the limit only near the best grid point
+  saved little (they are needed in most shapes) and was 12.65% low on shapes
+  where the gain has two peaks. Only the cards on screen, or spreading the 40
+  over several frames: not built, the total work stays the same and it needs
+  engine behaviour nobody has confirmed (`PdxGuiWidget.GetIndexInDataModel`
+  exists, for staggering by index, if the run shows the stall still matters).
+
+  **Test run (one launch), acceptance criteria first.** Pass: on the same
+  save and partner, the slowest-frame reading in mode `new` is lower than in
+  `old`, `off` is the lowest, the cards show the same figures in `new` and
+  `old`, and debug.log has 40 `ST_PERF|created` lines per opening. If all
+  three modes read the same, the meter does not see the stall: that is a
+  broken instrument, not a result.
+
+  Setup (Claude): bring this branch into the checkout the `smart_trade`
+  junction points to, then `python tools/gen_smart_trade_gui.py --perf`. The
+  --perf build adds, on every card, a readout at the bottom left ("new
+  >300ms <70fps": the mode the card ran, the slowest frame since the list
+  opened, the lowest FPS) and a mode button at the top right that cycles
+  new, old (0.14's chain, built from git), off (no figure at all). After the
+  run, rerun the generator without --perf (validate_syntax flags a --perf
+  build as stale on purpose).
+
+  Recipe (Damien): Spain 1861 save, game paused, vsync and any frame cap off.
+  1. Treaty draft with the North German Federation, add a Goods Transfer that
+     Spain sends. The goods list opens; cards read "new" top right.
+  2. Wait 2 seconds, F12.
+  3. Close the goods list and open it again (as when you saw the stall),
+     wait 2 seconds, F12.
+  4. Click "new" on any card (it turns "old"), close and reopen the list,
+     wait 2 seconds, F12. Close and reopen once more, F12.
+  5. Click again ("off"), close and reopen, wait 2 seconds, F12, twice.
+  6. Click again ("new"), close and reopen, wait 2 seconds, F12.
+  Then say done. Claude reads the 8 screenshots (readouts, and the figures
+  in new against old) and `python tools/scan_logs.py` for the ST_PERF counts.
+- **Open: the card figure can promise more than Best reaches** (found
+  2026-11-20 while checking the stall work; the same in 0.14). The card
+  tries the kink where the partner leaves its price ceiling anywhere up to
+  the AI's cap, even past our own price ceiling, where the Best button and
+  the suggestions stop. 104 of 2,786 random paying shapes show more than 1%
+  above the best gain within the limit (brute force); worst case +96,967 a
+  week on the card against 394 (a tiny home market, sh 20, against a
+  partner short by about 7,900).
+  Fix: test the kinks against the limit instead of the cap, and add the
+  matching "not above brute force" check to check_price_model. Changes
+  figures, so it is its own change.
 - **Done: the losing-transfer toast opens its treaty** (type = treaty, posted
   from the treaty), confirmed in game 2026-11-19 with the observer's one-time
   test toast, since removed (observer v0.05).
