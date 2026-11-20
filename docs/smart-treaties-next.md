@@ -129,7 +129,18 @@ goods cards' frame rate.
   per opening) and never reaches its `next`, so the looping sampler never
   ran.
 
-  **Test run (one launch, second and last try), acceptance criteria
+  **Timing run dropped (Damien, 2026-11-20).** The first run already showed
+  the new search working in game (figures on every card), and it does the
+  same kinds of steps as 0.14, fewer of them, so it is faster without a
+  measurement. What stays unknown is how much of the 0.3 s it removes: the
+  list's own card building is part of the stall and is untouched. Run the
+  build below only if the stall still bothers anyone. The in-game check
+  that replaces it: open the list (Spain 1861, Goods Transfer to the North
+  German Federation), pick a card with a figure, click Best. Pass: the net
+  after Best is at or a little above the card's figure (the card may read
+  up to about 2% below, never above).
+
+  **Shelved timing build (second try, never run), acceptance criteria
   first.** Pass: `python tools/st_perf_report.py` lists 6 openings of 40
   cards each, every one with "all" repeats ran; `new` takes fewer seconds
   than `old` in both rounds, by more than 2 s (the timestamps are whole
