@@ -138,7 +138,9 @@ goods cards' frame rate.
   that replaces it: open the list (Spain 1861, Goods Transfer to the North
   German Federation), pick a card with a figure, click Best. Pass: the net
   after Best is at or a little above the card's figure (the card may read
-  up to about 2% below, never above).
+  up to about 2% below, never above). **Passed 2026-11-20** (screenshots
+  20261120153842-153902): Coffee card +655, Best 71 a week at net +664,
+  the card 9 (1.37%) below.
 
   **Shelved timing build (second try, never run), acceptance criteria
   first.** Pass: `python tools/st_perf_report.py` lists 6 openings of 40
@@ -172,7 +174,9 @@ goods cards' frame rate.
   4. Same again three more times (new, old, off).
   Six openings, one screenshot each. Count the seconds of each freeze
   roughly, as a fallback if the log has no timing. Then say done.
-- **Fixed on the same branch, not run in game: the card figure could
+- **Fixed on the same branch, run in game 2026-11-20 on an ordinary card
+  (Coffee, below Best by 1.37%; no shape 0.14 overstated was seen in game):
+  the card figure could
   promise more than Best reaches** (found 2026-11-20 while checking the
   stall work; the same in 0.14). The card tried the kink where the partner
   leaves its price ceiling anywhere up to the AI's cap, even past our own
