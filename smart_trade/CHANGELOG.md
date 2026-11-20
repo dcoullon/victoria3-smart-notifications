@@ -5,7 +5,7 @@ written so they can be pasted into Steam Workshop update notes. Versions follow
 `.metadata/metadata.json`'s `version`, same convention as Bulk Construction:
 `+0.01` only when something genuinely new ships and is confirmed working.
 
-## [Unreleased]
+## [0.14] - real prices
 
 ### Fixed
 - Suggested goods transfers now include a good you already send to that
@@ -16,10 +16,10 @@ written so they can be pasted into Steam Workshop update notes. Versions follow
 ### Changed
 - The goods cards, the Best button and the suggested transfers now start from
   each market's real price, as the treaty's own figure already did. They used
-  to rebuild prices from supply and demand alone, which overstated deals out
-  of a market whose real price sits above that (for example hardwood under a
-  monopoly): one suggestion showed about +330 a week for a deal that earned
-  about 60.
+  to rebuild prices from supply and demand alone, which misjudged deals with a
+  market whose real price sits away from that (the game raises the price of
+  goods under a monopoly, for example): one suggestion showed about +330 a
+  week for a deal that earned about 60.
 - Clicking the "goods transfer losing money" notification now opens that
   treaty.
 - The market panel keeps game 1.15.2's own changes: the recentred trade
