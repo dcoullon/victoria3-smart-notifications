@@ -120,34 +120,47 @@ goods cards' frame rate.
   engine behaviour nobody has confirmed (`PdxGuiWidget.GetIndexInDataModel`
   exists, for staggering by index, if the run shows the stall still matters).
 
-  **Test run (one launch), acceptance criteria first.** Pass: on the same
-  save and partner, the slowest-frame reading in mode `new` is lower than in
-  `old`, `off` is the lowest, the cards show the same figures in `new` and
-  `old` except any that 0.14 overstated (lower in `new`), and debug.log has 40 `ST_PERF|created` lines per opening. If all
-  three modes read the same, the meter does not see the stall: that is a
-  broken instrument, not a result.
+  **First timing run, 2026-11-20: no reading.** Two instruments failed, the
+  build itself worked (40 cards logged per opening, figures shown). The
+  card's mode button never took a click, and the frame-time meter never
+  wrote, not even the FPS bucket under 120 that a 0.3 s stall at 140 fps
+  should fill. Most likely cause, not confirmed: a state with no animated
+  property logs "Animation triggered has no valid state properties" (107
+  per opening) and never reaches its `next`, so the looping sampler never
+  ran.
+
+  **Test run (one launch, second and last try), acceptance criteria
+  first.** Pass: `python tools/st_perf_report.py` lists 6 openings of 40
+  cards each, every one with "all" repeats ran; `new` takes fewer seconds
+  than `old` in both rounds, by more than 2 s (the timestamps are whole
+  seconds); `off` is the lowest. The steps predict `new` at roughly 0.5 to
+  0.7 of `old` once `off` is subtracted. The screenshots of openings 1 and
+  2 show the same figures, except any card 0.14 overstated (lower in `new`).
+  Broken instrument, not a result: any "NOT" in the repeats column (the
+  engine skipped re-triggered states), or every mode at 0-1 s (debug.log
+  stamps a frame's lines with one time).
 
   Setup (Claude): bring this branch into the checkout the `smart_trade`
-  junction points to, then `python tools/gen_smart_trade_gui.py --perf`. The
-  --perf build adds, on every card, a readout at the bottom left ("new
-  >300ms <70fps": the mode the card ran, the slowest frame since the list
-  opened, the lowest FPS) and a mode button at the top right that cycles
-  new, old (0.14's chain, built from git), off (no figure at all). After the
-  run, rerun the generator without --perf (validate_syntax flags a --perf
-  build as stale on purpose).
+  junction points to, then `python tools/gen_smart_trade_gui.py --perf`. In
+  that build the modes take turns by themselves, one per opening of the
+  list: new, old (0.14's chain, built from git), off (no figure at all),
+  then again. Each card runs its figure search 100 times, so an opening
+  freezes the game for seconds (up to about 30 s for `old` if the whole
+  0.3 s stall is the search), and logs ST_PERF begin and end lines that
+  `tools/st_perf_report.py` turns into seconds per opening. A label at each
+  card's top right reads the mode and a repeat counter ("new t2" when all
+  100 ran). After the run, rerun the generator without --perf
+  (validate_syntax flags a --perf build as stale on purpose).
 
-  Recipe (Damien): Spain 1861 save, game paused, vsync and any frame cap off.
-  1. Treaty draft with the North German Federation, add a Goods Transfer that
-     Spain sends. The goods list opens; cards read "new" top right.
-  2. Wait 2 seconds, F12.
-  3. Close the goods list and open it again (as when you saw the stall),
-     wait 2 seconds, F12.
-  4. Click "new" on any card (it turns "old"), close and reopen the list,
-     wait 2 seconds, F12. Close and reopen once more, F12.
-  5. Click again ("off"), close and reopen, wait 2 seconds, F12, twice.
-  6. Click again ("new"), close and reopen, wait 2 seconds, F12.
-  Then say done. Claude reads the 8 screenshots (readouts, and the figures
-  in new against old) and `python tools/scan_logs.py` for the ST_PERF counts.
+  Recipe (Damien): Spain 1861 save, game paused.
+  1. Treaty draft with the North German Federation, add a Goods Transfer
+     that Spain sends. The game freezes, then the list appears; cards read
+     "new t2" top right. F12.
+  2. Close the goods list and open it again. Wait for it, F12. (old)
+  3. Same again. (off: no freeze, no figures)
+  4. Same again three more times (new, old, off).
+  Six openings, one screenshot each. Count the seconds of each freeze
+  roughly, as a fallback if the log has no timing. Then say done.
 - **Fixed on the same branch, not run in game: the card figure could
   promise more than Best reaches** (found 2026-11-20 while checking the
   stall work; the same in 0.14). The card tried the kink where the partner
