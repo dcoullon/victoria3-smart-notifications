@@ -63,30 +63,57 @@ FUNCS = {
 }
 
 
-def card_chain(m, route):
+_STATES = {}
+
+
+def chain_states():
+    """Every state of the generated creation chain: name -> its on_start lines."""
+    if not _STATES:
+        for name, body in re.findall(r"name = (st_\w+)\n((?:\t*on_start = \"\[.*?\]\"\n)*)", G.lazy_widgets()):
+            _STATES[name] = re.findall(r'on_start = "\[(.*?)\]"', body)
+    return _STATES
+
+
+def card_chain(m, route, mine=True, gui_vars=None, seen=None):
     """Walk the goods card's generated creation chain (lazy_widgets) state by
     state, as the game would, for a card on `route` ('l' land, 's' near sea,
-    'f' far sea). Returns the stored figure (whole units) or None."""
-    text = G.lazy_widgets()
-    states = dict(re.findall(r'name = (st_\w+)\n\t*on_start = "\[(.*?)\]"', text))
+    'f' far sea). Returns the stored figure (whole units) or None.
+    mine=False: the player receives the good. gui_vars: the GUI variables
+    other than the card's own (the stored route), shared between calls to
+    play several cards of one list; None starts empty. seen(line) is called
+    with every on_start line run, before it is evaluated."""
+    states = chain_states()
     mk = dict(G.LAZY_MARKETS)[route]
-    extra = [(G.C_MINE, "True()"), (G.ONCE_KEY, "'key'")]
+    extra = [(G.C_MINE, "True()" if mine else "False()"), (G.ONCE_KEY, "'key'"), (G.ROUTE_KEY, "'route'")]
     env = gui_env(m)
     env["mmp"] = m["ship"] / (G.ROUTE_FAR if route == "f" else G.ROUTE_NEAR)
-    step = G.LAZY_STEP1
-    step = step.replace(G.D_ADJ, "True()" if route == "l" else "False()")
-    step = step.replace(G.D_FAR, "True()" if route == "f" else "False()")
-    for _ in range(12):
+    gv = {} if gui_vars is None else gui_vars
+    todo = [G.LAZY_STEP1]
+    for _ in range(40):
+        step = todo.pop(0)
+        if seen:
+            seen(step)
+        step = step.replace(G.D_ADJ, "True()" if route == "l" else "False()")
+        step = step.replace(G.D_FAR, "True()" if route == "f" else "False()")
+        for a, b in extra:
+            step = step.replace(a, b)
+        step = re.sub(r"GetVariableSystem\.Exists\('(\w+)'\)",
+                      lambda x: "True()" if x[1] in gv else "False()", step)
+        step = re.sub(r"GetVariableSystem\.HasValue\('(\w+)', '(\w+)'\)",
+                      lambda x: "True()" if gv.get(x[1]) == x[2] else "False()", step)
         t = re.fullmatch(r"PdxGuiWidget\.FindChild\('\w+'\)\.TriggerAnimation\((.*)\)", step)
         if t:
-            name = gui_eval(t[1], env, mk, extra)
+            name = gui_eval(t[1], env, mk)
             if name == "st_none":
                 return None
-            step = states[name]
+            # A triggered state runs after the rest of the current one.
+            todo += states[name]
             continue
-        s = re.fullmatch(r"GetVariableSystem\.Set\('key', (.*)\)", step.replace(G.ONCE_KEY, "'key'"))
+        s = re.fullmatch(r"GetVariableSystem\.Set\('(\w+)', (.*)\)", step)
         assert s, step[:120]
-        return float(gui_eval(s[1], env, mk, extra))
+        if s[1] == "key":
+            return float(gui_eval(s[2], env, mk))
+        gv[s[1]] = gui_eval(s[2], env, mk)
     raise RuntimeError("chain did not end")
 
 
@@ -168,6 +195,20 @@ def brute(m):
     hi = max(10.0, min(m["cap"], R.home_ceiling(m)))
     xs = [10 + i * (hi - 10) / 4000 for i in range(4001)] + [m["cap"]]
     return max(R.gain(m, x) for x in xs)
+
+
+def brute_top(m, unit=False):
+    """The most a search may show: brute force plus the exact kinks and
+    limit inside [10, limit], so a kink between two sampled points is never
+    mistaken for a search promising too much. unit=True also allows one unit
+    past the limit (within the cap): the Best button and the suggestions end
+    with "one more unit if it pays" (run 11, tobacco 19 against 20), which
+    can step just past our price ceiling at small quantities."""
+    hi = max(10.0, min(m["cap"], R.home_ceiling(m)))
+    exact = [x for x in (m["bp"] / 2 - m["sp"], m["sh"] / 2 - m["bh"], hi) if 10 <= x <= hi]
+    if unit:
+        exact.append(min(hi + 1, max(hi, m["cap"])))
+    return max([brute(m)] + [R.gain(m, x) for x in exact])
 
 
 # ---------------------------------------------------------------------------
@@ -325,6 +366,31 @@ def run(n):
     ok &= good
     print(f"[{'ok' if good else 'FAIL'}] GUI prices, gain and marginal vs the mirror: worst gap {worst:.2e} of the price")
 
+    # 1a. The goods cards' two shortcuts (2026-11-20) equal their plain form:
+    # Market.rises(a, b) is gain(b) > gain(a), Market.over_lim(p) is p > lim.
+    # Shapes with the home ceiling at or below 10 included (sh small).
+    bad = tried = 0
+    rnd = random.Random(4)
+    for i in range(n):
+        m = shape(rnd, i % 2 == 1)
+        if i % 4 == 0:
+            m["sh"] = rnd.uniform(1, 12)
+        mk, env = gui_market(m), gui_env(m)
+        lim = gui_eval(mk.lim, env)
+        for _ in range(4):
+            a = round(10 ** rnd.uniform(1, 4), 3)
+            b = round(a * 10 ** (1 / G.CHAIN_POINTS), 3)
+            ga, gb = R.gain(m, a), R.gain(m, b)
+            if abs(gb - ga) > 1e-4 * max(abs(ga), abs(gb), 1.0):     # float noise decides ties
+                tried += 1
+                bad += gui_eval(mk.rises(a, b), env) != (gb > ga)
+            if abs(a - lim) > 1e-3:
+                tried += 1
+                bad += gui_eval(mk.over_lim(a), env) != (a > lim)
+    ok &= bad == 0
+    print(f"[{'ok' if bad == 0 else 'FAIL'}] card shortcuts (rises, over_lim) equal gain(b) > gain(a) and p > lim: "
+          f"{tried - bad} of {tried}")
+
     # 1b. Script formulas equal the mirror.
     worst = 0.0
     rnd = random.Random(2)
@@ -350,7 +416,7 @@ def run(n):
     for deviate in (False, True):
         label = "real prices off the rule" if deviate else "real prices on the rule"
         rnd = random.Random(3)
-        stats = {"Best button": [0, 0, 0.0], "card figure": [0, 0, 0.0], "suggestion scan": [0, 0, 0.0]}
+        stats = {k: [0, 0, 0.0, 0.0] for k in ("Best button", "card figure", "suggestion scan")}
         same_q = chain_same = chain_n = 0
         for _ in range(n):
             m = shape(rnd, deviate)
@@ -360,22 +426,28 @@ def run(n):
             b = brute(m)
             if b < 0.01:   # under a penny a week: float noise decides "profitable"
                 continue
+            top, top1 = brute_top(m), brute_top(m, unit=True)
             # Best button: the onclick sequence, quantity carried click to click.
             q = 10.0
             for stmt in mk.register():
                 inner = stmt[len("ArticleDraft.SetQuantity("):-1]
                 q = gui_eval(inner, gui_env(m, q))
             got = {"Best button": R.gain(m, q)}
-            # Card: the decade lazy_pick names, then that decade's best figure.
+            # Card: the decade lazy_pick names, the half half_up picks, then
+            # that half's best figure.
             env = gui_env(m)
             name = gui_eval(mk.lazy_pick("x"), env)
             d = int(name[len("st_x"):])
-            leaf = gui_eval(mk.best_gain_leaf(10 * 10 ** d, 100 * 10 ** d), env)
+            half = "b" if gui_eval(mk.half_up(10 * 10 ** d), env) else "a"
+            leaf = gui_eval(mk.best_gain_leaf(10 * 10 ** d, 100 * 10 ** d, half), env)
             got["card figure"] = leaf
             # The chain the generator writes, walked state by state, must store
             # that same figure (rounded down to whole units).
-            fig = card_chain(m, "l" if m["ship"] == 0 else "s")
-            chain_same += fig is not None and int(fig) == int(round(leaf - 0.5))
+            # Twice with the same GUI variables: the first card of a list
+            # runs the border tests, the next reads the stored route.
+            route, gv = "l" if m["ship"] == 0 else "s", {}
+            fig, fig2 = card_chain(m, route, gui_vars=gv), card_chain(m, route, gui_vars=gv)
+            chain_same += fig is not None and fig == fig2 and int(fig) == int(round(leaf - 0.5))
             chain_n += 1
             # Script: interpreted st_rec_search.
             qs = sc.search(m)
@@ -391,14 +463,22 @@ def run(n):
                 s[0] += 1
                 s[1] += gap > 0.02
                 s[2] = max(s[2], gap)
+                t = top if k == "card figure" else top1
+                s[3] = max(s[3], (g - t) / t)
         # The card shows the best of 8 points per decade: historically up to
         # 2.04% low (CHAIN_POINTS), so it gets 3%. The searches get 2%.
-        for k, (tested, short, worst) in stats.items():
+        # None may show more than the best within the limit: the card did,
+        # by up to 245 times, until 2026-11-20 (Market.kink_gains).
+        for k, (tested, short, worst, over) in stats.items():
             limit = 0.03 if k == "card figure" else 0.02
             bad = worst > limit if k == "card figure" else short > 0
             ok &= not bad
             print(f"[{'FAIL' if bad else 'ok'}] {k}, {label}: {tested} shapes, {short} more than 2% "
                   f"below brute force, worst {100 * worst:.2f}%")
+            bad = over > 1e-4
+            ok &= not bad
+            print(f"[{'FAIL' if bad else 'ok'}] {k} never above the best within the limit"
+                  f"{'' if k == 'card figure' else ' (+1 unit)'}, {label}: worst {100 * max(over, 0):.3f}% above")
         good = chain_same == chain_n
         ok &= good
         print(f"[{'ok' if good else 'FAIL'}] card creation chain as generated stores that figure, {label}: "
