@@ -5,6 +5,21 @@ written so they can be pasted into Steam Workshop update notes. Versions follow
 `.metadata/metadata.json`'s `version`, same convention as Bulk Construction:
 `+0.01` only when something genuinely new ships and is confirmed working.
 
+## [0.15] - lighter goods cards
+
+### Changed
+- The goods list does less work when it opens: a card for a good that pays
+  takes 30-49% fewer steps to work out its figure, and a card for a good
+  that does not pay, or that you receive, takes almost none.
+- Goods cards look for the best quantity up to 10,000 units a week, down
+  from 1,000,000. Deals that large are rare; above that a card may read
+  low. The Best button is unchanged.
+
+### Fixed
+- A goods card could promise more than the Best button reaches, mostly a
+  small market facing a partner short of a lot of that good. The card now
+  stops where Best does.
+
 ## [0.14] - real prices
 
 ### Fixed
