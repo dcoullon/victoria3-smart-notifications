@@ -277,18 +277,28 @@ class Market:
 
     def kink_gains(self):
         """The gain at each kink, -10,000,000 when the kink is below 10 or
-        past the cap. At a kink one side's ratio is exactly +1 or -1, so that
-        side's price is K x 7/3 or K x 1/3 and its ratio is not computed: the
-        partner leaves its ceiling at bp/2 - sp, our price leaves its floor at
-        sh/2 - bh. Below 10 the kink used to be tried at 10: decade 0's
-        first point is 10 already, and higher decades never need it
-        (check_price_model)."""
+        past the climb's limit. At a kink one side's ratio is exactly +1 or
+        -1, so that side's price is K x 7/3 or K x 1/3 and its ratio is not
+        computed: the partner leaves its ceiling at bp/2 - sp, our price
+        leaves its floor at sh/2 - bh. Below 10 the kink used to be tried at
+        10: decade 0's first point is 10 already, and higher decades never
+        need it (check_price_model).
+
+        The partner's kink is tested against the limit (2026-11-20): tested
+        against the cap only, it was tried past our own price ceiling, where
+        Best and the suggestions stop, and the card promised up to +96,967 a
+        week where Best reached 394 (a tiny home market against a large
+        shortage; 104 of 2,786 random shapes more than 1% above brute
+        force). Our own kink needs only the cap test, 38 steps cheaper: it
+        always sits 1.5 sh below the home ceiling."""
         out = []
         top = fx(round(FOUR_THIRDS + 1, 5))
         low = fx(round(FOUR_THIRDS - 1, 5))
-        for x, at in ((self.kinks[0], lambda x: sub(sub(mul(self.kp, top), self.ph1(x)), self.ship_unit)),
-                      (self.kinks[1], lambda x: sub(sub(self.pp1(x), mul(self.kh, low)), self.ship_unit))):
-            out.append(sel(f"Or({gt(x, self.cap)}, {lt(x, fx(10))})", fx(-10000000), mul(x, at(x))))
+        for x, past, at in ((self.kinks[0], self.lim,
+                             lambda x: sub(sub(mul(self.kp, top), self.ph1(x)), self.ship_unit)),
+                            (self.kinks[1], self.cap,
+                             lambda x: sub(sub(self.pp1(x), mul(self.kh, low)), self.ship_unit))):
+            out.append(sel(f"Or({gt(x, past)}, {lt(x, fx(10))})", fx(-10000000), mul(x, at(x))))
         return out
 
     def half_up(self, lo):

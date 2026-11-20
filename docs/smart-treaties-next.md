@@ -77,10 +77,10 @@ goods cards' frame rate.
 
   | Card | 0.14 | Now, list's first card | Now, other cards |
   |---|---|---|---|
-  | best quantity 10-100 | 3,367 | 2,132-2,308 (-31%) | 2,101-2,277 (-32%) |
-  | 100-1,000 | 3,808 | 2,376 (-38%) | 2,345 (-38%) |
-  | 1,000-10,000 | 4,249 | 2,376 (-44%) | 2,345 (-45%) |
-  | above 10,000 | 4,690 | 2,376 (-49%) | 2,345 (-50%) |
+  | best quantity 10-100 | 3,367 | 2,170-2,346 (-30%) | 2,139-2,315 (-31%) |
+  | 100-1,000 | 3,808 | 2,414 (-37%) | 2,383 (-37%) |
+  | 1,000-10,000 | 4,249 | 2,414 (-43%) | 2,383 (-44%) |
+  | above 10,000 | 4,690 | 2,414 (-49%) | 2,383 (-49%) |
   | first unit loses | 170 | 80 | 49 |
   | 10 units lose | 170 | 219 | 188 |
   | player receives | 170 | 5 | 5 |
@@ -88,14 +88,15 @@ goods cards' frame rate.
   Every card also made 2 IsValid calls in 0.14; now only the list's first
   does. The "10 units lose" card costs more steps (the first-unit test comes
   first) but, after the list's first card, 28% less once its two IsValid
-  are counted at 45. Before the
-  price model a paying card cost 2,811 at best quantity 10-100.
+  are counted at 45. Before the price model a paying card cost 2,811 at
+  best quantity 10-100. The paying rows include the fix below, +38 steps.
 
-  Figures: `tools/check_price_model.py` unchanged at worst 2.03% (prices on
-  the rule) and 2.00% (off) below brute force, and on 2,786 random paying
-  shapes every card stores the same whole-unit figure as 0.14 (compared
-  directly against the 0.14 generator). The GUI file shrank from 3.64 to
-  2.81 MB.
+  Figures: the speed-up alone left every card's whole-unit figure as in 0.14
+  on 2,786 random paying shapes (compared directly against the 0.14
+  generator), and `tools/check_price_model.py` at worst 2.03% (prices on the
+  rule) and 2.00% (off) below brute force. With the fix below, 104 of those
+  2,786 cards read lower (the ones 0.14 overstated) and the worst is 2.03%
+  both ways. The GUI file shrank from 3.64 to 2.83 MB.
 
   The search now stops at 10,000 units (`CHAIN_DECADES` 3, was 5 to
   1,000,000; Damien, 2026-11-20). None of the 111 goods transfers in the
@@ -122,7 +123,7 @@ goods cards' frame rate.
   **Test run (one launch), acceptance criteria first.** Pass: on the same
   save and partner, the slowest-frame reading in mode `new` is lower than in
   `old`, `off` is the lowest, the cards show the same figures in `new` and
-  `old`, and debug.log has 40 `ST_PERF|created` lines per opening. If all
+  `old` except any that 0.14 overstated (lower in `new`), and debug.log has 40 `ST_PERF|created` lines per opening. If all
   three modes read the same, the meter does not see the stall: that is a
   broken instrument, not a result.
 
@@ -147,17 +148,23 @@ goods cards' frame rate.
   6. Click again ("new"), close and reopen, wait 2 seconds, F12.
   Then say done. Claude reads the 8 screenshots (readouts, and the figures
   in new against old) and `python tools/scan_logs.py` for the ST_PERF counts.
-- **Open: the card figure can promise more than Best reaches** (found
-  2026-11-20 while checking the stall work; the same in 0.14). The card
-  tries the kink where the partner leaves its price ceiling anywhere up to
-  the AI's cap, even past our own price ceiling, where the Best button and
-  the suggestions stop. 104 of 2,786 random paying shapes show more than 1%
-  above the best gain within the limit (brute force); worst case +96,967 a
-  week on the card against 394 (a tiny home market, sh 20, against a
-  partner short by about 7,900).
-  Fix: test the kinks against the limit instead of the cap, and add the
-  matching "not above brute force" check to check_price_model. Changes
-  figures, so it is its own change.
+- **Fixed on the same branch, not run in game: the card figure could
+  promise more than Best reaches** (found 2026-11-20 while checking the
+  stall work; the same in 0.14). The card tried the kink where the partner
+  leaves its price ceiling anywhere up to the AI's cap, even past our own
+  price ceiling, where the Best button and the suggestions stop. 104 of
+  2,786 random paying shapes showed more than 1% above the best gain within
+  the limit; worst case +96,967 a week on the card against 394 (a tiny home
+  market, sh 20, against a partner short by about 7,900). Now that kink is
+  tested against the limit (`Market.kink_gains`, +38 steps a paying card;
+  our own kink always sits 1.5 sh below our ceiling, so it keeps the
+  cheaper cap test). Exactly those 104 cards change, all lower, each now
+  within 2% below the best within the limit. check_price_model now fails
+  any search showing more than the best within the limit (it read 6,714%
+  above on the old code). The Best button and the suggestions may go one
+  unit past it, by design ("one more unit if it pays", run 11): at very
+  small quantities that unit can cross our ceiling, worth up to 6.7% in the
+  random shapes. Left as is.
 - **Done: the losing-transfer toast opens its treaty** (type = treaty, posted
   from the treaty), confirmed in game 2026-11-19 with the observer's one-time
   test toast, since removed (observer v0.05).

@@ -197,6 +197,20 @@ def brute(m):
     return max(R.gain(m, x) for x in xs)
 
 
+def brute_top(m, unit=False):
+    """The most a search may show: brute force plus the exact kinks and
+    limit inside [10, limit], so a kink between two sampled points is never
+    mistaken for a search promising too much. unit=True also allows one unit
+    past the limit (within the cap): the Best button and the suggestions end
+    with "one more unit if it pays" (run 11, tobacco 19 against 20), which
+    can step just past our price ceiling at small quantities."""
+    hi = max(10.0, min(m["cap"], R.home_ceiling(m)))
+    exact = [x for x in (m["bp"] / 2 - m["sp"], m["sh"] / 2 - m["bh"], hi) if 10 <= x <= hi]
+    if unit:
+        exact.append(min(hi + 1, max(hi, m["cap"])))
+    return max([brute(m)] + [R.gain(m, x) for x in exact])
+
+
 # ---------------------------------------------------------------------------
 # Paradox script: values and the search effect, interpreted
 # ---------------------------------------------------------------------------
@@ -402,7 +416,7 @@ def run(n):
     for deviate in (False, True):
         label = "real prices off the rule" if deviate else "real prices on the rule"
         rnd = random.Random(3)
-        stats = {"Best button": [0, 0, 0.0], "card figure": [0, 0, 0.0], "suggestion scan": [0, 0, 0.0]}
+        stats = {k: [0, 0, 0.0, 0.0] for k in ("Best button", "card figure", "suggestion scan")}
         same_q = chain_same = chain_n = 0
         for _ in range(n):
             m = shape(rnd, deviate)
@@ -412,6 +426,7 @@ def run(n):
             b = brute(m)
             if b < 0.01:   # under a penny a week: float noise decides "profitable"
                 continue
+            top, top1 = brute_top(m), brute_top(m, unit=True)
             # Best button: the onclick sequence, quantity carried click to click.
             q = 10.0
             for stmt in mk.register():
@@ -448,14 +463,22 @@ def run(n):
                 s[0] += 1
                 s[1] += gap > 0.02
                 s[2] = max(s[2], gap)
+                t = top if k == "card figure" else top1
+                s[3] = max(s[3], (g - t) / t)
         # The card shows the best of 8 points per decade: historically up to
         # 2.04% low (CHAIN_POINTS), so it gets 3%. The searches get 2%.
-        for k, (tested, short, worst) in stats.items():
+        # None may show more than the best within the limit: the card did,
+        # by up to 245 times, until 2026-11-20 (Market.kink_gains).
+        for k, (tested, short, worst, over) in stats.items():
             limit = 0.03 if k == "card figure" else 0.02
             bad = worst > limit if k == "card figure" else short > 0
             ok &= not bad
             print(f"[{'FAIL' if bad else 'ok'}] {k}, {label}: {tested} shapes, {short} more than 2% "
                   f"below brute force, worst {100 * worst:.2f}%")
+            bad = over > 1e-4
+            ok &= not bad
+            print(f"[{'FAIL' if bad else 'ok'}] {k} never above the best within the limit"
+                  f"{'' if k == 'card figure' else ' (+1 unit)'}, {label}: worst {100 * max(over, 0):.3f}% above")
         good = chain_same == chain_n
         ok &= good
         print(f"[{'ok' if good else 'FAIL'}] card creation chain as generated stores that figure, {label}: "
