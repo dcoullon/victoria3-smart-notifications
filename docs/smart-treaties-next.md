@@ -43,6 +43,18 @@ goods cards' frame rate.
   switches on and off abruptly, sender side only (monopolies sit on
   production). Confirm from the game's own price breakdown (hover the
   price), and with a good that has no monopoly matching the rule.
+- **Open: ~0.3 s stall when opening the goods transfer list** (Damien, 0.14,
+  2026-11-19; shipped as is). The 40 goods cards each compute their figure
+  once on creation (st_perf counted 40 per opening, none while the game runs),
+  so the stall is a one-off per opening, not a frame-rate cost: FPS dipped to
+  71 on opening and came back to 140 paused, 110 unpaused (baseline 110). The
+  price model made a paying card's creation 20-67% dearer (static step count,
+  commit cb44277). Ideas, cheapest first: a cheaper decade test (compare two
+  gains instead of the marginal, ~25% less per test); fewer points per decade
+  (8 now, 2.04% worst error); compute only the cards on screen, or spread the
+  40 over several frames; skip goods with no partner shortage before any
+  maths. Measure first: the --perf build (tools/gen_smart_trade_gui.py) and a
+  timer around the opening.
 - **Done: the losing-transfer toast opens its treaty** (type = treaty, posted
   from the treaty), confirmed in game 2026-11-19 with the observer's one-time
   test toast, since removed (observer v0.05).
