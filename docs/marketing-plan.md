@@ -25,11 +25,12 @@ daily", and Steam's item stats pages.
 
 Due by Friday 2026-11-20 (checked by the scheduled task "marketing-plan-check"):
 
-- [ ] Reddit feature post for Smart Treaties 0.13 (suggestions and the losing-deal
+- [x] Reddit feature post for Smart Treaties 0.13 (suggestions and the losing-deal
       alert), Monday 11/16, US morning (about 6 to 9 AM Pacific). Concrete
       benefit in the title, a Rule 5 comment that adds information, a rating
       ask at the end, an hour of replies. Log it in the sheet's Comment column.
-      Posted by Damien, 11/16. Sheet comment not logged yet.
+      Posted by Damien, 11/16. Logged in the sheet's 11/16 row (J70, "new
+      reddit post"), checked 11/20.
 - [x] Paste `smart_trade/STEAM_WORKSHOP_DESCRIPTION.schinese.bbcode` into Steam's
       Simplified Chinese description slot (the English one is already live).
       Done by Damien, 11/16.
@@ -40,6 +41,9 @@ Due by Friday 2026-11-20 (checked by the scheduled task "marketing-plan-check"):
       `bulk_construction/STEAM_WORKSHOP_DESCRIPTION.bbcode`, "My other mods"
       plus a thumbs-up line); not yet pasted into Steam. Neither mod has a
       Chinese description on Steam yet (the schinese page shows English).
+      11/20 check: English rating ask and Smart Treaties link are live on both
+      Steam pages. Smart Notifications still shows 3 stars (28 ratings), Build
+      All 4 stars (33 ratings). Goal not met yet.
 - [x] Track the Most Popular position of Smart Treaties daily in the sheet.
       Done: the 11/17 noon run wrote column K by itself (Smart Treaties 3,
       Build All 26, Smart Notifications 77).
