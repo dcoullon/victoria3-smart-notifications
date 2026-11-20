@@ -19,7 +19,9 @@ instrumentation and doc-only changes get a commit but **no** version bump
 unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
-## [Unreleased]
+## [0.46] - 2026-11-19
+
+No settings reset needed.
 
 ### Fixed
 - "(SN) Law Ready to Enact" no longer fires while you are already enacting a
