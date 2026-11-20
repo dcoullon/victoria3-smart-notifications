@@ -1524,25 +1524,56 @@ ITEM_ANCHOR = 'item = {\n\t\t\tcontainer = {'
 # check_st_generated_files_current reports a --perf build as STALE.
 PERF = "--perf" in sys.argv
 PERF_SGUI = REPO / "smart_trade" / "common" / "scripted_guis" / "st_perf_sgui.txt"
-PERF_CALL = "\ton_start = \"[GetScriptedGui('st_perf_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]\"\n"
-
 # --perf also times the opening (added 2026-11-20 for the ~0.3 s stall), in
-# one launch, three modes a card button cycles (GUI variable st_perf_mode):
+# one launch, three modes that take turns, one per opening of the list:
 #   new  this build's creation chain
 #   old  Smart Treaties 0.14's chain (PERF_OLD_REF), its widgets renamed so_*
 #   off  no chain at all: what the list costs without the card figures
-# Each card shows "<mode it ran> ><slowest frame>ms <<lowest>fps" since the
-# list opened ("new >300ms <70fps": some frame took over 300 ms and under
-# 350, the FPS counter fell under 70; "-": below the lowest bucket). A loop
-# samples the engine's PdxProfilerGetFrameTimeMs and
-# GetCurrentFps (vanilla gui/error_deer.gui) every 0.1 s and keeps the worst
-# bucket in one GUI variable each (no number storage exists, so buckets).
-# A card's creation resets them, so a reading is per opening.
+# Each good keeps its own mode key and moves it on at every creation, so
+# opening 1 runs new, 2 old, 3 off, 4 new... with nothing to click (the first
+# try's card button never took a click, run of 2026-11-20).
+# Timing: the chain runs PERF_REPEAT times per card, so an opening lasts
+# seconds and debug.log's 1 s timestamps can time it. Every card logs
+# ST_PERF|begin|<mode> before and ST_PERF|end|<mode>|ok|bad after;
+# tools/st_perf_report.py turns them into seconds per opening. ok means a
+# mod-7 counter ticked in the chain's route step came out at
+# PERF_REPEAT % 7, so the repeats really ran (bad: the engine skipped
+# re-triggered states and the timing means nothing). The first try's
+# frame-time meter (a looping state reading PdxProfilerGetFrameTimeMs)
+# never wrote anything; likely cause, unconfirmed: a state with no animated
+# property logs "Animation triggered has no valid state properties" and
+# never reaches its next.
 PERF_OLD_REF = "94f2b1b"          # Smart Treaties 0.14
-PERF_MS = (20, 30, 40, 50, 60, 80, 100, 125, 150, 175, 200, 250, 300, 350, 400, 500, 600, 800, 1000, 1500, 2000)
-PERF_FPS = (5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120)
-PERF_MODE_IS = lambda m: f"GetVariableSystem.HasValue('st_perf_mode', '{m}')"
-PERF_MODE_NAME = f"Select_CString({PERF_MODE_IS('old')}, 'old', Select_CString({PERF_MODE_IS('off')}, 'off', 'new'))"
+PERF_REPEAT = 100
+PERF_MODE_KEY = "Concatenate('st_pmode_', Goods.GetKey)"
+PERF_MODE_IS = lambda m: f"GetVariableSystem.HasValue({PERF_MODE_KEY}, '{m}')"
+PERF_PICK = lambda new, old, off: f"Select_CString({PERF_MODE_IS('old')}, '{old}', Select_CString({PERF_MODE_IS('off')}, '{off}', '{new}'))"
+PERF_MODE_NAME = PERF_PICK("new", "old", "off")
+PERF_MODE_NEXT = f"Select_CString({PERF_MODE_IS('new')}, 'old', Select_CString({PERF_MODE_IS('old')}, 'off', 'new'))"
+PERF_TICK_OK = f"GetVariableSystem.HasValue('st_perf_tick', '{PERF_REPEAT % 7}')"
+PERF_LOGS = ("b_new", "b_old", "b_off", "e_new_ok", "e_new_bad", "e_old_ok", "e_old_bad", "e_off")
+
+
+def perf_tick():
+    """st_perf_tick moves on by one, 0 to 6 and round again."""
+    out = "'0'"
+    for i in reversed(range(6)):
+        out = f"Select_CString(GetVariableSystem.HasValue('st_perf_tick', '{i}'), '{i + 1}', {out})"
+    return f"GetVariableSystem.Set('st_perf_tick', {out})"
+
+
+def perf_ticked(widgets):
+    """The chain's route states (st_rl/st_rf/st_rs, one per run) tick first."""
+    import re
+    out, n = re.subn(r"\n(\t*)name = (st_rl|st_rf|st_rs)\n",
+                     lambda m: f"{m.group(0)}{m.group(1)}on_start = \"[{perf_tick()}]\"\n", widgets)
+    assert n == 3, n
+    return out
+
+
+def perf_log(name):
+    return (f"state = {{\n\tname = st_pl_{name}\n\ton_start = \"[GetScriptedGui('st_perf_{name}')"
+            ".Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]\"\n}\n")
 
 
 def perf_old_chain():
@@ -1564,53 +1595,35 @@ def perf_old_chain():
     return ren(old.LAZY_STEP1), ren(old.lazy_widgets())
 
 
-def perf_bucket(key, values, hit):
-    """The worst bucket so far: the stored one or this sample's, whichever is worse."""
-    out = "'-'"
-    for v in values:
-        out = f"Select_CString(Or({hit(v)}, GetVariableSystem.HasValue('{key}', '{v}')), '{v}', {out})"
-    return out
-
-
 def perf_item():
-    """The --perf card: mode switch, chains, meter, readout, mode button."""
+    """The --perf card: mode, logged and repeated chains, mode label."""
     old_step, old_widgets = perf_old_chain()
-    ms = perf_bucket("st_perf_ms", PERF_MS, lambda v: f"GreaterThan_float(PdxProfilerGetFrameTimeMs, '(float){v}')")
-    fps = perf_bucket("st_perf_fps", tuple(reversed(PERF_FPS)), lambda v: f"LessThan_float(GetCurrentFps, '(float){v}')")
-    pick = (f"PdxGuiWidget.FindChild('st_ab').TriggerAnimation(Select_CString({PERF_MODE_IS('old')}, 'st_ab_old', "
-            f"Select_CString({PERF_MODE_IS('off')}, 'st_none', 'st_ab_new')))")
+    find = lambda w, s: f"\ton_start = \"[PdxGuiWidget.FindChild('{w}').TriggerAnimation({s})]\"\n"
+    tick_ok = lambda m: f"Select_CString({PERF_TICK_OK}, 'st_pl_e_{m}_ok', 'st_pl_e_{m}_bad')"
     created = ("state = {\n\tname = st_created\n\ttrigger_on_create = yes\n"
                f"\ton_start = \"[GetVariableSystem.Set({ONCE_KEY}, 'n')]\"\n"
-               "\ton_start = \"[GetVariableSystem.Set('st_perf_ms', '-')]\"\n"
-               "\ton_start = \"[GetVariableSystem.Set('st_perf_fps', '-')]\"\n"
+               f"\ton_start = \"[GetVariableSystem.Set({PERF_MODE_KEY}, {PERF_MODE_NEXT})]\"\n"
                f"\ton_start = \"[GetVariableSystem.Set('st_perf_ran', {PERF_MODE_NAME})]\"\n"
-               f"\ton_start = \"[{pick}]\"\n" + PERF_CALL
+               "\ton_start = \"[GetVariableSystem.Set('st_perf_tick', '0')]\"\n"
+               + find("st_perf_lb", PERF_PICK("st_pl_b_new", "st_pl_b_old", "st_pl_b_off"))
+               + find("st_ab", PERF_PICK("st_ab_new", "st_ab_old", "st_none"))
+               + find("st_perf_le", f"Select_CString({PERF_MODE_IS('off')}, 'st_pl_e_off', "
+                                    f"Select_CString({PERF_MODE_IS('old')}, {tick_ok('old')}, {tick_ok('new')}))")
                + f"\ton_start = \"[{REC_PICK_STEP}]\"\n}}\n")
+    logs = lambda w, p: (f"widget = {{\n\tname = \"{w}\"\n\tsize = {{ 0 0 }}\n"
+                         + "".join(perf_log(n) for n in PERF_LOGS if n.startswith(p)) + "}\n")
     ab = ("widget = {\n\tname = \"st_ab\"\n\tsize = { 0 0 }\n"
           "state = {\n\tname = st_none\n}\n"
-          "state = {\n\tname = st_ab_new\n\ton_start = \"[@@LAZY_STEP1@@]\"\n}\n"
-          f"state = {{\n\tname = st_ab_old\n\ton_start = \"[{old_step}]\"\n}}\n"
-          + lazy_widgets() + "\n" + old_widgets + "\n}\n")
-    meter = ("widget = {\n\tname = \"st_perf_meter\"\n\tsize = { 0 0 }\n"
-             "state = {\n\tname = st_pm_a\n\ttrigger_on_create = yes\n\tduration = 0.05\n\tnext = st_pm_b\n}\n"
-             "state = {\n\tname = st_pm_b\n\tduration = 0.05\n\tnext = st_pm_a\n"
-             f"\ton_start = \"[GetVariableSystem.Set('st_perf_ms', {ms})]\"\n"
-             f"\ton_start = \"[GetVariableSystem.Set('st_perf_fps', {fps})]\"\n}}\n}}\n")
-    readout = ("textbox = {\n\tparentanchor = bottom|left\n\tposition = { 4 -2 }\n\tautoresize = yes\n"
-               "\talign = nobaseline\n\tusing = fontsize_small\n\talwaystransparent = yes\n"
-               "\traw_text = \"#P [GetVariableSystem.Get('st_perf_ran')] >[GetVariableSystem.Get('st_perf_ms')]ms "
-               "<[GetVariableSystem.Get('st_perf_fps')]fps#!\"\n}\n")
-    button = ("button = {\n\tusing = default_button\n\tparentanchor = top|right\n\tsize = { 34 18 }\n"
-              f"\tonclick = \"[GetVariableSystem.Set('st_perf_mode', Select_CString({PERF_MODE_IS('old')}, 'off', "
-              f"Select_CString({PERF_MODE_IS('off')}, 'new', 'old')))]\"\n"
-              "\ttextbox = {\n\t\tparentanchor = center\n\t\tautoresize = yes\n\t\talign = nobaseline\n"
-              "\t\tusing = fontsize_small\n\t\talwaystransparent = yes\n"
-              f"\t\traw_text = \"[{PERF_MODE_NAME}]\"\n\t}}\n}}\n")
-    return created + ab + meter + REC_PICK_WIDGET, readout + button
+          "state = {\n\tname = st_ab_new\n" + "\ton_start = \"[@@LAZY_STEP1@@]\"\n" * PERF_REPEAT + "}\n"
+          "state = {\n\tname = st_ab_old\n" + f"\ton_start = \"[{old_step}]\"\n" * PERF_REPEAT + "}\n"
+          + perf_ticked(lazy_widgets()) + "\n" + perf_ticked(old_widgets) + "\n}\n")
+    label = ("textbox = {\n\tparentanchor = top|right\n\tposition = { -4 2 }\n\tautoresize = yes\n"
+             "\talign = nobaseline\n\tusing = fontsize_small\n\talwaystransparent = yes\n"
+             "\traw_text = \"#P [GetVariableSystem.Get('st_perf_ran')] t[GetVariableSystem.Get('st_perf_tick')]#!\"\n}\n")
+    return created + logs("st_perf_lb", "b_") + logs("st_perf_le", "e_") + ab + REC_PICK_WIDGET, label
 
 
-# The readout and the mode button go after vanilla's grid_button, so they
-# draw on top of it and the button takes its own clicks.
+# The mode label goes after vanilla's grid_button, so it draws on top.
 PERF_GRID_ANCHOR = 'using = default_button\n\t\t\t\t\t}\n\t\t\t\t}\n\n\t\t\t\twidget = {'
 PERF_ITEM, PERF_OVERLAY = perf_item() if PERF else ("", "")
 ITEM_STATE = (ITEM_ANCHOR + "\n### SMART TRADE: the card's figure, computed once on creation\n"
@@ -1776,17 +1789,12 @@ def expand(text: str) -> str:
 
 OUTPUTS = {OUT_GUI: GUI + picker_block(), **loc_files()}
 
-PERF_SGUI_TEXT = """# DEV ONLY: written by tools/gen_smart_trade_gui.py --perf. Never commit,
-# never release: rerun the generator without --perf, which deletes this file.
-st_perf_sgui = {
-	scope = country
-	effect = {
-		debug_log = "ST_PERF|created|[TimeKeeper.GetCurrentDate.GetString]"
-	}
-	ai_is_valid = { always = no }
-	ai_chance = { base = 0 }
-}
-"""
+PERF_SGUI_TEXT = ("# DEV ONLY: written by tools/gen_smart_trade_gui.py --perf. Never commit,\n"
+                  "# never release: rerun the generator without --perf, which deletes this file.\n"
+                  + "".join(f"st_perf_{n} = {{\n\tscope = country\n\teffect = {{\n"
+                            f"\t\tdebug_log = \"ST_PERF|{'begin' if n[0] == 'b' else 'end'}|{n[2:].replace('_', '|')}"
+                            "|[TimeKeeper.GetCurrentDate.GetString]\"\n\t}\n"
+                            "\tai_is_valid = { always = no }\n\tai_chance = { base = 0 }\n}\n" for n in PERF_LOGS))
 
 if __name__ == "__main__":
     stale = []
