@@ -79,8 +79,8 @@ goods cards' frame rate.
   |---|---|---|---|
   | best quantity 10-100 | 3,367 | 2,132-2,308 (-31%) | 2,101-2,277 (-32%) |
   | 100-1,000 | 3,808 | 2,376 (-38%) | 2,345 (-38%) |
-  | 1,000-10,000 | 4,249 | 2,620 (-38%) | 2,589 (-39%) |
-  | 10,000-100,000 and above | 4,690 | 2,864 (-39%) | 2,833 (-40%) |
+  | 1,000-10,000 | 4,249 | 2,376 (-44%) | 2,345 (-45%) |
+  | above 10,000 | 4,690 | 2,376 (-49%) | 2,345 (-50%) |
   | first unit loses | 170 | 80 | 49 |
   | 10 units lose | 170 | 219 | 188 |
   | player receives | 170 | 5 | 5 |
@@ -95,7 +95,18 @@ goods cards' frame rate.
   the rule) and 2.00% (off) below brute force, and on 2,786 random paying
   shapes every card stores the same whole-unit figure as 0.14 (compared
   directly against the 0.14 generator). The GUI file shrank from 3.64 to
-  3.45 MB.
+  2.81 MB.
+
+  The search now stops at 10,000 units (`CHAIN_DECADES` 3, was 5 to
+  1,000,000; Damien, 2026-11-20). None of the 111 goods transfers in the
+  observer logs (1836-1909, mostly AI deals) went past 157 units, and a card
+  only pays for the decades it climbs through: cards below 1,000 cost the
+  same, cards from 1,000 up save one decade test (244 steps), and the GUI
+  file lost 0.63 MB. Cost: where the best
+  quantity really is above 10,000, the card shows the best of what it
+  tries up to 10,000 plus the limit and the kinks. On deliberately
+  oversized markets (`st_card_cost.big_shape`, 443 such shapes) the median
+  card loses nothing, 99 read more than 2% low, worst 94%.
 
   Measured and not done: 7 points per decade leaves the dearest path
   unchanged and the worst figure 2.60% low; 6 points fails the 3% bound

@@ -114,7 +114,13 @@ ROUTE_HI = 1.7
 FOUR_THIRDS = 1.33333
 
 # Best-quantity search shapes (see Market.chain / Market.register).
-CHAIN_DECADES = 5          # 10 to 1,000,000 units
+# 10 to 10,000 units. Was 5 decades (to 1,000,000) until 2026-11-20: no goods
+# transfer in the observer logs (111, 1836-1909) went past 157 units, and a
+# card only pays for the decades it climbs through, so the cap leaves the
+# opening time alone and takes 0.63 MB off the GUI file (Damien). A best
+# quantity past 10,000 shows the gain at the best point up to 10,000, or at
+# the climb's limit or a kink, which are still tried wherever they fall.
+CHAIN_DECADES = 3
 # Points per decade: 10 -> worst 1.31% low, 8 -> 2.04%. 8 since 2026-10-16
 # (Damien: 2% is well inside how much a deal's gain moves week to week), to
 # cut the per-frame cost of the goods cards (Workshop report: 60 -> 6-11 fps).
