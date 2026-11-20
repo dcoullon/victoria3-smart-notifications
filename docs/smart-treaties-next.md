@@ -318,6 +318,10 @@ the predictor's zero-shipping rule. The archiver runs as a hidden background
 process into `logs/treaty_obs_spain`, so it survives the Claude app and
 session restarts, but not a reboot. Useful once he has signed about 5 deals of
 50 units or more, at least 2 by sea and 2 overland, each with 6 months of data.
+The archiver was found stopped on 2026-11-20 (capture ended 2026-11-13); it
+was restarted into a new folder, `logs/treaty_obs_spain_2026-11-20`, so a
+restart never moves the first archive aside. A full report reads both
+folders.
 
 ## 2. "Goods transfer losing money" alert (built 2026-11-13, not yet run in game)
 
