@@ -335,7 +335,14 @@ streak); a treaty coming into force, renegotiation included, starts its
 articles afresh. On the 1836-1851 data: Qing hardwood Nov 1837 and Feb 1843,
 France hardwood Mar 1848, nothing for silk (lost 13-24 a week at worst) or
 tobacco. "Once per treaty" was rejected: it would have warned in 1837 and
-stayed silent through 1842-1851. Files: common/script_values/st_alert_values.txt,
+stayed silent through 1842-1851. Spain campaign 1865-1872 (archive
+treaty_obs_spain_2026-11-20): it fired 3 times (paper, coal, fruit) and
+Damien dropped each good within 2-3 weeks; hardwood to Germany lost below
+-100 a week in 50 of 56 logged months with no alert, its streak having
+fired before the save was loaded and never recovered for 6 months. A yearly
+repeat while the streak lasts was offered; Damien kept once per streak
+(2026-11-20). The FIRE and CHECK log lines leave the treaty and good fields
+blank. Files: common/script_values/st_alert_values.txt,
 common/scripted_effects/st_alert_effects.txt, common/on_actions/st_alert_on_actions.txt,
 common/messages/st_alert_messages.txt; state in variable lists on the
 player (check_st_tna_lists_created). Shipping is estimated (script cannot
