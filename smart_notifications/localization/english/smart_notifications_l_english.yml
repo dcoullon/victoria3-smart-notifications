@@ -159,13 +159,8 @@
  # smart_notifications_diplo_play_start_watched/_quiet and
  # _war_start_watched/_quiet above -- see
  # 03_smart_notifications_relational_notifications.txt's header comment.
- # diplo_play_subject_released (below) genuinely has no primary-key
- # sibling, so it keeps its own watched/quiet pair and loc.
-
- smart_notifications_diplo_play_subject_released_watched_group:0 "(SN) Subject Released, Watched"
- notification_smart_notifications_diplo_play_subject_released_watched_tooltip:0 "#header $notification_smart_notifications_diplo_play_subject_released_watched_name$#!\n$TOOLTIP_DELIMITER$\n$notification_smart_notifications_diplo_play_subject_released_watched_desc$"
- notification_smart_notifications_diplo_play_subject_released_watched_name:0 "[SCOPE.sC('target').GetNameNoFormatting] breaks free"
- notification_smart_notifications_diplo_play_subject_released_watched_desc:0 "Due to the failure of [SCOPE.sC('actor').GetNameNoFormatting] to protect their subject [SCOPE.sC('target').GetNameNoFormatting] their pact is now null and void."
+ # The subject_released loc that followed was removed 2026-11-19: game
+ # 1.15.2 deleted the event.
 
 
  # Generic diplomatic action filtering (see TODO.md and

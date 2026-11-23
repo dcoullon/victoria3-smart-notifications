@@ -85,6 +85,12 @@ st_rec_scan = {
 	if = { limit = { has_variable = st_rec_bc } remove_variable = st_rec_bc }
 	if = { limit = { has_variable = st_rec_bk } remove_variable = st_rec_bk }
 	if = { limit = { has_variable = st_rec_mm } remove_variable = st_rec_mm }
+	if = { limit = { has_variable = st_rec_ph } remove_variable = st_rec_ph }
+	if = { limit = { has_variable = st_rec_pp } remove_variable = st_rec_pp }
+	if = { limit = { has_variable = st_rec_kh } remove_variable = st_rec_kh }
+	if = { limit = { has_variable = st_rec_kp } remove_variable = st_rec_kp }
+	if = { limit = { has_variable = st_rec_hc } remove_variable = st_rec_hc }
+	if = { limit = { has_variable = st_rec_lim } remove_variable = st_rec_lim }
 }
 
 # Shared by st_rec_scan and st_rec_scan_one: the home market, the bars, and
@@ -2966,6 +2972,12 @@ st_rec_scan_one = {
 	if = { limit = { has_variable = st_rec_bc } remove_variable = st_rec_bc }
 	if = { limit = { has_variable = st_rec_bk } remove_variable = st_rec_bk }
 	if = { limit = { has_variable = st_rec_mm } remove_variable = st_rec_mm }
+	if = { limit = { has_variable = st_rec_ph } remove_variable = st_rec_ph }
+	if = { limit = { has_variable = st_rec_pp } remove_variable = st_rec_pp }
+	if = { limit = { has_variable = st_rec_kh } remove_variable = st_rec_kh }
+	if = { limit = { has_variable = st_rec_kp } remove_variable = st_rec_kp }
+	if = { limit = { has_variable = st_rec_hc } remove_variable = st_rec_hc }
+	if = { limit = { has_variable = st_rec_lim } remove_variable = st_rec_lim }
 }
 
 # One partner market for st_rec_scan_one: the same rules and search as
@@ -2978,9 +2990,18 @@ st_rec_try_partner_x = {
 		set_variable = { name = st_rec_sh value = st_rec_in_sh }
 		set_variable = { name = st_rec_bp value = st_rec_in_bp }
 		set_variable = { name = st_rec_sp value = st_rec_in_sp }
-		set_variable = { name = st_rec_k value = st_rec_in_k }
+		set_variable = { name = st_rec_bh value = st_rec_in_bh }
+		set_variable = { name = st_rec_sh value = st_rec_in_sh }
+		set_variable = { name = st_rec_bp value = st_rec_in_bp }
+		set_variable = { name = st_rec_sp value = st_rec_in_sp }
+		set_variable = { name = st_rec_ph value = st_rec_in_ph }
+		set_variable = { name = st_rec_pp value = st_rec_in_pp }
+		set_variable = { name = st_rec_kh value = st_rec_in_kh }
+		set_variable = { name = st_rec_kp value = st_rec_in_kp }
 		set_variable = { name = st_rec_ship value = st_rec_in_ship }
 		set_variable = { name = st_rec_cap value = st_rec_in_cap }
+		set_variable = { name = st_rec_hc value = st_rec_in_hc }
+		set_variable = { name = st_rec_lim value = st_rec_in_lim }
 		set_variable = { name = st_rec_t value = 10 }
 		set_variable = { name = st_rec_gq value = st_rec_gain }
 		if = {
@@ -3055,9 +3076,18 @@ st_rec_try_partner = {
 		set_variable = { name = st_rec_sh value = st_rec_in_sh }
 		set_variable = { name = st_rec_bp value = st_rec_in_bp }
 		set_variable = { name = st_rec_sp value = st_rec_in_sp }
-		set_variable = { name = st_rec_k value = st_rec_in_k }
+		set_variable = { name = st_rec_bh value = st_rec_in_bh }
+		set_variable = { name = st_rec_sh value = st_rec_in_sh }
+		set_variable = { name = st_rec_bp value = st_rec_in_bp }
+		set_variable = { name = st_rec_sp value = st_rec_in_sp }
+		set_variable = { name = st_rec_ph value = st_rec_in_ph }
+		set_variable = { name = st_rec_pp value = st_rec_in_pp }
+		set_variable = { name = st_rec_kh value = st_rec_in_kh }
+		set_variable = { name = st_rec_kp value = st_rec_in_kp }
 		set_variable = { name = st_rec_ship value = st_rec_in_ship }
 		set_variable = { name = st_rec_cap value = st_rec_in_cap }
+		set_variable = { name = st_rec_hc value = st_rec_in_hc }
+		set_variable = { name = st_rec_lim value = st_rec_in_lim }
 		# Profitable at its best <=> profitable at 10 units (Market.pays10):
 		# the margin per unit only falls as quantity grows.
 		set_variable = { name = st_rec_t value = 10 }
@@ -3116,10 +3146,9 @@ st_rec_search = {
 		st_rec_try_t = yes
 		set_variable = { name = st_rec_t value = st_rec_step_16 }
 		st_rec_try_t = yes
-		# The cap itself, if profit is still rising there.
-		set_variable = { name = st_rec_t value = var:st_rec_cap }
-		set_variable = { name = st_rec_m value = st_rec_marginal }
-		if = { limit = { var:st_rec_m > 0 } set_variable = { name = st_rec_q value = var:st_rec_cap } }
+		# Where the climb stopped (home ceiling or cap), by gain.
+		set_variable = { name = st_rec_t value = var:st_rec_lim }
+		st_rec_try_better = yes
 		# The kinks, when near and better.
 		set_variable = { name = st_rec_t value = st_rec_kink_p }
 		st_rec_try_kink = yes
@@ -3128,11 +3157,17 @@ st_rec_search = {
 		# One more unit if it pays (whole-unit rounding, run 11).
 		set_variable = { name = st_rec_t value = st_rec_q_plus1 }
 		st_rec_try_better = yes
+		# The cap, then the 10-unit start, by gain (port() in the mirror).
+		set_variable = { name = st_rec_t value = var:st_rec_cap }
+		st_rec_try_better = yes
+		set_variable = { name = st_rec_t value = 10 }
+		st_rec_try_better = yes
 }
 
-# A ratio step: take st_rec_t if it is within the cap and profit still rises.
+# A ratio step: take st_rec_t if it is within the climb's limit and profit
+# still rises.
 st_rec_try_t = {
-	set_variable = { name = st_rec_d value = st_rec_room }
+	set_variable = { name = st_rec_d value = st_rec_lim_room }
 	if = {
 		limit = { var:st_rec_d >= 0 }
 		set_variable = { name = st_rec_m value = st_rec_marginal }

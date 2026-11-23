@@ -109,11 +109,23 @@ ROUTE_NEAR = 1.0
 ROUTE_FAR = 1.6
 ROUTE_HI = 1.7
 
+# The price model's 4/3 (Market.ph1/pp1; tools/gen_st_recommender.py uses
+# this same constant for the suggestions).
+FOUR_THIRDS = 1.33333
+
 # Best-quantity search shapes (see Market.chain / Market.register).
-CHAIN_DECADES = 5          # 10 to 1,000,000 units
+# 10 to 10,000 units. Was 5 decades (to 1,000,000) until 2026-11-20: no goods
+# transfer in the observer logs (111, 1836-1909) went past 157 units, and a
+# card only pays for the decades it climbs through, so the cap leaves the
+# opening time alone and takes 0.63 MB off the GUI file (Damien). A best
+# quantity past 10,000 shows the gain at the best point up to 10,000, or at
+# the climb's limit or a kink, which are still tried wherever they fall.
+CHAIN_DECADES = 3
 # Points per decade: 10 -> worst 1.31% low, 8 -> 2.04%. 8 since 2026-10-16
 # (Damien: 2% is well inside how much a deal's gain moves week to week), to
 # cut the per-frame cost of the goods cards (Workshop report: 60 -> 6-11 fps).
+# Measured again 2026-11-20 with the half-decade pick: 7 points leaves the
+# dearest card path unchanged and the figure worst 2.60% low; 6 fails the 3%.
 CHAIN_POINTS = 8
 # Acceptance search (Market.accept_search): one walk per acceptance value
 # 1..KMAX. The quantity score tops out near 10 x 1.375 (pricier) x 1.25
@@ -175,7 +187,19 @@ class Market:
         self.q_max_recv = mx(fx(10), mn(self.q_accept_recv, add(sub(self.bp, self.sp), fx(10))))
         self.q_ai = self.q_accept_send
         self.cap = self.q_accept_send
-        self.k = mul(self.base, fx(0.75))
+        # THE PRICE MODEL (one for every prediction; the Python mirror and its
+        # rationale: sides() in tools/gen_st_recommender.py). A side's price
+        # after q units is K x (4/3 + c(q)), K = real price today / (4/3 +
+        # c(0)). Before 2026-11-19 the cards, Best and the suggestions used
+        # k = 0.75 x base for both sides, i.e. the price rebuilt from orders.
+        self.kh = div(self.ph, add(clamp1(ratio(self.bh, self.sh)), fx(FOUR_THIRDS)))
+        self.kp = div(self.pp, add(clamp1(ratio(self.bp, self.sp)), fx(FOUR_THIRDS)))
+        # Where the climb stops: our own price reaches the rule's ceiling at
+        # 2 sh - bh (home_ceiling in the mirror); only above 10, never above the
+        # cap, floor 10. The mirror's max(10, ...) is left out: the cap is
+        # already at least 10, and the ceiling is used only above 10.
+        self.hc = sub(mul(self.sh, fx(2)), self.bh)
+        self.lim = sel(gt(self.hc, fx(10)), mn(self.cap, self.hc), self.cap)
         # Where the marginal gain JUMPS down: the partner's price leaves its
         # ceiling (supply passes half its demand) or ours leaves its floor
         # (demand passes half our supply). The best quantity often sits
@@ -190,9 +214,11 @@ class Market:
     # script value: docs/engine-notes.md). Two methods, both checked in
     # Python against brute force on 5,000 random market shapes (2026-10-05):
     #   chain()     the best GAIN, for display: find the decade the optimum is
-    #               in from the sign of the marginal gain, then the max over
-    #               CHAIN_POINTS + 1 points in it plus the kinks and the cap.
-    #               Worst 2.04% low at 8 points (1.31% at 10).
+    #               in from whether the gain still rises at its start, then
+    #               the max over its grid points plus the kinks and the limit
+    #               (best_gain_leaf). Worst 2.04% low at 8 points (1.31% at
+    #               10; check_price_model holds it to 3%). The goods cards
+    #               also pick the decade's half first (half_up).
     #   register()  the best QUANTITY, for buttons: the draft's own quantity
     #               is the only variable the GUI has, so a click climbs it in
     #               ratio steps (x4096 down to x1.02) while the marginal gain
@@ -207,48 +233,134 @@ class Market:
         return ratio(self.bp, add(self.sp, q))
 
     def spread(self, q):
-        """Partner price minus home price after q units move (price rule)."""
-        return mul(self.k, sub(clamp1(self.rp(q)), clamp1(self.rh(q))))
+        """Partner price minus home price after q units move (the price model)."""
+        return sub(self.pp1(q), self.ph1(q))
 
     def gain(self, q):
         return mul(q, sub(self.spread(q), self.ship_unit))
 
     def marginal(self, q):
         """d gain / d q: spread - shipping - q x (price slopes). A slope is
-        zero while that price sits at its cap. k first, then divide, so
+        zero while that price sits at its cap. K first, then divide, so
         small slopes keep their precision."""
         b, s = add(self.bh, q), add(self.sp, q)
         free = lambda r: lt(f"Abs_CFixedPoint({r})", fx(1))
-        slope_h = sel(free(self.rh(q)), mx(div(self.k, safe(self.sh)),
-                                          div(div(mul(self.k, self.sh), safe(b)), safe(b))), fx(0))
-        slope_p = sel(free(self.rp(q)), mx(div(div(mul(self.k, self.bp), safe(s)), safe(s)),
-                                          div(self.k, safe(self.bp))), fx(0))
+        slope_h = sel(free(self.rh(q)), mx(div(self.kh, safe(self.sh)),
+                                          div(div(mul(self.kh, self.sh), safe(b)), safe(b))), fx(0))
+        slope_p = sel(free(self.rp(q)), mx(div(div(mul(self.kp, self.bp), safe(s)), safe(s)),
+                                          div(self.kp, safe(self.bp))), fx(0))
         return sub(sub(self.spread(q), self.ship_unit), mul(q, add(slope_h, slope_p)))
 
-    def best_gain_leaf(self, lo, hi):
-        """Max gain over one decade [lo, hi]: points + 1 points, the kinks and the
-        cap clamped into it. Points past the cap do not count."""
+    def over_lim(self, p):
+        """p > lim, for a literal quantity p >= 10, without building lim (49
+        steps): past the cap, or past a home ceiling that is above 10. "10 <
+        hc < p" is written |hc - (p + 10)/2| < (p - 10)/2, one hc instead of
+        two. 31 steps against 51."""
+        c1, c2 = fx(round((p + 10) / 2, 4)), fx(round((p - 10) / 2, 4))
+        return f"Or({gt(fx(p), self.cap)}, {lt(f'Abs_CFixedPoint({sub(self.hc, c1)})', c2)})"
+
+    def grid(self, lo, i):
+        """The i-th search point of the decade starting at lo, as written."""
+        return round(lo * 10 ** (i / self.points), 3)
+
+    def rises(self, a, b):
+        """gain(b) > gain(a), for two literal quantities a < b. Written as one
+        difference so each side's K (35 and 30 steps) is computed once, not
+        twice: K x (b c(b) - a c(a) + 4/3 (b - a)) per side, against shipping
+        x (b - a). About half the steps of the marginal it replaced
+        (2026-11-20), and it answers the same question at grid resolution."""
+        k43 = fx(round(FOUR_THIRDS * (b - a), 5))
+        side = lambda k, c: mul(k, add(sub(mul(fx(b), c(fx(b))), mul(fx(a), c(fx(a)))), k43))
+        diff = sub(side(self.kp, lambda q: clamp1(self.rp(q))), side(self.kh, lambda q: clamp1(self.rh(q))))
+        ship = fx(0) if self.ship_unit == fx(0) else mul(self.ship_unit, fx(round(b - a, 3)))
+        return gt(diff, ship)
+
+    def kink_gains(self):
+        """The gain at each kink, -10,000,000 when the kink is below 10 or
+        past the climb's limit. At a kink one side's ratio is exactly +1 or
+        -1, so that side's price is K x 7/3 or K x 1/3 and its ratio is not
+        computed: the partner leaves its ceiling at bp/2 - sp, our price
+        leaves its floor at sh/2 - bh. Below 10 the kink used to be tried at
+        10: decade 0's first point is 10 already, and higher decades never
+        need it (check_price_model).
+
+        The partner's kink is tested against the limit (2026-11-20): tested
+        against the cap only, it was tried past our own price ceiling, where
+        Best and the suggestions stop, and the card promised up to +96,967 a
+        week where Best reached 394 (a tiny home market against a large
+        shortage; 104 of 2,786 random shapes more than 1% above brute
+        force). Our own kink needs only the cap test, 38 steps cheaper: it
+        always sits 1.5 sh below the home ceiling."""
+        out = []
+        top = fx(round(FOUR_THIRDS + 1, 5))
+        low = fx(round(FOUR_THIRDS - 1, 5))
+        for x, past, at in ((self.kinks[0], self.lim,
+                             lambda x: sub(sub(mul(self.kp, top), self.ph1(x)), self.ship_unit)),
+                            (self.kinks[1], self.cap,
+                             lambda x: sub(sub(self.pp1(x), mul(self.kh, low)), self.ship_unit))):
+            out.append(sel(f"Or({gt(x, past)}, {lt(x, fx(10))})", fx(-10000000), mul(x, at(x))))
+        return out
+
+    def half_up(self, lo):
+        """Is the best grid point of the decade starting at lo in its upper
+        half: the point after the middle is within the limit and gains more
+        than the middle one. Then the upper half starts at a point known to
+        be within the limit, so it needs no test either."""
+        mid = self.points // 2
+        a, b = self.grid(lo, mid), self.grid(lo, mid + 1)
+        return f"And(Not({self.over_lim(b)}), {self.rises(a, b)})"
+
+    def best_gain_leaf(self, lo, hi, half=None):
+        """Max gain over one decade [lo, hi]: its grid points, the kinks and
+        the climb's limit. Points past the limit (the home ceiling or the cap)
+        do not count.
+
+        Decade 0 starts at 10, which always counts. A higher decade is entered
+        only when its second point is within the limit and gains more than its
+        first (enter), so the first point can never be the best and the second
+        needs no limit test.
+
+        Not the cap: when the cap is within the home ceiling it IS the limit,
+        and past the ceiling our price sits at K x 7/3 against the partner's
+        K x 4/3 or less at the cap, a loss unless the partner's real price is
+        1.75 times further off the rule than ours (seen: 24% at most).
+        Not the 10-unit start outside decade 0 (port() compares it; the Best
+        button and the suggestions do). check_price_model holds the figure to
+        3% of brute force.
+
+        half: None for the whole decade (the live fallback chain), "a" for
+        its lower half (points up to the middle one), "b" for its upper half
+        (from the point after the middle). The goods cards pick the half
+        first (half_up), so each runs half the grid."""
+        first = 0 if lo == 10 else 1
+        mid = self.points // 2
+        idx = {None: range(first, self.points + 1), "a": range(first, mid + 1),
+               "b": range(mid + 1, self.points + 1)}[half]
         cands = []
-        for i in range(self.points + 1):
-            p = fx(round(lo * 10 ** (i / self.points), 3))
-            g = self.gain(p)
-            cands.append(g if i == 0 else sel(gt(p, self.cap), fx(-10000000), g))
-        # The kinks and the cap are tried wherever they fall: any quantity
-        # from 10 to the cap is a real option, inside this decade or not.
-        for x in self.kinks:
-            cands.append(sel(gt(x, self.cap), fx(-10000000), self.gain(mx(x, fx(10)))))
-        cands.append(self.gain(self.cap))
+        for i in idx:
+            g = self.gain(fx(self.grid(lo, i)))
+            # The first point of each range is known to be within the limit.
+            cands.append(g if i == idx[0] else sel(self.over_lim(self.grid(lo, i)), fx(-10000000), g))
+        cands += self.kink_gains()
+        cands.append(self.gain(self.lim))
         best = cands[0]
         for c in cands[1:]:
             best = mx(best, c)
         return best
 
+    def enter(self, lo):
+        """Does the search go on into the decade starting at lo: its second
+        point is within the climb's limit and gains more than its first (the
+        sign of the marginal gain at lo until 2026-11-20, twice the steps)."""
+        a, b = self.grid(lo, 0), self.grid(lo, 1)
+        return f"And(Not({self.over_lim(b)}), {self.rises(a, b)})"
+
     def chain(self):
         """Nested containers, one per decade: decade d is entered only when
-        the marginal gain is still positive at its start (and the cap allows
-        it); the deepest one entered shows its leaf."""
-        def enter(lo):
-            return f"And({lt(fx(lo), self.cap)}, {gt(self.marginal(fx(lo)), fx(0))})"
+        the gain still rises at its start (enter); the deepest one entered
+        shows its whole-decade leaf. The live fallback when no stored figure
+        exists: computed every frame, so it is kept to the simplest form."""
+        enter = self.enter
         out = ""
         for d in reversed(range(CHAIN_DECADES)):
             lo, hi = 10 * 10 ** d, 10 * 10 ** (d + 1)
@@ -264,16 +376,17 @@ class Market:
     def lazy_pick(self, tag):
         """Name of the state that computes the decade the optimum is in,
         picked the way chain() nests its containers: decade d when the
-        marginal gain is still positive at the start of every decade up to
-        d and not at the next one."""
-        def enter(lo):
-            return f"And({lt(fx(lo), self.cap)}, {gt(self.marginal(fx(lo)), fx(0))})"
+        gain still rises at the start of every decade up to d and not at the
+        next one (enter). One expression, every test evaluated: the goods
+        cards use lazy_widgets() instead, one test per step; this stays as
+        the reference tools/check_price_model.py compares with."""
+        enter = self.enter
         name = f"'st_{tag}{CHAIN_DECADES - 1}'"
         for d in reversed(range(CHAIN_DECADES - 1)):
             name = f"Select_CString({enter(10 * 10 ** (d + 1))}, {name}, 'st_{tag}{d}')"
         return name
 
-    def leaf_text(self, d):
+    def leaf_text(self, d, half=None):
         """Decade d's best gain as text, whole units: the GUI's one
         number-to-text route is FixedPointToInt + ToString_int32.
         FixedPointToInt rounds to the nearest unit, while the draft's own
@@ -282,7 +395,7 @@ class Market:
         (Damien, 2026-11-14). Subtracting 0.5 first rounds down instead, so
         both read the same; the cards only show positive gains."""
         lo = 10 * 10 ** d
-        return f"ToString_int32(FixedPointToInt({sub(self.best_gain_leaf(lo, 10 * lo), fx(0.5))}))"
+        return f"ToString_int32(FixedPointToInt({sub(self.best_gain_leaf(lo, 10 * lo, half), fx(0.5))}))"
 
     def register(self, guard=None, reset=True):
         """onclick statements that leave the draft at the best quantity.
@@ -295,9 +408,10 @@ class Market:
             out.append(f"ArticleDraft.SetQuantity({sel(guard, fx(10), q) if guard else fx(10)})")
         for f in REGISTER_FACTORS:
             t = mx(add(q, fx(1)), mul(q, fx(round(f, 5))))
-            ok = f"And(Not({gt(t, self.cap)}), {gt(self.marginal(t), fx(0))})"
+            ok = f"And(Not({gt(t, self.lim)}), {gt(self.marginal(t), fx(0))})"
             out.append(f"ArticleDraft.SetQuantity({sel(g(ok), t, q)})")
-        out.append(f"ArticleDraft.SetQuantity({sel(g(gt(self.marginal(self.cap), fx(0))), self.cap, q)})")
+        # Where the climb stopped (home ceiling or cap), by gain.
+        out.append(f"ArticleDraft.SetQuantity({sel(g(gt(self.gain(self.lim), self.gain(q))), self.lim, q)})")
         for kk in self.kinks:
             near = f"And({gt(kk, q)}, Not({gt(kk, mn(self.cap, add(mul(q, fx(1.2)), fx(2))))}))"
             ok = f"And({near}, {gt(self.gain(kk), self.gain(q))})"
@@ -307,6 +421,9 @@ class Market:
         up = add(q, fx(1))
         ok = f"And(Not({gt(up, self.cap)}), {gt(self.gain(up), self.gain(q))})"
         out.append(f"ArticleDraft.SetQuantity({sel(g(ok), up, q)})")
+        # The cap, then the 10-unit start, by gain (port() in the mirror).
+        out.append(f"ArticleDraft.SetQuantity({sel(g(gt(self.gain(self.cap), self.gain(q))), self.cap, q)})")
+        out.append(f"ArticleDraft.SetQuantity({sel(g(gt(self.gain(fx(10)), self.gain(q))), fx(10), q)})")
         return out
 
     def past_cap(self, guard=None):
@@ -322,10 +439,13 @@ class Market:
         g = (lambda c: f"And({guard}, {c})") if guard else (lambda c: c)
         above = gt(q, add(self.cap, fx(0.5)))
         out = []
+        # Not past our own price ceiling either (the climb's limit, see
+        # home_ceiling in the mirror), unless that ceiling is at 10 or below.
+        in_range = lambda up: f"Or(Not({gt(self.hc, fx(10))}), Not({gt(up, self.hc)}))"
         for e in range(ACCEPT_STEPS - 1, -1, -1):
             d = fx(2 ** e)
             up = add(q, d)
-            out.append(f"ArticleDraft.SetQuantity({sel(g(gt(self.marginal(up), fx(0))), up, q)})")
+            out.append(f"ArticleDraft.SetQuantity({sel(g(f'And({in_range(up)}, {gt(self.marginal(up), fx(0))})'), up, q)})")
             out.append(f"ArticleDraft.SetQuantity({sel(g(f'And(Not(GreaterThan_int32({acc}, {chr(39)}(int32)0{chr(39)})), {above})'), sub(q, d), q)})")
         return out
 
@@ -372,10 +492,12 @@ class Market:
         return out + self.register(reset=False)
 
     def ph1(self, q):
-        return add(self.ph, mul(self.base, sub(f_imb(add(self.bh, q), self.sh), f_imb(self.bh, self.sh))))
+        """Our first-week price after q units (the price model)."""
+        return mul(self.kh, add(clamp1(self.rh(q)), fx(FOUR_THIRDS)))
 
     def pp1(self, q):
-        return add(self.pp, mul(self.base, sub(f_imb(self.bp, add(self.sp, q)), f_imb(self.bp, self.sp))))
+        """The partner's first-week price after q units (the price model)."""
+        return mul(self.kp, add(clamp1(self.rp(q)), fx(FOUR_THIRDS)))
 
     def margin(self, q):
         return mul(q, sub(self.pp1(q), self.ph1(q)))
@@ -438,13 +560,48 @@ ONCE_TEXT = f"@money!#P +[GetVariableSystem.Get({ONCE_KEY})]#!"
 # that does not pay stops here); 2. which decade; 3. that decade's figure,
 # with no border test inside. Vanilla's pattern: an item's trigger_on_create
 # state calling FindChild(...).TriggerAnimation(...) (gui/achievements/popup.gui).
-LAZY_STEP1 = (f"PdxGuiWidget.FindChild('st_pick').TriggerAnimation(Select_CString({D_ADJ}, "
-              f"Select_CString({C_SHOW_LAND}, 'st_pl', 'st_none'), "
-              f"Select_CString({D_FAR}, "
-              f"Select_CString({C_SHOW_FAR}, 'st_pf', 'st_none'), "
-              f"Select_CString({C_SHOW_SEA}, 'st_ps', 'st_none'))))")
-LAZY_MARKETS = (("l", Market("Goods", adj=True)), ("s", Market("Goods", adj=False, far=False)),
-                ("f", Market("Goods", adj=False, far=True)))
+#
+# Split further 2026-11-19 (the price model made each test dearer): a
+# Select_CString evaluates every argument, so step 1 used to run all three
+# routes' "does it pay" tests and the decade pick all four decade tests.
+# Now step 1 picks only the route (the two border tests), the route's state
+# runs its one "does it pay" test, and each decade's state runs one decade
+# test (lazy_widgets). Measured statically in the commit that did this.
+#
+# Cheaper again 2026-11-20 (the ~0.3 s stall on opening the list): the
+# player-sends test comes before the two border tests, a card whose first
+# unit already loses stops before the 10-unit test (edge), the decade tests
+# compare two gains (Market.enter), and a decade's figure runs half its grid
+# (Market.half_up). tools/st_card_cost.py counts each path.
+LAZY_STEP1 = f"PdxGuiWidget.FindChild('st_mine').TriggerAnimation(Select_CString({C_MINE}, 'st_go', 'st_none'))"
+# The route (land, near sea, far sea) is the same for every card of one
+# partner: the first card to get there runs the two border tests (IsValid,
+# about 45 steps each by the 2026-10-16 fit) and stores the answer as l, f or
+# s under this key; the others read it. Keyed by partner and day, so a border
+# that changes is picked up the next day at the latest.
+ROUTE_KEY = ("Concatenate4('st_rt_', ArticleDraft.GetSecondOrTarget.GetIDString, '_', "
+             "TimeKeeper.GetCurrentDate.GetString)")
+LAZY_GO = (f"PdxGuiWidget.FindChild('st_way').TriggerAnimation(Select_CString("
+           f"GetVariableSystem.Exists({ROUTE_KEY}), 'st_wc', 'st_wx'))")
+LAZY_WAY_SET = (f"GetVariableSystem.Set({ROUTE_KEY}, Select_CString({D_ADJ}, 'l', "
+                f"Select_CString({D_FAR}, 'f', 's')))")
+LAZY_WAY = (f"PdxGuiWidget.FindChild('st_route').TriggerAnimation(Select_CString("
+            f"GetVariableSystem.HasValue({ROUTE_KEY}, 'l'), 'st_rl', Select_CString("
+            f"GetVariableSystem.HasValue({ROUTE_KEY}, 'f'), 'st_rf', 'st_rs')))")
+# The chain's outer widget carries datacontext = the partner's market (it adds
+# to the card's Goods context), so its formulas use the short names, as the
+# live fallback chain does (CHAIN_CTX): about 17% fewer steps. The player is
+# the sender in every branch (C_MINE in the route test), so the home market
+# is GetPlayer's.
+LAZY_MARKETS = (("l", Market("Goods", adj=True, **CHAIN_CTX)),
+                ("s", Market("Goods", adj=False, far=False, **CHAIN_CTX)),
+                ("f", Market("Goods", adj=False, far=True, **CHAIN_CTX)))
+# The first unit's margin after shipping (Market.edge): the margin per unit
+# only falls as quantity grows, so a card at or below 0 here cannot pay at 10
+# units either, and skips the 10-unit test (139 steps against 22).
+LAZY_EDGE = {tag: gt(m.edge, fx(0)) for tag, m in LAZY_MARKETS}
+LAZY_ROUTE = {tag: m.pays10 for tag, m in LAZY_MARKETS}
+LAZY_CONTEXT = "ArticleDraft.GetSecondOrTarget.GetMarket"
 # Fallback, no stored figure (no hook ran): computed live every frame, one
 # border test per card picking the land or sea chain.
 C_CHAIN_LAND = Market("Goods", adj=True, **CHAIN_CTX).chain()
@@ -1275,15 +1432,65 @@ CARD_CHIP = '''blockoverride "entire_icon_button" {
 #     LAZY_STEP1). Each step triggers the next one's state on a child
 #     widget, as vanilla does; a state runs only its own on_start lines.
 def lazy_widgets():
-    pick, leaf = ["state = {\n\tname = st_none\n}"], []
+    """The card's creation chain, one widget per step, each nested in the one
+    before (a state triggers a child's state by name):
+      st_mine   st_go: the player sends (LAZY_STEP1) -> is the route stored
+      st_way    st_wc: read the stored route; st_wx: border tests, store, read
+                (ROUTE_KEY) -> st_r<tag>
+      st_route  st_r<tag>: the first unit pays (LAZY_EDGE) -> st_q<tag> or st_none
+      st_edge   st_q<tag>: 10 units pay (LAZY_ROUTE) -> st_p<tag> or st_none
+      st_pick   st_p<tag>: decade 1's test -> st_<tag>e1, or decade 0's half test
+      st_e<d>   st_<tag>l<d-1>: decade d-1's half test -> st_<tag>a/b<d-1>;
+                st_<tag>e<d>: decade d+1's test -> st_<tag>e<d+1>, or decade d's
+                half test (at the last decade, always its half test)
+      st_h<d>   (inside st_e<d>) st_<tag>a<d-1> / st_<tag>b<d-1>: the lower or
+                upper half's figure, stored; st_h<last> also holds the last
+                decade's two.
+    Same decade as Market.lazy_pick and same half as Market.half_up, one
+    test per step."""
+    last = CHAIN_DECADES - 1
+    none = "state = {\n\tname = st_none\n}"
+    trig = lambda child, sel_: f"\ton_start = \"[PdxGuiWidget.FindChild('{child}').TriggerAnimation({sel_})]\"\n"
+    state = lambda name, body: f"state = {{\n\tname = {name}\n{body}}}"
+    store = lambda m, d, h: f"\ton_start = \"[GetVariableSystem.Set({ONCE_KEY}, {m.leaf_text(d, h)})]\"\n"
+    half = lambda tag, m, d, child: trig(child, f"Select_CString({m.half_up(10 * 10 ** d)}, "
+                                                f"'st_{tag}b{d}', 'st_{tag}a{d}')")
+    head = {"st_mine": [none, state("st_go", f"\ton_start = \"[{LAZY_GO}]\"\n")],
+            "st_way": [none, state("st_wc", f"\ton_start = \"[{LAZY_WAY}]\"\n"),
+                       state("st_wx", f"\ton_start = \"[{LAZY_WAY_SET}]\"\n\ton_start = \"[{LAZY_WAY}]\"\n")],
+            "st_route": [none], "st_edge": [none], "st_pick": [none]}
+    levels = {d: [none] for d in range(1, last + 1)}      # st_e<d>
+    halves = {d: [none] for d in range(1, last + 1)}      # st_h<d>
     for tag, m in LAZY_MARKETS:
-        pick.append(f"state = {{\n\tname = st_p{tag}\n"
-                    f"\ton_start = \"[PdxGuiWidget.FindChild('st_leaf').TriggerAnimation({m.lazy_pick(tag)})]\"\n}}")
-        for d in range(CHAIN_DECADES):
-            leaf.append(f"state = {{\n\tname = st_{tag}{d}\n"
-                        f"\ton_start = \"[GetVariableSystem.Set({ONCE_KEY}, {m.leaf_text(d)})]\"\n}}")
-    return ("widget = {\n\tname = \"st_pick\"\n\tsize = { 0 0 }\n" + "\n".join(pick)
-            + "\n\twidget = {\n\t\tname = \"st_leaf\"\n\t\tsize = { 0 0 }\n" + "\n".join(leaf) + "\n\t}\n}")
+        head["st_route"].append(state(f"st_r{tag}", trig("st_edge", f"Select_CString({LAZY_EDGE[tag]}, "
+                                                                    f"'st_q{tag}', 'st_none')")))
+        head["st_edge"].append(state(f"st_q{tag}", trig("st_pick", f"Select_CString({LAZY_ROUTE[tag]}, "
+                                                                   f"'st_p{tag}', 'st_none')")))
+        head["st_pick"].append(state(f"st_p{tag}", trig("st_e1", f"Select_CString({m.enter(100)}, "
+                                                                 f"'st_{tag}e1', 'st_{tag}l0')")))
+        for d in range(1, last + 1):
+            levels[d].append(state(f"st_{tag}l{d - 1}", half(tag, m, d - 1, f"st_h{d}")))
+            for h in ("a", "b"):
+                halves[d].append(state(f"st_{tag}{h}{d - 1}", store(m, d - 1, h)))
+            if d < last:
+                levels[d].append(state(f"st_{tag}e{d}", trig(f"st_e{d + 1}", f"Select_CString("
+                                       f"{m.enter(10 * 10 ** (d + 1))}, 'st_{tag}e{d + 1}', 'st_{tag}l{d}')")))
+            else:
+                levels[d].append(state(f"st_{tag}e{d}", half(tag, m, d, f"st_h{d}")))
+                for h in ("a", "b"):
+                    halves[d].append(state(f"st_{tag}{h}{d}", store(m, d, h)))
+
+    def widget(name, parts, ctx=""):
+        inner = "\n".join(parts)
+        return (f"widget = {{\n\tname = \"{name}\"\n\tsize = {{ 0 0 }}\n{ctx}\t"
+                + inner.replace("\n", "\n\t").rstrip("\t") + "\n}")
+    out = ""
+    for d in reversed(range(1, last + 1)):
+        out = widget(f"st_e{d}", levels[d] + [widget(f"st_h{d}", halves[d])] + ([out] if out else []))
+    for name in ("st_pick", "st_edge", "st_route", "st_way", "st_mine"):
+        ctx = f"\tdatacontext = \"[{LAZY_CONTEXT}]\"\n" if name == "st_mine" else ""
+        out = widget(name, head[name] + [out], ctx)
+    return out
 
 
 # 1c. A good suggested in the market panel (gen_st_recommender.py, GUI_ROW):
@@ -1307,11 +1514,124 @@ REC_PICK_WIDGET = ("widget = {\n\tname = \"st_rec_pre\"\n\tsize = { 0 0 }\n"
                    + "}\n}")
 
 ITEM_ANCHOR = 'item = {\n\t\t\tcontainer = {'
+# --perf (dev only, never committed or released): every card creation also
+# logs ST_PERF|created|<date> through st_perf_sgui, so a run can count how
+# often the goods list is rebuilt (paused, and at each speed). Answers whether
+# the card's creation cost is paid once per opening or on every tick, which
+# decides how much the price model's dearer cards cost a player who does not
+# pause (Damien's baseline 2026-11-19: list open 140-150 fps paused, 110
+# unpaused). The normal build has neither the call nor the file, and
+# check_st_generated_files_current reports a --perf build as STALE.
+PERF = "--perf" in sys.argv
+PERF_SGUI = REPO / "smart_trade" / "common" / "scripted_guis" / "st_perf_sgui.txt"
+# --perf also times the opening (added 2026-11-20 for the ~0.3 s stall), in
+# one launch, three modes that take turns, one per opening of the list:
+#   new  this build's creation chain
+#   old  Smart Treaties 0.14's chain (PERF_OLD_REF), its widgets renamed so_*
+#   off  no chain at all: what the list costs without the card figures
+# Each good keeps its own mode key and moves it on at every creation, so
+# opening 1 runs new, 2 old, 3 off, 4 new... with nothing to click (the first
+# try's card button never took a click, run of 2026-11-20).
+# Timing: the chain runs PERF_REPEAT times per card, so an opening lasts
+# seconds and debug.log's 1 s timestamps can time it. Every card logs
+# ST_PERF|begin|<mode> before and ST_PERF|end|<mode>|ok|bad after;
+# tools/st_perf_report.py turns them into seconds per opening. ok means a
+# mod-7 counter ticked in the chain's route step came out at
+# PERF_REPEAT % 7, so the repeats really ran (bad: the engine skipped
+# re-triggered states and the timing means nothing). The first try's
+# frame-time meter (a looping state reading PdxProfilerGetFrameTimeMs)
+# never wrote anything; likely cause, unconfirmed: a state with no animated
+# property logs "Animation triggered has no valid state properties" and
+# never reaches its next.
+PERF_OLD_REF = "94f2b1b"          # Smart Treaties 0.14
+PERF_REPEAT = 100
+PERF_MODE_KEY = "Concatenate('st_pmode_', Goods.GetKey)"
+PERF_MODE_IS = lambda m: f"GetVariableSystem.HasValue({PERF_MODE_KEY}, '{m}')"
+PERF_PICK = lambda new, old, off: f"Select_CString({PERF_MODE_IS('old')}, '{old}', Select_CString({PERF_MODE_IS('off')}, '{off}', '{new}'))"
+PERF_MODE_NAME = PERF_PICK("new", "old", "off")
+PERF_MODE_NEXT = f"Select_CString({PERF_MODE_IS('new')}, 'old', Select_CString({PERF_MODE_IS('old')}, 'off', 'new'))"
+PERF_TICK_OK = f"GetVariableSystem.HasValue('st_perf_tick', '{PERF_REPEAT % 7}')"
+PERF_LOGS = ("b_new", "b_old", "b_off", "e_new_ok", "e_new_bad", "e_old_ok", "e_old_bad", "e_off")
+
+
+def perf_tick():
+    """st_perf_tick moves on by one, 0 to 6 and round again."""
+    out = "'0'"
+    for i in reversed(range(6)):
+        out = f"Select_CString(GetVariableSystem.HasValue('st_perf_tick', '{i}'), '{i + 1}', {out})"
+    return f"GetVariableSystem.Set('st_perf_tick', {out})"
+
+
+def perf_ticked(widgets):
+    """The chain's route states (st_rl/st_rf/st_rs, one per run) tick first."""
+    import re
+    out, n = re.subn(r"\n(\t*)name = (st_rl|st_rf|st_rs)\n",
+                     lambda m: f"{m.group(0)}{m.group(1)}on_start = \"[{perf_tick()}]\"\n", widgets)
+    assert n == 3, n
+    return out
+
+
+def perf_log(name):
+    return (f"state = {{\n\tname = st_pl_{name}\n\ton_start = \"[GetScriptedGui('st_perf_{name}')"
+            ".Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]\"\n}\n")
+
+
+def perf_old_chain():
+    """0.14's creation chain (LAZY_STEP1, lazy_widgets) from git, its
+    widget names prefixed so_ so they never meet this build's."""
+    import importlib.util
+    import re
+    import subprocess
+    import tempfile
+    src = subprocess.run(["git", "show", f"{PERF_OLD_REF}:tools/gen_smart_trade_gui.py"], cwd=REPO,
+                         capture_output=True, text=True, encoding="utf-8", check=True).stdout
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "st_gui_old.py"
+        path.write_text(src, encoding="utf-8")
+        spec = importlib.util.spec_from_file_location("st_gui_old", path)
+        old = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(old)
+    ren = lambda t: re.sub(r"FindChild\('st_(\w+)'\)", r"FindChild('so_\1')", re.sub(r'name = "st_(\w+)"', r'name = "so_\1"', t))
+    return ren(old.LAZY_STEP1), ren(old.lazy_widgets())
+
+
+def perf_item():
+    """The --perf card: mode, logged and repeated chains, mode label."""
+    old_step, old_widgets = perf_old_chain()
+    find = lambda w, s: f"\ton_start = \"[PdxGuiWidget.FindChild('{w}').TriggerAnimation({s})]\"\n"
+    tick_ok = lambda m: f"Select_CString({PERF_TICK_OK}, 'st_pl_e_{m}_ok', 'st_pl_e_{m}_bad')"
+    created = ("state = {\n\tname = st_created\n\ttrigger_on_create = yes\n"
+               f"\ton_start = \"[GetVariableSystem.Set({ONCE_KEY}, 'n')]\"\n"
+               f"\ton_start = \"[GetVariableSystem.Set({PERF_MODE_KEY}, {PERF_MODE_NEXT})]\"\n"
+               f"\ton_start = \"[GetVariableSystem.Set('st_perf_ran', {PERF_MODE_NAME})]\"\n"
+               "\ton_start = \"[GetVariableSystem.Set('st_perf_tick', '0')]\"\n"
+               + find("st_perf_lb", PERF_PICK("st_pl_b_new", "st_pl_b_old", "st_pl_b_off"))
+               + find("st_ab", PERF_PICK("st_ab_new", "st_ab_old", "st_none"))
+               + find("st_perf_le", f"Select_CString({PERF_MODE_IS('off')}, 'st_pl_e_off', "
+                                    f"Select_CString({PERF_MODE_IS('old')}, {tick_ok('old')}, {tick_ok('new')}))")
+               + f"\ton_start = \"[{REC_PICK_STEP}]\"\n}}\n")
+    logs = lambda w, p: (f"widget = {{\n\tname = \"{w}\"\n\tsize = {{ 0 0 }}\n"
+                         + "".join(perf_log(n) for n in PERF_LOGS if n.startswith(p)) + "}\n")
+    ab = ("widget = {\n\tname = \"st_ab\"\n\tsize = { 0 0 }\n"
+          "state = {\n\tname = st_none\n}\n"
+          "state = {\n\tname = st_ab_new\n" + "\ton_start = \"[@@LAZY_STEP1@@]\"\n" * PERF_REPEAT + "}\n"
+          "state = {\n\tname = st_ab_old\n" + f"\ton_start = \"[{old_step}]\"\n" * PERF_REPEAT + "}\n"
+          + perf_ticked(lazy_widgets()) + "\n" + perf_ticked(old_widgets) + "\n}\n")
+    label = ("textbox = {\n\tparentanchor = top|right\n\tposition = { -4 2 }\n\tautoresize = yes\n"
+             "\talign = nobaseline\n\tusing = fontsize_small\n\talwaystransparent = yes\n"
+             "\traw_text = \"#P [GetVariableSystem.Get('st_perf_ran')] t[GetVariableSystem.Get('st_perf_tick')]#!\"\n}\n")
+    return created + logs("st_perf_lb", "b_") + logs("st_perf_le", "e_") + ab + REC_PICK_WIDGET, label
+
+
+# The mode label goes after vanilla's grid_button, so it draws on top.
+PERF_GRID_ANCHOR = 'using = default_button\n\t\t\t\t\t}\n\t\t\t\t}\n\n\t\t\t\twidget = {'
+PERF_ITEM, PERF_OVERLAY = perf_item() if PERF else ("", "")
 ITEM_STATE = (ITEM_ANCHOR + "\n### SMART TRADE: the card's figure, computed once on creation\n"
-              "state = {\n\tname = st_created\n\ttrigger_on_create = yes\n"
-              f"\ton_start = \"[GetVariableSystem.Set({ONCE_KEY}, 'n')]\"\n"
-              "\ton_start = \"[@@LAZY_STEP1@@]\"\n"
-              f"\ton_start = \"[{REC_PICK_STEP}]\"\n}}\n" + lazy_widgets() + "\n" + REC_PICK_WIDGET)
+              + (PERF_ITEM if PERF else
+                 "state = {\n\tname = st_created\n\ttrigger_on_create = yes\n"
+                 f"\ton_start = \"[GetVariableSystem.Set({ONCE_KEY}, 'n')]\"\n"
+                 "\ton_start = \"[@@LAZY_STEP1@@]\"\n"
+                 f"\ton_start = \"[{REC_PICK_STEP}]\"\n}}\n" + lazy_widgets() + "\n" + REC_PICK_WIDGET))
 
 PICK_ANCHOR = 'onclick = "[ArticleDraft.SetGood(Goods.Self)]"'
 PICK_BEST = PICK_ANCHOR + '''
@@ -1411,7 +1731,9 @@ ROW_TIGHTEN = [
 ]
 
 PICKER_TYPES = [
-    ("article_input_goods_list", [(ITEM_ANCHOR, ITEM_STATE), (CARD_ANCHOR, CARD_CHIP), (PICK_ANCHOR, PICK_BEST)]),
+    ("article_input_goods_list", [(ITEM_ANCHOR, ITEM_STATE), (CARD_ANCHOR, CARD_CHIP), (PICK_ANCHOR, PICK_BEST)]
+     + ([(PERF_GRID_ANCHOR, PERF_GRID_ANCHOR.replace("\n\n", "\n### SMART TRADE --perf: timing readout\n"
+                                                    + PERF_OVERLAY + "\n", 1))] if PERF else [])),
     ("selected_goods_and_amount", [(ROW_SIZE_ANCHOR, ROW_SIZE), (ROW_ANCHOR, ROW_BEST)] + ROW_TIGHTEN),
 ]
 
@@ -1467,8 +1789,24 @@ def expand(text: str) -> str:
 
 OUTPUTS = {OUT_GUI: GUI + picker_block(), **loc_files()}
 
+PERF_SGUI_TEXT = ("# DEV ONLY: written by tools/gen_smart_trade_gui.py --perf. Never commit,\n"
+                  "# never release: rerun the generator without --perf, which deletes this file.\n"
+                  + "".join(f"st_perf_{n} = {{\n\tscope = country\n\teffect = {{\n"
+                            f"\t\tdebug_log = \"ST_PERF|{'begin' if n[0] == 'b' else 'end'}|{n[2:].replace('_', '|')}"
+                            "|[TimeKeeper.GetCurrentDate.GetString]\"\n\t}\n"
+                            "\tai_is_valid = { always = no }\n\tai_chance = { base = 0 }\n}\n" for n in PERF_LOGS))
+
 if __name__ == "__main__":
     stale = []
+    if "--check" in sys.argv:
+        if PERF_SGUI.is_file():
+            stale.append(PERF_SGUI.relative_to(REPO).as_posix() + " (a --perf build)")
+    elif PERF:
+        PERF_SGUI.write_text("﻿" + PERF_SGUI_TEXT, encoding="utf-8")
+        print(f"wrote {PERF_SGUI.relative_to(REPO)} (--perf: dev only)")
+    elif PERF_SGUI.is_file():
+        PERF_SGUI.unlink()
+        print(f"deleted {PERF_SGUI.relative_to(REPO)} (normal build)")
     for path, template in OUTPUTS.items():
         want = expand(template)
         if "--check" in sys.argv:

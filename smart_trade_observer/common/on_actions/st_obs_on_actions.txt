@@ -9,7 +9,7 @@ on_game_started = {
 }
 st_obs_game_started = {
 	effect = {
-		debug_log = "ST_OBS|START|[TimeKeeper.GetCurrentDate.GetString]|observer v0.03"
+		debug_log = "ST_OBS|START|[TimeKeeper.GetCurrentDate.GetString]|observer v0.05"
 	}
 }
 
@@ -57,6 +57,10 @@ st_obs_treaty_dissolved = {
 on_monthly_pulse = {
 	on_actions = { st_obs_monthly }
 }
+
+# v0.04 (2026-11-19) carried a one-time test of Smart Treaties' losing-transfer
+# toast (type = treaty); Damien confirmed it opens the right treaty the same
+# day, and v0.05 drops it. `git show bb300d6 -- smart_trade_observer/` has it.
 st_obs_monthly = {
 	effect = {
 		every_treaty = {

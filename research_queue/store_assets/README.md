@@ -4,6 +4,19 @@ Store assets: Reorder Research Queue
 **Not shipped.** `package_release.py` copies only `.metadata/`, `common/`,
 `events/`, `gui/`, `localization/` and `thumbnail.png`.
 
+## Workshop item
+
+ID `3841721873`, first published 2026-11-18 as 0.10:
+https://steamcommunity.com/sharedfiles/filedetails/?id=3841721873
+(images: https://steamcommunity.com/sharedfiles/managepreviews/?id=3841721873).
+
+Gallery GIF: `gif/reorder_workshop.gif`, 1,502,924 bytes, under Steam's 2 MB
+image limit. It has all 202 frames and the full 10.27 s of the 2,403,535-byte
+recording, with unchanged pixels stored as transparent and one shared 255-colour
+palette. That palette is built from 12 sample frames plus every distinct colour
+of the recording, so the yellow click marker keeps a slot. Mean error against
+the source is 1.74 per channel (0-255).
+
 ## Title
 
 **Reorder Research Queue: drag & drop techs** (41 characters; user's call,
@@ -80,7 +93,8 @@ preview, a short page (256 words against 434 and 629).
 ## Description
 
 `../STEAM_WORKSHOP_DESCRIPTION.bbcode`. The GIF goes inline after the
-opening paragraphs (`GIF_URL_HERE`, an Imgur direct `.gif` link under 5 MB:
+opening paragraphs (https://i.imgur.com/gr5cjiT.gif, 2,403,513 bytes, set
+2026-11-18; an Imgur direct `.gif` link under 5 MB:
 above that Imgur turns it into MP4 and the link stops animating on Steam,
 cf bulk_construction/store_assets/README.md). The opening is 280 characters
 before the URL, so the URL stays out of the hover preview. Check after any

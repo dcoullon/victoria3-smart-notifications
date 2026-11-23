@@ -160,25 +160,6 @@ smart_notifications_probe_play_start_third_party = {
 	}
 }
 
-# Root = Diplomatic Play -- filterable today
-on_diplo_play_subject_released = {
-	on_actions = { smart_notifications_probe_play_subject_released }
-}
-
-smart_notifications_probe_play_subject_released = {
-	effect = {
-		debug_log = "SNW_PROBE|play_subject_released|fired"
-		scope:actor ?= { debug_log = "SNW_PROBE|play_subject_released|scope:actor=[THIS.GetCountry.GetNameNoFormatting]" }
-		scope:target ?= { debug_log = "SNW_PROBE|play_subject_released|scope:target=[THIS.GetCountry.GetNameNoFormatting]" }
-		scope:recipient ?= { debug_log = "SNW_PROBE|play_subject_released|scope:recipient=[THIS.GetCountry.GetNameNoFormatting]" }
-		scope:initiator ?= { debug_log = "SNW_PROBE|play_subject_released|scope:initiator=[THIS.GetCountry.GetNameNoFormatting]" }
-		scope:first_country ?= { debug_log = "SNW_PROBE|play_subject_released|scope:first_country=[THIS.GetCountry.GetNameNoFormatting]" }
-		scope:second_country ?= { debug_log = "SNW_PROBE|play_subject_released|scope:second_country=[THIS.GetCountry.GetNameNoFormatting]" }
-		# Root is a Diplomatic Play here, so the participant roster IS
-		# reachable (any_scope_play_involved, already used in 03_...).
-		every_scope_play_involved = { debug_log = "SNW_PROBE|play_subject_released|involved=[THIS.GetCountry.GetNameNoFormatting]" }
-	}
-}
 
 # Root = Country (the non-participant being told). Need the war's OTHER side.
 on_peace_agreement_signed_non_participant = {

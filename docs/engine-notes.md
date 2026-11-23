@@ -756,6 +756,12 @@ had to be inverted to a world scan (`every_country = { limit = {
 any_rivaling_country = { this ?= global_var:... } } }`) since it iterates
 relative to the current scope rather than taking a target.
 
+**Superseded:** the bulk effects later saved the player as a temporary
+scope instead (`scope:snw_bulk_player`, `watchlist_sgui.txt`), and the
+global went unread. The engine flagged it at load ("Variable
+'smart_notifications_player_country' is set but is never used"), and its
+two setters were removed on 2026-11-18. The pattern above still works.
+
 **What is NOT true, recorded because it was written down as fact here for
 one commit:** an earlier version of this note claimed
 `any_country = { is_player = yes ... }` misbehaves inside a scripted_gui
@@ -1832,6 +1838,18 @@ noticeably faster; it was not timed.
 
 `check_st_cards_skip_border_trigger` asserts the creation hook exists and
 that no step after the first calls the border trigger.
+
+**Where the steps go (2026-11-20, `tools/st_card_cost.py` counts a card's
+chain).** Without number storage, repetition is the cost: every gain
+rebuilds both sides' price scale K (65 of its 138 steps), and a quantity
+that is itself an expression (the climb's limit, 49 steps) appears five
+times in one gain. What cut a paying card by 31-40% with the same figures:
+compare two gains as one difference, so each K is built once; test "past
+the limit" for a literal quantity without building the limit; split by
+state (decade, then half decade) so each step runs fewer gains; and keep a
+choice that is the same for every card of a list (the route) in a GUI
+variable, read with `HasValue`, so only the first card pays for it. Not
+confirmed in game yet (smart-treaties-next.md, the stall entry).
 
 ## Triggered GUI states run in widget-tree order, not call order
 

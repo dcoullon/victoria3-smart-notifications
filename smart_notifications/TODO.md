@@ -720,6 +720,53 @@ own separate mod. No version target until that's decided.
       treaty terms, so the phase closed with no new content needed and
       these tools have nothing left to scope.
 
+## DONE (0.45) — population figures in all 11 languages (built and confirmed 2026-11-18)
+
+**Confirmed 2026-11-18** (Damien's French Spain 1860 save, dev junction
+mounted, screenshot 20261118115620_1.jpg): the "Ville d'abondance" event
+showed "Classe supérieure Groupes sociaux (177K dans tout le pays)" and
+"Classe moyenne Groupes sociaux (2.05M dans tout le pays)"; zero error.log
+lines from the mod. So `replace/<lang>/` works outside English. Criterion
+(2), the state line, was not seen on screen; it lives in the same loaded
+file, so it is covered by the same mechanism. The engine's "set but never
+used" note on the removed player-country global is gone in the same run.
+
+The 0.40 population-in-events feature was English-only: it predates the
+0.42 translation pass, which skipped `localization/replace/`. Now
+`python tools/gen_sn_event_context.py` writes
+`localization/replace/<lang>/smart_notifications_event_context_l_<lang>.yml`
+for the ten other languages from each language's OWN vanilla strings (one
+rule; applied to English vanilla it reproduces the hand-written English file
+key for key, which `--check` enforces). `check_sn_event_context_is_current`
+fails as soon as a patch changes any of the seven vanilla strings in any
+language.
+
+**Acceptance criteria.** With the game language set to French: (1) an event
+option with a single-culture (or religion, interest group, profession,
+strata) radicals/loyalists effect shows `(<number> dans tout le pays)` right
+after the group's description; (2) a state-scoped effect shows
+`(<number> habitants)` right after the state's name; (3) no raw key
+(`SMART_NOTIFICATIONS_EVT_SIZE_...`) anywhere; (4) zero new lines in
+`error.log` (`python tools/scan_logs.py`). French stands in for the other
+nine: the mechanism (`localization/replace/<lang>/`) is the same folder
+logic in every language, so one language confirms it. Russian is the one
+worth a second glance if a session is in Russian anyway: its state name is
+a tooltip block, so the insertion point differs.
+
+**Test recipe (2026-11-18).** Game language French, playset with "Smart
+Notifications - Dev" (the junction) instead of the Workshop copy,
+`-debug_mode`, any save. Console: `event russian_central_asia.3`, hover the
+only option: the Turkmen radicals line ends in "(N dans tout le pays)"
+(N may be 0). Console: `event 1848.5`, hover the third option ("neither"):
+"en <capital> (N habitants) deviennent plus radicaux". F12 on each hover;
+do not save afterwards (the options change laws and modifiers).
+
+**Not confirmed:** that `replace/<lang>/` works outside English (only
+English has ever been tested in this repo). Until it is, the Workshop
+descriptions keep saying population figures are English only (the Chinese
+one does). After confirmation: bump the version, add the CHANGELOG entry,
+and drop that caveat from `STEAM_WORKSHOP_DESCRIPTION.schinese.bbcode`.
+
 ## UNVERIFIED — event context feature, already shipped in v0.40
 
 Merged into Smart Notifications 2026-09-14 as

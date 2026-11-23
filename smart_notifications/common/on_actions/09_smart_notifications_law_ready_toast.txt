@@ -34,6 +34,19 @@ smart_notifications_law_ready_toast_check = {
 		if = {
 			limit = { is_player = yes }
 
+			# 2026-11-19: readiness is held while any law is mid-enactment
+			# (smart_notifications_law_ready_to_enact's enacting_any_law
+			# guard). This line is the test's verdict: one per month while
+			# held, then SNW_LAW_TOAST|fired for a wanted law that is ready
+			# once the enactment ends. Stripped from releases.
+			if = {
+				limit = {
+					enacting_any_law = yes
+					any_law = { smart_notifications_law_matches_wanted_flag = yes }
+				}
+				debug_log = "SNW_LAW_TOAST|held_enacting|[TimeKeeper.GetCurrentDate.GetString]"
+			}
+
 			# REMOVED 2026-10-06: a temporary 2026-09-09 diagnostic any_law
 			# sweep sat here. Its only output was a debug_log, which
 			# package_release strips, so releases ran a full readiness sweep

@@ -35,6 +35,20 @@ Build All (3803950977):
 
 The 2026-09-12..14 Smart Notifications readings exist in the sheet.
 
+Reorder Research Queue (3841721873), published 2026-11-18 (17 Nov 5:49pm PT):
+tab "Reorder research" (sheetId 2143389703), added to the noon routine
+"Daily Steam Workshop stats" (trig_01HmsZwyutmcLyjqzutshKwz) on 2026-11-18;
+its first scheduled reading is 2026-11-18 noon PT.
+
+From 2026-11-18 the same routine also writes each tab's total ratings (column L,
+up plus down) and Steam's star count (column M, "none" below 25 ratings). Both come
+from the `total_votes` and `star_rating` fields embedded in the Workshop search
+page (`browsesort=textsearch`, searching the mod's title). The up/down split is
+not public without a Steam Web API key. Steam's star score appears to be
+(up + 50) / (up + down + 100), 4 stars from 0.60 and 5 from 0.80: on 2026-11-18,
+617 Victoria 3 items gave no counter-example (stars hidden at 24 ratings or fewer
+and shown from 25, no 4-star item under 28 ratings, no 5-star item under 155).
+
 Item created 2026-09-10 for the first public release. An earlier closed-beta
 listing (ID `3798687130`, v0.35) was deleted and carried its own counts; they
 are not continuous with these.

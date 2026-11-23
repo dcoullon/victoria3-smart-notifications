@@ -323,6 +323,9 @@ def check_alert_group_registration(root: Path, defined_loc: set[str]) -> list[st
     return errs
 
 
+COMPANION_MODS = {"smart_trade_observer": "smart_trade"}
+
+
 def check_post_notification_targets(root: Path, defined_loc: set[str]) -> list[str]:
     """Every `post_notification = X` must resolve to a real message
     defined under common/messages/*.txt, and that message needs its
@@ -333,13 +336,24 @@ def check_post_notification_targets(root: Path, defined_loc: set[str]) -> list[s
     specifically so that generated set can't silently drift the same way
     the law_type dispatch files could."""
     errs = []
-    messages_dir = root / "common" / "messages"
     defined_messages = set()
-    if messages_dir.is_dir():
-        for path in messages_dir.glob("*.txt"):
-            text = _read(path)
-            for m in re.finditer(r"(?m)^([A-Za-z0-9_]+)\s*=\s*\{", text):
-                defined_messages.add(m.group(1))
+    # A dev-only companion mod is always loaded with its parent, so it may post
+    # the parent's messages (the observer's one-time test of Smart Treaties'
+    # losing-transfer toast, 2026-11-19). Messages and English loc both resolve
+    # from the parent too.
+    parent = COMPANION_MODS.get(root.name)
+    roots = [root] + ([root.parent / parent] if parent else [])
+    for r in roots:
+        messages_dir = r / "common" / "messages"
+        if messages_dir.is_dir():
+            for path in messages_dir.glob("*.txt"):
+                text = _read(path)
+                for m in re.finditer(r"(?m)^([A-Za-z0-9_]+)\s*=\s*\{", text):
+                    defined_messages.add(m.group(1))
+    if parent:
+        defined_loc = set(defined_loc)
+        for path in (root.parent / parent / "localization" / "english").glob("*.yml"):
+            defined_loc |= set(re.findall(r"(?m)^\s*([A-Za-z0-9_.]+):\d*\s", _read(path)))
 
     for path in _iter_mod_files(root):
         text = _read(path)
@@ -560,6 +574,22 @@ def check_full_overrides_match_installed_vanilla(root: Path) -> list[str]:
                 f"are missing from our override -- likely a game patch changed it since this was last "
                 f"synced (see reference/vanilla/README.md). Sample: {sample}"
             )
+        # The reverse direction, for top-level blocks only: a block vanilla
+        # DELETED but our override still defines. Game 1.15.2 removed both
+        # diplo_play_subject_released messages and the check above stayed
+        # green, because it only looks for vanilla lines we lack.
+        def top_keys(text: str) -> set[str]:
+            return set(re.findall(r"(?m)^([A-Za-z_][\w.]*)\s*=\s*\{", text))
+
+        if our_rel.endswith(".txt"):
+            gone = (top_keys(our_path.read_text(encoding="utf-8-sig", errors="ignore"))
+                    - top_keys(installed.read_text(encoding="utf-8-sig", errors="ignore")))
+            if gone:
+                errs.append(
+                    f"{our_rel}: {len(gone)} top-level block(s) our override defines are gone from the "
+                    f"installed vanilla file -- a game patch removed them; drop them and anything that "
+                    f"posts or hooks them: {sorted(gone)}"
+                )
     return errs
 
 
@@ -637,9 +667,7 @@ WATCHLIST_SPEC_CELLS = {
     "smart_notifications_diplo_play_join_side_quiet": "feed",
     "smart_notifications_diplo_play_war_start_watched": "toast",
     "smart_notifications_diplo_play_war_start_quiet": "feed",
-    # F7 -- subject released, unchanged by the spec but pinned so it cannot
-    # drift silently.
-    "smart_notifications_diplo_play_subject_released_watched": "toast",
+    # F7 (subject released) removed 2026-11-19: game 1.15.2 deleted the event.
 }
 
 # Cells that deliberately SHARE a group, and the group they share. D11 wants
@@ -1326,8 +1354,12 @@ def check_st_generated_files_current(root: Path) -> list[str]:
     errs = []
     # Both read the installed game: the GUI generator copies vanilla's goods
     # picker list, so a patch that changes it shows up here as STALE.
+    # gen_st_recommender.py copies vanilla's market_panel and goods_panel the
+    # same way; it was missing here, so game 1.15.2's market panel changes
+    # passed validation unported (found 2026-11-19).
     gens = [("tools/gen_smart_trade_gui.py", True),
-            ("tools/gen_smart_trade_values.py", True)]
+            ("tools/gen_smart_trade_values.py", True),
+            ("tools/gen_st_recommender.py", True)]
     for script, needs_game in gens:
         if needs_game and not VANILLA_ROOT.is_dir():
             _skip(script, "Victoria 3 not installed on this machine")
@@ -1337,6 +1369,21 @@ def check_st_generated_files_current(root: Path) -> list[str]:
         if r.returncode != 0:
             errs.append(f"{script}: {r.stdout.strip() or r.stderr.strip()}")
     return errs
+
+
+def check_st_price_model(root: Path) -> list[str]:
+    """Smart Treaties' one price model (2026-11-19): the generated GUI
+    formulas, the card creation chain, the Best button and the suggestion
+    scan, evaluated against the Python mirror and brute force on random
+    market shapes (tools/check_price_model.py, quick mode, a few seconds)."""
+    import subprocess
+    r = subprocess.run([sys.executable, str(REPO_ROOT / "tools" / "check_price_model.py"), "--quick"],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        fails = [l for l in r.stdout.splitlines() if l.startswith("[FAIL]")]
+        return [f"tools/check_price_model.py: {f}" for f in fails] or [
+            f"tools/check_price_model.py: {(r.stdout + r.stderr).strip()[-400:]}"]
+    return []
 
 
 def check_rq_generated_files_current(root: Path) -> list[str]:
@@ -1875,7 +1922,9 @@ def check_translations_match_english(root: Path) -> list[str]:
     are usually a rename that only landed in one file. localization/replace/
     is compared the same way, but only for the languages it has: a mod may
     replace a vanilla key in English alone and leave vanilla's own text in
-    place elsewhere (Smart Notifications' event-tooltip enrichment does)."""
+    place elsewhere (Smart Treaties' treasury lines do). Smart Notifications'
+    event-tooltip files, generated per language since 2026-11-18, are checked
+    for key parity only; see check_sn_event_context_is_current."""
     errs = []
     loc = root / "localization"
 
@@ -1913,6 +1962,15 @@ def check_translations_match_english(root: Path) -> list[str]:
                 errs.append("%s/%s/: defines %d key(s) English does not "
                             "(%s) -- likely a rename that only landed here"
                             % (rel_base, lang, len(extra), ", ".join(extra[:5])))
+            # Files generated from that language's OWN vanilla strings are
+            # supposed to differ from English call for call (Russian wraps
+            # names in tooltip blocks, Polish lowercases with |l, ...). Their
+            # reference is vanilla, and check_sn_event_context_is_current
+            # holds them to it, so the English comparison would only be noise.
+            # Raw text on purpose: _read strips comments, and the mark is one.
+            if any(EVENT_CONTEXT_GENERATED_MARK in p.read_text(encoding="utf-8-sig")
+                   for p in (base / lang).glob("*.yml")):
+                continue
             for key in sorted(set(english) & set(theirs)):
                 if english[key] != theirs[key]:
                     lost = sorted(english[key] - theirs[key])
@@ -1935,6 +1993,48 @@ def check_translations_match_english(root: Path) -> list[str]:
         compare(rep, [d.name for d in sorted(rep.iterdir())
                       if d.is_dir() and d.name != "english"], required=False)
     return errs
+
+
+EVENT_CONTEXT_GENERATED_MARK = "GENERATED by tools/gen_sn_event_context.py"
+
+
+def check_sn_event_context_is_current(root: Path) -> list[str]:
+    """The population-in-events overrides for the ten non-English languages
+    are generated from each language's own vanilla strings. Two silent
+    failures this catches:
+
+    - A patch edits one of the seven vanilla strings in some language. Our
+      override keeps rendering the old wording in that language forever,
+      with nothing in error.log. (English has the same guard in
+      check_replaced_loc_still_matches_vanilla; this covers the other ten.)
+    - Someone edits the English override by hand and the ten generated
+      files no longer match it, or the generator's rule no longer
+      reproduces English at all.
+
+    Regenerate with: python tools/gen_sn_event_context.py"""
+    import importlib.util
+    gen_path = REPO_ROOT / "tools" / "gen_sn_event_context.py"
+    if not gen_path.is_file():
+        return []
+    if not (VANILLA_ROOT / "localization").is_dir():
+        _skip("check_sn_event_context_is_current",
+              f"vanilla localization not found at {VANILLA_ROOT / 'localization'}")
+        return []
+    spec = importlib.util.spec_from_file_location("gen_sn_event_context", gen_path)
+    gen = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(gen)
+    import contextlib
+    import io
+    buf = io.StringIO()
+    try:
+        with contextlib.redirect_stdout(buf):
+            code = gen.main(["--check"])
+    except SystemExit as e:  # the generator stops on a vanilla shape it can't handle
+        return [f"gen_sn_event_context: {e}"]
+    if code != 0:
+        return ["gen_sn_event_context --check: " + line
+                for line in buf.getvalue().strip().splitlines()]
+    return []
 
 
 # Bulk Construction's build button is 500px wide (gui/00_bulk_construction_
@@ -2247,6 +2347,31 @@ def check_sn_section_labels_fit(root: Path) -> list[str]:
     return errs
 
 
+def check_sn_law_ready_guards(root: Path) -> list[str]:
+    """smart_notifications_law_ready_to_enact feeds the Law Ready alert, its
+    toast and its tooltip list. It must keep its three guards: not in force,
+    not on the post-failure cooldown, and no enactment already running (game
+    1.15.2 run, 2026-11-19: without the last one, the current enactment's
+    modifiers made other wanted laws read as ready until it ended)."""
+    path = root / "common" / "scripted_triggers" / "01_smart_notifications_law_wanted_trigger.txt"
+    if not path.is_file():
+        return []
+    text = _read(path)
+    m = re.search(r"(?m)^smart_notifications_law_ready_to_enact\s*=\s*\{(.*?)\n\t\tOR\s*=", text, re.S)
+    if not m:
+        return [f"{path.name}: smart_notifications_law_ready_to_enact not found, or its guard block "
+                f"no longer precedes the chance sweep"]
+    head = re.sub(r"#[^\n]*", "", m.group(1))
+    needed = {
+        "NOT = { enacting_any_law = yes }": "an enactment already running",
+        "NOT = { has_law = prev.type }": "the law already in force",
+        "NOT = { smart_notifications_law_on_cooldown = yes }": "the post-failure cooldown",
+    }
+    norm = re.sub(r"\s+", " ", head)
+    return [f"{path.name}: smart_notifications_law_ready_to_enact lost its guard for {why} ({g})"
+            for g, why in needed.items() if g not in norm]
+
+
 _VANILLA_EN_KEYS: set = set()
 
 
@@ -2339,8 +2464,10 @@ def run_all(root: Path) -> list[str]:
         errs += check_watchlist_spec_group_isolation(root)
         errs += check_mod_group_labels_are_tagged(root)
         errs += check_sn_section_labels_fit(root)
+        errs += check_sn_law_ready_guards(root)
         errs += check_census_build_not_stale(root)
         errs += check_dev_only_files_are_consistent(root)
+        errs += check_sn_event_context_is_current(root)
 
     # Bulk-Construction-only: its no-cheat rule is structural, so it is
     # asserted on every run rather than remembered at release time.
@@ -2358,6 +2485,7 @@ def run_all(root: Path) -> list[str]:
     if read_mod_id(root) == SMART_TRADE_ID:
         errs += check_no_cheat_verbs(root)
         errs += check_st_generated_files_current(root)
+        errs += check_st_price_model(root)
         errs += check_st_entry_width_matches_vanilla(root)
         errs += check_st_cards_skip_border_trigger(root)
         errs += check_st_rec_gui_variable_names(root)

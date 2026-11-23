@@ -17,6 +17,186 @@ Revised 2026-11-10 after the measurement run (Damien):
 The predictor stays as it is for now. Any change to it later must keep the
 goods cards' frame rate.
 
+## Open (2026-11-19)
+
+- **Solved: coffee to the North German Federation missing from the
+  suggestions** (Damien's Spain run, 17 Nov 1861). Spain already sent it 22
+  coffee a week (treaty of 26 Aug 1859), and `st_rec_pair_ok` refused any
+  treaty moving the good either way. Vanilla only refuses one where the
+  partner sends us the good, so the rule now matches vanilla. The probe
+  (`PROBE_GOODS`, now empty) read Spain's coffee as 748 buy / 1041 sell orders,
+  the same figures the screenshot's tooltip implied.
+- **Hardwood to the federation suggested at ~334 a week, earning 58.5: cause
+  found, fix on branch `st-price-ratio`** (rollback tag `st-before-price-ratio`).
+  Not displacement (an earlier guess). The cards and suggestions rebuilt each
+  price from orders with vanilla's rule; Spain's real hardwood price sits
+  12.7% above that rule (38.34 vs 34.03), the draft tooltip used the real
+  price. One model now: real price today x the rule's relative change. As a
+  ratio it predicts 1.10 a unit on the signed deal (real 1.08); a fixed gap
+  gave 1.67. Checked without the game by tools/check_price_model.py.
+- **Open: why real prices sit off the rule.** Leading hypothesis, unconfirmed:
+  monopolies. 00_defines.txt `MONOPOLY_PRICE_IMPACT = 0.2`, "the price of a
+  good is increased by this multiplier based on how much of its supply is
+  considered to be under a monopoly"; the GUI has
+  `Goods.GetMarketMonopolyPriceImpact`. Fits: multiplicative, capped at +20%
+  (seen: Spain hardwood 9-13%, Prussia artillery 16%, German Empire 14%),
+  switches on and off abruptly, sender side only (monopolies sit on
+  production). Confirm from the game's own price breakdown (hover the
+  price), and with a good that has no monopoly matching the rule.
+- **~0.3 s stall when opening the goods transfer list: cut on branch
+  `claude/goofy-yalow-84dc26` (2026-11-20), not run in game yet** (Damien,
+  0.14, 2026-11-19). The 40 goods cards each compute their figure once on
+  creation (st_perf counted 40 per opening, none while the game runs), so the
+  stall is a one-off per opening: FPS dipped to 71 on opening and came back to
+  140 paused, 110 unpaused (baseline 110).
+
+  What changed in a card's creation chain (tools/gen_smart_trade_gui.py,
+  `lazy_widgets`):
+  1. The decade test compares the gain at the decade's first two grid points,
+     written as one difference so each side's K is built once (`rises`): 244
+     steps against 441 for the marginal it replaced.
+  2. A decade's figure first picks its half (one more such test, `half_up`)
+     and runs 4 or 5 grid points instead of 9.
+  3. Dropped from the figure, provably without changing it: the cap (it is
+     the limit when within our ceiling; past it the gain is negative unless a
+     real price sits 1.75 times further off the rule than ours), and the
+     decade's first point above decade 0 (the decade test already shows the
+     second beats it). The kinks use their closed form (one side's ratio is
+     exactly +1 or -1 there). "Past the limit" for a literal quantity skips
+     building the limit (`over_lim`, 31 steps against 51).
+  4. Earlier exits: the player-sends test runs before the border tests (a list
+     the player receives from costs 5 steps a card), and a card whose first
+     unit already loses after shipping stops before the 10-unit test (exact:
+     the margin per unit only falls).
+  5. The route (land, near sea, far sea) is stored per partner and day
+     (`ROUTE_KEY`): only the list's first card runs the two IsValid border
+     tests (about 45 steps each, 2026-10-16 fit).
+
+  Data-function steps per card, static count (`python tools/st_card_cost.py`,
+  plumbing excluded, IsValid counted as 2), a card the player sends by sea:
+
+  | Card | 0.14 | Now, list's first card | Now, other cards |
+  |---|---|---|---|
+  | best quantity 10-100 | 3,367 | 2,170-2,346 (-30%) | 2,139-2,315 (-31%) |
+  | 100-1,000 | 3,808 | 2,414 (-37%) | 2,383 (-37%) |
+  | 1,000-10,000 | 4,249 | 2,414 (-43%) | 2,383 (-44%) |
+  | above 10,000 | 4,690 | 2,414 (-49%) | 2,383 (-49%) |
+  | first unit loses | 170 | 80 | 49 |
+  | 10 units lose | 170 | 219 | 188 |
+  | player receives | 170 | 5 | 5 |
+
+  Every card also made 2 IsValid calls in 0.14; now only the list's first
+  does. The "10 units lose" card costs more steps (the first-unit test comes
+  first) but, after the list's first card, 28% less once its two IsValid
+  are counted at 45. Before the price model a paying card cost 2,811 at
+  best quantity 10-100. The paying rows include the fix below, +38 steps.
+
+  Figures: the speed-up alone left every card's whole-unit figure as in 0.14
+  on 2,786 random paying shapes (compared directly against the 0.14
+  generator), and `tools/check_price_model.py` at worst 2.03% (prices on the
+  rule) and 2.00% (off) below brute force. With the fix below, 104 of those
+  2,786 cards read lower (the ones 0.14 overstated) and the worst is 2.03%
+  both ways. The GUI file shrank from 3.64 to 2.83 MB.
+
+  The search now stops at 10,000 units (`CHAIN_DECADES` 3, was 5 to
+  1,000,000; Damien, 2026-11-20). None of the 111 goods transfers in the
+  observer logs (1836-1909, mostly AI deals) went past 157 units, and a card
+  only pays for the decades it climbs through: cards below 1,000 cost the
+  same, cards from 1,000 up save one decade test (244 steps), and the GUI
+  file lost 0.63 MB. Cost: where the best
+  quantity really is above 10,000, the card shows the best of what it
+  tries up to 10,000 plus the limit and the kinks. On deliberately
+  oversized markets (`st_card_cost.big_shape`, 443 such shapes) the median
+  card loses nothing, 99 read more than 2% low, worst 94%.
+
+  Measured and not done: 7 points per decade leaves the dearest path
+  unchanged and the worst figure 2.60% low; 6 points fails the 3% bound
+  (3.56%). Skipping goods with no partner shortage would hide goods that pay
+  because our own price is lower; the first-unit test is the exact form of
+  that idea. Trying the kinks and the limit only near the best grid point
+  saved little (they are needed in most shapes) and was 12.65% low on shapes
+  where the gain has two peaks. Only the cards on screen, or spreading the 40
+  over several frames: not built, the total work stays the same and it needs
+  engine behaviour nobody has confirmed (`PdxGuiWidget.GetIndexInDataModel`
+  exists, for staggering by index, if the run shows the stall still matters).
+
+  **First timing run, 2026-11-20: no reading.** Two instruments failed, the
+  build itself worked (40 cards logged per opening, figures shown). The
+  card's mode button never took a click, and the frame-time meter never
+  wrote, not even the FPS bucket under 120 that a 0.3 s stall at 140 fps
+  should fill. Most likely cause, not confirmed: a state with no animated
+  property logs "Animation triggered has no valid state properties" (107
+  per opening) and never reaches its `next`, so the looping sampler never
+  ran.
+
+  **Timing run dropped (Damien, 2026-11-20).** The first run already showed
+  the new search working in game (figures on every card), and it does the
+  same kinds of steps as 0.14, fewer of them, so it is faster without a
+  measurement. What stays unknown is how much of the 0.3 s it removes: the
+  list's own card building is part of the stall and is untouched. Run the
+  build below only if the stall still bothers anyone. The in-game check
+  that replaces it: open the list (Spain 1861, Goods Transfer to the North
+  German Federation), pick a card with a figure, click Best. Pass: the net
+  after Best is at or a little above the card's figure (the card may read
+  up to about 2% below, never above). **Passed 2026-11-20** (screenshots
+  20261120153842-153902): Coffee card +655, Best 71 a week at net +664,
+  the card 9 (1.37%) below.
+
+  **Shelved timing build (second try, never run), acceptance criteria
+  first.** Pass: `python tools/st_perf_report.py` lists 6 openings of 40
+  cards each, every one with "all" repeats ran; `new` takes fewer seconds
+  than `old` in both rounds, by more than 2 s (the timestamps are whole
+  seconds); `off` is the lowest. The steps predict `new` at roughly 0.5 to
+  0.7 of `old` once `off` is subtracted. The screenshots of openings 1 and
+  2 show the same figures, except any card 0.14 overstated (lower in `new`).
+  Broken instrument, not a result: any "NOT" in the repeats column (the
+  engine skipped re-triggered states), or every mode at 0-1 s (debug.log
+  stamps a frame's lines with one time).
+
+  Setup (Claude): bring this branch into the checkout the `smart_trade`
+  junction points to, then `python tools/gen_smart_trade_gui.py --perf`. In
+  that build the modes take turns by themselves, one per opening of the
+  list: new, old (0.14's chain, built from git), off (no figure at all),
+  then again. Each card runs its figure search 100 times, so an opening
+  freezes the game for seconds (up to about 30 s for `old` if the whole
+  0.3 s stall is the search), and logs ST_PERF begin and end lines that
+  `tools/st_perf_report.py` turns into seconds per opening. A label at each
+  card's top right reads the mode and a repeat counter ("new t2" when all
+  100 ran). After the run, rerun the generator without --perf
+  (validate_syntax flags a --perf build as stale on purpose).
+
+  Recipe (Damien): Spain 1861 save, game paused.
+  1. Treaty draft with the North German Federation, add a Goods Transfer
+     that Spain sends. The game freezes, then the list appears; cards read
+     "new t2" top right. F12.
+  2. Close the goods list and open it again. Wait for it, F12. (old)
+  3. Same again. (off: no freeze, no figures)
+  4. Same again three more times (new, old, off).
+  Six openings, one screenshot each. Count the seconds of each freeze
+  roughly, as a fallback if the log has no timing. Then say done.
+- **Fixed on the same branch, run in game 2026-11-20 on an ordinary card
+  (Coffee, below Best by 1.37%; no shape 0.14 overstated was seen in game):
+  the card figure could
+  promise more than Best reaches** (found 2026-11-20 while checking the
+  stall work; the same in 0.14). The card tried the kink where the partner
+  leaves its price ceiling anywhere up to the AI's cap, even past our own
+  price ceiling, where the Best button and the suggestions stop. 104 of
+  2,786 random paying shapes showed more than 1% above the best gain within
+  the limit; worst case +96,967 a week on the card against 394 (a tiny home
+  market, sh 20, against a partner short by about 7,900). Now that kink is
+  tested against the limit (`Market.kink_gains`, +38 steps a paying card;
+  our own kink always sits 1.5 sh below our ceiling, so it keeps the
+  cheaper cap test). Exactly those 104 cards change, all lower, each now
+  within 2% below the best within the limit. check_price_model now fails
+  any search showing more than the best within the limit (it read 6,714%
+  above on the old code). The Best button and the suggestions may go one
+  unit past it, by design ("one more unit if it pays", run 11): at very
+  small quantities that unit can cross our ceiling, worth up to 6.7% in the
+  random shapes. Left as is.
+- **Done: the losing-transfer toast opens its treaty** (type = treaty, posted
+  from the treaty), confirmed in game 2026-11-19 with the observer's one-time
+  test toast, since removed (observer v0.05).
+
 ## 1. Measurement build
 
 Replaces the Reddit idea and the manual Austria check. One deal proved little:
@@ -138,6 +318,10 @@ the predictor's zero-shipping rule. The archiver runs as a hidden background
 process into `logs/treaty_obs_spain`, so it survives the Claude app and
 session restarts, but not a reboot. Useful once he has signed about 5 deals of
 50 units or more, at least 2 by sea and 2 overland, each with 6 months of data.
+The archiver was found stopped on 2026-11-20 (capture ended 2026-11-13); it
+was restarted into a new folder, `logs/treaty_obs_spain_2026-11-20`, so a
+restart never moves the first archive aside. A full report reads both
+folders.
 
 ## 2. "Goods transfer losing money" alert (built 2026-11-13, not yet run in game)
 
@@ -151,7 +335,14 @@ streak); a treaty coming into force, renegotiation included, starts its
 articles afresh. On the 1836-1851 data: Qing hardwood Nov 1837 and Feb 1843,
 France hardwood Mar 1848, nothing for silk (lost 13-24 a week at worst) or
 tobacco. "Once per treaty" was rejected: it would have warned in 1837 and
-stayed silent through 1842-1851. Files: common/script_values/st_alert_values.txt,
+stayed silent through 1842-1851. Spain campaign 1865-1872 (archive
+treaty_obs_spain_2026-11-20): it fired 3 times (paper, coal, fruit) and
+Damien dropped each good within 2-3 weeks; hardwood to Germany lost below
+-100 a week in 50 of 56 logged months with no alert, its streak having
+fired before the save was loaded and never recovered for 6 months. A yearly
+repeat while the streak lasts was offered; Damien kept once per streak
+(2026-11-20). The FIRE and CHECK log lines leave the treaty and good fields
+blank. Files: common/script_values/st_alert_values.txt,
 common/scripted_effects/st_alert_effects.txt, common/on_actions/st_alert_on_actions.txt,
 common/messages/st_alert_messages.txt; state in variable lists on the
 player (check_st_tna_lists_created). Shipping is estimated (script cannot
@@ -436,7 +627,25 @@ the game on).** Read from the code, nothing measured yet:
   creation-state code (run once), and its per-frame text runs only while a
   Goods Transfer draft is open.
 
-Perf run (proposed 2026-11-16, not built). An FPS counter capped at 60 (or
+**Decided 2026-11-18 (Damien): a plain A/B first.** One run with no mods,
+one with all of his mods, same save, same screens, fps uncapped. Only if
+they differ: find which mod, then why. The perf build below stays shelved
+until then. Reading the outliner with the Treaties group expanded and
+collapsed in both runs isolates the treaty rows at no extra cost.
+
+**Result 2026-11-18 (Damien):** Spain 1960 save, fps uncapped, about 1 min
+13 s per game year with and without his mods: no measurable difference.
+This times the simulation, not the frame rate on a given screen, and one
+year per side cannot rule out a cost under about 5% (identical mod-free
+sessions differed by 5.4% on 2026-10-07). Logs checked: both mod sessions
+(11:34, 11:40) mounted the Workshop copies of all four published mods,
+each at the repo's version (Build All 0.06, Smart Notifications 0.44,
+Reorder Research Queue 0.10, Smart Treaties 0.13); the 11:38 session
+mounted none. No mod error beyond Smart Notifications' load-time "set but
+never used" note on `smart_notifications_player_country`. Closed: no fix to the outliner
+rows unless a player reports low FPS with treaties open.
+
+Perf run (proposed 2026-11-16, shelved 2026-11-18). An FPS counter capped at 60 (or
 30) hides a few ms, which is likely why earlier with/without runs showed
 nothing. A dev-only copy of the mod, loaded instead of Smart Treaties,
 adds an overlay reading the engine's own `GetCurrentFps` (vanilla uses it
@@ -484,6 +693,42 @@ check whether they can sign a treaty at all.
 Accepted when: over 10 game years of the Spain campaign it fires at most 10
 times, never twice for one good and partner, and every alert matches a row
 the recommender showed that month.
+
+## Candidates from player demand (researched 2026-11-18, not decided)
+
+Sources: Steam discussions for app 529340 (20 queries) and all 16 comments on
+the Smart Treaties page. Reddit and the Paradox forum could not be read
+(403 / bot check), so this is Steam-only. Thread URLs are
+`steamcommunity.com/app/529340/discussions/0/<id>/`. The 16 comments hold two
+fixed bugs and praise, no feature request. No source asked for the
+opportunity alert (section 4).
+
+1. **Merchant marine view.** Merchant marine per treaty lane, the total
+   against supply, and a warning before signing if a draft would cause a
+   shortage. Threads 840629289175015722 (2026-05-25, 6 replies: one lane
+   needed 368 merchant marine) and 841753826211045524 (2026-05-12, 5 replies;
+   a reply asks for an overview after overdoing treaties). Today the mod shows
+   shipping in £ only.
+2. **Import finder: who will send me good X.** The suggestions cover goods
+   the player sends only (section 3). Threads 684112501454998485 (2025-11-23,
+   20 replies) and 841753396007528425 (2026-05-07, 13 replies). Read
+   2026-11-18: only two posters actually ask (the first OP, both directions;
+   one reply in the second complaining about clicking through treaty menus
+   to buy a good). Most replies answer "trade centers import automatically,
+   use goods transfers for military goods or as a sweetener", which argues
+   against this one.
+3. **Cheapest sweetener.** While drafting another treaty, the goods
+   transfers that buy the most acceptance for the least money. Replies in 3
+   threads advise doing this by hand; one 2025-07 reply asks for "a button to
+   ask the AI what it wants". Unverified: 1.12 capped goods-transfer
+   acceptance per article (seen only in a search snippet of Dev Diary #171).
+4. Lower: a renegotiation hint (the cap is the partner's shortage after the
+   current transfer; 1 thread), why acceptance moves when an article is added
+   (2 threads from 2025, engine-side), reopening a refused proposal (1 thread,
+   0 replies), tariff revenue (out of scope).
+
+Demand signal for trade information in the UI: "Trade Partners" (Workshop,
+13,611 subscribers on 2026-11-18, created 2026-05-26).
 
 ## Rejected (Damien, 2026-11-05)
 

@@ -243,10 +243,10 @@ OVERRIDES_PATH = REPO_ROOT / "tools" / "census_scope_overrides.json"
 # comments are incomplete -- they do not mention actor/recipient at all.
 #
 # Each entry below is confirmed, never assumed:
-#   on_diplomatic_action / on_diplomatic_action_break / on_diplo_play_subject_released
+#   on_diplomatic_action / on_diplomatic_action_break
 #     -- proven by this mod's own shipped, working code
-#        (06_..._diplomatic_action_filtering.txt, 13_..._pact_break_filtering.txt,
-#         03_..._relational_notifications.txt).
+#        (06_..._diplomatic_action_filtering.txt, 13_..._pact_break_filtering.txt).
+#     (on_diplo_play_subject_released was here too; game 1.15.2 deleted it.)
 #   the rest -- documented in vanilla's `# scope:` comments above the on_action.
 #
 # Assuming a SIBLING on_action shares its bindings is exactly the mistake that
@@ -256,7 +256,6 @@ OVERRIDES_PATH = REPO_ROOT / "tools" / "census_scope_overrides.json"
 ON_ACTION_SCOPES = {
     "on_diplomatic_action": ["actor", "recipient"],
     "on_diplomatic_action_break": ["actor", "recipient"],
-    "on_diplo_play_subject_released": ["actor", "target"],
     "on_diplomatic_play_started": ["initiator", "target"],
     "on_country_withdrawn_from_treaty": ["withdrawing_country", "non_withdrawing_country"],
     "on_country_broke_treaty": ["withdrawing_country", "non_withdrawing_country"],

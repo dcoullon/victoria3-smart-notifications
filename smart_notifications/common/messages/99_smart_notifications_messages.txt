@@ -318,29 +318,11 @@ smart_notifications_diplo_play_war_start_quiet = {
 # and smart_notifications_diplo_play_war_start_watched/_quiet respectively
 # -- both fired for the same play, to the same viewer, at the same time.
 # See 03_smart_notifications_relational_notifications.txt's header comment
-# for the full story. Only diplo_play_subject_released (below) genuinely
-# has no primary-key sibling, so it keeps its own watched/quiet pair.
-
-# REMOVED 2026-09-10: this key used to have a `_quiet` sibling pinned at
-# `none`, which existed only so the player COULD switch it on. A row that is
-# silent by default and that nobody asked to hear is a row spent on nothing,
-# so an unwatched country releasing a subject now posts no notification at all
-# rather than a muted one. The on_action logs the decision either way.
-smart_notifications_diplo_play_subject_released_watched = {
-	type = diplomatic_play
-	group = "smart_notifications_diplo_play_subject_released_watched_group"
-
-	texture = "gfx/interface/icons/notification_icons/diplomatic_play.dds"
-
-	# RAISED 2026-09-09 from `feed`: the user's call after seeing the full
-	# toast/feed/popup breakdown across all diplo-play events -- a watched
-	# country's subject being released is a small enough change to be a
-	# toast rather than a popup, but still worth a toast rather than just
-	# feed, unlike this event's unwatched sibling (still fully muted, see
-	# smart_notifications_diplo_play_subject_released_quiet below).
-	notification_type = toast
-	color = neutral
-}
+# for the full story.
+#
+# REMOVED 2026-11-19: smart_notifications_diplo_play_subject_released_watched
+# lived here. Game 1.15.2 deleted on_diplo_play_subject_released and both
+# vanilla subject-released messages, so nothing could post it any more.
 
 
 smart_notifications_truce_expired = {

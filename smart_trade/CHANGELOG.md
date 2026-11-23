@@ -5,6 +5,42 @@ written so they can be pasted into Steam Workshop update notes. Versions follow
 `.metadata/metadata.json`'s `version`, same convention as Bulk Construction:
 `+0.01` only when something genuinely new ships and is confirmed working.
 
+## [0.15] - lighter goods cards
+
+### Changed
+- The goods list does less work when it opens: a card for a good that pays
+  takes 30-49% fewer steps to work out its figure, and a card for a good
+  that does not pay, or that you receive, takes almost none.
+- Goods cards look for the best quantity up to 10,000 units a week, down
+  from 1,000,000. Deals that large are rare; above that a card may read
+  low. The Best button is unchanged.
+
+### Fixed
+- A goods card could promise more than the Best button reaches, mostly a
+  small market facing a partner short of a lot of that good. The card now
+  stops where Best does.
+
+## [0.14] - real prices
+
+### Fixed
+- Suggested goods transfers now include a good you already send to that
+  country, when sending more in a new treaty would pay. Before, one coffee
+  treaty with a partner hid every other coffee deal with them, even the most
+  profitable one on the list.
+
+### Changed
+- The goods cards, the Best button and the suggested transfers now start from
+  each market's real price, as the treaty's own figure already did. They used
+  to rebuild prices from supply and demand alone, which misjudged deals with a
+  market whose real price sits away from that (the game raises the price of
+  goods under a monopoly, for example): one suggestion showed about +330 a
+  week for a deal that earned about 60.
+- Clicking the "goods transfer losing money" notification now opens that
+  treaty.
+- The market panel keeps game 1.15.2's own changes: the recentred trade
+  capacity box, "None" in empty import and export charts, and the two-row
+  sort buttons on the world market tab.
+
 ## [0.13] - which deals to make
 
 ### Added
