@@ -19,7 +19,9 @@ instrumentation and doc-only changes get a commit but **no** version bump
 unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
-## Unreleased
+## [0.47] - 2026-11-24
+
+No settings reset needed.
 
 ### Fixed
 - "picks a side against us" no longer fires when a country joins YOUR side
