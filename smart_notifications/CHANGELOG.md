@@ -19,6 +19,14 @@ instrumentation and doc-only changes get a commit but **no** version bump
 unfinished feature made the number meaningless). Not full semver; this
 mod hasn't reached a 1.0 concept of "breaking changes" yet.
 
+## Unreleased
+
+### Fixed
+- "picks a side against us" no longer fires when a country joins YOUR side
+  of a diplomatic play, for example an ally you called in. That now goes to
+  the feed as "X sides with Y". A country joining the other side still
+  toasts as before.
+
 ## [0.46] - 2026-11-19
 
 No settings reset needed.

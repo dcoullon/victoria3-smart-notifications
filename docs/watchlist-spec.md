@@ -121,7 +121,10 @@ right, and muting it is then a player setting rather than a release.
 
 | situation | tier |
 |---|---|
-| play start / join side involving **you** | toast |
+| play start involving **you** | toast |
+| join side **against you** | toast, "picks a side against us" |
+| join side **with you** | feed (Damien, 2026-11-24) |
+| join side in your play, side not resolved | toast, neutral "X sides with Y" |
 | **war start** involving **you** | *(vanilla's own, untouched)* |
 | play start / join side / war start involving a **watched** country | toast |
 | involving neither | feed |
