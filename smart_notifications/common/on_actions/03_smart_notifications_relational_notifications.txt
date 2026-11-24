@@ -320,36 +320,60 @@ smart_notifications_diplo_play_join_side = {
 			# YOU started is never promoted. It still falls through to the
 			# watched branch below, which is today's behaviour and what the
 			# user asked to keep.
+			# The player's plays split by SIDE (2026-11-24). Until then one
+			# branch posted "picks a side against us" for any join in a play
+			# the player was in, so an ally the player had just called
+			# (Mexico, Spain campaign) toasted as an enemy. Vanilla's wording
+			# here is "actor sides with target ... against recipient", so
+			# target is the side joined and recipient the other side. Each
+			# side is tested two ways, OR'd: those scopes name only the side
+			# LEADERS, and the play triggers may not see a participant at
+			# the instant it joins (the reason the old branch OR'd too).
+			#
+			# Against us: toast, "picks a side against us".
 			if = {
-				# Two ways to be "the player is in this play", OR'd, because
-				# neither alone is reliable on every hook in this file:
-				#
-				# - scope:target is the direct answer but is NOT dependably
-				#   bound at on_diplo_play_start (see the 2026-09-07 note in
-				#   the header -- target= logged empty there, and vanilla's
-				#   own loc for that key never references it either). `?=`
-				#   makes an unbound scope fail the branch instead of
-				#   erroring.
-				# - any_scope_play_involved + is_diplomatic_play_participant_with
-				#   is the reliable one later on, but it asks about COMMITTED
-				#   participants, and the target of a brand-new play may not
-				#   be committed yet at the instant it opens.
-				#
-				# Either matching is enough. Getting this wrong in the safe
-				# direction costs a toast instead of a popup; getting it wrong
-				# the other way is the silence bug this file just had.
+				limit = {
+					scope:actor ?= { NOT = { is_player = yes } }
+					OR = {
+						scope:recipient ?= { is_player = yes }
+						any_scope_play_involved = {
+							is_player = yes
+							is_diplomatic_play_enemy_of = scope:actor
+						}
+					}
+				}
+				post_notification = smart_notifications_diplo_play_join_side_player
+				debug_log = "SNW_FILTER|join_side|posted_key=smart_notifications_diplo_play_join_side_player|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|PLAYER_ENEMY"
+			}
+			# On our side: feed only (Damien, 2026-11-24: usually a country
+			# the player called in).
+			else_if = {
 				limit = {
 					scope:actor ?= { NOT = { is_player = yes } }
 					OR = {
 						scope:target ?= { is_player = yes }
 						any_scope_play_involved = {
-							is_diplomatic_play_participant_with = scope:actor
 							is_player = yes
+							is_diplomatic_play_ally_of = scope:actor
 						}
 					}
 				}
-				post_notification = smart_notifications_diplo_play_join_side_player
-				debug_log = "SNW_FILTER|join_side|posted_key=smart_notifications_diplo_play_join_side_player|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|PLAYER_INVOLVED"
+				post_notification = smart_notifications_diplo_play_join_side_quiet
+				debug_log = "SNW_FILTER|join_side|posted_key=smart_notifications_diplo_play_join_side_quiet|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|PLAYER_ALLY"
+			}
+			# The player is in the play but neither test resolved the side:
+			# still a toast, with the watched key's neutral "X sides with Y",
+			# so nothing claims "against us" without evidence.
+			else_if = {
+				limit = {
+					scope:actor ?= { NOT = { is_player = yes } }
+					any_scope_play_involved = {
+						is_diplomatic_play_participant_with = scope:actor
+						is_player = yes
+					}
+				}
+				post_notification = smart_notifications_diplo_play_join_side_watched
+				debug_log = "SNW_FILTER|join_side|posted_key=smart_notifications_diplo_play_join_side_watched|actor=[SCOPE.sC('actor').GetNameNoFormatting]|target=[SCOPE.sC('target').GetNameNoFormatting]|recipient=[SCOPE.sC('recipient').GetNameNoFormatting]|PLAYER_SIDE_UNKNOWN"
 			}
 			else_if = {
 				limit = {
