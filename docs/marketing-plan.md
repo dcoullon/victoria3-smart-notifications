@@ -65,6 +65,13 @@ Due by Friday 2026-11-20 (checked by the scheduled task "marketing-plan-check"):
       ranks 4 / 27 / 75 to K70. Partial routine updates through the API
       replace job_config.ccr whole: send events and session_context with
       any environment change, or the prompt is wiped.
+- [ ] Russian Workshop page on Smart Treaties only (a test; the other mods
+      stay as controls, see docs/workshop-optimization.md, Open tests). On the
+      item's edit page, pick Russian as the language, then paste the title
+      `Smart Treaties (Умные договоры): сколько приносит каждая передача товаров`
+      and `smart_trade/STEAM_WORKSHOP_DESCRIPTION.russian.bbcode`. Log the date
+      in the sheet's Comment column, and avoid other Smart Treaties page
+      changes or Reddit posts for the following two weeks so the test stays readable.
 - [ ] Answer at least one existing thread on each topic, with a link to the
       mod (saved searches below).
 - [ ] Draft the trade guide (below).
