@@ -49,6 +49,26 @@ not public without a Steam Web API key. Steam's star score appears to be
 617 Victoria 3 items gave no counter-example (stars hidden at 24 ratings or fewer
 and shown from 25, no 4-star item under 28 ratings, no 5-star item under 155).
 
+## Dashboard and the 2026-11-25 additions
+
+On 2026-11-25 the sheet gained three tabs, all formulas over the mod tabs:
+"Dashboard" (totals, per-mod table, five charts: subscribers, new subscribers
+per day, visitors per day, trailing-7-day net subs per visitor, 3-month rank),
+"Events" (dated launches, Reddit posts, updates, store-page changes; the
+dashboard lists the 12 latest) and "Daily series" (the chart inputs, cut at the
+last day with data). Named ranges `LatestDate`, `DaysOfData` and `RankStart`
+live in `'Daily series'!AA1:AA3`. Every tab must keep 9/11 on its first data
+row: the formulas count rows from that date.
+
+The same day the routine started writing three more columns on each mod tab:
+N "Lifetime subscribers" (`lifetime_subscriptions`; unsubscribes = N minus D,
+shown on the dashboard as a share of N), O "Steam last updated (Pacific)"
+(`time_updated`; the routine also appends an "Update" row to Events when it
+changes) and P "Most Popular rank (1 week)" (`days=7`). The 1-week list ranks
+very differently from the 3-month one (on 2026-11-25: Reorder Research 5 and
+Smart Treaties 145 by week, 87 and 3 by 3 months), so it appears to favour
+recently published items; read it as launch visibility, not traffic.
+
 Item created 2026-09-10 for the first public release. An earlier closed-beta
 listing (ID `3798687130`, v0.35) was deleted and carried its own counts; they
 are not continuous with these.
