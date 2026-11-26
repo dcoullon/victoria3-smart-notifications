@@ -69,13 +69,13 @@ Due by Friday 2026-11-20 (checked by the scheduled task "marketing-plan-check"):
       stay as controls, see docs/workshop-optimization.md, Open tests). On the
       item's edit page, pick Russian as the language, then paste the title
       `Smart Treaties (Умные договоры): сколько приносит каждая передача товаров`
-      and `smart_trade/STEAM_WORKSHOP_DESCRIPTION.russian.bbcode`. Log the date
-      in the sheet's Comment column, and avoid other Smart Treaties page
-      changes or Reddit posts for the following two weeks so the test stays readable.
-- [ ] After that two-week window: paste the Chinese description's new first
-      line (it no longer opens with the mod name, already in the title) from
-      `smart_trade/STEAM_WORKSHOP_DESCRIPTION.schinese.bbcode` into Smart
-      Treaties' Simplified Chinese slot. Only line 1 changed. Log the date.
+      and `smart_trade/STEAM_WORKSHOP_DESCRIPTION.russian.bbcode`. Tell Claude
+      when it is done (Claude logs it in the sheet's Events tab), and avoid
+      other Smart Treaties page changes or Reddit posts for the following two
+      weeks so the test stays readable.
+- [x] Chinese description's first line no longer opens with the mod name
+      (already in the title). Pasted by Damien 11/25 about 6 PM PT, logged in
+      Events.
 - [ ] Answer at least one existing thread on each topic, with a link to the
       mod (saved searches below).
 - [ ] Draft the trade guide (below).
