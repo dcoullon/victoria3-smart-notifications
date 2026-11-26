@@ -88,6 +88,62 @@ treaties 11/24" below means that tab, the row dated 11/24.
   pixels.** Smart Treaties' title needs 457 px and is cut. Damien kept it
   (2026-11-16). Source: memory `v3-workshop-growth-facts`.
 
+## Links between your own mods
+
+What we did, from git and the sheet: Smart Treaties' description got a "My
+other mods" section linking Build All and Smart Notifications (commit d0ab2ea,
+2026-11-15 21:45 PT; sheet Smart treaties 11/16 comment "added links to other
+mods at the end + new reddit post"). Build All's and Smart Notifications'
+sections were written on 11/16 (ddd7cb8, b94b432) and confirmed live on 11/20
+([marketing-plan.md](marketing-plan.md)); the exact paste date is unknown.
+Reorder Research Queue was added to every mod's section on 11/18 around noon
+(3f74c3e) and has its own section linking the other three. Since then every
+mod links every other one.
+
+- **Measured, upper bound. The links moved at most about 4% of Smart
+  Treaties' visitors to the two older mods.** Build All plus Smart
+  Notifications went from 44.0 to 55.2 visitors a day between the weeks of
+  11/9 and 11/16 (+11.1), against +3.9 the week before. Smart Treaties had 276
+  visitors a day that week, so the whole rise is 4.0% of them, and 2.6% beyond
+  the previous week's trend. Both mods' Most Popular ranks got worse over the
+  same weeks (Smart Notifications 75 to 85, Build All 27 to 32), so the rise
+  did not come from ranking. Source: tab "Cross-links test" in the proposal
+  copy, rows 6 to 17, built 2026-11-25 from the mod tabs' columns B and G;
+  ranks from column K, 11/16 and 11/24.
+- **Measured, upper bound. For small mods that is a large relative gain.**
+  Their combined net new subscribers went from 17.3 to 25.0 a day (+7.7,
+  against +3.0 the week before): up to 45% more, or 27% beyond the trend.
+  Smart Treaties alone gained 165.6 a day that week, so for the total it is a
+  few percent. Source: same tab, columns I and J, row 18; Smart Treaties from
+  the sheet, Smart treaties 11/16 to 11/22, column H.
+- **Caveat.** The 11/16 Reddit post sent its readers to Smart Treaties' page
+  in the same week, and Smart Notifications got its Chinese page at an unknown
+  date after 11/16. Both inflate the upper bound. Steam reports no referrers,
+  so this cannot be split further.
+- **Hypothesis.** A link carries the most when it sits on the page with the
+  most traffic and points at mods that page's visitors want too: Smart
+  Treaties' visitors are economy players, and Build All is the closest match.
+  Untested.
+
+## Collections
+
+- **Measured. Steam already shows your own collection on each item's page**
+  ("In 1 collection by" the author, with a "See all N collections" link), with
+  no description change. Source: live pages of all four mods, read 2026-11-25.
+- **Measured. Players put the mods in their own collections at different
+  rates:** collections including each mod, hidden ones included, 2026-11-25:
+  Smart Treaties 98, Build All 25, Smart Notifications 8, Reorder Research
+  Queue 7. Per 1,000 subscribers on 11/24: 21.9, 27.4, 13.7, 27.8. Source:
+  each item page's "See all N collections" link; ratio in tab "Cross-links
+  test", rows 20 to 24.
+- **Measured.** "QoL essentials: best Quality of Life mods"
+  (https://steamcommunity.com/sharedfiles/filedetails/?id=3844524545) was
+  created 2026-11-22 17:24 PT, holds the four mods plus "Construction Queue:
+  Multi-Select & Drag" (another author, 237 subscribers), and had 111 views and
+  0 subscriptions on 2026-11-25. Source: Web API GetPublishedFileDetails and
+  GetCollectionDetails, 2026-11-25. Whether "Subscribe to all" counts toward a
+  collection's `subscriptions` is unknown.
+
 ## Translated Workshop pages
 
 Steam lets an item carry a title and description per language; a viewer sees
@@ -130,4 +186,5 @@ one). Source: live item pages, checked 2026-11-16 and 2026-11-25.
 | Test | Live from | Controls | How to read it | Status |
 |---|---|---|---|---|
 | Russian title and description on Smart Treaties | paste date, logged in the sheet's Comment column | Build All, Smart Notifications, Reorder Research Queue | "Chinese test" tab method: 7 and 14 days before vs after, plus the placebo rows | description ready in `smart_trade/STEAM_WORKSHOP_DESCRIPTION.russian.bbcode`, not pasted |
-| Cross-links between the mods ("My other mods") | 2026-11-16 to 11-20 | none clean (all four changed together) | not separable from the 11/16 Reddit post | logged only |
+| Cross-links between the mods ("My other mods") | 2026-11-16 to 11-20 | none clean (all four changed together) | "Cross-links test" tab: at most 4% of Smart Treaties' visitors, not separable from the 11/16 Reddit post | read 2026-11-25 |
+| QoL Essentials collection link at the bottom of each mod | paste date, logged in the Comment column | the collection's own views before the paste | collection `views` per day from the API, a few days before and after | not pasted; collection not yet in the daily routine |
