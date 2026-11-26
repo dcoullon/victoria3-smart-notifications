@@ -72,6 +72,10 @@ Due by Friday 2026-11-20 (checked by the scheduled task "marketing-plan-check"):
       and `smart_trade/STEAM_WORKSHOP_DESCRIPTION.russian.bbcode`. Log the date
       in the sheet's Comment column, and avoid other Smart Treaties page
       changes or Reddit posts for the following two weeks so the test stays readable.
+- [ ] After that two-week window: paste the Chinese description's new first
+      line (it no longer opens with the mod name, already in the title) from
+      `smart_trade/STEAM_WORKSHOP_DESCRIPTION.schinese.bbcode` into Smart
+      Treaties' Simplified Chinese slot. Only line 1 changed. Log the date.
 - [ ] Answer at least one existing thread on each topic, with a link to the
       mod (saved searches below).
 - [ ] Draft the trade guide (below).
