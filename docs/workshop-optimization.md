@@ -39,6 +39,15 @@ treaties 11/24" below means that tab, the row dated 11/24.
   action data"), which the API does not give. For the collection it read 42,
   25, 40 and 4 (so far) for 11/22 to 11/25, summing to the 111 total, so it
   appears to be unique visitors per day. Source: same screenshot.
+- **Measured. Steam keeps no public timestamp of description or title
+  edits.** The "Change Notes" page lists only uploads of the mod itself (Smart
+  Treaties: 10/6, 10/16, 11/5, 11/15, 11/19). The API's `time_updated` does not
+  move on a description edit: Damien changed Smart Treaties' Chinese first line
+  on 2026-11-25 about 6 PM PT and `time_updated` still read 11/19 9:17 PM
+  afterwards. The Wayback Machine has no snapshots of the pages. So the dates of
+  page edits exist only where we log them (the sheet's Events tab). Source:
+  https://steamcommunity.com/sharedfiles/filedetails/changelog/3814823352 and
+  the API, both read 2026-11-25; Wayback CDX query the same day.
 - **Measured.** Steam gives no traffic source and no visitor language. Every
   channel effect below is read from day-level timing, so anything that happens
   on the same day is confounded.
