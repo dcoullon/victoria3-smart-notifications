@@ -29,9 +29,16 @@ treaties 11/24" below means that tab, the row dated 11/24.
   also returns `lifetime_subscriptions`, `lifetime_favorited` and `time_updated`,
   so churn (lifetime minus current subscribers) is measurable. Smart Treaties
   on 2026-11-25: 4,571 current, 4,833 lifetime. Source: API call 2026-11-25.
-- **Inferred.** The API's `views` is the page's "Unique visitors": it continues
-  the sheet's hand-read page values smoothly. Not yet compared on the same day.
-  Source: [workshop-stats.md](workshop-stats.md).
+- **Measured.** The API's `views` is the stats page's "Total Unique" visitors.
+  On 2026-11-25 the QoL Essentials collection's stats page showed 111 total
+  unique visitors and the API returned `views` 111 the same day. It also
+  continues the sheet's hand-read page values smoothly. Source: Damien's
+  screenshot of the collection's stats page, 2026-11-25; API call the same day;
+  [workshop-stats.md](workshop-stats.md).
+- **Measured.** The author-only stats page also has a daily chart ("Daily item
+  action data"), which the API does not give. For the collection it read 42,
+  25, 40 and 4 (so far) for 11/22 to 11/25, summing to the 111 total, so it
+  appears to be unique visitors per day. Source: same screenshot.
 - **Measured.** Steam gives no traffic source and no visitor language. Every
   channel effect below is read from day-level timing, so anything that happens
   on the same day is confounded.
@@ -187,4 +194,4 @@ one). Source: live item pages, checked 2026-11-16 and 2026-11-25.
 |---|---|---|---|---|
 | Russian title and description on Smart Treaties | paste date, logged in the sheet's Comment column | Build All, Smart Notifications, Reorder Research Queue | "Chinese test" tab method: 7 and 14 days before vs after, plus the placebo rows | description ready in `smart_trade/STEAM_WORKSHOP_DESCRIPTION.russian.bbcode`, not pasted |
 | Cross-links between the mods ("My other mods") | 2026-11-16 to 11-20 | none clean (all four changed together) | "Cross-links test" tab: at most 4% of Smart Treaties' visitors, not separable from the 11/16 Reddit post | read 2026-11-25 |
-| QoL Essentials collection link at the bottom of each mod | paste date, logged in the Comment column | the collection's own views before the paste | collection `views` per day from the API, a few days before and after | not pasted; collection not yet in the daily routine |
+| QoL Essentials collection link at the bottom of each mod | paste date, logged in the Comment column | the collection's own views before the paste | collection visitors per day, tab "QoL collection" (daily routine from 11/26; 11/22 to 11/24 from the stats page chart in the Comment column) | not pasted; wait for a few days of baseline |

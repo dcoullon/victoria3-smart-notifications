@@ -10,9 +10,15 @@ partner-side). A reading not written down is lost permanently.
 
 **The public Steam Web API gives more than the page**, with no key:
 `lifetime_subscriptions` and `lifetime_favorited` alongside current counts, so
-churn (lifetime minus current) is measurable. `views` appears to be the
-page's "Unique Visitors" (it continues the sheet's page readings smoothly), but
-nobody has yet compared the two on the same day; do that once before relying on it.
+churn (lifetime minus current) is measurable. `views` is the stats page's
+"Total Unique" visitors: compared on the same day (2026-11-25) for the QoL
+Essentials collection, both read 111.
+
+QoL Essentials collection (3844524545), created 2026-11-22 5:24 PM PT: tab "QoL
+collection" (sheetId 384452454), stats only (no rank, ratings or stars), added
+to the noon routine as its STEP 6b on 2026-11-25; first scheduled reading
+2026-11-26. 11/22 to 11/24 visitors per day are in that tab's Comment column,
+read off the author's stats-page chart.
 
 ```bash
 curl -s -X POST "https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/" \
