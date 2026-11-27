@@ -1,0 +1,76 @@
+From 6648ac2b35833552dfa8ee1366d78899069280e3 Mon Sep 17 00:00:00 2001
+From: dcoullon <279558193+dcoullon@users.noreply.github.com>
+Date: Fri, 27 Nov 2026 13:22:35 -0800
+Subject: [PATCH] move the trade tab chart block into its own type
+
+The charts, their wrapper and the 5 second refresh now live in
+trade_partners_world_market_block (00_trade_partners_charts.gui). The
+market panel calls it in one line. No change in behavior on its own, but
+another mod that also redefines market_panel can now include the block
+with one line and keep working when Trade Partners is not loaded.
+---
+ gui/00_trade_partners_charts.gui       | 21 +++++++++++++++++++++
+ gui/00_trade_partners_market_panel.gui | 17 ++++-------------
+ 2 files changed, 25 insertions(+), 13 deletions(-)
+
+diff --git a/gui/00_trade_partners_charts.gui b/gui/00_trade_partners_charts.gui
+index 7bae3a0..dbd94f3 100644
+--- a/gui/00_trade_partners_charts.gui
++++ b/gui/00_trade_partners_charts.gui
+@@ -1,4 +1,25 @@
+ ﻿types market_panel {
++    # The whole Trade Partners block on the market panel's Trade tab: the
++    # charts plus the timer that refreshes their data. Kept self-contained so
++    # a mod that also redefines market_panel can include it with
++    # `trade_partners_world_market_block = {}`, and declare an empty fallback
++    # of the same name in a file that sorts after this one for when Trade
++    # Partners is not loaded (the engine keeps the first definition it reads).
++    # Please keep this type name stable.
++    type trade_partners_world_market_block = flowcontainer {
++        visible = "[Not(GetVariableSystem.Exists( 'market_world_market_charts' ))]"
++        margin_top = 5
++        parentanchor = hcenter
++        state = {
++            name = recalc_trade
++            next = recalc_trade
++            duration = 5
++            trigger_on_create = yes
++            on_finish = "[GetScriptedGui('trade_partners_scripted_gui').Execute(GuiScope.SetRoot(MarketPanel.GetMarket.MakeScope).End)]"
++        }
++        trade_partners_charts = {}
++    }
++
+     type trade_partners_charts = flowcontainer {
+         spacing = 5
+         compact_chart = {
+diff --git a/gui/00_trade_partners_market_panel.gui b/gui/00_trade_partners_market_panel.gui
+index e817686..2cb99e4 100644
+--- a/gui/00_trade_partners_market_panel.gui
++++ b/gui/00_trade_partners_market_panel.gui
+@@ -731,19 +731,10 @@ types market_panel
+ 						}
+ 					}
+ 					# TRADE PARTNERS
+-					flowcontainer = {
+-						visible = "[Not(GetVariableSystem.Exists( 'market_world_market_charts' ))]"
+-						margin_top = 5
+-						parentanchor = hcenter
+-						state = {
+-							name = recalc_trade
+-							next = recalc_trade
+-							duration = 5
+-							trigger_on_create = yes
+-							on_finish = "[GetScriptedGui('trade_partners_scripted_gui').Execute(GuiScope.SetRoot(MarketPanel.GetMarket.MakeScope).End)]"
+-						}
+-						trade_partners_charts = {}
+-					}
++					# Everything the charts need, including the refresh, lives in
++					# this one type (00_trade_partners_charts.gui) so that other
++					# mods that redefine market_panel can call it with one line.
++					trade_partners_world_market_block = {}
+ 				}
+ 			}
+ 
+-- 
+2.56.0.windows.4
+
