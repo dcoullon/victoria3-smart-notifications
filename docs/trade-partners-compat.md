@@ -21,7 +21,8 @@ Trade Partners, that call would target a scripted GUI that does not exist.
 
 ## The fix (option 1, shared hook type)
 
-Their side (PR drafted, not opened): the whole Trade tab block, meaning the
+Their side (proposed to them as a GitHub issue by Damien, 2026-11-27, with the
+diff inline; no fork or PR unless they ask for one): the whole Trade tab block, meaning the
 wrapper, the 5 second `recalc_trade` state and `trade_partners_charts`, moves
 into one type, `trade_partners_world_market_block`, in
 `00_trade_partners_charts.gui`. Their panel calls it in one line. The commit is
